@@ -36,3 +36,4 @@ test("SC screens do not emit console errors", async ({ page }) => {
   await page.waitForTimeout(500);
   expectNoConsoleErrors(errors);
 });
+

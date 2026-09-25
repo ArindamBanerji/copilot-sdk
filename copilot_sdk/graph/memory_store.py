@@ -1183,12 +1183,32 @@ class InMemoryGraphStore:
             return "already_applied"
         return "conflict"
 
-    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None:
+    def get_decision(
+        self,
+        decision_id: str,
+        domain: str,
+        *,
+        include_outcome: bool = False,
+    ) -> dict[str, Any] | None:
         domain_value = _normalize_domain(domain)
         decision = self._decisions.get(decision_id)
         if decision is not None and decision.get("domain") != domain_value:
             return None
-        return deepcopy(decision) if decision is not None else None
+        if decision is None:
+            return None
+        result = deepcopy(decision)
+        if include_outcome:
+            outcome = self._outcomes.get(decision_id)
+            if outcome is not None:
+                result.update({
+                    "actual_action": outcome["actual_action"],
+                    "actual_index": outcome["actual_index"],
+                    "is_correct": outcome["is_correct"],
+                    "verified_at": outcome["verified_at"],
+                    "context": deepcopy(outcome["context"]),
+                    "outcome_metadata": deepcopy(outcome["metadata"]),
+                })
+        return result
 
     def get_decisions(
         self,
@@ -2170,6 +2190,74 @@ class InMemoryGraphStore:
             if edge.get("domain") == domain_value
             and str(edge.get("entity_id")) == str(entity_id)
         ][:limit_value]
+
+    def decision_movement(self, domain: str, decision_id: str) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
+        if self.get_decision(str(decision_id), domain=domain_value) is None:
+            return []
+        return self.query_context(str(decision_id), 3, domain=domain_value)
+
+    def contextual_judgment(
+        self, domain: str, entity_group: str, category: str
+    ) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
+        group_value = str(entity_group)
+        rows: list[dict[str, Any]] = []
+        for decision in self._ordered_decisions():
+            if decision.get("domain") != domain_value or decision.get("category") != str(category):
+                continue
+            metadata = decision.get("metadata")
+            metadata = metadata if isinstance(metadata, dict) else {}
+            if group_value not in {
+                str(decision.get("entity_group") or ""),
+                str(decision.get("entity_id") or ""),
+                str(metadata.get("entity_group") or ""),
+                str(metadata.get("entity_id") or ""),
+            }:
+                continue
+            rows.append({"decision": deepcopy(decision)})
+        return rows[:100]
+
+    def promotion_basis(self, domain: str, rule_id: str) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
+        rule_value = str(rule_id)
+        return [
+            {"evolution_event": deepcopy(event)}
+            for event in self.get_evolution_events(domain_value, limit=1000)
+            if rule_value in {
+                str(event.get("rule_name") or ""),
+                str(event.get("source_rule") or ""),
+                str(event.get("target_rule") or ""),
+            }
+        ][:100]
+
+    def transfer_witness(
+        self, source_domain: str, target_domain: str, pattern_id: str
+    ) -> list[dict[str, Any]]:
+        pattern_value = str(pattern_id).strip()
+        return [
+            {"transfer_pattern": pattern}
+            for pattern in self.get_transfer_patterns(
+                source_domain=str(source_domain), target_domain=str(target_domain)
+            )
+            if pattern_value.lower() in {"", "any"}
+            or str(pattern.get("pattern_id")) == pattern_value
+        ][:100]
+
+    def list_fingerprints(self, domain: str | None = None) -> list[dict[str, Any]]:
+        domain_value = None if domain is None else _normalize_domain(domain)
+        rows = sorted(
+            self._fingerprints.values(),
+            key=lambda item: (
+                float(item.get("created_at", 0.0)),
+                str(item.get("fingerprint_id", "")),
+            ),
+        )
+        return [
+            {**deepcopy(row), "fingerprint": deepcopy(row.get("factor_stats", {}))}
+            for row in rows
+            if domain_value is None or row.get("domain") == domain_value
+        ][:500]
 
     def query_similar(
         self, entity_id: str, limit: int, *, domain: str

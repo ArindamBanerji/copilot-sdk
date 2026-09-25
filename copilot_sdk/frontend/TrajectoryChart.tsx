@@ -1,6 +1,7 @@
 import {
   Area,
   AreaChart,
+  ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -12,6 +13,8 @@ export interface TrajectoryPoint {
   decisions: number;
   iks: number;
   winRate: number;
+  /** Unix seconds/milliseconds or an ISO timestamp from the trajectory API. */
+  timestamp?: number | string;
 }
 
 export interface Annotation {
@@ -31,10 +34,49 @@ export interface TrajectoryChartProps {
   narrative: string;
   decisionsTotal: number;
   daysActive: number;
+  /** Consecutive trajectory points farther apart than this form a verification gap. */
+  gapThresholdDays?: number;
+  /** Show the shaded and labelled no-verification interval. */
+  showGapAnnotation?: boolean;
+}
+
+interface VerificationGap {
+  startDecision: number;
+  endDecision: number;
+  winRatePct: number;
 }
 
 function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`;
+}
+
+function timestampMilliseconds(timestamp: TrajectoryPoint["timestamp"]): number | undefined {
+  if (typeof timestamp === "number" && Number.isFinite(timestamp)) {
+    return timestamp < 1_000_000_000_000 ? timestamp * 1000 : timestamp;
+  }
+  if (typeof timestamp === "string") {
+    const parsed = Date.parse(timestamp);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  return undefined;
+}
+
+function findVerificationGaps(points: TrajectoryPoint[], thresholdDays: number): VerificationGap[] {
+  const thresholdMilliseconds = thresholdDays * 24 * 60 * 60 * 1000;
+  return points.flatMap((point, index) => {
+    if (index === 0) return [];
+    const previous = points[index - 1];
+    const currentTimestamp = timestampMilliseconds(point.timestamp);
+    const previousTimestamp = timestampMilliseconds(previous.timestamp);
+    if (currentTimestamp === undefined || previousTimestamp === undefined) return [];
+    const elapsed = currentTimestamp - previousTimestamp;
+    if (elapsed <= thresholdMilliseconds) return [];
+    return [{
+      startDecision: previous.decisions,
+      endDecision: point.decisions,
+      winRatePct: previous.winRate * 100,
+    }];
+  });
 }
 
 export default function TrajectoryChart({
@@ -46,11 +88,14 @@ export default function TrajectoryChart({
   narrative,
   decisionsTotal,
   daysActive,
+  gapThresholdDays = 7,
+  showGapAnnotation = true,
 }: TrajectoryChartProps) {
   const chartData = points.map((point) => ({
     ...point,
     winRatePct: point.winRate * 100,
   }));
+  const verificationGaps = findVerificationGaps(points, gapThresholdDays);
 
   return (
     <section className="copilot-card p-4">
@@ -102,6 +147,19 @@ export default function TrajectoryChart({
                 ]}
                 labelFormatter={(label) => `Decision ${label}`}
               />
+              {showGapAnnotation
+                ? verificationGaps.map((gap) => (
+                    <ReferenceArea
+                      key={`verification-gap-area-${gap.startDecision}-${gap.endDecision}`}
+                      x1={gap.startDecision}
+                      x2={gap.endDecision}
+                      fill="var(--copilot-text-subtle)"
+                      fillOpacity={0.12}
+                      ifOverflow="extendDomain"
+                      label={{ value: "No verifications", position: "insideTop", fill: "var(--copilot-text-muted)", fontSize: 11 }}
+                    />
+                  ))
+                : null}
               {typeof switchingCostLine === "number" ? (
                 <ReferenceLine
                   y={switchingCostLine}
@@ -117,6 +175,20 @@ export default function TrajectoryChart({
                 fill="url(#iksFill)"
                 strokeWidth={2}
               />
+              {showGapAnnotation
+                ? verificationGaps.map((gap) => (
+                    <ReferenceLine
+                      key={`verification-gap-line-${gap.startDecision}-${gap.endDecision}`}
+                      segment={[
+                        { x: gap.startDecision, y: gap.winRatePct },
+                        { x: gap.endDecision, y: gap.winRatePct },
+                      ]}
+                      stroke="var(--copilot-text-muted)"
+                      strokeDasharray="6 4"
+                      strokeWidth={2}
+                    />
+                  ))
+                : null}
               <Area
                 type="monotone"
                 dataKey="winRatePct"

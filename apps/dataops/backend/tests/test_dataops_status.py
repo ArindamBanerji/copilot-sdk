@@ -85,7 +85,7 @@ def test_existing_health_endpoints_remain_available(client: TestClient) -> None:
     api_health = client.get("/api/health")
     context_health = client.get("/api/context/enterprise-health")
 
-    assert api_health.status_code == 200
+    assert api_health.status_code == 503
     assert "engine" in api_health.json()
     assert context_health.status_code == 200
     assert {"sap", "celonis", "graph"} <= set(context_health.json())

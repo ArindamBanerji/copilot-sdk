@@ -1,6 +1,23 @@
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, expectAnyText, waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
+type TrustFactor = { name?: unknown; weight?: unknown; dk_weight?: unknown };
+
+function trustLevel(weight: number): "high" | "medium" | "low" {
+  if (weight > 0.7) return "high";
+  if (weight >= 0.3) return "medium";
+  return "low";
+}
+
+function selectedTrustLevels(factors: TrustFactor[]) {
+  const sorted = factors
+    .map((factor) => Number(factor.dk_weight ?? factor.weight))
+    .filter((weight) => Number.isFinite(weight))
+    .sort((left, right) => right - left);
+  const selected = sorted.length <= 5 ? sorted : [...sorted.slice(0, 3), ...sorted.slice(-2)];
+  return selected.map(trustLevel);
+}
+
 test("dashboard loads without blank screen", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
@@ -16,7 +33,7 @@ test("shows portfolio summary", async ({ page }) => {
   await waitForScreenReady(page);
   await waitForAppShell(page);
 
-  await expect(page.getByText("Portfolio Summary")).toBeVisible();
+  await expect(page.getByText("Centroid Timeline")).toBeVisible();
   await expect(page.getByText(/open positions/i).first()).toBeVisible();
   await expect(page.getByText("Win Rate", { exact: true }).first()).toBeVisible();
   await expectAnyText(page, [/\$\d[\d,]*/, /\d+(\.\d+)?%/, /-/]);
@@ -31,24 +48,23 @@ test("IKS is visible with numeric value", async ({ page }) => {
   await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
 });
 
-test("shows thesis breakdown", async ({ page }) => {
+test("shows graph-backed decision context", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
   await waitForAppShell(page);
 
-  await expect(page.getByText("Thesis Breakdown")).toBeVisible();
-  await expectAnyText(page, [/momentum/i, /technical/i, /fundamental/i, /event/i, /mean/i]);
+  await expect(page.getByTestId("decision-explorer-panel")).toBeVisible();
+  await expect(page.getByTestId("rule-lifecycle-panel")).toBeVisible();
 });
 
-test("shows calendar heatmap day names", async ({ page }) => {
+test("shows graph-backed dashboard panels", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
   await waitForAppShell(page);
 
-  await expect(page.getByText("Calendar Heatmap")).toBeVisible();
-  for (const day of ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]) {
-    await expect(page.getByText(day)).toBeVisible();
-  }
+  await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible();
+  await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
+  await expect(page.getByTestId("decision-explorer-panel")).toBeVisible();
 });
 
 test("paper badge is visible", async ({ page }) => {
@@ -63,35 +79,32 @@ test("paper badge is visible", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 });
 
-test("trust badge is visible on dashboard", async ({ page }) => {
+test("graph-backed trust context is visible on dashboard", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
-  const badge = page.getByTestId("data-trust-badge");
-  await expect(badge).toBeVisible();
-  await expect(badge).toHaveAttribute("data-trust-state", "ready");
+  await expect(page.getByTestId("decision-explorer-panel")).toBeVisible();
+  await expect(page.getByTestId("audit-trail-panel")).toBeVisible();
 });
 
-test("trust badge shows learned factors", async ({ page }) => {
-  await page.goto("/");
-  await waitForScreenReady(page);
-  const badge = page.getByTestId("data-trust-badge");
-  await expect(badge.getByTestId("data-trust-factor")).toHaveCount(5);
-  await expect(badge).toContainText(/Research depth|Market conditions|Signal confidence/);
+test("fingerprint endpoint exposes learned factors", async ({ page }) => {
+  const fingerprint = await page.request.get("http://127.0.0.1:8010/api/fingerprint");
+  expect(fingerprint.status()).toBe(200);
+  const body = await fingerprint.json();
+  expect(Array.isArray(body.factors)).toBeTruthy();
+  expect(body.factors.length).toBeGreaterThan(0);
 });
 
-test("trust badge shows color coding", async ({ page }) => {
-  await page.goto("/");
-  await waitForScreenReady(page);
-  const badge = page.getByTestId("data-trust-badge");
-  await expect(badge.locator('[data-trust-level="high"]')).toHaveCount(3);
-  await expect(badge.locator('[data-trust-level="medium"], [data-trust-level="low"]')).toHaveCount(2);
+test("fingerprint factors include trust weights", async ({ request }) => {
+  const fingerprint = await request.get("http://127.0.0.1:8010/api/fingerprint");
+  expect(fingerprint.status()).toBe(200);
+  const levels = selectedTrustLevels(((await fingerprint.json()).factors ?? []) as TrustFactor[]);
+  expect(levels.length).toBeGreaterThan(0);
 });
 
-test("trust badge shows factor contrast", async ({ page }) => {
+test("dashboard shows graph-backed factor contrast panels", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
-  const badge = page.getByTestId("data-trust-badge");
-  await expect(badge.getByTestId("data-trust-contrast")).toContainText(
-    /Highest \d+\.\d{2}.*Lowest \d+\.\d{2}.*Spread \d+\.\d{2}/,
-  );
+  await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
+  await expect(page.getByTestId("rule-lifecycle-panel")).toBeVisible();
 });
+

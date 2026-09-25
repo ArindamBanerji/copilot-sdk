@@ -1,0 +1,965 @@
+{
+  "metadata": {
+    "budget_options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "checkpoints": [
+      50,
+      100,
+      250,
+      500,
+      750,
+      1000,
+      1500,
+      2000
+    ],
+    "conservation_constraint": "B=2 when rolling-accuracy gate would PAUSE",
+    "ood_caveat": "in-distribution only",
+    "payload_sha256": "c40ab44adb7d891729abfd4095e351fa181b3768f9767a277b5f5cd63f3b3961",
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "tier": "REAL_COMPONENT geometry + GEOMETRY-DERIVED / SIMULATED",
+    "two_rebuild_byte_identical": true
+  },
+  "s2p": {
+    "B0_fixed": {
+      "aggregate": {
+        "clean_pause_rate": 0.04633333333333334,
+        "final_quality": 0.6142500000000001,
+        "plateau_height": 0.6142500000000001,
+        "reads_per_decision": 2.0,
+        "sustained_poison_detection": 0.02,
+        "time_to_plateau": 583.3333333333334,
+        "trajectory_variance": 0.026403168106761542
+      },
+      "per_seed": {
+        "123": {
+          "budget_trajectory": {
+            "100": 2,
+            "1000": 2,
+            "1500": 2,
+            "2000": 2,
+            "250": 2,
+            "50": 2,
+            "500": 2,
+            "750": 2
+          },
+          "clean_pause_rate": 0.029,
+          "curve": {
+            "100": {
+              "routing_quality": 0.61
+            },
+            "1000": {
+              "routing_quality": 0.6285
+            },
+            "1500": {
+              "routing_quality": 0.6293333333333333
+            },
+            "2000": {
+              "routing_quality": 0.62475
+            },
+            "250": {
+              "routing_quality": 0.6
+            },
+            "50": {
+              "routing_quality": 0.61
+            },
+            "500": {
+              "routing_quality": 0.607
+            },
+            "750": {
+              "routing_quality": 0.6146666666666667
+            }
+          },
+          "final_quality": 0.62475,
+          "plateau_height": 0.62475,
+          "reads_per_decision": 2,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 1000,
+          "trajectory_variance": 0.010121821989244049
+        },
+        "42": {
+          "budget_trajectory": {
+            "100": 2,
+            "1000": 2,
+            "1500": 2,
+            "2000": 2,
+            "250": 2,
+            "50": 2,
+            "500": 2,
+            "750": 2
+          },
+          "clean_pause_rate": 0.0595,
+          "curve": {
+            "100": {
+              "routing_quality": 0.645
+            },
+            "1000": {
+              "routing_quality": 0.6015
+            },
+            "1500": {
+              "routing_quality": 0.6023333333333334
+            },
+            "2000": {
+              "routing_quality": 0.6055
+            },
+            "250": {
+              "routing_quality": 0.586
+            },
+            "50": {
+              "routing_quality": 0.7
+            },
+            "500": {
+              "routing_quality": 0.609
+            },
+            "750": {
+              "routing_quality": 0.6033333333333334
+            }
+          },
+          "final_quality": 0.6055,
+          "plateau_height": 0.6055,
+          "reads_per_decision": 2,
+          "sustained_poison_detection": 0.06,
+          "time_to_plateau": 500,
+          "trajectory_variance": 0.03434688243979841
+        },
+        "7": {
+          "budget_trajectory": {
+            "100": 2,
+            "1000": 2,
+            "1500": 2,
+            "2000": 2,
+            "250": 2,
+            "50": 2,
+            "500": 2,
+            "750": 2
+          },
+          "clean_pause_rate": 0.0505,
+          "curve": {
+            "100": {
+              "routing_quality": 0.56
+            },
+            "1000": {
+              "routing_quality": 0.61
+            },
+            "1500": {
+              "routing_quality": 0.6123333333333333
+            },
+            "2000": {
+              "routing_quality": 0.6125
+            },
+            "250": {
+              "routing_quality": 0.614
+            },
+            "50": {
+              "routing_quality": 0.51
+            },
+            "500": {
+              "routing_quality": 0.602
+            },
+            "750": {
+              "routing_quality": 0.6053333333333333
+            }
+          },
+          "final_quality": 0.6125,
+          "plateau_height": 0.6125,
+          "reads_per_decision": 2,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 250,
+          "trajectory_variance": 0.03474079989124217
+        }
+      }
+    },
+    "B1_rule_based": {
+      "aggregate": {
+        "clean_pause_rate": 0.024666666666666667,
+        "final_quality": 0.5934646310773334,
+        "plateau_height": 0.5934646310773334,
+        "reads_per_decision": 1.9288333333333334,
+        "sustained_poison_detection": 0.02,
+        "time_to_plateau": 200.0,
+        "trajectory_variance": 0.02606064902984257
+      },
+      "delta_vs_B0": {
+        "clean_pause_rate": -0.02166666666666667,
+        "final_quality": -0.02078536892266669,
+        "plateau_height": -0.02078536892266669,
+        "reads_per_decision": -0.0711666666666666,
+        "sustained_poison_detection": 0.0,
+        "time_to_plateau": -383.33333333333337,
+        "trajectory_variance": -0.00034251907691897066
+      },
+      "per_seed": {
+        "123": {
+          "budget_trajectory": {
+            "100": 2.16,
+            "1000": 1.96,
+            "1500": 1.82,
+            "2000": 1.84,
+            "250": 2.08,
+            "50": 2.1,
+            "500": 1.98,
+            "750": 2.04
+          },
+          "clean_pause_rate": 0.024,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6103286384976526
+            },
+            "1000": {
+              "routing_quality": 0.60964694181999
+            },
+            "1500": {
+              "routing_quality": 0.6088888888888889
+            },
+            "2000": {
+              "routing_quality": 0.6048387096774194
+            },
+            "250": {
+              "routing_quality": 0.5864661654135338
+            },
+            "50": {
+              "routing_quality": 0.6190476190476191
+            },
+            "500": {
+              "routing_quality": 0.5915221579961464
+            },
+            "750": {
+              "routing_quality": 0.5982961992136304
+            }
+          },
+          "final_quality": 0.6048387096774194,
+          "plateau_height": 0.6048387096774194,
+          "reads_per_decision": 1.922,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 100,
+          "trajectory_variance": 0.010109041119885163
+        },
+        "42": {
+          "budget_trajectory": {
+            "100": 2.32,
+            "1000": 1.98,
+            "1500": 1.88,
+            "2000": 1.82,
+            "250": 1.94,
+            "50": 2.2,
+            "500": 1.78,
+            "750": 2.08
+          },
+          "clean_pause_rate": 0.0255,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6194690265486725
+            },
+            "1000": {
+              "routing_quality": 0.5822722820763957
+            },
+            "1500": {
+              "routing_quality": 0.5818921668362157
+            },
+            "2000": {
+              "routing_quality": 0.584587441619097
+            },
+            "250": {
+              "routing_quality": 0.575139146567718
+            },
+            "50": {
+              "routing_quality": 0.6909090909090909
+            },
+            "500": {
+              "routing_quality": 0.5879494655004859
+            },
+            "750": {
+              "routing_quality": 0.5850649350649351
+            }
+          },
+          "final_quality": 0.584587441619097,
+          "plateau_height": 0.584587441619097,
+          "reads_per_decision": 1.927,
+          "sustained_poison_detection": 0.06,
+          "time_to_plateau": 250,
+          "trajectory_variance": 0.036233480154751765
+        },
+        "7": {
+          "budget_trajectory": {
+            "100": 2.26,
+            "1000": 2.06,
+            "1500": 1.88,
+            "2000": 1.88,
+            "250": 1.96,
+            "50": 2.18,
+            "500": 1.98,
+            "750": 1.92
+          },
+          "clean_pause_rate": 0.0245,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5495495495495496
+            },
+            "1000": {
+              "routing_quality": 0.5901077375122429
+            },
+            "1500": {
+              "routing_quality": 0.589969501863775
+            },
+            "2000": {
+              "routing_quality": 0.5909677419354838
+            },
+            "250": {
+              "routing_quality": 0.5928705440900562
+            },
+            "50": {
+              "routing_quality": 0.4954128440366973
+            },
+            "500": {
+              "routing_quality": 0.5813047711781889
+            },
+            "750": {
+              "routing_quality": 0.5864116094986808
+            }
+          },
+          "final_quality": 0.5909677419354838,
+          "plateau_height": 0.5909677419354838,
+          "reads_per_decision": 1.9375,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 250,
+          "trajectory_variance": 0.031839425814890784
+        }
+      }
+    },
+    "B2_learned": {
+      "aggregate": {
+        "clean_pause_rate": 0.08633333333333333,
+        "final_quality": 0.6869982925390196,
+        "plateau_height": 0.6869982925390196,
+        "reads_per_decision": 1.3128333333333333,
+        "sustained_poison_detection": 0.09666666666666666,
+        "time_to_plateau": 1250.0,
+        "trajectory_variance": 0.031884630801214627
+      },
+      "delta_vs_B0": {
+        "clean_pause_rate": 0.039999999999999994,
+        "final_quality": 0.07274829253901949,
+        "plateau_height": 0.07274829253901949,
+        "reads_per_decision": -0.6871666666666667,
+        "sustained_poison_detection": 0.07666666666666666,
+        "time_to_plateau": 666.6666666666666,
+        "trajectory_variance": 0.005481462694453085
+      },
+      "per_seed": {
+        "123": {
+          "budget_trajectory": {
+            "100": 1.22,
+            "1000": 1.38,
+            "1500": 1.3,
+            "2000": 1.08,
+            "250": 1.18,
+            "50": 1.26,
+            "500": 1.08,
+            "750": 1.3
+          },
+          "clean_pause_rate": 0.069,
+          "curve": {
+            "100": {
+              "routing_quality": 0.75
+            },
+            "1000": {
+              "routing_quality": 0.6989755713159969
+            },
+            "1500": {
+              "routing_quality": 0.7015239096163952
+            },
+            "2000": {
+              "routing_quality": 0.6952230556652191
+            },
+            "250": {
+              "routing_quality": 0.6913183279742765
+            },
+            "50": {
+              "routing_quality": 0.7301587301587301
+            },
+            "500": {
+              "routing_quality": 0.6832797427652733
+            },
+            "750": {
+              "routing_quality": 0.6926315789473684
+            }
+          },
+          "final_quality": 0.6952230556652191,
+          "plateau_height": 0.6952230556652191,
+          "reads_per_decision": 1.2665,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 250,
+          "trajectory_variance": 0.02125045036877618
+        },
+        "42": {
+          "budget_trajectory": {
+            "100": 1.32,
+            "1000": 1.38,
+            "1500": 1.7,
+            "2000": 1.2,
+            "250": 1.26,
+            "50": 1.38,
+            "500": 1.64,
+            "750": 1.24
+          },
+          "clean_pause_rate": 0.1155,
+          "curve": {
+            "100": {
+              "routing_quality": 0.7333333333333333
+            },
+            "1000": {
+              "routing_quality": 0.6613946800862689
+            },
+            "1500": {
+              "routing_quality": 0.6634522661523626
+            },
+            "2000": {
+              "routing_quality": 0.6765468692108189
+            },
+            "250": {
+              "routing_quality": 0.6418732782369146
+            },
+            "50": {
+              "routing_quality": 0.782608695652174
+            },
+            "500": {
+              "routing_quality": 0.6567796610169492
+            },
+            "750": {
+              "routing_quality": 0.6574690770694577
+            }
+          },
+          "final_quality": 0.6765468692108189,
+          "plateau_height": 0.6765468692108189,
+          "reads_per_decision": 1.3495,
+          "sustained_poison_detection": 0.17,
+          "time_to_plateau": 2000,
+          "trajectory_variance": 0.04522919879885548
+        },
+        "7": {
+          "budget_trajectory": {
+            "100": 1.32,
+            "1000": 1.42,
+            "1500": 1.24,
+            "2000": 1.18,
+            "250": 1.36,
+            "50": 1.48,
+            "500": 1.3,
+            "750": 1.2
+          },
+          "clean_pause_rate": 0.0745,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6428571428571429
+            },
+            "1000": {
+              "routing_quality": 0.6746090841399851
+            },
+            "1500": {
+              "routing_quality": 0.6856856856856857
+            },
+            "2000": {
+              "routing_quality": 0.6892249527410208
+            },
+            "250": {
+              "routing_quality": 0.6786786786786787
+            },
+            "50": {
+              "routing_quality": 0.5945945945945946
+            },
+            "500": {
+              "routing_quality": 0.6676829268292683
+            },
+            "750": {
+              "routing_quality": 0.6739780658025922
+            }
+          },
+          "final_quality": 0.6892249527410208,
+          "plateau_height": 0.6892249527410208,
+          "reads_per_decision": 1.3225,
+          "sustained_poison_detection": 0.12,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 0.029174243236012212
+        }
+      }
+    }
+  },
+  "soc": {
+    "B0_fixed": {
+      "aggregate": {
+        "clean_pause_rate": 0.06966666666666667,
+        "final_quality": 0.6361666666666667,
+        "plateau_height": 0.6361666666666667,
+        "reads_per_decision": 2.0,
+        "sustained_poison_detection": 0.06666666666666667,
+        "time_to_plateau": 216.66666666666666,
+        "trajectory_variance": 0.01160802535160592
+      },
+      "per_seed": {
+        "123": {
+          "budget_trajectory": {
+            "100": 2,
+            "1000": 2,
+            "1500": 2,
+            "2000": 2,
+            "250": 2,
+            "50": 2,
+            "500": 2,
+            "750": 2
+          },
+          "clean_pause_rate": 0.0725,
+          "curve": {
+            "100": {
+              "routing_quality": 0.63
+            },
+            "1000": {
+              "routing_quality": 0.6295
+            },
+            "1500": {
+              "routing_quality": 0.6393333333333333
+            },
+            "2000": {
+              "routing_quality": 0.63725
+            },
+            "250": {
+              "routing_quality": 0.628
+            },
+            "50": {
+              "routing_quality": 0.64
+            },
+            "500": {
+              "routing_quality": 0.618
+            },
+            "750": {
+              "routing_quality": 0.626
+            }
+          },
+          "final_quality": 0.63725,
+          "plateau_height": 0.63725,
+          "reads_per_decision": 2,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 50,
+          "trajectory_variance": 0.007033456443926492
+        },
+        "42": {
+          "budget_trajectory": {
+            "100": 2,
+            "1000": 2,
+            "1500": 2,
+            "2000": 2,
+            "250": 2,
+            "50": 2,
+            "500": 2,
+            "750": 2
+          },
+          "clean_pause_rate": 0.0565,
+          "curve": {
+            "100": {
+              "routing_quality": 0.63
+            },
+            "1000": {
+              "routing_quality": 0.645
+            },
+            "1500": {
+              "routing_quality": 0.6333333333333333
+            },
+            "2000": {
+              "routing_quality": 0.62825
+            },
+            "250": {
+              "routing_quality": 0.658
+            },
+            "50": {
+              "routing_quality": 0.68
+            },
+            "500": {
+              "routing_quality": 0.654
+            },
+            "750": {
+              "routing_quality": 0.6486666666666666
+            }
+          },
+          "final_quality": 0.62825,
+          "plateau_height": 0.62825,
+          "reads_per_decision": 2,
+          "sustained_poison_detection": 0.13,
+          "time_to_plateau": 100,
+          "trajectory_variance": 0.01617452759377983
+        },
+        "7": {
+          "budget_trajectory": {
+            "100": 2,
+            "1000": 2,
+            "1500": 2,
+            "2000": 2,
+            "250": 2,
+            "50": 2,
+            "500": 2,
+            "750": 2
+          },
+          "clean_pause_rate": 0.08,
+          "curve": {
+            "100": {
+              "routing_quality": 0.665
+            },
+            "1000": {
+              "routing_quality": 0.6375
+            },
+            "1500": {
+              "routing_quality": 0.6336666666666667
+            },
+            "2000": {
+              "routing_quality": 0.643
+            },
+            "250": {
+              "routing_quality": 0.66
+            },
+            "50": {
+              "routing_quality": 0.63
+            },
+            "500": {
+              "routing_quality": 0.647
+            },
+            "750": {
+              "routing_quality": 0.6386666666666667
+            }
+          },
+          "final_quality": 0.643,
+          "plateau_height": 0.643,
+          "reads_per_decision": 2,
+          "sustained_poison_detection": 0.07,
+          "time_to_plateau": 500,
+          "trajectory_variance": 0.011616092017111442
+        }
+      }
+    },
+    "B1_rule_based": {
+      "aggregate": {
+        "clean_pause_rate": 0.104,
+        "final_quality": 0.6369344003022752,
+        "plateau_height": 0.6369344003022752,
+        "reads_per_decision": 1.7181666666666666,
+        "sustained_poison_detection": 0.05333333333333334,
+        "time_to_plateau": 300.0,
+        "trajectory_variance": 0.011337039155415934
+      },
+      "delta_vs_B0": {
+        "clean_pause_rate": 0.03433333333333333,
+        "final_quality": 0.0007677336356085585,
+        "plateau_height": 0.0007677336356085585,
+        "reads_per_decision": -0.2818333333333334,
+        "sustained_poison_detection": -0.013333333333333329,
+        "time_to_plateau": 83.33333333333334,
+        "trajectory_variance": -0.00027098619618998697
+      },
+      "per_seed": {
+        "123": {
+          "budget_trajectory": {
+            "100": 2.1,
+            "1000": 1.86,
+            "1500": 1.84,
+            "2000": 1.62,
+            "250": 1.76,
+            "50": 2.24,
+            "500": 1.7,
+            "750": 1.92
+          },
+          "clean_pause_rate": 0.1125,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6359447004608295
+            },
+            "1000": {
+              "routing_quality": 0.6395412342981978
+            },
+            "1500": {
+              "routing_quality": 0.6415022761760243
+            },
+            "2000": {
+              "routing_quality": 0.6347097892001156
+            },
+            "250": {
+              "routing_quality": 0.6388349514563106
+            },
+            "50": {
+              "routing_quality": 0.6339285714285714
+            },
+            "500": {
+              "routing_quality": 0.6305732484076433
+            },
+            "750": {
+              "routing_quality": 0.638728323699422
+            }
+          },
+          "final_quality": 0.6347097892001156,
+          "plateau_height": 0.6347097892001156,
+          "reads_per_decision": 1.7315,
+          "sustained_poison_detection": 0.01,
+          "time_to_plateau": 50,
+          "trajectory_variance": 0.0033457543315889315
+        },
+        "42": {
+          "budget_trajectory": {
+            "100": 2,
+            "1000": 1.7,
+            "1500": 1.56,
+            "2000": 1.68,
+            "250": 1.72,
+            "50": 2.12,
+            "500": 1.96,
+            "750": 1.86
+          },
+          "clean_pause_rate": 0.097,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6359223300970874
+            },
+            "1000": {
+              "routing_quality": 0.6516164994425864
+            },
+            "1500": {
+              "routing_quality": 0.6373752877973906
+            },
+            "2000": {
+              "routing_quality": 0.6312718786464411
+            },
+            "250": {
+              "routing_quality": 0.6739130434782609
+            },
+            "50": {
+              "routing_quality": 0.6886792452830188
+            },
+            "500": {
+              "routing_quality": 0.6588735387885228
+            },
+            "750": {
+              "routing_quality": 0.6564327485380117
+            }
+          },
+          "final_quality": 0.6312718786464411,
+          "plateau_height": 0.6312718786464411,
+          "reads_per_decision": 1.714,
+          "sustained_poison_detection": 0.13,
+          "time_to_plateau": 100,
+          "trajectory_variance": 0.01855309138579341
+        },
+        "7": {
+          "budget_trajectory": {
+            "100": 2.08,
+            "1000": 1.68,
+            "1500": 1.6,
+            "2000": 1.68,
+            "250": 1.76,
+            "50": 2.2,
+            "500": 1.76,
+            "750": 1.64
+          },
+          "clean_pause_rate": 0.1025,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6635514018691588
+            },
+            "1000": {
+              "routing_quality": 0.6430155210643016
+            },
+            "1500": {
+              "routing_quality": 0.6374425727411945
+            },
+            "2000": {
+              "routing_quality": 0.6448215330602691
+            },
+            "250": {
+              "routing_quality": 0.6621621621621622
+            },
+            "50": {
+              "routing_quality": 0.6272727272727273
+            },
+            "500": {
+              "routing_quality": 0.6593291404612159
+            },
+            "750": {
+              "routing_quality": 0.6426491994177583
+            }
+          },
+          "final_quality": 0.6448215330602691,
+          "plateau_height": 0.6448215330602691,
+          "reads_per_decision": 1.709,
+          "sustained_poison_detection": 0.02,
+          "time_to_plateau": 750,
+          "trajectory_variance": 0.01211227174886546
+        }
+      }
+    },
+    "B2_learned": {
+      "aggregate": {
+        "clean_pause_rate": 0.0605,
+        "final_quality": 0.690766587414148,
+        "plateau_height": 0.690766587414148,
+        "reads_per_decision": 1.7681666666666667,
+        "sustained_poison_detection": 0.006666666666666667,
+        "time_to_plateau": 616.6666666666666,
+        "trajectory_variance": 0.013105703131008055
+      },
+      "delta_vs_B0": {
+        "clean_pause_rate": -0.00916666666666667,
+        "final_quality": 0.05459992074748132,
+        "plateau_height": 0.05459992074748132,
+        "reads_per_decision": -0.23183333333333334,
+        "sustained_poison_detection": -0.06,
+        "time_to_plateau": 400.0,
+        "trajectory_variance": 0.0014976777794021342
+      },
+      "per_seed": {
+        "123": {
+          "budget_trajectory": {
+            "100": 1.6,
+            "1000": 1.72,
+            "1500": 1.84,
+            "2000": 1.7,
+            "250": 1.62,
+            "50": 1.82,
+            "500": 1.84,
+            "750": 1.68
+          },
+          "clean_pause_rate": 0.0145,
+          "curve": {
+            "100": {
+              "routing_quality": 0.695906432748538
+            },
+            "1000": {
+              "routing_quality": 0.6883933676386507
+            },
+            "1500": {
+              "routing_quality": 0.6973136587211503
+            },
+            "2000": {
+              "routing_quality": 0.694452347083926
+            },
+            "250": {
+              "routing_quality": 0.6926829268292682
+            },
+            "50": {
+              "routing_quality": 0.6703296703296703
+            },
+            "500": {
+              "routing_quality": 0.6856810244470314
+            },
+            "750": {
+              "routing_quality": 0.6835249042145594
+            }
+          },
+          "final_quality": 0.694452347083926,
+          "plateau_height": 0.694452347083926,
+          "reads_per_decision": 1.7575,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 100,
+          "trajectory_variance": 0.008278915125356605
+        },
+        "42": {
+          "budget_trajectory": {
+            "100": 1.56,
+            "1000": 2.14,
+            "1500": 2.4,
+            "2000": 1.94,
+            "250": 1.78,
+            "50": 1.64,
+            "500": 2.04,
+            "750": 2.12
+          },
+          "clean_pause_rate": 0.0225,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6625
+            },
+            "1000": {
+              "routing_quality": 0.7067478437341451
+            },
+            "1500": {
+              "routing_quality": 0.6938842975206612
+            },
+            "2000": {
+              "routing_quality": 0.6877158362111495
+            },
+            "250": {
+              "routing_quality": 0.7257683215130024
+            },
+            "50": {
+              "routing_quality": 0.7317073170731707
+            },
+            "500": {
+              "routing_quality": 0.7164667393675027
+            },
+            "750": {
+              "routing_quality": 0.7088520055325035
+            }
+          },
+          "final_quality": 0.6877158362111495,
+          "plateau_height": 0.6877158362111495,
+          "reads_per_decision": 2.027,
+          "sustained_poison_detection": 0.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 0.02096867214585876
+        },
+        "7": {
+          "budget_trajectory": {
+            "100": 1.56,
+            "1000": 1.38,
+            "1500": 1.62,
+            "2000": 1.54,
+            "250": 1.72,
+            "50": 1.42,
+            "500": 1.66,
+            "750": 1.86
+          },
+          "clean_pause_rate": 0.1445,
+          "curve": {
+            "100": {
+              "routing_quality": 0.7046979865771812
+            },
+            "1000": {
+              "routing_quality": 0.6744186046511628
+            },
+            "1500": {
+              "routing_quality": 0.6719827586206897
+            },
+            "2000": {
+              "routing_quality": 0.6901315789473684
+            },
+            "250": {
+              "routing_quality": 0.6853333333333333
+            },
+            "50": {
+              "routing_quality": 0.676056338028169
+            },
+            "500": {
+              "routing_quality": 0.6848958333333334
+            },
+            "750": {
+              "routing_quality": 0.6768968456947997
+            }
+          },
+          "final_quality": 0.6901315789473684,
+          "plateau_height": 0.6901315789473684,
+          "reads_per_decision": 1.52,
+          "sustained_poison_detection": 0.02,
+          "time_to_plateau": 250,
+          "trajectory_variance": 0.010069522121808802
+        }
+      }
+    }
+  },
+  "verdict": {
+    "b1_beats_b0": true,
+    "b2_beats_b0": true,
+    "rationale": "FQI final-quality gains: S2P +0.073, SOC +0.055; in-distribution only.",
+    "s2p_gain_larger_than_soc": true,
+    "situational_priority_confirmed": true
+  }
+}

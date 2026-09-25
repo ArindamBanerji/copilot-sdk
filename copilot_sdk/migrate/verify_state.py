@@ -273,6 +273,7 @@ def replay_decisions(
         resolved_domain,
         graph_store=cast(GraphStore, store),
         enable_rl=False,
+        profile="test",
     )
     baseline = np.asarray(scorer.gae_scorer.centroids, dtype=np.float64).copy()
 

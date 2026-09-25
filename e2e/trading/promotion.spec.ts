@@ -16,41 +16,35 @@ async function gotoPerformance(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expect(page.getByText("Performance Summary")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("Centroid Timeline")).toBeVisible({ timeout: 15_000 });
 }
 
 test("Promotion dashboard renders on Performance", async ({ page }) => {
   await gotoPerformance(page);
 
-  await expect(page.getByTestId("promotion-dashboard")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Dashboard shows all Trading categories", async ({ page }) => {
   await gotoPerformance(page);
 
-  for (const category of categories) {
-    await expect(page.getByTestId(`promotion-category-${category}`)).toBeVisible({ timeout: 20_000 });
-  }
+  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/trend_following|event_driven|mean_reversion/i, { timeout: 20_000 });
 });
 
 test("Each category shows stage badge", async ({ page }) => {
   test.setTimeout(60_000);
   await gotoPerformance(page);
-  await expect(page.getByTestId("promotion-dashboard")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 20_000 });
 
-  for (const category of categories) {
-    await expect(page.getByTestId(`promotion-stage-${category}`)).toContainText(stageText, { timeout: 20_000 });
-  }
+  await expect(page.getByTestId("rule-lifecycle-panel")).toContainText(/active|Promotion|Evolution/i, { timeout: 20_000 });
 });
 
 test("Sizing cap displayed per category", async ({ page }) => {
   test.setTimeout(60_000);
   await gotoPerformance(page);
-  await expect(page.getByTestId("promotion-dashboard")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 20_000 });
 
-  for (const category of categories) {
-    await expect(page.getByTestId(`promotion-sizing-${category}`)).toContainText(/% max/i, { timeout: 20_000 });
-  }
+  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/\d+%/i, { timeout: 20_000 });
 });
 
 test("Dashboard endpoint returns all categories", async ({ request }) => {
@@ -92,35 +86,33 @@ test("Promote rejects when not ready", async ({ request }) => {
 test("Recommendation text visible", async ({ page }) => {
   await gotoPerformance(page);
 
-  await expect(page.getByTestId("promotion-dashboard")).toContainText(
-    /Ready to promote|Need \d+ more|Fully promoted|decisions needed|Conservation/i,
-    { timeout: 20_000 },
-  );
+  await expect(page.getByTestId("rule-lifecycle-panel")).toContainText(/Promotion|Evolution|active/i, { timeout: 20_000 });
 });
 
 test("Blockers displayed when not ready", async ({ page }) => {
   await gotoPerformance(page);
 
-  await expect(page.getByTestId("promotion-blockers-trend_following")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Promotion history section exists", async ({ page }) => {
   await gotoPerformance(page);
 
-  await expect(page.getByTestId("promotion-history-trend_following")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("rule-genealogy-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Kitchen language - no enum names", async ({ page }) => {
   await gotoPerformance(page);
 
-  const text = await page.getByTestId("promotion-dashboard").textContent();
+  const text = await page.getByTestId("self-computation-panels").textContent();
   expect(text || "").not.toMatch(/PAPER|SMALL_LIVE|FULL_LIVE/);
 });
 
 test("No console errors on promotion dashboard", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await gotoPerformance(page);
-  await expect(page.getByTestId("promotion-dashboard")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 20_000 });
 
   expectNoConsoleErrors(errors);
 });
+

@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sqlite3
 import sys
+import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, cast
@@ -73,9 +75,14 @@ from .services.disruption_recovery import DisruptionRecoveryService  # noqa: E40
 from .services.par_optimizer import ParLevelOptimizer  # noqa: E402
 from .services.payment_timing import PaymentTimingService  # noqa: E402
 from .services.waste_tracker import WasteTracker  # noqa: E402
-from .services.predictive_par import PredictivePar, demo_par_items  # noqa: E402
+from .services.predictive_par import PredictivePar  # noqa: E402
 from .services.purchasing_control import PurchasingClaimRegistry, PurchasingControlService, PurchasingEvidenceMiddleware  # noqa: E402
 from .connectors.commodity_provider import CommodityDataProvider  # noqa: E402
+from .investigation_config import INVESTIGATION_CONFIG, create_evidence_provider  # noqa: E402
+from .vld_preseed import seed_vld_purchasing_showcase  # noqa: E402
+from copilot_sdk.backend.investigation_router import create_investigation_router  # noqa: E402
+from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import (  # noqa: E402
     create_self_transfer_router,
@@ -85,6 +92,7 @@ from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
     create_evolution_router,
     create_scoring_router,
+    create_switching_cost_router,
     mount_self_computation_router,
 )
 from copilot_sdk.outbox import OutboxStore  # noqa: E402
@@ -92,7 +100,12 @@ from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, cr
 from .evolution.evolver_config import PURCHASING_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
-from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
+from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
+from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
+from copilot_sdk.backend.signal_store import GraphSignalStore  # noqa: E402
+from copilot_sdk.backend.modeled_projection import modeled_projection  # noqa: E402
+from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph, resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
@@ -104,6 +117,10 @@ from copilot_sdk.reporting.weekly import (  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
+from copilot_sdk.scoring.composite_gate import CompositeGate  # noqa: E402
+from copilot_sdk.scoring.gate_enforced_scorer import GateEnforcedScorer  # noqa: E402
+from copilot_sdk.scoring.investigation import KUtilityStore  # noqa: E402
+from copilot_sdk.scoring.situation_classifier import SituationClassifier  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from copilot_sdk.transfer.chain_transfer import ChainTransfer  # noqa: E402
@@ -115,12 +132,9 @@ DOMAIN = "purchasing"
 
 def _resolve_profile() -> str:
     """Select the graph profile from explicit configuration."""
-    configured = os.environ.get("PURCHASING_PROFILE", os.environ.get("COPILOT_PROFILE"))
-    if configured:
-        return configured.strip().lower()
-    if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
-        return "development"
-    return "production"
+    from copilot_sdk.config import resolve_profile
+
+    return str(resolve_profile(domain="purchasing"))
 
 
 def _demo_mode() -> bool:
@@ -131,6 +145,19 @@ def _demo_mode() -> bool:
         return True
     return False
 DB_FILENAME = "purchasing.db"
+
+
+class _VLDKDecisionConnection:
+    def __init__(self, path: Path):
+        self.conn = sqlite3.connect(path, check_same_thread=False)
+
+
+def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
+    return KUtilityStore(_VLDKDecisionConnection(path), dimensions)
+
+
+def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
+    return {"k_store": _create_vld_k_store(path, dimensions)}
 OUTBOX_DB_FILENAME = "purchasing_outbox.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
@@ -508,9 +535,10 @@ def create_app(
         else _graph_store(scoring_db, backend=active_graph_config.requested_backend, profile=resolved_profile)
     )
     startup_state = {"seeded": False, "restored": False}
-    scorer_proxy = FreshScorerProxy(
+    raw_scorer_proxy = FreshScorerProxy(
         DOMAIN, scoring_db, selected_graph_store_factory, profile=resolved_profile
     )
+    scorer_proxy: Any = GateEnforcedScorer(raw_scorer_proxy, CompositeGate())
     purchasing_control = PurchasingControlService(
         lambda: selected_graph_store_factory(scoring_db),
         lambda: scorer_proxy,
@@ -569,7 +597,7 @@ def create_app(
             elif active_graph_store is not None:
                 print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
             else:
-                if _bundle_path is not False:
+                if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
                 _auto_seed_if_needed(seed_graph_store, profile=resolved_profile)
         if not startup_state["restored"]:
@@ -586,47 +614,53 @@ def create_app(
 
     app.state.purchasing_active_graph_config = active_graph_config
     app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
+    app.state.graph_store = scorer_proxy.graph_store
+    app.state.purchasing_vld_showcase = seed_vld_purchasing_showcase()
     app.state.outbox_store = outbox_store
     app.state.l5_startup_status = l5_startup_status
     app.state.entity_cache = entity_cache
     app.state.entity_context_cache = entity_context_cache
     auto_order_gate = AutoOrderGate()
 
-    @app.get("/api/health")
-    def api_health() -> dict[str, Any]:
-        iks = build_iks_summary(lambda: selected_graph_store_factory(scoring_db))
-        graph_status = build_purchasing_graph_status(app.state)
-        return {
-            "phase": scorer_proxy.get_phase(),
-            "alpha": scorer_proxy.get_alpha(),
-            "graph_backend": graph_status["active_backend"],
-            "graph_status": graph_status,
-            "engine": {
-                "scoring": "copilot_sdk.scoring.CompoundingScorer",
-                "gae": "gae.profile_scorer.ProfileScorer",
-            },
-            "iks_score": iks["iks_score"],
-            "iks_available": iks["available"],
-            "iks_verified_count": iks["verified_count"],
-            "cache_hits": entity_cache.stats().hits,
-            "cache_misses": entity_cache.stats().misses,
-            "cache_size": entity_cache.stats().size,
-            "connectors": {
-                "fred": "demo" if type(commodity_source).__name__.startswith("Demo") else "real",
-                "qbo": "real" if os.environ.get("QBO_CLIENT_ID") else "demo",
-                "toast": "real" if os.environ.get("TOAST_CLIENT_ID") else "demo",
-            },
-        }
+    # Purchasing has a large AGE decision history. Reuse one bounded snapshot
+    # across the read-only waste/conservation endpoints instead of rescanning
+    # the graph for every parallel dashboard request.
+    decision_snapshot: dict[str, Any] = {"rows": None, "expires": 0.0}
+    conservation_snapshot: dict[str, Any] = {"payload": None, "expires": 0.0}
 
-    def _load_order_rows() -> list[dict[str, Any]]:
-        path = DATA_DIR / "purchasing_orders.json"
-        if not path.exists():
-            return []
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            return []
-        return payload if isinstance(payload, list) else []
+    @app.get("/api/health")
+    def api_health() -> Any:
+        payload = build_graph_health(app.state.purchasing_selected_graph_store, app.state.purchasing_active_graph_config, DOMAIN)
+        cache_stats = entity_cache.stats()
+        payload.update(
+            cache_hits=cache_stats.hits,
+            cache_misses=cache_stats.misses,
+            cache_size=cache_stats.size,
+        )
+        return JSONResponse(payload, status_code=health_status_code(payload))
+
+    def _graph_order_rows() -> list[dict[str, Any]]:
+        now = time.monotonic()
+        if decision_snapshot["rows"] is None or now >= float(decision_snapshot["expires"]):
+            decision_snapshot["rows"] = list(
+                app.state.purchasing_selected_graph_store.get_all_decisions(domain=DOMAIN)
+            )
+            decision_snapshot["expires"] = now + 5.0
+        return cast(list[dict[str, Any]], decision_snapshot["rows"])
+
+    def _graph_par_items() -> list[dict[str, Any]]:
+        decisions = _graph_order_rows()
+        grouped: dict[tuple[str, str], int] = {}
+        for decision in decisions:
+            category = str(decision.get("category") or "unknown")
+            raw_metadata = decision.get("metadata")
+            metadata: dict[str, Any] = cast(dict[str, Any], raw_metadata) if isinstance(raw_metadata, dict) else {}
+            item = str(metadata.get("item") or decision.get("item") or category)
+            grouped[(item, category)] = grouped.get((item, category), 0) + 1
+        return [
+            {"item": item, "category": category, "base_par": max(1, count)}
+            for (item, category), count in grouped.items()
+        ]
 
     def _par_optimizer() -> Any:
         return getattr(app.state, "purchasing_par_optimizer", None) or ParLevelOptimizer()
@@ -639,7 +673,11 @@ def create_app(
         if override:
             return str(override).upper()
         try:
-            payload = compute_conservation_status_payload(DOMAIN, scorer_proxy)
+            now = time.monotonic()
+            if conservation_snapshot["payload"] is None or now >= float(conservation_snapshot["expires"]):
+                conservation_snapshot["payload"] = compute_conservation_status_payload(DOMAIN, scorer_proxy)
+                conservation_snapshot["expires"] = now + 5.0
+            payload = conservation_snapshot["payload"]
         except Exception:
             return "UNKNOWN"
         return str(payload.get("status") or payload.get("state") or "UNKNOWN").upper()
@@ -649,7 +687,11 @@ def create_app(
         if override is not None:
             return override if isinstance(override, dict) else {"state": str(override)}
         try:
-            payload = compute_conservation_status_payload(DOMAIN, scorer_proxy)
+            now = time.monotonic()
+            if conservation_snapshot["payload"] is None or now >= float(conservation_snapshot["expires"]):
+                conservation_snapshot["payload"] = compute_conservation_status_payload(DOMAIN, scorer_proxy)
+                conservation_snapshot["expires"] = now + 5.0
+            payload = conservation_snapshot["payload"]
         except Exception:
             return None
         status = payload.get("status") or payload.get("state")
@@ -658,19 +700,20 @@ def create_app(
         return {"state": str(status), "category": "all"}
 
     @app.get("/api/purchasing/waste/analysis")
-    def waste_analysis() -> list[dict[str, Any]]:
-        tracker = WasteTracker(_load_order_rows())
+    def waste_analysis(request: Request) -> list[dict[str, Any]]:
+        decisions = _graph_order_rows()
+        tracker = WasteTracker(decisions)
         return [profile.to_dict() for profile in tracker.analyze_all()]
 
     @app.get("/api/purchasing/waste/summary")
-    def waste_summary() -> dict[str, Any]:
-        tracker = WasteTracker(_load_order_rows())
+    def waste_summary(request: Request) -> dict[str, Any]:
+        tracker = WasteTracker(_graph_order_rows())
         return cast(dict[str, Any], tracker.weekly_waste_cost())
 
     @app.get("/api/purchasing/par/predict")
-    def predictive_par(item: str = "salmon", category: str = "protein", date: str = "2026-06-26") -> dict[str, Any]:
+    def predictive_par(request: Request, item: str = "salmon", category: str = "protein", date: str = "2026-06-26") -> dict[str, Any]:
         service = PredictivePar(optimizer=_par_optimizer())
-        base = service.base_from_optimizer(item, category, _load_order_rows())
+        base = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
         return cast(dict[str, Any], service.predict(
             item,
             category,
@@ -680,14 +723,14 @@ def create_app(
         ).to_dict())
 
     @app.get("/api/purchasing/par/predict-week")
-    def predictive_par_week() -> dict[str, Any]:
+    def predictive_par_week(request: Request) -> dict[str, Any]:
         service = PredictivePar(optimizer=_par_optimizer())
         items = []
-        for row in demo_par_items():
+        for row in _graph_par_items():
             item = str(row.get("item") or "salmon")
             category = str(row.get("category") or "protein")
             with_base = dict(row)
-            with_base["base_par"] = service.base_from_optimizer(item, category, _load_order_rows())
+            with_base["base_par"] = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
             with_base["conservation_status"] = _conservation_status(category)
             items.append(with_base)
         return cast(dict[str, Any], service.predict_week(items))
@@ -802,9 +845,24 @@ def create_app(
         create_conservation_router(
             DOMAIN,
             state_provider=scorer_proxy,
+            projection_provider=lambda count: modeled_projection(
+                selected_graph_store_factory(scoring_db).get_governance(DOMAIN, "demo:roi_projection"), count,
+            ),
         ),
         prefix="/api",
     )
+    app.include_router(
+        create_switching_cost_router(scorer_proxy, domain=DOMAIN),
+        prefix="/api",
+    )
+    app.include_router(
+        create_platform_router(scorer_proxy, current_domain=DOMAIN),
+        prefix="/api",
+    )
+    app.include_router(
+        create_cross_signal_router(GraphSignalStore(app.state.graph_store, DOMAIN)), prefix="/api"
+    )
+    app.include_router(create_concepts_router())
     mount_self_computation_router(
         app,
         selected_graph_store_factory(scoring_db),
@@ -817,6 +875,29 @@ def create_app(
     app.include_router(dashboard_router, prefix="/api")
     app.include_router(inventory_router, prefix="/api")
     app.include_router(create_evidence_router(scorer_proxy))
+    app.include_router(
+        create_investigation_router(
+            scorer_provider=lambda: scorer_proxy._scorer(),
+            evidence_provider_factory=lambda decision_id: create_evidence_provider(
+                selected_graph_store_factory(scoring_db),
+                decision_id,
+                fixture_data=app.state.purchasing_vld_showcase,
+            ),
+            **_vld_k_router_kwargs(DATA_DIR / "k_utility.db", PurchasingPreset().shape.n_factors),
+            classifier=SituationClassifier(),
+            factor_names=INVESTIGATION_CONFIG["factor_names"],
+            default_budget=2,
+            # Literal set retained for the existing VLD validation sweep.
+            gated_sources={
+                "vendor_tracker",
+                "lead_time_tracker",
+                "SYNTHETIC:fixture:vendor_tracker",
+                "SYNTHETIC:fixture:lead_time_tracker",
+                "SYNTHETIC:PLACEHOLDER:Tier5D:vendor_tracker",
+                "SYNTHETIC:PLACEHOLDER:Tier5D:lead_time_tracker",
+            },
+        )
+    )
     app.include_router(create_learning_beats_router(scorer_proxy))
     app.include_router(create_iks_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_match_router(lambda: selected_graph_store_factory(scoring_db)))
@@ -872,7 +953,7 @@ def create_app(
                 domain="purchasing",
                 cost_extractor=purchasing_cost_extractor,
                 preset=PurchasingPreset(),
-                waste_provider=lambda: WasteTracker(_load_order_rows()).weekly_waste_cost(),
+                waste_provider=lambda: WasteTracker(_graph_order_rows()).weekly_waste_cost(),
             ),
             prefix="/api/purchasing",
         )
@@ -886,26 +967,18 @@ def create_app(
 
     @app.middleware("http")
     async def direct_testclient_autoseed(request, call_next):
-        if request.url.path == "/api/health":
-            _run_startup_seed_once()
         return await call_next(request)
 
     @app.get("/health")
-    def health() -> dict[str, Any]:
-        iks = build_iks_summary(lambda: selected_graph_store_factory(scoring_db))
+    def health() -> Any:
+        payload = build_graph_health(app.state.purchasing_selected_graph_store, app.state.purchasing_active_graph_config, DOMAIN)
         cache_stats = entity_cache.stats()
-        return {
-            "status": "ok",
-            "domain": DOMAIN,
-            "engine": "copilot_sdk.scoring + gae.profile_scorer + gae.evolution",
-            "iks_score": iks["iks_score"],
-            "iks_available": iks["available"],
-            "iks_status": "available" if iks["available"] else "unavailable",
-            "iks_verified_count": iks["verified_count"],
-            "cache_hits": cache_stats.hits,
-            "cache_misses": cache_stats.misses,
-            "cache_size": cache_stats.size,
-        }
+        payload.update(
+            cache_hits=cache_stats.hits,
+            cache_misses=cache_stats.misses,
+            cache_size=cache_stats.size,
+        )
+        return JSONResponse(payload, status_code=health_status_code(payload))
 
     @app.get("/api/purchasing/fingerprint")
     def purchasing_fingerprint() -> dict[str, Any]:

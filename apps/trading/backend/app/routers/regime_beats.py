@@ -67,15 +67,27 @@ def create_regime_beats_router(
         current = detect_regime(rows)
         result = dict(check_regime_data_sufficiency(rows, current))
         conditioned = compute_regime_conditioned_stats(rows, current)
+        regimes = conditioned.get("regimes", {})
+        current_stats = regimes.get(current, {}) if isinstance(regimes, dict) else {}
+        minimum_decisions = int(result.get("minimum_decisions", 0) or 0)
+        current_verified = int(current_stats.get("verified_count", 0) or 0)
+        current_abstention = current_verified < minimum_decisions
+        result["verified_count"] = current_verified
+        result["abstention_recommended"] = current_abstention
+        result["message"] = (
+            f"I've seen only {current_verified} verified decisions in this regime — I won't score this trade yet."
+            if current_abstention
+            else f"I've seen {current_verified} verified decisions in this regime; situation-conditioned scoring is available."
+        )
         result.update(
             {
                 "per_regime_day_zero": {
                     str(regime): {
                         "decision_count": int(stats.get("decision_count", 0)),
                         "verified_count": int(stats.get("verified_count", 0)),
-                        "abstention": stats.get("verified_count", 0) < stats.get("minimum_decisions", 20),
+                        "abstention": int(stats.get("verified_count", 0) or 0) < minimum_decisions,
                     }
-                    for regime, stats in conditioned.get("regimes", {}).items()
+                    for regime, stats in regimes.items()
                     if isinstance(stats, dict)
                 },
                 "abstention_reasons": ["regime-specific verified history is below the evidence floor"]

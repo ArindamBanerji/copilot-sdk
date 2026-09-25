@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import json
+import asyncio
+from functools import lru_cache
 import math
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, cast
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from copilot_sdk.scoring.scorer import compute_theta_min
+from copilot_sdk.config.graph_config import resolve_profile
 
 from .celonis_connector import CelonisConnector
 from .graph_queries import DataOpsGraphClient
@@ -92,7 +95,10 @@ def _graph_client() -> DataOpsGraphClient:
         if client is None:
             raise HTTPException(status_code=503, detail="DataOps graph client unavailable")
         return client
-    return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+    profile = resolve_profile(os.getenv("GRAPH_PROFILE"), domain=DOMAIN)
+    if profile == "production":
+        return DataOpsGraphClient(profile=profile)
+    return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback", profile=profile)
 
 
 def _decision_store() -> Any:
@@ -122,7 +128,7 @@ def _graph_decisions() -> list[dict[str, Any]]:
 
 
 def _explicit_demo_mode() -> bool:
-    return os.environ.get("DATAOPS_DEMO_MODE") == "1" or bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    return os.environ.get("DATAOPS_DEMO_MODE") == "1"
 
 
 def _demo_context_decisions() -> list[dict[str, Any]]:
@@ -140,11 +146,21 @@ def _demo_context_decisions() -> list[dict[str, Any]]:
 
 
 def _sap_connector() -> SAPConnector:
-    return SAPConnector(cache_dir=DATA_DIR)
+    return _shared_sap(str(DATA_DIR), os.getenv("SAP_BASE_URL"), os.getenv("SAP_API_KEY"))
 
 
 def _celonis_connector() -> CelonisConnector:
-    return CelonisConnector(cache_dir=DATA_DIR)
+    return _shared_celonis(str(DATA_DIR), os.getenv("CELONIS_URL"), os.getenv("CELONIS_TOKEN"), os.getenv("CELONIS_LIVE", ""))
+
+
+@lru_cache(maxsize=8)
+def _shared_sap(directory: str, base_url: str | None, api_key: str | None) -> SAPConnector:
+    return SAPConnector(base_url=base_url, api_key=api_key, cache_dir=directory)
+
+
+@lru_cache(maxsize=8)
+def _shared_celonis(directory: str, base_url: str | None, token: str | None, live: str) -> CelonisConnector:
+    return CelonisConnector(base_url=base_url, token=token, cache_dir=directory)
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -340,6 +356,8 @@ def _numeric_or_none(value: Any) -> float | None:
 
 
 def _alert_category_by_id() -> dict[str, str]:
+    if resolve_profile(os.getenv("GRAPH_PROFILE"), domain=DOMAIN) == "production":
+        raise RuntimeError("alert categories must be loaded from the production graph")
     payload = _load_json(DATA_DIR / "fallback" / "alerts.json", {})
     raw_alerts = payload.get("alerts", []) if isinstance(payload, dict) else []
     categories: dict[str, str] = {}
@@ -361,14 +379,22 @@ def _is_missing_category(value: Any) -> bool:
 
 def _normalize_live_decision(entry: dict[str, Any]) -> dict[str, Any]:
     dataset = entry.get("dataset")
-    system = entry.get("system_name") or entry.get("system") or entry.get("systemName")
+    system = (
+        entry.get("pipeline_system_id")
+        or entry.get("pipelineSystemId")
+        or entry.get("system_name")
+        or entry.get("system")
+        or entry.get("systemName")
+    )
     if not system and dataset:
         system = _infer_system_from_dataset(str(dataset))
+    pipeline_system_id = _normalize_system_key(str(system or "")) or None
     return {
         "decision_id": entry.get("decision_id") or entry.get("id"),
         "alert_id": entry.get("alert_id") or entry.get("event_id"),
         "event_id": entry.get("event_id") or entry.get("alert_id"),
-        "system": _normalize_system_key(str(system or "")) or None,
+        "system": pipeline_system_id,
+        "pipeline_system_id": pipeline_system_id,
         "dataset": dataset,
         "category": entry.get("category"),
         "action_taken": entry.get("action_taken") or entry.get("actual_action") or entry.get("actionTaken"),
@@ -401,7 +427,8 @@ def _enrich_live_decision_category(
 
 def _normalize_seed_decision(entry: dict[str, Any]) -> dict[str, Any]:
     dataset = entry.get("dataset")
-    system = entry.get("system_name") or entry.get("system") or _infer_system_from_dataset(str(dataset or ""))
+    system = entry.get("pipeline_system_id") or entry.get("system_name") or entry.get("system") or _infer_system_from_dataset(str(dataset or ""))
+    pipeline_system_id = _normalize_system_key(str(system or "")) or None
     is_correct = entry.get("is_correct")
     if not isinstance(is_correct, bool):
         is_correct = bool(is_correct)
@@ -410,7 +437,8 @@ def _normalize_seed_decision(entry: dict[str, Any]) -> dict[str, Any]:
         "decision_id": None,
         "alert_id": entry.get("event_id") or entry.get("alert_id"),
         "event_id": entry.get("event_id") or entry.get("alert_id"),
-        "system": _normalize_system_key(str(system or "")) or None,
+        "system": pipeline_system_id,
+        "pipeline_system_id": pipeline_system_id,
         "dataset": dataset,
         "category": entry.get("category"),
         "action_taken": action,
@@ -507,6 +535,8 @@ def _sla_minutes_for_alert(alert: dict[str, Any]) -> int:
 
 
 def _fallback_alerts_by_id() -> dict[str, dict[str, Any]]:
+    if resolve_profile(os.getenv("GRAPH_PROFILE"), domain=DOMAIN) == "production":
+        return {}
     payload = _load_json(DATA_DIR / "fallback" / "alerts.json", {})
     raw_alerts = payload.get("alerts", []) if isinstance(payload, dict) else []
     alerts: dict[str, dict[str, Any]] = {}
@@ -656,6 +686,8 @@ def _decision_factors(decision: dict[str, Any]) -> dict[str, float] | None:
 
 
 def _load_transformations() -> dict[str, list[dict[str, Any]]]:
+    if resolve_profile(domain=DOMAIN) == "production":
+        return {}
     payload = _load_json(DATA_DIR / "transformations.json", {"systems": {}})
     systems = payload.get("systems", {}) if isinstance(payload, dict) else {}
     if not isinstance(systems, dict):
@@ -668,6 +700,8 @@ def _load_transformations() -> dict[str, list[dict[str, Any]]]:
 
 
 def _load_schema_changes() -> dict[str, list[dict[str, Any]]]:
+    if resolve_profile(domain=DOMAIN) == "production":
+        return {}
     payload = _load_json(DATA_DIR / "schema_changes.json", {"systems": {}})
     systems = payload.get("systems", {}) if isinstance(payload, dict) else {}
     if not isinstance(systems, dict):
@@ -680,6 +714,8 @@ def _load_schema_changes() -> dict[str, list[dict[str, Any]]]:
 
 
 def _pipeline_count() -> int:
+    if resolve_profile(domain=DOMAIN) == "production":
+        return 0
     payload = _load_json(DATA_DIR / "fallback" / "pipelines.json", {})
     pipelines = payload.get("pipelines", []) if isinstance(payload, dict) else []
     return len([pipeline for pipeline in pipelines if isinstance(pipeline, dict)])
@@ -691,7 +727,7 @@ def _duration_minutes(step: dict[str, Any]) -> float:
 
 def _transformation_summary(steps: list[dict[str, Any]]) -> dict[str, Any]:
     total_duration = sum(_duration_minutes(step) for step in steps)
-    bottleneck = max(steps, key=_duration_minutes) if steps else None
+    bottleneck = max(steps, key=_duration_minutes) if steps and total_duration > 0 else None
     bottleneck_duration = _duration_minutes(bottleneck or {})
     return {
         "total": len(steps),
@@ -749,34 +785,55 @@ def _schema_impact_count(change: dict[str, Any]) -> int:
 
 
 @router.get("/pipelines")
-async def pipelines() -> dict[str, Any]:
-    return await _graph_client().get_pipelines()
+def pipelines(request: Request) -> dict[str, Any]:
+    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    grouped: dict[str, dict[str, Any]] = {}
+    for decision in decisions:
+        name = str(decision.get("system") or decision.get("system_name") or decision.get("source") or "dataops")
+        row = grouped.setdefault(name, {"name": name, "domain": DOMAIN, "decision_count": 0})
+        row["decision_count"] += 1
+    return {"source": "graph", "pipelines": list(grouped.values()), "count": len(grouped)}
 
 
 @router.get("/enterprise-health")
 async def enterprise_health() -> dict[str, Any]:
-    sap = await _safe_connector_health(_sap_connector())
-    celonis = await _safe_connector_health(_celonis_connector())
-    graph = _graph_client()
-    pipeline_payload = await graph.get_pipelines()
-    graph_source = graph.graph_source
+    sap_connector, celonis_connector = _sap_connector(), _celonis_connector()
+    sap, celonis = await asyncio.gather(_safe_connector_health(sap_connector), _safe_connector_health(celonis_connector))
+    models = (await celonis_connector.get_knowledge_models()).get("knowledge_models") or []
+    kpis = await celonis_connector.get_kpis(str(models[0].get("id", ""))) if models else {}
+    celonis["kpi_count"] = len(kpis.get("kpis") or [])
+    checked_at = datetime.now(timezone.utc).isoformat()
+    sap["last_check"] = celonis["last_check"] = checked_at
+    try:
+        graph = _graph_client()
+        pipeline_payload = await graph.get_pipelines()
+        count = len(pipeline_payload.get("pipelines") or [])
+        graph_source = graph.graph_source
+        graph_live = graph_source == "graph"
+        graph_health = {"status": "ok" if graph_live else "cache" if count else "unavailable",
+                        "source": graph_source, "live": graph_live, "connected": graph_live,
+                        "cached": not graph_live and bool(count), "pipeline_count": count}
+    except Exception:
+        graph_health = {"status": "unavailable", "source": "unavailable", "live": False,
+                        "connected": False, "cached": False, "pipeline_count": 0}
+    systems = [sap, celonis, graph_health]
+    ready = all(system.get("status") in {"ok", "cache"} for system in systems)
     return {
         "sap": sap,
         "celonis": celonis,
-        "graph": {
-            "status": "ok" if graph_source == "graph" else "error",
-            "source": graph_source,
-            "pipeline_count": len(pipeline_payload.get("pipelines") or []),
-        },
+        "graph": graph_health,
+        "fusion_ready": ready,
+        "overall": "healthy" if all(system.get("live") for system in systems) else "degraded" if ready else "disconnected",
         "engine_version": "v0.7.23",
     }
 
 
 @router.get("/sap/purchase-orders")
-async def sap_purchase_orders(top: int = 20) -> dict[str, Any]:
-    payload = await _sap_connector().get_purchase_orders(top=top)
+async def sap_purchase_orders(top: int = 20, skip: int = 0) -> dict[str, Any]:
+    payload = await _sap_connector().get_purchase_orders(top=top, skip=skip)
     return {
         "source": payload.get("source") or "sap_cache",
+        "provenance": payload.get("provenance"),
         "total": int(payload.get("total") or 0),
         "purchase_orders": payload.get("purchase_orders") or [],
     }
@@ -797,6 +854,8 @@ async def celonis_process_data() -> dict[str, Any]:
     }
     return {
         "source": "celonis_live" if sources == {"celonis_live"} else "celonis_cache",
+        "sources": {"knowledge_models": knowledge_models.get("source"), "kpis": kpis.get("source"),
+                    "process_data": process_data.get("source")},
         "knowledge_models": models,
         "kpis": kpis.get("kpis") or [],
         "process_data": process_data.get("process_data") or {},
@@ -819,7 +878,7 @@ async def alerts() -> dict[str, Any]:
         normalized = [alert for alert in raw_alerts if isinstance(alert, dict)]
         normalized = _append_abstention_fixture(normalized)
         return {**payload, "alerts": _inject_alert_runtime_fields(normalized)}
-    return payload
+    return cast(dict[str, Any], payload)
 
 
 @router.get("/alert-groups")
@@ -997,6 +1056,32 @@ def decisions(
     }
 
 
+@router.get("/pipeline/{system_id}/decisions")
+def pipeline_decisions(system_id: str, limit: int = 20) -> dict[str, Any]:
+    system_key = _normalize_system_key(system_id)
+    pipeline_payload = _load_json(DATA_DIR / "fallback" / "pipelines.json", {})
+    pipelines = pipeline_payload.get("pipelines", []) if isinstance(pipeline_payload, dict) else []
+    known_systems = {
+        _normalize_system_key(str(pipeline.get("name") or ""))
+        for pipeline in pipelines
+        if isinstance(pipeline, dict)
+    }
+    matches = [
+        decision
+        for decision in _all_context_decisions()
+        if _normalize_system_key(str(decision.get("pipeline_system_id") or decision.get("system") or "")) == system_key
+    ]
+    if not matches and known_systems and system_key not in known_systems:
+        raise HTTPException(status_code=404, detail=f"Pipeline {system_id} not found")
+    safe_limit = max(1, min(int(limit), 100))
+    return {
+        "pipeline_system_id": system_key,
+        "decisions": matches[:safe_limit],
+        "total": len(matches),
+        "summary": _decision_summary(matches),
+    }
+
+
 @router.get("/accuracy-by-category")
 def accuracy_by_category() -> dict[str, Any]:
     decisions_by_category: dict[str, list[dict[str, Any]]] = {}
@@ -1040,9 +1125,20 @@ def accuracy_by_category() -> dict[str, Any]:
 
 
 @router.get("/transformations/{system}")
-def transformations(system: str) -> dict[str, Any]:
+def transformations(system: str, request: Request) -> dict[str, Any]:
     system_key = _normalize_system_key(system)
-    steps = _load_transformations().get(system_key, [])
+    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    steps = [
+        {
+            "id": str(decision.get("decision_id") or index),
+            "name": str(decision.get("category") or "decision"),
+            "duration_minutes": 0,
+            "rows": 1,
+            "source": "graph",
+        }
+        for index, decision in enumerate(decisions)
+        if not system_key or str(decision.get("system") or decision.get("system_name") or system_key) == system_key
+    ]
     return {
         "system": system_key,
         "transformations": steps,
@@ -1087,9 +1183,18 @@ def bottleneck(system: str) -> dict[str, Any]:
 
 
 @router.get("/schema-impact/{system}")
-def schema_impact(system: str, column: str | None = None) -> dict[str, Any]:
+def schema_impact(system: str, request: Request, column: str | None = None) -> dict[str, Any]:
     system_key = _normalize_system_key(system)
-    changes = _load_schema_changes().get(system_key, [])
+    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    changes = [
+        {
+            "column": str(decision.get("category") or "decision"),
+            "impacted_systems": [system_key],
+            "alerts_prevented": 0,
+            "source": "graph",
+        }
+        for decision in decisions
+    ]
     if column:
         normalized_column = column.strip().lower()
         changes = [
@@ -1107,111 +1212,35 @@ def schema_impact(system: str, column: str | None = None) -> dict[str, Any]:
 
 
 @router.get("/process-timeline")
-def process_timeline() -> dict[str, Any]:
-    payload = _load_json(DATA_DIR / "process_timeline.json", {})
-    if not isinstance(payload, dict):
-        payload = {}
-
-    bottleneck_id = str(payload.get("bottleneck_id") or "")
-    normal_duration = _numeric_or_none(payload.get("normal_duration"))
-    current_duration = _numeric_or_none(payload.get("current_duration"))
-    dollar_calibration = payload.get("dollar_calibration")
-    if not isinstance(dollar_calibration, dict):
-        dollar_calibration = {}
-
-    activities = []
-    raw_activities = payload.get("activities")
-    if isinstance(raw_activities, list):
-        for raw in raw_activities:
-            if not isinstance(raw, dict):
-                continue
-            activity = dict(raw)
-            activity_id = str(activity.get("id") or "")
-            activity_normal = _numeric_or_none(activity.get("normal_duration"))
-            activity_current = _numeric_or_none(activity.get("current_duration"))
-            is_bottleneck = bool(activity_id and activity_id == bottleneck_id)
-            avg_duration = activity_current if activity_current is not None else activity_normal
-            activity["avg_duration"] = avg_duration if avg_duration is not None else 0
-            activity["automation_rate"] = _timeline_rate(
-                activity.get("automation_rate"),
-                0.35 if is_bottleneck else 0.7,
-            )
-            activity["rework_rate"] = _timeline_rate(
-                activity.get("rework_rate"),
-                _timeline_rate(
-                    dollar_calibration.get("current_exception_rate" if is_bottleneck else "target_exception_rate"),
-                    0.0,
-                ),
-            )
-            activity["is_bottleneck"] = is_bottleneck
-            activity["slowdown_multiplier"] = _slowdown_multiplier(activity_normal, activity_current)
-            activities.append(activity)
-
-    return {
-        "process_models": payload.get("process_models") if isinstance(payload.get("process_models"), list) else [],
-        "activities": activities,
-        "bottleneck_id": bottleneck_id,
-        "normal_duration": normal_duration if normal_duration is not None else 0,
-        "current_duration": current_duration if current_duration is not None else 0,
-        "slowdown_multiplier": _slowdown_multiplier(normal_duration, current_duration),
-        "dollar_calibration": dollar_calibration,
-        "cross_graph_refs": payload.get("cross_graph_refs") if isinstance(payload.get("cross_graph_refs"), dict) else {},
-    }
-
-
-def _timeline_rate(value: Any, default: float) -> float:
-    numeric = _numeric_or_none(value)
-    if numeric is None:
-        return default
-    return max(0.0, min(numeric, 1.0))
-
-
-def _slowdown_multiplier(normal_duration: float | None, current_duration: float | None) -> float | None:
-    if normal_duration is None or current_duration is None or normal_duration <= 0:
-        return None
-    return round(current_duration / normal_duration, 3)
+def process_timeline(request: Request) -> dict[str, Any]:
+    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    activities = [
+        {
+            "id": str(decision.get("decision_id") or decision.get("id") or index),
+            "name": str(decision.get("category") or "decision"),
+            "avg_duration": 0,
+            "automation_rate": None,
+            "rework_rate": None,
+            "source": "graph",
+            "timestamp": decision.get("created_at") or decision.get("timestamp"),
+        }
+        for index, decision in enumerate(decisions)
+    ]
+    return {"activities": activities, "total": len(activities), "source": "graph"}
 
 
 def _cross_graph_sources(refs: dict[str, Any]) -> list[str]:
-    sources: list[str] = []
-    for section in ("process_signal", "erp_impact", "root_cause"):
-        payload = refs.get(section)
-        if not isinstance(payload, dict):
-            continue
-        source = payload.get("source")
-        if source and str(source) not in sources:
-            sources.append(str(source))
-    return sources
+    return sorted(
+        {
+            str(value["source"])
+            for value in refs.values()
+            if isinstance(value, dict) and value.get("source")
+        }
+    )
 
 
-def _cross_graph_daily_cost(erp_impact: dict[str, Any]) -> float | None:
-    fixture_daily_cost = _numeric_or_none(erp_impact.get("daily_cost"))
-    if fixture_daily_cost is not None:
-        return fixture_daily_cost
-
-    timeline = _load_json(DATA_DIR / "process_timeline.json", {})
-    calibration = timeline.get("dollar_calibration") if isinstance(timeline, dict) else None
-    if not isinstance(calibration, dict):
-        return None
-    return _numeric_or_none(calibration.get("bottleneck_cost_per_day"))
-
-
-def _cross_graph_combined_impact(erp_impact: dict[str, Any], sources_used: list[str]) -> dict[str, Any]:
-    daily_cost = _cross_graph_daily_cost(erp_impact)
-    if daily_cost is not None and "daily_cost" not in erp_impact:
-        erp_impact["daily_cost"] = daily_cost
-
-    monthly_cost = round(daily_cost * 30, 2) if daily_cost is not None else None
-    annualized_cost = round(daily_cost * 365, 2) if daily_cost is not None else None
-    # Demo confidence is deterministic from independent local fixture sources, not a live model score.
-    confidence = round(min(0.95, 0.8 + (0.03 * len(sources_used))), 2)
-
-    return {
-        "daily_cost": daily_cost,
-        "monthly_cost": monthly_cost,
-        "annualized_cost": annualized_cost,
-        "confidence": confidence,
-    }
+def _cross_graph_combined_impact(impact: dict[str, Any], sources: list[str]) -> dict[str, Any]:
+    return {"sources": sources, "amount": _numeric_or_none(impact.get("amount")) or 0.0}
 
 
 @router.get("/cross-graph-insight/{alert_id}")
@@ -1346,7 +1375,7 @@ def apply_fix(payload: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/system/{name}")
 async def system_detail(name: str) -> dict[str, Any]:
-    return await _graph_client().get_system(name)
+    return cast(dict[str, Any], await _graph_client().get_system(name))
 
 
 @router.get("/alert/{id}")
@@ -1366,22 +1395,22 @@ async def alert_detail(id: str) -> dict[str, Any]:
             return {"source": "fixture", "alert": _with_alert_runtime_fields(alert)}
     if payload.get("source") == "fixture" and isinstance(alert, dict):
         return {**payload, "alert": _with_alert_runtime_fields(alert)}
-    return payload
+    return cast(dict[str, Any], payload)
 
 
 @router.get("/alert/{id}/deps")
 async def alert_deps(id: str) -> dict[str, Any]:
-    return await _graph_client().get_blast_radius(id)
+    return cast(dict[str, Any], await _graph_client().get_blast_radius(id))
 
 
 @router.get("/alert/{id}/recurrence")
 async def alert_recurrence(id: str) -> dict[str, Any]:
-    return await _graph_client().get_recurrence(id)
+    return cast(dict[str, Any], await _graph_client().get_recurrence(id))
 
 
 @router.get("/alert/{id}/factors")
 async def alert_factors(id: str) -> dict[str, Any]:
-    return await _graph_client().get_factors(id)
+    return cast(dict[str, Any], await _graph_client().get_factors(id))
 
 
 @router.get("/similar")
@@ -1487,11 +1516,19 @@ async def _process_connector_state() -> dict[str, Any]:
 
 
 @router.get("/audit-trail/{alert_id}")
-def audit_trail(alert_id: str) -> dict[str, Any]:
-    alerts_by_id = _fallback_alerts_by_id()
-    alert = alerts_by_id.get(alert_id)
+def audit_trail(alert_id: str, request: Request) -> dict[str, Any]:
+    alert = request.app.state.graph_store.get_decision(alert_id, DOMAIN)
     if not alert:
-        raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+        return {
+            "alert_id": alert_id,
+            "system": None,
+            "chain": [],
+            "complete": False,
+            "source": "graph",
+        }
+    metadata = alert.get("metadata") if isinstance(alert.get("metadata"), dict) else {}
+    alert = {**metadata, **alert}
+    alert["alert_id"] = metadata.get("alert_id") or alert.get("alert_id") or alert_id
 
     system = alert.get("system") or alert.get("system_name")
     chain: list[dict[str, Any]] = [
@@ -1500,7 +1537,7 @@ def audit_trail(alert_id: str) -> dict[str, Any]:
             "label": "Alert Detected",
             "detail": f"{alert.get('category') or 'unknown'} on {system or 'unknown system'}",
             "timestamp": alert.get("created_at") or alert.get("timestamp"),
-            "source": alert.get("source") or "fixture",
+            "source": "graph",
             "data": {
                 "alert_id": alert.get("alert_id"),
                 "event_id": alert.get("event_id"),
@@ -1518,8 +1555,8 @@ def audit_trail(alert_id: str) -> dict[str, Any]:
             {
                 "step": "context",
                 "label": "Context Gathered",
-                "detail": f"{len(factors)} factors auto-computed from fixture graph",
-                "source": "fixture",
+                "detail": f"{len(factors)} factors read from graph context",
+                "source": "graph",
                 "data": factors,
             }
         )
@@ -1546,10 +1583,10 @@ def audit_trail(alert_id: str) -> dict[str, Any]:
             }
         )
 
-    metadata = _metadata_for_alert(alert_id)
-    if metadata:
-        score_action = metadata.get("score_action") or metadata.get("scored_action") or metadata.get("action")
-        score_confidence = _numeric_or_none(metadata.get("score_confidence"))
+    outcome_metadata = _metadata_for_alert(alert_id)
+    if outcome_metadata:
+        score_action = outcome_metadata.get("score_action") or outcome_metadata.get("scored_action") or outcome_metadata.get("action")
+        score_confidence = _numeric_or_none(outcome_metadata.get("score_confidence"))
         if score_action or score_confidence is not None:
             chain.append(
                 {
@@ -1563,7 +1600,7 @@ def audit_trail(alert_id: str) -> dict[str, Any]:
                 }
             )
 
-        action_taken = metadata.get("action_taken") or metadata.get("actionTaken") or metadata.get("actual_action")
+        action_taken = outcome_metadata.get("action_taken") or outcome_metadata.get("actionTaken") or outcome_metadata.get("actual_action")
         if action_taken:
             chain.append(
                 {
@@ -1571,28 +1608,28 @@ def audit_trail(alert_id: str) -> dict[str, Any]:
                     "label": "Decision Captured",
                     "detail": str(action_taken),
                     "data": {
-                        "decision_id": metadata.get("decision_id"),
+                        "decision_id": outcome_metadata.get("decision_id"),
                         "action_taken": action_taken,
-                        "followed_ae": metadata.get("followed_ae"),
+                        "followed_ae": outcome_metadata.get("followed_ae"),
                     },
                 }
             )
 
         if (
-            "is_correct" in metadata
-            or "isCorrect" in metadata
-            or metadata.get("outcome") is not None
-            or metadata.get("reward") is not None
+            "is_correct" in outcome_metadata
+            or "isCorrect" in outcome_metadata
+            or outcome_metadata.get("outcome") is not None
+            or outcome_metadata.get("reward") is not None
         ):
             chain.append(
                 {
                     "step": "outcome",
                     "label": "Outcome Recorded",
-                    "detail": str(metadata.get("outcome") or "outcome recorded"),
+                    "detail": str(outcome_metadata.get("outcome") or "outcome recorded"),
                     "data": {
-                        "is_correct": metadata.get("is_correct") if "is_correct" in metadata else metadata.get("isCorrect"),
-                        "outcome": metadata.get("outcome"),
-                        "reward": metadata.get("reward"),
+                        "is_correct": outcome_metadata.get("is_correct") if "is_correct" in outcome_metadata else outcome_metadata.get("isCorrect"),
+                        "outcome": outcome_metadata.get("outcome"),
+                        "reward": outcome_metadata.get("reward"),
                     },
                 }
             )
@@ -1601,7 +1638,8 @@ def audit_trail(alert_id: str) -> dict[str, Any]:
         "alert_id": alert.get("alert_id") or alert_id,
         "system": system,
         "chain": chain,
-        "complete": _audit_complete(metadata),
+        "complete": _audit_complete(outcome_metadata),
+        "source": "graph",
     }
 
 
@@ -1615,6 +1653,16 @@ def store_alert_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 
     metadata = _load_json(METADATA_PATH, {})
     stored = dict(payload)
+    pipeline_system_id = (
+        stored.get("pipeline_system_id")
+        or stored.get("pipelineSystemId")
+        or stored.get("system_name")
+        or stored.get("system")
+        or _infer_system_from_dataset(str(stored.get("dataset") or ""))
+    )
+    normalized_pipeline = _normalize_system_key(str(pipeline_system_id or ""))
+    if normalized_pipeline:
+        stored["pipeline_system_id"] = normalized_pipeline
     stored["domain"] = DOMAIN
     stored["provenance"] = "demo"
     metadata[str(decision_id)] = stored

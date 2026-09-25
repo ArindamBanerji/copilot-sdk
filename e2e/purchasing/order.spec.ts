@@ -20,7 +20,10 @@ async function scoreOrder(page: Page) {
   await expect(page.getByText("Seven scorer inputs")).toBeVisible();
   const scoreButton = page.getByRole("button", { name: "Score This Order" });
   await expect(scoreButton).toBeEnabled();
-  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  const scoreResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/score") && response.request().method() === "POST",
+    { timeout: 30_000 },
+  );
   await scoreButton.click();
   await scoreResponse;
 }

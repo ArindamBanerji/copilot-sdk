@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any
+from copilot_sdk.config import resolve_profile
 
 
 class DisruptionRecoveryService:
     """Tracks recovery from supply disruptions."""
 
-    def __init__(self, active: bool = True) -> None:
+    def __init__(self, active: bool = True, *, profile: str | None = None) -> None:
+        if resolve_profile(profile, domain="purchasing") == "production":
+            active = False
         self.active = active
         self._categories = ["protein", "produce"] if active else []
         self._started_at = datetime(2026, 6, 26, tzinfo=timezone.utc)

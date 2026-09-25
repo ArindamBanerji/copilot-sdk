@@ -1,0 +1,25 @@
+{
+  "experiment": "E-JM-7",
+  "n_trials": 25,
+  "n_entity_groups": 3,
+  "results": {
+    "global": {
+      "late_accuracy_mean": 0.4848800000000001,
+      "entity_trap_detection_pct": 8.571428571428571,
+      "total_entity_traps": 35,
+      "total_detected": 3
+    },
+    "per_entity": {
+      "late_accuracy_mean": 0.48603999999999997,
+      "entity_trap_detection_pct": 22.857142857142858,
+      "total_entity_traps": 35,
+      "total_detected": 8
+    },
+    "separate_stores": {
+      "late_accuracy_mean": 0.4848800000000001,
+      "entity_trap_detection_pct": 8.571428571428571,
+      "total_entity_traps": 35,
+      "total_detected": 3
+    }
+  }
+}

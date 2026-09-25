@@ -1,0 +1,474 @@
+{
+  "correlations": {
+    "action_separability": {
+      "budget_frontier_efficiency": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.39650145772594736,
+        "spearman_rho": 0.4285714285714286
+      },
+      "conservation_false_pause": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 1.0,
+        "spearman_rho": 0.0
+      },
+      "k_curve_gain": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.7417339277316277,
+        "spearman_rho": 0.17393131069573456
+      },
+      "mu_widening": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.8728885715695383,
+        "spearman_rho": -0.09999999999999999
+      },
+      "readout_gap": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.8717434402332361,
+        "spearman_rho": 0.08571428571428573
+      }
+    },
+    "evidence_chain_length": {
+      "budget_frontier_efficiency": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.1347019353189672,
+        "spearman_rho": -0.6831300510639732
+      },
+      "conservation_false_pause": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.05766888562243733,
+        "spearman_rho": 0.8660254037844386
+      },
+      "k_curve_gain": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.017132953662860058,
+        "spearman_rho": 0.8911327886790069
+      },
+      "mu_widening": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 1.0,
+        "spearman_rho": 0.0
+      },
+      "readout_gap": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.3261642353450604,
+        "spearman_rho": 0.4879500364742666
+      }
+    },
+    "intrinsic_dimensionality": {
+      "budget_frontier_efficiency": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.26570262390670557,
+        "spearman_rho": -0.5428571428571429
+      },
+      "conservation_false_pause": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.10408803866182788,
+        "spearman_rho": 0.7999999999999999
+      },
+      "k_curve_gain": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.014888622005580311,
+        "spearman_rho": 0.8986451052612952
+      },
+      "mu_widening": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.6238376647810728,
+        "spearman_rho": -0.3
+      },
+      "readout_gap": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.07239650145772594,
+        "spearman_rho": 0.7714285714285715
+      }
+    },
+    "m_conditional": {
+      "budget_frontier_efficiency": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.9571545189504373,
+        "spearman_rho": -0.028571428571428574
+      },
+      "conservation_false_pause": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.6238376647810728,
+        "spearman_rho": 0.3
+      },
+      "k_curve_gain": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.42466250756136453,
+        "spearman_rho": 0.40583972495671394
+      },
+      "mu_widening": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.6238376647810728,
+        "spearman_rho": -0.3
+      },
+      "readout_gap": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.32872303206997094,
+        "spearman_rho": 0.48571428571428577
+      }
+    },
+    "outcome_entropy": {
+      "budget_frontier_efficiency": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.9131317851623264,
+        "spearman_rho": -0.05797710356524484
+      },
+      "conservation_false_pause": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.39100221895577053,
+        "spearman_rho": 0.49999999999999994
+      },
+      "k_curve_gain": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.3462243028699368,
+        "spearman_rho": 0.4705882352941177
+      },
+      "mu_widening": {
+        "n": 5,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.5046315754686911,
+        "spearman_rho": 0.39999999999999997
+      },
+      "readout_gap": {
+        "n": 6,
+        "note": "n=5-6; p-value has low power; interpret pattern, not threshold",
+        "p_value": 0.0835232813732598,
+        "spearman_rho": 0.753702346348183
+      }
+    }
+  },
+  "dataops": {
+    "action_separability": 0.9376307401297265,
+    "capability_results": {
+      "budget_frontier_efficiency": 0.844,
+      "conservation_false_pause": 0.24666666666666665,
+      "k_curve_gain": 32.00000000000001,
+      "metric": "action_accuracy where capability is accuracy-based",
+      "mu_widening": -1.7888888888888907,
+      "readout_gap": 55.611111111111114,
+      "source_geometry_for_readout": "default"
+    },
+    "evidence_chain_length": 2.0,
+    "intrinsic_dimensionality": 4.866104716332952,
+    "m_conditional": 0.40694444444444444,
+    "near_identical_bins_n": 134,
+    "outcome_entropy": 0.032821082970149934,
+    "simulated_cases_n": 720,
+    "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+  },
+  "metadata": {
+    "capability_units": {
+      "budget_frontier_efficiency": "fraction of exhaustive action_accuracy",
+      "conservation_false_pause": "PAUSE-decision fraction from F-2",
+      "k_curve_gain": "percentage_points action_accuracy gain, KE-1 or constructed paired K-vs-frozen",
+      "mu_widening": "percentage_points routing_quality gap widening from C2",
+      "readout_gap": "percentage_points action_accuracy evidence-oracle minus B=2"
+    },
+    "complexity_measure_definitions": {
+      "action_separability": "mean within-category pairwise action-centroid distance / RMS exported sigma",
+      "evidence_chain_length": "median Q-ordered simulated reads to category-conditioned action correctness; constructed S2P adds explicit cross-firm approval hops",
+      "intrinsic_dimensionality": "PCA participation ratio of exported action-centroid factor vectors",
+      "m_conditional": "share of scenarios where revealing the top-Q dimension changes the next-Q dimension",
+      "outcome_entropy": "binary entropy of simulated B=2 correctness in repeated (category, firm, 0.1-rounded surface) bins"
+    },
+    "construction_spec": "Three equally weighted S2P profiles: original exported S_A; B2 S_B affine transform (rho=.30, B_SCALE/B_SHIFT resized cyclically to eight factors because the source transform is six-factor-only); and the same B2 affine transform with B_SCALE rolled2 and B_SHIFT rolled3. 120 cases/profile/seed. Firm-1 contract_gap requires Firm-0 PO approval; Firm-2 contract_gap/duplicate_risk requires Firm-0 PO approval then Firm-1 invoice-match approval. Workflow steps do not alter geometry-derived action labels. Shared K is trained across firm profiles.",
+    "copilots": [
+      "dataops",
+      "trading",
+      "purchasing",
+      "soc",
+      "s2p"
+    ],
+    "determinism_per_cell": {
+      "dataops/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "82be911eb308d87a487c8bc2e90cb1a5d0b0a891c0bf30bdce7533a3c7b6b410"
+      },
+      "dataops/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "ee7c772c894bb4b6a09f7cab1cd94c9fd084adbfd8698d929d5c9b1df6697f98"
+      },
+      "dataops/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "36da75015b858d95ac71112a9f5bb8aca175800c9bc2c1b81bbad393fa0a3a0e"
+      },
+      "purchasing/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "46868697624af99999442c77393e82edf304a75354b885cf8b546ecb3b8626ba"
+      },
+      "purchasing/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "9a8104c41f05204d9170c34b3ad96007dc09b5a1a5bb5c3f43042722b8681ca3"
+      },
+      "purchasing/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "41e5af017cec3e747d5150728361699116dd80f24c9f97d5d5254b8042df38d2"
+      },
+      "s2p/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "6c51fa722a2952d84224929fd3145c00701a253ea2044aae67bc597f2551c838"
+      },
+      "s2p/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "820d5fee3e879d0c551b48eeda63e924f0a78e35c5706e3a6ac0c0ad1ef8902b"
+      },
+      "s2p/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "6afd2419e5b9da287ba2eefba2e6495fff8a71fdd92e53ff18bbd0bd4289a0c5"
+      },
+      "s2p_multi/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "1aad4e19a334938f2feb4232ed302fe68b24618c7d8786f85ec82ed7265c3d56"
+      },
+      "s2p_multi/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "28b43db91c169c75bb70a2d322e9de0892bceb6d89070ebb8a4ff87bf0d4f5a7"
+      },
+      "s2p_multi/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "8021901e390f4375312e16bba46e119a10ee9de049505b9576b0af010c344e5d"
+      },
+      "s2p_multi_k/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "9a8d66e7e5474db07e8df43ec5339bcf58ad78493b754b8fc2abb1339cc68adc"
+      },
+      "s2p_multi_k/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "a0463de816042a6c36309979bed65df9d3f90b3b02dfadd36f385b9a24678631"
+      },
+      "s2p_multi_k/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "6492fdf512e602bb73a1d37cb0446a400942750b325f8fa39a0b0233e605be16"
+      },
+      "soc/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "060eb3d9e59f86850ed2ad44acbca441266847b5007d8330b4f4a23808bc314d"
+      },
+      "soc/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "e77ccf1d799c5eb89ffc4da1ad663394dfebde64432f65d929825d640c88a64d"
+      },
+      "soc/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "5a0b7b122780fb6de30d55e934fffb4e28f57199b743a9d1ffdc51a0baca6b0a"
+      },
+      "trading/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "3d7076a57d57594b6f7416732d8ead8fd5d31fe9cb288c617bdee4c319222c90"
+      },
+      "trading/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "7abc9d3baad47213728d17ef222b835ab0783c0c0d172a37ca0e8322c909d25f"
+      },
+      "trading/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "64a473e9a162e1adac46df2b29ff73abf73172eea09d9ac58a366d976d8dcb40"
+      }
+    },
+    "mean_absolute_spearman_by_measure": {
+      "action_separability": 0.1576434049962898,
+      "evidence_chain_length": 0.5856476560003371,
+      "intrinsic_dimensionality": 0.662586163909402,
+      "m_conditional": 0.30402508784848564,
+      "outcome_entropy": 0.4364535370415091
+    },
+    "metric": "action_accuracy (capability and outcome entropy); μ widening field explicitly routing_quality",
+    "multi_enterprise_s2p_source": "constructed",
+    "n_datapoints": 6,
+    "rgi_increased_threshold": "multi-enterprise paired K action_accuracy gain exceeds single-firm KE-1 S2P gain",
+    "statistical_note": "n=5 measured domains or6 including constructed S2P; p-values have low power; interpret coefficients descriptively and require the within-S2P contrast.",
+    "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification",
+    "top_correlating_measure": "intrinsic_dimensionality"
+  },
+  "purchasing": {
+    "action_separability": 0.6248692169667104,
+    "capability_results": {
+      "budget_frontier_efficiency": 0.798,
+      "conservation_false_pause": 0.4613333333333333,
+      "k_curve_gain": 29.999999999999993,
+      "metric": "action_accuracy where capability is accuracy-based",
+      "mu_widening": 1.2722222222222235,
+      "readout_gap": 68.11111111111111,
+      "source_geometry_for_readout": "default"
+    },
+    "evidence_chain_length": 2.0,
+    "intrinsic_dimensionality": 3.886653528327941,
+    "m_conditional": 0.27361111111111114,
+    "near_identical_bins_n": 107,
+    "outcome_entropy": 0.16497786892523097,
+    "simulated_cases_n": 720,
+    "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+  },
+  "s2p": {
+    "action_separability": 0.6660088742314216,
+    "capability_results": {
+      "budget_frontier_efficiency": 0.841,
+      "conservation_false_pause": 0.016,
+      "k_curve_gain": 5.999999999999995,
+      "metric": "action_accuracy where capability is accuracy-based",
+      "mu_widening": -5.33333333333334,
+      "readout_gap": 16.222222222222218,
+      "source_geometry_for_readout": "default"
+    },
+    "evidence_chain_length": 1.0,
+    "intrinsic_dimensionality": 1.9110474222651315,
+    "m_conditional": 0.2125,
+    "near_identical_bins_n": 100,
+    "outcome_entropy": 0.0,
+    "simulated_cases_n": 720,
+    "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+  },
+  "s2p_contrast": {
+    "complexity_increased": true,
+    "multi_enterprise": {
+      "capability_results": {
+        "budget_frontier_efficiency": 0.8388888888888889,
+        "budget_frontier_efficiency_seed_sd": 0.010183501544346317,
+        "conservation_false_pause": null,
+        "conservation_false_pause_note": "not run for constructed profile; null",
+        "k_curve_gain": 16.444444444444443,
+        "k_curve_gain_seed_sd_pp": 0.8388704928078609,
+        "metric": "action_accuracy",
+        "mu_widening": null,
+        "mu_widening_note": "not run for constructed profile; null",
+        "readout_gap": 16.11111111111111,
+        "tier": "CONSTRUCTED multi-enterprise S2P + SIMULATED streams"
+      },
+      "complexity_vector": {
+        "action_separability": 0.5519588740275408,
+        "evidence_chain_length": 2.0,
+        "intrinsic_dimensionality": 2.740561097452011,
+        "m_conditional": 0.27870370370370373,
+        "outcome_entropy": 0.0
+      }
+    },
+    "rgi_increased": true,
+    "rgi_proxy_definition": "paired K-learning action_accuracy gain, in percentage points",
+    "single_firm": {
+      "capability_results": {
+        "budget_frontier_efficiency": 0.841,
+        "conservation_false_pause": 0.016,
+        "k_curve_gain": 5.999999999999995,
+        "metric": "action_accuracy where capability is accuracy-based",
+        "mu_widening": -5.33333333333334,
+        "readout_gap": 16.222222222222218,
+        "source_geometry_for_readout": "default"
+      },
+      "complexity_vector": {
+        "action_separability": 0.6660088742314216,
+        "evidence_chain_length": 1.0,
+        "intrinsic_dimensionality": 1.9110474222651315,
+        "m_conditional": 0.2125,
+        "outcome_entropy": 0.0
+      }
+    },
+    "within_domain_proof": true
+  },
+  "s2p_multi_enterprise": {
+    "action_separability": 0.5519588740275408,
+    "capability_results": {
+      "budget_frontier_efficiency": 0.8388888888888889,
+      "budget_frontier_efficiency_seed_sd": 0.010183501544346317,
+      "conservation_false_pause": null,
+      "conservation_false_pause_note": "not run for constructed profile; null",
+      "k_curve_gain": 16.444444444444443,
+      "k_curve_gain_seed_sd_pp": 0.8388704928078609,
+      "metric": "action_accuracy",
+      "mu_widening": null,
+      "mu_widening_note": "not run for constructed profile; null",
+      "readout_gap": 16.11111111111111,
+      "tier": "CONSTRUCTED multi-enterprise S2P + SIMULATED streams"
+    },
+    "evidence_chain_length": 2.0,
+    "intrinsic_dimensionality": 2.740561097452011,
+    "m_conditional": 0.27870370370370373,
+    "near_identical_bins_n": 69,
+    "outcome_entropy": 0.0,
+    "simulated_cases_n": 1080,
+    "tier": "CONSTRUCTED multi-enterprise S2P + SIMULATED streams"
+  },
+  "soc": {
+    "action_separability": 0.8239802486189748,
+    "capability_results": {
+      "budget_frontier_efficiency": 0.917,
+      "conservation_false_pause": 0.006666666666666667,
+      "k_curve_gain": 14.000000000000002,
+      "metric": "action_accuracy where capability is accuracy-based",
+      "mu_widening": 15.12222222222222,
+      "readout_gap": 0.0,
+      "source_geometry_for_readout": "trained"
+    },
+    "evidence_chain_length": 1.0,
+    "intrinsic_dimensionality": 1.1586948049133359,
+    "m_conditional": 0.1375,
+    "near_identical_bins_n": 128,
+    "outcome_entropy": 0.019984874266755822,
+    "simulated_cases_n": 720,
+    "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+  },
+  "trading": {
+    "action_separability": 0.5752898599203137,
+    "capability_results": {
+      "budget_frontier_efficiency": 0.907,
+      "conservation_false_pause": 0.013333333333333334,
+      "k_curve_gain": 14.000000000000002,
+      "metric": "action_accuracy where capability is accuracy-based",
+      "mu_widening": -1.4611111111111197,
+      "readout_gap": 47.333333333333336,
+      "source_geometry_for_readout": "default"
+    },
+    "evidence_chain_length": 1.0,
+    "intrinsic_dimensionality": 2.7123965893592574,
+    "m_conditional": 0.5027777777777778,
+    "near_identical_bins_n": 59,
+    "outcome_entropy": 0.045454545454545456,
+    "simulated_cases_n": 720,
+    "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+  },
+  "verdict": "COMPLEXITY-IS-THE-AXIS"
+}

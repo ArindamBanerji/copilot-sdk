@@ -988,6 +988,8 @@ export interface ProcessTimelineActivity {
 }
 
 export interface ProcessTimelineResponse {
+  source?: string;
+  provenance?: string;
   processModels?: Array<Record<string, unknown>>;
   activities?: ProcessTimelineActivity[];
   bottleneckId?: string;
@@ -999,6 +1001,7 @@ export interface ProcessTimelineResponse {
 }
 
 export interface EnterpriseSystemHealth {
+  pipelineCount?: number;
   connected?: boolean;
   status?: string;
   source?: string;

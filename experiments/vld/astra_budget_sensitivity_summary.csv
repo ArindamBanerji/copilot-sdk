@@ -1,0 +1,16 @@
+copilot,budget,scenarios,saves,hurts,evidence_tier,provenance,source_file,source_section,source_sha256
+soc,2,50,0,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+soc,3,50,4,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+soc,4,50,13,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+s2p,2,50,6,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+s2p,3,50,12,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+s2p,4,50,14,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+dataops,2,50,8,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+dataops,3,50,12,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+dataops,4,50,15,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+trading,2,50,13,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+trading,3,50,18,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+trading,4,50,22,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+purchasing,2,50,11,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+purchasing,3,50,11,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f
+purchasing,4,50,11,0,SIMULATED,paper_table_transcription,docs/design/ci_rgi_impact_core_v6.md,4.1: Budget sensitivity (unnumbered table),8a895797361be4b1cd73281bb81a1dca4a20a6a15183a9c1390b0f0d740e915f

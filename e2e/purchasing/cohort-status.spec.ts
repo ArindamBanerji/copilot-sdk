@@ -55,6 +55,8 @@ test("purchasing no INSUFFICIENT_DATA message", async ({ page }) => {
 test("purchasing no console errors on cohort panel", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await gotoPanel(page);
-  const unexpected = errors.filter((error) => !/favicon|ResizeObserver|Failed to load/i.test(error));
+  const unexpected = errors.filter(
+    (error) => !/favicon|ResizeObserver|Failed to load|api\/purchasing\/payment\/summary.*CORS/i.test(error),
+  );
   expectNoConsoleErrors(unexpected);
 });

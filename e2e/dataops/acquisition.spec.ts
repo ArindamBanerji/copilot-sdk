@@ -7,7 +7,7 @@ async function gotoInsight(page: import("@playwright/test").Page) {
   await waitForAppShell(page);
   await clickTab(page, "Insight");
   await waitForAppShell(page);
-  await expect(page.getByText("Data Acquisition Recommendations", { exact: true })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Data Acquisition Recommendations", { exact: true })).toBeVisible({ timeout: 30000 });
 }
 
 test("test_acquisition_panel_visible", async ({ page }) => {

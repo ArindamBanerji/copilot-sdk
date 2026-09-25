@@ -4,7 +4,7 @@ import { clickTab, collectConsoleErrors, expectNoConsoleErrors, waitForScreenRea
 const DATAOPS_API = "http://127.0.0.1:8030";
 
 test("centroid history response includes quality field", async ({ request }) => {
-  const response = await request.get(`${DATAOPS_API}/api/self/centroid-history?limit=1`);
+  const response = await request.get(`${DATAOPS_API}/api/self/centroid-history?limit=1`, { timeout: 30_000 });
   expect(response.status()).toBe(200);
 
   const body = await response.json();
@@ -21,7 +21,7 @@ test("centroid history response includes quality field", async ({ request }) => 
 });
 
 test("checkpoint created_at is numeric epoch", async ({ request }) => {
-  const response = await request.get(`${DATAOPS_API}/api/self/centroid-history?limit=1`);
+  const response = await request.get(`${DATAOPS_API}/api/self/centroid-history?limit=1`, { timeout: 30_000 });
   expect(response.status()).toBe(200);
   const body = await response.json();
   if (body.checkpoints.length > 0) {
@@ -39,7 +39,7 @@ test("centroid timeline loads without browser errors", async ({ page }) => {
 });
 
 test("centroid ablation returns the contract shape when a V2 checkpoint exists", async ({ request }) => {
-  const historyResponse = await request.get(`${DATAOPS_API}/api/self/centroid-history?limit=50`);
+  const historyResponse = await request.get(`${DATAOPS_API}/api/self/centroid-history?limit=50`, { timeout: 30_000 });
   expect(historyResponse.status()).toBe(200);
   const history = await historyResponse.json();
   const checkpoint = history.checkpoints.find((item: { checkpoint_id?: string }) => item.checkpoint_id);
@@ -47,6 +47,7 @@ test("centroid ablation returns the contract shape when a V2 checkpoint exists",
   test.skip(!checkpoint, "No V2 checkpoint is available in the live DataOps fixture");
   const response = await request.get(
     `${DATAOPS_API}/api/self/centroid-history/${encodeURIComponent(checkpoint.checkpoint_id)}/counterfactual?window=5`,
+    { timeout: 30_000 },
   );
   expect(response.status()).toBe(200);
   const body = await response.json();
@@ -60,6 +61,7 @@ test("centroid ablation returns the contract shape when a V2 checkpoint exists",
 test("centroid ablation returns 404 for a missing checkpoint", async ({ request }) => {
   const response = await request.get(
     `${DATAOPS_API}/api/self/centroid-history/nonexistent/counterfactual`,
+    { timeout: 30_000 },
   );
   expect(response.status()).toBe(404);
 });

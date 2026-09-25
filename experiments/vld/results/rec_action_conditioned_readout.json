@@ -1,0 +1,463 @@
+{
+  "dataops": {
+    "aggregate": {
+      "conditioned_mean": 0.5559999999999999,
+      "conditioned_std": 0.04059556626036885,
+      "current_mean": 0.336,
+      "current_std": 0.05200000000000001,
+      "headroom_mean": 66.39999999999999,
+      "metric": "action_accuracy",
+      "oracle_mean": 1.0,
+      "oracle_std": 0.0,
+      "recovery_fraction_mean": 0.3310986941675712,
+      "recovery_ge_15pp": true,
+      "recovery_mean": 21.999999999999996,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+    },
+    "per_seed": {
+      "123": {
+        "conditioned_action_acc": 0.564,
+        "current_action_acc": 0.308,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 69.19999999999999,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.3699421965317919,
+        "recovery_pp": 25.599999999999994,
+        "seed": 123,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "42": {
+        "conditioned_action_acc": 0.512,
+        "current_action_acc": 0.304,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 69.6,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.2988505747126437,
+        "recovery_pp": 20.8,
+        "seed": 42,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "7": {
+        "conditioned_action_acc": 0.592,
+        "current_action_acc": 0.396,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 60.4,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.3245033112582781,
+        "recovery_pp": 19.599999999999994,
+        "seed": 7,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      }
+    }
+  },
+  "leakage_check": {
+    "dataops": {
+      "audit_definition": "Both reported accuracies use canonical targets; shuffled labels are an unused audit channel.",
+      "delta": 0.0,
+      "metric": "action_accuracy",
+      "n": 50,
+      "passed": true,
+      "prediction_invariant": true,
+      "random_label_reference_acc": 0.26,
+      "seed": 500042,
+      "shuffled_acc": 0.68,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification",
+      "unshuffled_acc": 0.68
+    },
+    "purchasing": {
+      "audit_definition": "Both reported accuracies use canonical targets; shuffled labels are an unused audit channel.",
+      "delta": 0.0,
+      "metric": "action_accuracy",
+      "n": 50,
+      "passed": true,
+      "prediction_invariant": true,
+      "random_label_reference_acc": 0.24,
+      "seed": 500042,
+      "shuffled_acc": 0.56,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification",
+      "unshuffled_acc": 0.56
+    },
+    "s2p": {
+      "audit_definition": "Both reported accuracies use canonical targets; shuffled labels are an unused audit channel.",
+      "delta": 0.0,
+      "metric": "action_accuracy",
+      "n": 50,
+      "passed": true,
+      "prediction_invariant": true,
+      "random_label_reference_acc": 0.2,
+      "seed": 500042,
+      "shuffled_acc": 0.92,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification",
+      "unshuffled_acc": 0.92
+    },
+    "soc": {
+      "audit_definition": "Both reported accuracies use canonical targets; shuffled labels are an unused audit channel.",
+      "delta": 0.0,
+      "metric": "action_accuracy",
+      "n": 50,
+      "passed": true,
+      "prediction_invariant": true,
+      "random_label_reference_acc": 0.24,
+      "seed": 500042,
+      "shuffled_acc": 0.88,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification",
+      "unshuffled_acc": 0.88
+    },
+    "trading": {
+      "audit_definition": "Both reported accuracies use canonical targets; shuffled labels are an unused audit channel.",
+      "delta": 0.0,
+      "metric": "action_accuracy",
+      "n": 50,
+      "passed": true,
+      "prediction_invariant": true,
+      "random_label_reference_acc": 0.28,
+      "seed": 500042,
+      "shuffled_acc": 0.5,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification",
+      "unshuffled_acc": 0.5
+    }
+  },
+  "metadata": {
+    "determinism_per_cell": {
+      "dataops/123": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "af026a16a962e3b3a2164f1b628f55ba11888fabb44f6b807ea88fb45d098cc2",
+        "rebuilds": 2,
+        "sha256": "74d9efb18d8c30b55ba4783ad8e85420c2116bd7ae8e524c181a6fc3a1fdb4bf"
+      },
+      "dataops/42": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "cae678ee134343860826db354685ddcd2d7e1063c66f249b6344f39fd32181c1",
+        "rebuilds": 2,
+        "sha256": "6c54d29f39b1128be75823c2a42957f7d77d472da414dd8e862cd2501d63f6ac"
+      },
+      "dataops/7": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "25e7e157221e235596e5af0039cff2c91665a24fb32fe9fad3497f57745a278e",
+        "rebuilds": 2,
+        "sha256": "6a111e2789543322b79c697b682974de3bdd1f4a25e45de2c8d6d48b165ee74e"
+      },
+      "purchasing/123": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "05a56125e37cfe6cbe2dc2559f8700caf3cc968fa2447b6b3adb18bc70b835a2",
+        "rebuilds": 2,
+        "sha256": "e23c8eb8c15d4855bbf603fc89b7f41221ba9765acd4a9bf998903e7acb6b18b"
+      },
+      "purchasing/42": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "45488e1b06450f000d5680272557275566f1c4953f91eaf3ad62483603c6e326",
+        "rebuilds": 2,
+        "sha256": "5f7ce5a9c0461c1848358ea157afc3489fbe5daa253efe5df7b27e7da47bd442"
+      },
+      "purchasing/7": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "e308452109bb607b2d592d48a2d52207e1f9f4f86482737a96bf871d92ff97d6",
+        "rebuilds": 2,
+        "sha256": "5dfa67d785d31b3e11d10456d936a5b3610e40265260f9d82552f0c7a1d74f83"
+      },
+      "s2p/123": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "ee419409856bbc9876062d982dddb0dddb72144b59cb6ff317e4453f16d92d8a",
+        "rebuilds": 2,
+        "sha256": "e5a961b9b47cdc99e36ed1ee7b567f30fc6d3917972e362337a95185422276e4"
+      },
+      "s2p/42": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "9ec6b333ec8c779211608050abd9098ef61cecdf3ac16d6117e6e3bf7023eaef",
+        "rebuilds": 2,
+        "sha256": "f075e8a2a54d59d3e104f6df0f9fcb3ed327f5d793ba10a61167622df01474a4"
+      },
+      "s2p/7": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "9263c7c6ffefd32189c4d75f40467e7577be7304b8d381feae85c1f94629eb4d",
+        "rebuilds": 2,
+        "sha256": "2187b99242f303cef0f90b8d8e41ee70109abe1a1de83fcc3eab92dfefdafbc6"
+      },
+      "soc/123": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "e9873aaf656504ae508b9d422ba4d81a75630563fa01b6cf156528080d97ac38",
+        "rebuilds": 2,
+        "sha256": "ddc5c85c0e610ba823b37d399bb49b13d1eadf812f004f0c4a1014dac761c6bb"
+      },
+      "soc/42": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "adad6b564477b85b1775605044685e6e0d7c652c204d1c43952bac1155904281",
+        "rebuilds": 2,
+        "sha256": "132f587283b58cfd09cb46c133d47592baf3586f3ea3c95f0d859b8e9fd04345"
+      },
+      "soc/7": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "e2d81d073d75de979056bbbc860d7445f2cd64dfced7bb16d7885f73a79da77e",
+        "rebuilds": 2,
+        "sha256": "d44d8b0cd27c412eb584996ee58674fd3d51514ff3881e9931caf9bf2df16eac"
+      },
+      "trading/123": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "172d2b2baf65949428765c925a0532b12ff63a41ad59f567b95fddf63f99ba73",
+        "rebuilds": 2,
+        "sha256": "12e26f5a9e2657fd5bd027eb1709e38c507448a78ffb522b05d0263551439568"
+      },
+      "trading/42": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "edf40aa8f5f94dc880b0d6f0fce050deb176865b95121f22dd3807c4e844488d",
+        "rebuilds": 2,
+        "sha256": "0aa2babe41d8b0346ef74d023cf07292e1a643111a80ba63ded083f7a4e6ebf0"
+      },
+      "trading/7": {
+        "byte_identical": true,
+        "heldout_audit_rebuilds": 2,
+        "heldout_audit_sha256": "07b543179ab0f4a1ff9662721143eb9e67717f95a79d1913d365ce68e947361a",
+        "rebuilds": 2,
+        "sha256": "e3ae4d2f3d3411a0008fee0287b3f2d7cb2c9caa9fc2908e34ac672f4c854989"
+      }
+    },
+    "geometry": "default (where readout gap exists)",
+    "metric": "action_accuracy",
+    "paired_comparison": true,
+    "pre_registered_rule": ">=15pp recovery in >=3/5 copilots",
+    "qualified_copilots": 2,
+    "scenarios_frozen": true,
+    "scenarios_per_copilot": 250,
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification",
+    "verdict": "Conditioned readout recovered >=15pp in 2/5 copilots; frontier remains with partial recovery."
+  },
+  "purchasing": {
+    "aggregate": {
+      "conditioned_mean": 0.424,
+      "conditioned_std": 0.024331050121192868,
+      "current_mean": 0.22266666666666668,
+      "current_std": 0.04805552344250695,
+      "headroom_mean": 76.53333333333333,
+      "metric": "action_accuracy",
+      "oracle_mean": 0.988,
+      "oracle_std": 0.0,
+      "recovery_fraction_mean": 0.25994657840340274,
+      "recovery_ge_15pp": true,
+      "recovery_mean": 20.133333333333333,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+    },
+    "per_seed": {
+      "123": {
+        "conditioned_action_acc": 0.436,
+        "current_action_acc": 0.176,
+        "evidence_oracle_action_acc": 0.988,
+        "headroom_pp": 81.2,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.32019704433497537,
+        "recovery_pp": 26.0,
+        "seed": 123,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "42": {
+        "conditioned_action_acc": 0.44,
+        "current_action_acc": 0.22,
+        "evidence_oracle_action_acc": 0.988,
+        "headroom_pp": 76.8,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.2864583333333333,
+        "recovery_pp": 22.0,
+        "seed": 42,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "7": {
+        "conditioned_action_acc": 0.396,
+        "current_action_acc": 0.272,
+        "evidence_oracle_action_acc": 0.988,
+        "headroom_pp": 71.6,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.17318435754189945,
+        "recovery_pp": 12.4,
+        "seed": 7,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      }
+    }
+  },
+  "readout_design": "All-category/action nearest-centroid readout on v_L with 0.70x precision on unread dimensions and read-dimension precision 1 + 2.5*q_norm*(0.5+0.5*delta_norm), where q_norm is normalized absolute Q×K score and delta_norm is normalized observed per-read vector movement. No verified labels or correctness fields enter prediction.",
+  "s2p": {
+    "aggregate": {
+      "conditioned_mean": 0.9093333333333333,
+      "conditioned_std": 0.02571640202931457,
+      "current_mean": 0.856,
+      "current_std": 0.031240998703626646,
+      "headroom_mean": 14.400000000000002,
+      "metric": "action_accuracy",
+      "oracle_mean": 1.0,
+      "oracle_std": 0.0,
+      "recovery_fraction_mean": 0.37589605734767056,
+      "recovery_ge_15pp": false,
+      "recovery_mean": 5.3333333333333375,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+    },
+    "per_seed": {
+      "123": {
+        "conditioned_action_acc": 0.928,
+        "current_action_acc": 0.876,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 12.4,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.41935483870967777,
+        "recovery_pp": 5.200000000000005,
+        "seed": 123,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "42": {
+        "conditioned_action_acc": 0.92,
+        "current_action_acc": 0.872,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 12.8,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.37500000000000033,
+        "recovery_pp": 4.800000000000004,
+        "seed": 42,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "7": {
+        "conditioned_action_acc": 0.88,
+        "current_action_acc": 0.82,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 18.000000000000004,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.33333333333333354,
+        "recovery_pp": 6.000000000000005,
+        "seed": 7,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      }
+    }
+  },
+  "soc": {
+    "aggregate": {
+      "conditioned_mean": 0.8426666666666667,
+      "conditioned_std": 0.002309401076758505,
+      "current_mean": 0.8146666666666667,
+      "current_std": 0.01404753833713694,
+      "headroom_mean": 18.533333333333335,
+      "metric": "action_accuracy",
+      "oracle_mean": 1.0,
+      "oracle_std": 0.0,
+      "recovery_fraction_mean": 0.14839905628581052,
+      "recovery_ge_15pp": false,
+      "recovery_mean": 2.7999999999999985,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+    },
+    "per_seed": {
+      "123": {
+        "conditioned_action_acc": 0.84,
+        "current_action_acc": 0.8,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 19.999999999999996,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.19999999999999968,
+        "recovery_pp": 3.9999999999999925,
+        "seed": 123,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "42": {
+        "conditioned_action_acc": 0.844,
+        "current_action_acc": 0.828,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 17.200000000000003,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.09302325581395354,
+        "recovery_pp": 1.6000000000000014,
+        "seed": 42,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "7": {
+        "conditioned_action_acc": 0.844,
+        "current_action_acc": 0.816,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 18.400000000000006,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.15217391304347835,
+        "recovery_pp": 2.8000000000000025,
+        "seed": 7,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      }
+    }
+  },
+  "trading": {
+    "aggregate": {
+      "conditioned_mean": 0.5626666666666666,
+      "conditioned_std": 0.012858201014657221,
+      "current_mean": 0.4826666666666667,
+      "current_std": 0.018036999011291563,
+      "headroom_mean": 51.2,
+      "metric": "action_accuracy",
+      "oracle_mean": 0.9946666666666667,
+      "oracle_std": 0.00461880215351701,
+      "recovery_fraction_mean": 0.15594830895454828,
+      "recovery_ge_15pp": false,
+      "recovery_mean": 7.999999999999997,
+      "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+    },
+    "per_seed": {
+      "123": {
+        "conditioned_action_acc": 0.548,
+        "current_action_acc": 0.464,
+        "evidence_oracle_action_acc": 0.992,
+        "headroom_pp": 52.800000000000004,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.15909090909090912,
+        "recovery_pp": 8.400000000000002,
+        "seed": 123,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "42": {
+        "conditioned_action_acc": 0.568,
+        "current_action_acc": 0.5,
+        "evidence_oracle_action_acc": 0.992,
+        "headroom_pp": 49.2,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.13821138211382103,
+        "recovery_pp": 6.799999999999995,
+        "seed": 42,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      },
+      "7": {
+        "conditioned_action_acc": 0.572,
+        "current_action_acc": 0.484,
+        "evidence_oracle_action_acc": 1.0,
+        "headroom_pp": 51.6,
+        "metric": "action_accuracy",
+        "n": 250,
+        "recovery_fraction": 0.17054263565891467,
+        "recovery_pp": 8.799999999999997,
+        "seed": 7,
+        "tier": "GEOMETRY-DERIVED + SIMULATED streams/evidence/verification"
+      }
+    }
+  }
+}

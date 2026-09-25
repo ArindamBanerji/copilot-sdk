@@ -81,5 +81,14 @@ def test_safe_05_regime_endpoint_is_observation_only(client) -> None:
     assert "hold sizing" not in response.text.lower()
 
 
-def test_safe_06_execution_is_disabled_by_default() -> None:
+def test_safe_06_execution_cannot_be_enabled_by_environment(client, monkeypatch) -> None:
+    monkeypatch.setenv("TRADING_EXECUTION_ENABLED", "true")
+
     assert settings.TRADING_EXECUTION_ENABLED is False
+    response = client.post(
+        "/api/broker/orders",
+        params={"broker": "mock"},
+        json={"ticker": "AAPL", "side": "buy", "qty": 1},
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"]["error"] == "observation_only"

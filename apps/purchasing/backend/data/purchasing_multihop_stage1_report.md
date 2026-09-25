@@ -10,24 +10,22 @@ Headline comparison for score-keyed cases is VLD vs breadth. content_rule is rep
 
 | ρ | SP | breadth | content_rule | VLD | Δ(VLD−breadth) | Δ(VLD−SP) |
 |---:|---:|---:|---:|---:|---:|---:|
-| 0.30 | 0.333 | 0.333 | 1.000 | 0.000 | -0.333 | -0.333 |
-| 0.50 | 0.200 | 0.200 | 1.000 | 0.200 | 0.000 | 0.000 |
-| 0.70 | 0.333 | 0.167 | 1.000 | 1.000 | 0.833 | 0.667 |
-| 0.90 | 1.000 | 0.000 | 1.000 | 1.000 | 1.000 | 0.000 |
-| 1.00 | 0.333 | 0.000 | 1.000 | 1.000 | 1.000 | 0.667 |
+| 0.30 | 0.400 | 1.000 | 1.000 | 0.000 | -1.000 | -0.400 |
+| 0.50 | 1.000 | 0.000 | 1.000 | 0.000 | 0.000 | -1.000 |
+| 0.70 | 0.300 | 0.000 | 1.000 | 1.000 | 1.000 | 0.700 |
+| 0.90 | 0.333 | 0.000 | 1.000 | 1.000 | 1.000 | 0.667 |
+| 1.00 | 0.375 | 0.000 | 1.000 | 1.000 | 1.000 | 0.625 |
 
 ## 2. Per-Kind Results
 
 | Kind | SP | breadth | content_rule | VLD | N |
 |---|---:|---:|---:|---:|---:|
-| content_keyed | 0.333 | 0.800 | 0.800 | 0.800 | 15 |
-| prerequisite | 0.200 | 0.000 | 1.000 | 1.000 | 5 |
-| score_keyed | 0.400 | 0.150 | 1.000 | 0.650 | 20 |
+| score_keyed | 0.425 | 0.125 | 1.000 | 0.750 | 40 |
 
 ## 3. Controls
 
-- Flat controls: VLD=0.400, single_pass=0.400, pass=True.
-- ρ=0.50 controls: VLD=0.200, near chance 0.167±0.20 pass=True.
+- Flat controls: VLD=0.000, single_pass=0.000, pass=True.
+- ρ=0.50 controls: VLD=0.000, near chance 0.167±0.20 pass=True.
 
 ## 4. Per-ρ Table
 
@@ -45,13 +43,13 @@ Same as §1; score-keyed subset only.
 
 ## 6. Centroid Diagnostics
 
-- Action cells with ≥3 non-flat instances: 6.
-- Action cells defaulted: 0.
-- Samples per action: {'order_standard': 8, 'order_increased': 4, 'order_reduced': 8, 'switch_supplier': 6, 'defer_order': 6, 'emergency_order': 3}.
-- Enriched vs surface centroid diff: 0.1355.
+- Action cells with ≥3 non-flat instances: 4.
+- Action cells defaulted: 2.
+- Samples per action: {'order_standard': 0, 'order_increased': 8, 'order_reduced': 10, 'switch_supplier': 15, 'defer_order': 7, 'emergency_order': 0}.
+- Enriched vs surface centroid diff: 0.4210.
 
 ## Headline
 
 accuracy(VLD) at ρ≥0.70 on score_keyed = 1.000.
-accuracy(VLD) - accuracy(breadth) on score_keyed = 0.500.
+accuracy(VLD) - accuracy(breadth) on score_keyed = 0.625.
 Cross-copilot generalization holds: True.

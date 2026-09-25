@@ -71,3 +71,4 @@ test("regime break shows restrictions", async ({ page }) => {
   await expect(page.getByTestId("regime-status-restrictions")).toContainText("theta_min tightened 30%");
   await expect(page.getByTestId("regime-status-restrictions")).toContainText("AE promotions deferred");
 });
+

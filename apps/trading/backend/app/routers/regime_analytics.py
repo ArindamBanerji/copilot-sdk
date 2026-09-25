@@ -25,12 +25,10 @@ def create_regime_analytics_router(
         return RegimeAnalytics().compute(decisions)
 
     @router.get("/regime-analytics")
-    @cached_static("regime-analytics")
     def regime_analytics(request: Request) -> dict[str, Any]:
         return cast(dict[str, Any], payload())
 
     @router.get("/regime-analytics/summary")
-    @cached_static("regime-analytics-summary")
     def regime_analytics_summary(request: Request) -> dict[str, Any]:
         return cast(dict[str, Any], payload())
 

@@ -50,7 +50,7 @@ def _make_scorer(store: InMemoryGraphStore) -> CompoundingScorer:
         actions=list(preset.shape.action_names),
         categories=list(preset.shape.category_names),
     )
-    return CompoundingScorer(cast(Any, preset), engine, graph_store=store)
+    return CompoundingScorer(cast(Any, preset), engine, graph_store=store, profile="test")
 
 
 def _checkpoint(store: InMemoryGraphStore, tag: str, value: float, index: int) -> dict:

@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import shutil
 import sys
+from importlib import import_module
 from pathlib import Path
 from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
 from copilot_sdk.graph import SQLiteGraphStore
-
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -64,7 +64,9 @@ def dataops_data_dir(
 
     (target / "alert_metadata.json").write_text("{}\n", encoding="utf-8")
 
-    from app import ae_router, context_router, main
+    ae_router = import_module("app.ae_router")
+    context_router = import_module("app.context_router")
+    main = import_module("app.main")
 
     ae_router.reset_ae_fixtures()
     monkeypatch.setattr(context_router, "DATA_DIR", target)
@@ -83,7 +85,7 @@ def dataops_data_dir(
 
 @pytest.fixture()
 def client(dataops_data_dir: Path) -> TestClient:
-    from app.main import create_app
+    create_app = import_module("app.main").create_app
 
     app = create_app(db_path=dataops_data_dir / "test_dataops.db", demo_bundle_path=False)
     return TestClient(app)

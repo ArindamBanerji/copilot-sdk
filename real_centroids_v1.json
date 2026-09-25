@@ -1,0 +1,2691 @@
+{
+  "extracted_at": "2026-09-12T17:14:12.088088+00:00",
+  "scope": "offline real CompoundingScorer: local checkpoint snapshots or labelled bootstrap",
+  "live_age_validated": false,
+  "complete": true,
+  "errors": {},
+  "copilots": {
+    "soc": {
+      "mu": [
+        [
+          0.75,
+          0.85,
+          0.8,
+          0.6,
+          0.65,
+          0.15
+        ],
+        [
+          0.6,
+          0.6,
+          0.55,
+          0.55,
+          0.5,
+          0.4
+        ],
+        [
+          0.3,
+          0.25,
+          0.15,
+          0.2,
+          0.25,
+          0.85
+        ],
+        [
+          0.2,
+          0.45,
+          0.25,
+          0.35,
+          0.35,
+          0.65
+        ]
+      ],
+      "mu_category": "credential_access",
+      "all_category_mu": {
+        "credential_access": [
+          [
+            0.75,
+            0.85,
+            0.8,
+            0.6,
+            0.65,
+            0.15
+          ],
+          [
+            0.6,
+            0.6,
+            0.55,
+            0.55,
+            0.5,
+            0.4
+          ],
+          [
+            0.3,
+            0.25,
+            0.15,
+            0.2,
+            0.25,
+            0.85
+          ],
+          [
+            0.2,
+            0.45,
+            0.25,
+            0.35,
+            0.35,
+            0.65
+          ]
+        ],
+        "malware_execution": [
+          [
+            0.75,
+            0.8,
+            0.9,
+            0.55,
+            0.6,
+            0.2
+          ],
+          [
+            0.6,
+            0.55,
+            0.75,
+            0.5,
+            0.5,
+            0.4
+          ],
+          [
+            0.3,
+            0.2,
+            0.2,
+            0.15,
+            0.2,
+            0.9
+          ],
+          [
+            0.2,
+            0.4,
+            0.45,
+            0.3,
+            0.35,
+            0.7
+          ]
+        ],
+        "lateral_movement": [
+          [
+            0.75,
+            0.8,
+            0.7,
+            0.85,
+            0.7,
+            0.2
+          ],
+          [
+            0.6,
+            0.6,
+            0.5,
+            0.65,
+            0.55,
+            0.4
+          ],
+          [
+            0.3,
+            0.25,
+            0.15,
+            0.2,
+            0.25,
+            0.8
+          ],
+          [
+            0.2,
+            0.4,
+            0.3,
+            0.4,
+            0.35,
+            0.65
+          ]
+        ],
+        "data_exfiltration": [
+          [
+            0.75,
+            0.9,
+            0.75,
+            0.7,
+            0.8,
+            0.15
+          ],
+          [
+            0.6,
+            0.75,
+            0.5,
+            0.55,
+            0.6,
+            0.45
+          ],
+          [
+            0.3,
+            0.3,
+            0.1,
+            0.15,
+            0.2,
+            0.9
+          ],
+          [
+            0.2,
+            0.4,
+            0.25,
+            0.3,
+            0.35,
+            0.7
+          ]
+        ],
+        "insider_threat": [
+          [
+            0.75,
+            0.75,
+            0.65,
+            0.85,
+            0.8,
+            0.15
+          ],
+          [
+            0.6,
+            0.6,
+            0.5,
+            0.7,
+            0.6,
+            0.4
+          ],
+          [
+            0.3,
+            0.25,
+            0.15,
+            0.2,
+            0.2,
+            0.85
+          ],
+          [
+            0.2,
+            0.4,
+            0.3,
+            0.45,
+            0.35,
+            0.65
+          ]
+        ],
+        "cloud_infrastructure": [
+          [
+            0.75,
+            0.85,
+            0.8,
+            0.6,
+            0.75,
+            0.2
+          ],
+          [
+            0.6,
+            0.65,
+            0.55,
+            0.5,
+            0.55,
+            0.45
+          ],
+          [
+            0.3,
+            0.25,
+            0.1,
+            0.15,
+            0.2,
+            0.9
+          ],
+          [
+            0.2,
+            0.45,
+            0.3,
+            0.3,
+            0.35,
+            0.7
+          ]
+        ]
+      },
+      "sigma": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "factor_names": [
+        "privileged_identity_context",
+        "asset_criticality",
+        "threat_intel_enrichment",
+        "pattern_history",
+        "time_anomaly",
+        "device_trust"
+      ],
+      "action_names": [
+        "escalate",
+        "investigate",
+        "suppress",
+        "monitor"
+      ],
+      "category_names": [
+        "credential_access",
+        "malware_execution",
+        "lateral_movement",
+        "data_exfiltration",
+        "insider_threat",
+        "cloud_infrastructure"
+      ],
+      "n_actions": 4,
+      "n_factors": 6,
+      "tau": 0.1,
+      "tensor_shape": [
+        6,
+        4,
+        6
+      ],
+      "pre_restore_hash": "e055e9f4733cfac11711dbdcf8e0c9de7b6b1ffd6f401ceadfe6bc9867af237a",
+      "post_restore_hash": "e055e9f4733cfac11711dbdcf8e0c9de7b6b1ffd6f401ceadfe6bc9867af237a",
+      "l5_rows_total": 0,
+      "l5_rows_applied": 0,
+      "provenance": {
+        "live_age_verified": false,
+        "database": null,
+        "checkpoint_count": 0,
+        "latest_checkpoint": null,
+        "centroid_source": "real preset bootstrap prior",
+        "identical_action_centroids_by_category": {
+          "credential_access": false,
+          "malware_execution": false,
+          "lateral_movement": false,
+          "data_exfiltration": false,
+          "insider_threat": false,
+          "cloud_infrastructure": false
+        },
+        "evidence_scope": "real registered showcase evidence; no backing graph/data client; unregistered reads are offline-unavailable",
+        "construction": "CompoundingScorer.from_preset(profile='test', enable_rl=False) plus startup-equivalent L5 centroid overlay",
+        "pre_restore_hash": "e055e9f4733cfac11711dbdcf8e0c9de7b6b1ffd6f401ceadfe6bc9867af237a",
+        "post_restore_hash": "e055e9f4733cfac11711dbdcf8e0c9de7b6b1ffd6f401ceadfe6bc9867af237a",
+        "l5_rows_total": 0,
+        "l5_rows_applied": 0,
+        "source": "copilot-sdk/copilot_sdk/scoring/scorer.py:320",
+        "l5_restore_source": "copilot-sdk/copilot_sdk/scoring/startup_restore.py:142",
+        "sigma_source": "router unit-vector fallback (not learned sigma)",
+        "sigma_reference": "copilot-sdk/copilot_sdk/backend/investigation_router.py:178",
+        "decisions": 0,
+        "verified_decisions": 0
+      }
+    },
+    "trading": {
+      "mu": [
+        [
+          0.600000605616718,
+          0.21974901748453946,
+          0.24166252725836193,
+          0.024486591598455145,
+          0.40000225840407894,
+          0.6565905503324294,
+          0.5000016816202012,
+          0.5000000586834407,
+          0.49999988107515086,
+          0.4999996286844229
+        ],
+        [
+          0.750063807518631,
+          0.7463000000000001,
+          0.6968825862855643,
+          0.12880000000000003,
+          0.6525928816913874,
+          0.6490750859198553,
+          0.6749999999999999,
+          0.5075076502628748,
+          0.4847853813256782,
+          0.4524958412570301
+        ],
+        [
+          0.38,
+          0.18,
+          0.36,
+          0.17,
+          0.27,
+          0.33,
+          0.38,
+          0.462,
+          0.55,
+          0.406
+        ],
+        [
+          0.3,
+          0.35,
+          0.5,
+          0.5,
+          0.5,
+          0.25,
+          0.4,
+          0.5,
+          0.5,
+          0.5
+        ]
+      ],
+      "mu_category": "trend_following",
+      "all_category_mu": {
+        "trend_following": [
+          [
+            0.600000605616718,
+            0.21974901748453946,
+            0.24166252725836193,
+            0.024486591598455145,
+            0.40000225840407894,
+            0.6565905503324294,
+            0.5000016816202012,
+            0.5000000586834407,
+            0.49999988107515086,
+            0.4999996286844229
+          ],
+          [
+            0.750063807518631,
+            0.7463000000000001,
+            0.6968825862855643,
+            0.12880000000000003,
+            0.6525928816913874,
+            0.6490750859198553,
+            0.6749999999999999,
+            0.5075076502628748,
+            0.4847853813256782,
+            0.4524958412570301
+          ],
+          [
+            0.38,
+            0.18,
+            0.36,
+            0.17,
+            0.27,
+            0.33,
+            0.38,
+            0.462,
+            0.55,
+            0.406
+          ],
+          [
+            0.3,
+            0.35,
+            0.5,
+            0.5,
+            0.5,
+            0.25,
+            0.4,
+            0.5,
+            0.5,
+            0.5
+          ]
+        ],
+        "mean_reversion": [
+          [
+            0.53,
+            0.53,
+            0.53,
+            0.47,
+            0.53,
+            0.53,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          [
+            0.4289,
+            0.5103,
+            0.386,
+            0.5487,
+            0.4154,
+            0.5829,
+            0.55,
+            0.5,
+            0.5,
+            0.5
+          ],
+          [
+            0.4694,
+            0.5959,
+            0.3987,
+            0.4388,
+            0.5344,
+            0.6057,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          [
+            0.3,
+            0.35,
+            0.5,
+            0.5,
+            0.5,
+            0.25,
+            0.4,
+            0.5,
+            0.5,
+            0.5
+          ]
+        ],
+        "event_driven": [
+          [
+            0.8419094934449001,
+            0.5283,
+            0.61,
+            0.15830000000000002,
+            0.47500000000000003,
+            0.4983,
+            0.8233,
+            0.5170321150455055,
+            0.44193597143577695,
+            0.4473552807684377
+          ],
+          [
+            0.67,
+            0.84,
+            0.74,
+            0.06,
+            0.62,
+            0.69,
+            0.67,
+            0.518,
+            0.45,
+            0.406
+          ],
+          [
+            0.76,
+            0.2,
+            0.39,
+            0.18,
+            0.24,
+            0.34,
+            0.76,
+            0.526,
+            0.55,
+            0.442
+          ],
+          [
+            0.3,
+            0.35,
+            0.5,
+            0.5,
+            0.5,
+            0.25,
+            0.4,
+            0.5,
+            0.5,
+            0.5
+          ]
+        ],
+        "income_strategy": [
+          [
+            0.7525,
+            0.6125,
+            0.65,
+            0.1,
+            0.405,
+            0.5675,
+            0.7525,
+            0.5,
+            0.475,
+            0.445
+          ],
+          [
+            0.5248,
+            0.6412,
+            0.6077,
+            0.4192,
+            0.5522,
+            0.5542,
+            0.55,
+            0.5,
+            0.5,
+            0.5
+          ],
+          [
+            0.4878,
+            0.5289,
+            0.6667,
+            0.5524,
+            0.5315,
+            0.548,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          [
+            0.3,
+            0.35,
+            0.5,
+            0.5,
+            0.5,
+            0.25,
+            0.4,
+            0.5,
+            0.5,
+            0.5
+          ]
+        ],
+        "scalp_intraday": [
+          [
+            0.485,
+            0.6883,
+            0.5867,
+            0.0683,
+            0.6517,
+            0.5817,
+            0.485,
+            0.5087,
+            0.5167,
+            0.428
+          ],
+          [
+            0.43,
+            0.73,
+            0.6,
+            0.04,
+            0.64,
+            0.65,
+            0.43,
+            0.558,
+            0.55,
+            0.418
+          ],
+          [
+            0.3773,
+            0.5168,
+            0.4488,
+            0.6418,
+            0.4312,
+            0.5879,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          [
+            0.3,
+            0.35,
+            0.5,
+            0.5,
+            0.5,
+            0.25,
+            0.4,
+            0.5,
+            0.5,
+            0.5
+          ]
+        ]
+      },
+      "sigma": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "factor_names": [
+        "signal_alignment",
+        "market_regime",
+        "position_sizing",
+        "timing_quality",
+        "risk_reward_actual",
+        "emotional_indicator",
+        "signal_confidence",
+        "options_delta_exposure",
+        "options_iv_percentile",
+        "options_gamma_risk"
+      ],
+      "action_names": [
+        "strong_execution",
+        "partial_execution",
+        "poor_execution",
+        "skip_recommended"
+      ],
+      "category_names": [
+        "trend_following",
+        "mean_reversion",
+        "event_driven",
+        "income_strategy",
+        "scalp_intraday"
+      ],
+      "n_actions": 4,
+      "n_factors": 10,
+      "tau": 0.1,
+      "tensor_shape": [
+        5,
+        4,
+        10
+      ],
+      "pre_restore_hash": "d5ad9af119a6da659c5212ca6fe750794ded71841ad37d612c0df86ae8d8efd4",
+      "post_restore_hash": "d8a2de4b29f10273258ac65335ebc3b4c8ad4159a8b4f89a1d8d7a0872ddfaea",
+      "l5_rows_total": 6,
+      "l5_rows_applied": 6,
+      "provenance": {
+        "live_age_verified": false,
+        "database": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\data\\trading.db",
+        "checkpoint_count": 6,
+        "latest_checkpoint": {
+          "id": 6,
+          "created_at": 1789233182.7412503,
+          "factor_names_hash": "59a9e1a30c363bb786586dfcde929c2c2a4160b7c8b3610ac5cc8fe8ef2700ae"
+        },
+        "centroid_source": "real preset bootstrap prior",
+        "identical_action_centroids_by_category": {
+          "trend_following": false,
+          "mean_reversion": false,
+          "event_driven": false,
+          "income_strategy": false,
+          "scalp_intraday": false
+        },
+        "evidence_scope": "real registered showcase evidence; no backing graph/data client; unregistered reads are offline-unavailable",
+        "construction": "CompoundingScorer.from_preset(profile='test', enable_rl=False) plus startup-equivalent L5 centroid overlay",
+        "pre_restore_hash": "d5ad9af119a6da659c5212ca6fe750794ded71841ad37d612c0df86ae8d8efd4",
+        "post_restore_hash": "d8a2de4b29f10273258ac65335ebc3b4c8ad4159a8b4f89a1d8d7a0872ddfaea",
+        "l5_rows_total": 6,
+        "l5_rows_applied": 6,
+        "source": "copilot-sdk/copilot_sdk/scoring/scorer.py:320",
+        "l5_restore_source": "copilot-sdk/copilot_sdk/scoring/startup_restore.py:142",
+        "sigma_source": "router unit-vector fallback (not learned sigma)",
+        "sigma_reference": "copilot-sdk/copilot_sdk/backend/investigation_router.py:178",
+        "decisions": 800,
+        "verified_decisions": 223
+      }
+    },
+    "purchasing": {
+      "mu": [
+        [
+          0.6425,
+          0.1667,
+          0.36,
+          0.4175,
+          0.05,
+          0.46,
+          0.4962
+        ],
+        [
+          0.695,
+          0.25,
+          0.21,
+          0.68,
+          0.045,
+          0.465,
+          0.5
+        ],
+        [
+          0.5263,
+          0.4773,
+          0.4766,
+          0.4501,
+          0.59,
+          0.5243,
+          0.5
+        ],
+        [
+          0.6008,
+          0.63,
+          0.5447,
+          0.4507,
+          0.6012,
+          0.5453,
+          0.5
+        ]
+      ],
+      "mu_category": "protein",
+      "all_category_mu": {
+        "protein": [
+          [
+            0.6425,
+            0.1667,
+            0.36,
+            0.4175,
+            0.05,
+            0.46,
+            0.4962
+          ],
+          [
+            0.695,
+            0.25,
+            0.21,
+            0.68,
+            0.045,
+            0.465,
+            0.5
+          ],
+          [
+            0.5263,
+            0.4773,
+            0.4766,
+            0.4501,
+            0.59,
+            0.5243,
+            0.5
+          ],
+          [
+            0.6008,
+            0.63,
+            0.5447,
+            0.4507,
+            0.6012,
+            0.5453,
+            0.5
+          ]
+        ],
+        "produce": [
+          [
+            0.6933,
+            0.6667,
+            0.4167,
+            0.4533,
+            0.24,
+            0.21,
+            0.5183
+          ],
+          [
+            0.5286,
+            0.5507,
+            0.6123,
+            0.53,
+            0.455,
+            0.4682,
+            0.5
+          ],
+          [
+            0.6433,
+            0.5,
+            0.6067,
+            0.3167,
+            0.2433,
+            0.16,
+            0.4817
+          ],
+          [
+            0.4886,
+            0.4234,
+            0.4058,
+            0.6682,
+            0.5111,
+            0.6095,
+            0.5
+          ]
+        ],
+        "dairy": [
+          [
+            0.56,
+            0.3889,
+            0.36,
+            0.1,
+            0.07,
+            0.32,
+            0.515
+          ],
+          [
+            0.78,
+            0.8333,
+            0.45,
+            0.55,
+            0.06,
+            0.3,
+            0.51
+          ],
+          [
+            0.5488,
+            0.4754,
+            0.4377,
+            0.473,
+            0.5649,
+            0.5705,
+            0.5
+          ],
+          [
+            0.5181,
+            0.6063,
+            0.6234,
+            0.5794,
+            0.4469,
+            0.5481,
+            0.5
+          ]
+        ],
+        "dry_goods": [
+          [
+            0.58,
+            0.5,
+            0.3,
+            0.05,
+            0.01,
+            0.65,
+            0.47
+          ],
+          [
+            0.385,
+            0.6018,
+            0.5148,
+            0.6313,
+            0.536,
+            0.3963,
+            0.5
+          ],
+          [
+            0.38,
+            0.0,
+            0.65,
+            0.04,
+            0.01,
+            0.7,
+            0.49
+          ],
+          [
+            0.6091,
+            0.4604,
+            0.6678,
+            0.2933,
+            0.5131,
+            0.6391,
+            0.5
+          ]
+        ],
+        "beverages": [
+          [
+            0.64,
+            0.8333,
+            0.85,
+            0.15,
+            0.08,
+            0.4,
+            0.485
+          ],
+          [
+            0.4892,
+            0.5502,
+            0.4791,
+            0.4027,
+            0.6002,
+            0.571,
+            0.5
+          ],
+          [
+            0.5,
+            1.0,
+            0.2,
+            0.1,
+            0.07,
+            0.38,
+            0.5
+          ],
+          [
+            0.42,
+            0.3723,
+            0.6045,
+            0.3782,
+            0.491,
+            0.313,
+            0.5
+          ]
+        ]
+      },
+      "sigma": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "factor_names": [
+        "expected_demand",
+        "day_of_week",
+        "weather_forecast",
+        "event_flag",
+        "historical_waste",
+        "supplier_lead_time",
+        "price_memory_index"
+      ],
+      "action_names": [
+        "order_as_planned",
+        "order_more",
+        "order_less",
+        "skip"
+      ],
+      "category_names": [
+        "protein",
+        "produce",
+        "dairy",
+        "dry_goods",
+        "beverages"
+      ],
+      "n_actions": 4,
+      "n_factors": 7,
+      "tau": 0.1,
+      "tensor_shape": [
+        5,
+        4,
+        7
+      ],
+      "pre_restore_hash": "67e1212e8699bd31d8bab12b7f6d790d1c6514d872b0116ac84a514ce85da174",
+      "post_restore_hash": "67e1212e8699bd31d8bab12b7f6d790d1c6514d872b0116ac84a514ce85da174",
+      "l5_rows_total": 0,
+      "l5_rows_applied": 0,
+      "provenance": {
+        "live_age_verified": false,
+        "database": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\data\\purchasing.db",
+        "checkpoint_count": 6,
+        "latest_checkpoint": {
+          "id": 6,
+          "created_at": 1789233182.7197428,
+          "factor_names_hash": "0ec0a9d406bcb0f1976d42f859b15c1d1617bfd9011a5dd1f617c4d1c736dbe2"
+        },
+        "centroid_source": "local SQLite checkpoint",
+        "identical_action_centroids_by_category": {
+          "protein": false,
+          "produce": false,
+          "dairy": false,
+          "dry_goods": false,
+          "beverages": false
+        },
+        "evidence_scope": "real in-memory showcase seed; same source type supplied by application startup",
+        "construction": "CompoundingScorer.from_preset(profile='test', enable_rl=False) plus startup-equivalent L5 centroid overlay",
+        "pre_restore_hash": "67e1212e8699bd31d8bab12b7f6d790d1c6514d872b0116ac84a514ce85da174",
+        "post_restore_hash": "67e1212e8699bd31d8bab12b7f6d790d1c6514d872b0116ac84a514ce85da174",
+        "l5_rows_total": 0,
+        "l5_rows_applied": 0,
+        "source": "copilot-sdk/copilot_sdk/scoring/scorer.py:320",
+        "l5_restore_source": "copilot-sdk/copilot_sdk/scoring/startup_restore.py:142",
+        "sigma_source": "router unit-vector fallback (not learned sigma)",
+        "sigma_reference": "copilot-sdk/copilot_sdk/backend/investigation_router.py:178",
+        "decisions": 801,
+        "verified_decisions": 457
+      }
+    },
+    "dataops": {
+      "mu": [
+        [
+          0.7177360775189399,
+          0.72944392757171,
+          0.23646605975809556,
+          0.21844088281380664,
+          0.6929544288074014,
+          0.99
+        ],
+        [
+          0.6266583370443652,
+          0.720829770929768,
+          0.09372763930299562,
+          0.9093262277228505,
+          0.37026797518531634,
+          0.7256315554665717
+        ],
+        [
+          0.6519208650027859,
+          0.2314754072267306,
+          0.15183533055433535,
+          0.4898720237726041,
+          0.4173889598442929,
+          0.6582516109629114
+        ],
+        [
+          0.0,
+          0.21064887849589975,
+          0.9840902240081745,
+          0.5023009333879408,
+          0.6662144291409368,
+          0.63192034355692
+        ],
+        [
+          0.4669778479836387,
+          0.23071969719545765,
+          0.3322962607801697,
+          1.0,
+          0.33736120747114096,
+          1.0
+        ]
+      ],
+      "mu_category": "schema_change",
+      "all_category_mu": {
+        "schema_change": [
+          [
+            0.7177360775189399,
+            0.72944392757171,
+            0.23646605975809556,
+            0.21844088281380664,
+            0.6929544288074014,
+            0.99
+          ],
+          [
+            0.6266583370443652,
+            0.720829770929768,
+            0.09372763930299562,
+            0.9093262277228505,
+            0.37026797518531634,
+            0.7256315554665717
+          ],
+          [
+            0.6519208650027859,
+            0.2314754072267306,
+            0.15183533055433535,
+            0.4898720237726041,
+            0.4173889598442929,
+            0.6582516109629114
+          ],
+          [
+            0.0,
+            0.21064887849589975,
+            0.9840902240081745,
+            0.5023009333879408,
+            0.6662144291409368,
+            0.63192034355692
+          ],
+          [
+            0.4669778479836387,
+            0.23071969719545765,
+            0.3322962607801697,
+            1.0,
+            0.33736120747114096,
+            1.0
+          ]
+        ],
+        "volume_anomaly": [
+          [
+            0.28758483830054943,
+            0.36760732397098905,
+            0.5870338094859147,
+            0.33919462760613994,
+            0.33937699516526615,
+            0.4033725557167984
+          ],
+          [
+            0.0983898402855446,
+            0.7294236480452362,
+            0.4155662420971056,
+            0.7580283158638709,
+            0.32639841977185063,
+            0.7702896192287504
+          ],
+          [
+            0.6313455128315049,
+            0.538891300018321,
+            1.0,
+            0.6435913897871062,
+            0.35852710848850194,
+            0.9685399271893098
+          ],
+          [
+            0.6556065613937114,
+            1.0,
+            0.0,
+            0.40832125255328156,
+            0.40908083545291185,
+            0.0
+          ],
+          [
+            0.5505947892206936,
+            0.38662930212462004,
+            0.0,
+            0.2663054768048678,
+            0.9228244925936403,
+            0.7771476192917959
+          ]
+        ],
+        "quality_anomaly": [
+          [
+            0.28933780676830967,
+            0.4096636131909117,
+            0.7625433651624653,
+            0.02,
+            0.7388428785653696,
+            0.02
+          ],
+          [
+            1.0,
+            0.7007923093942255,
+            0.0,
+            0.38395712973887763,
+            0.5967690684788691,
+            0.0
+          ],
+          [
+            0.4767214291939695,
+            0.6451256106642715,
+            0.01,
+            0.7373583716516723,
+            0.47227196399135773,
+            0.7879225024170475
+          ],
+          [
+            0.4889825045016414,
+            0.13636040183172438,
+            0.06496126766963034,
+            0.5300604307745221,
+            0.4275437584681084,
+            0.9628873301553951
+          ],
+          [
+            0.48456447986937795,
+            0.005,
+            0.24011441154484275,
+            0.12801653262010143,
+            0.6340989080437778,
+            0.7735953440924502
+          ]
+        ],
+        "freshness_violation": [
+          [
+            0.6055196474657623,
+            0.4362377535619759,
+            0.36362352796703173,
+            0.23086247350436295,
+            0.5528878826965006,
+            0.257517273875699
+          ],
+          [
+            0.9859044575940991,
+            0.38335956701508306,
+            0.47379754156295795,
+            0.2758377293042482,
+            0.28272447439455056,
+            0.11674404069857386
+          ],
+          [
+            0.31656370141486895,
+            0.99,
+            0.5494989799470824,
+            0.5638880553263762,
+            0.16996674394924144,
+            0.99025
+          ],
+          [
+            0.24513391098033477,
+            0.0,
+            0.6449272377740619,
+            0.21736153259465885,
+            0.10856028216786118,
+            0.16683177042405495
+          ],
+          [
+            0.6265716577333731,
+            0.4682085432192473,
+            0.19975560183047547,
+            0.6432010966441535,
+            0.2476169305168635,
+            0.0011561166444150617
+          ]
+        ],
+        "pipeline_failure": [
+          [
+            0.1148601779890048,
+            0.5414560929201857,
+            0.23465565901226745,
+            0.530987929219016,
+            0.9007745072142764,
+            0.32200758172461463
+          ],
+          [
+            0.1533380810388651,
+            0.8179915168566791,
+            0.8308099417466993,
+            0.7468142665039231,
+            0.8772162280437814,
+            0.9178711851412013
+          ],
+          [
+            0.7567077745093779,
+            0.29330029766956056,
+            0.6068686325052098,
+            0.48781585838314334,
+            0.7722880253251955,
+            0.7994464020804396
+          ],
+          [
+            0.6912427302096921,
+            0.9460865791051609,
+            0.5859239732741449,
+            0.49962753154911044,
+            0.4767180609080728,
+            0.44667920852706355
+          ],
+          [
+            0.9915326870306471,
+            0.5343484419915752,
+            0.7223170475077325,
+            0.2937420513726014,
+            0.9577512922676974,
+            0.6370975036563967
+          ]
+        ],
+        "transform_drift": [
+          [
+            0.3153272887959934,
+            0.5136855732116387,
+            0.5107952856379833,
+            0.4051282633355639,
+            0.6950312135785197,
+            0.3775570711242295
+          ],
+          [
+            0.062298661230995526,
+            0.995,
+            0.5114693123459714,
+            0.6105843359114933,
+            0.48165538164611577,
+            0.8274365122796205
+          ],
+          [
+            0.5047039778512764,
+            0.3951693333314549,
+            0.4346673659853062,
+            0.8916288292189154,
+            0.5717250426910975,
+            0.47928716759127143
+          ],
+          [
+            0.3671945472389738,
+            0.40224512048673394,
+            0.8295760706773512,
+            0.2205343478976058,
+            0.704246488318025,
+            0.7155066556112201
+          ],
+          [
+            0.5657633496711325,
+            0.44208644073508807,
+            0.0480065051093741,
+            0.7025518530107565,
+            0.013534029337956277,
+            0.5508816053759893
+          ]
+        ]
+      },
+      "sigma": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "factor_names": [
+        "impact_scope",
+        "source_reliability",
+        "recurrence_frequency",
+        "downstream_urgency",
+        "data_freshness",
+        "business_criticality"
+      ],
+      "action_names": [
+        "auto_approve",
+        "investigate",
+        "escalate_to_owner",
+        "pause_downstream",
+        "refer_to_specialist"
+      ],
+      "category_names": [
+        "schema_change",
+        "volume_anomaly",
+        "quality_anomaly",
+        "freshness_violation",
+        "pipeline_failure",
+        "transform_drift"
+      ],
+      "n_actions": 5,
+      "n_factors": 6,
+      "tau": 0.1,
+      "tensor_shape": [
+        6,
+        5,
+        6
+      ],
+      "pre_restore_hash": "537b99b6c6064ad1db6bcdf7ae384eac7a4e3dee650918bd2d4f3058f4c8b4d6",
+      "post_restore_hash": "7d03df393211484452ddbe258f2836314ab7f8f429027c3dd5bc0fd2f065622c",
+      "l5_rows_total": 3,
+      "l5_rows_applied": 3,
+      "provenance": {
+        "live_age_verified": false,
+        "database": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\backend\\data\\dataops.db",
+        "checkpoint_count": 219,
+        "latest_checkpoint": {
+          "id": 219,
+          "created_at": 1779171270.8414052,
+          "factor_names_hash": ""
+        },
+        "centroid_source": "real preset bootstrap prior",
+        "identical_action_centroids_by_category": {
+          "schema_change": false,
+          "volume_anomaly": false,
+          "quality_anomaly": false,
+          "freshness_violation": false,
+          "pipeline_failure": false,
+          "transform_drift": false
+        },
+        "evidence_scope": "real fixture loader plus in-memory showcase seed",
+        "construction": "CompoundingScorer.from_preset(profile='test', enable_rl=False) plus startup-equivalent L5 centroid overlay",
+        "pre_restore_hash": "537b99b6c6064ad1db6bcdf7ae384eac7a4e3dee650918bd2d4f3058f4c8b4d6",
+        "post_restore_hash": "7d03df393211484452ddbe258f2836314ab7f8f429027c3dd5bc0fd2f065622c",
+        "l5_rows_total": 3,
+        "l5_rows_applied": 3,
+        "source": "copilot-sdk/copilot_sdk/scoring/scorer.py:320",
+        "l5_restore_source": "copilot-sdk/copilot_sdk/scoring/startup_restore.py:142",
+        "sigma_source": "router unit-vector fallback (not learned sigma)",
+        "sigma_reference": "copilot-sdk/copilot_sdk/backend/investigation_router.py:178",
+        "decisions": 720,
+        "verified_decisions": 388
+      }
+    },
+    "s2p": {
+      "mu": [
+        [
+          0.9419976248269532,
+          0.07160378157386231,
+          0.02533491678203125,
+          0.08,
+          0.4946650832179687,
+          0.7893301664359375,
+          0.9366627080449219,
+          0.5
+        ],
+        [
+          0.5572065752806293,
+          0.29901926041493887,
+          0.05921895209957488,
+          0.3150000000000001,
+          0.48116979996682585,
+          0.5009807395850613,
+          0.8813659478838379,
+          0.5
+        ],
+        [
+          0.5,
+          0.6,
+          0.15,
+          0.3,
+          0.6,
+          0.3,
+          0.7,
+          0.5
+        ],
+        [
+          0.8,
+          0.5,
+          0.1,
+          0.4,
+          0.7,
+          0.2,
+          0.6,
+          0.5
+        ],
+        [
+          0.4,
+          0.4,
+          0.3,
+          0.5,
+          0.3,
+          0.4,
+          0.5,
+          0.5
+        ]
+      ],
+      "mu_category": "price_variance",
+      "all_category_mu": {
+        "price_variance": [
+          [
+            0.9419976248269532,
+            0.07160378157386231,
+            0.02533491678203125,
+            0.08,
+            0.4946650832179687,
+            0.7893301664359375,
+            0.9366627080449219,
+            0.5
+          ],
+          [
+            0.5572065752806293,
+            0.29901926041493887,
+            0.05921895209957488,
+            0.3150000000000001,
+            0.48116979996682585,
+            0.5009807395850613,
+            0.8813659478838379,
+            0.5
+          ],
+          [
+            0.5,
+            0.6,
+            0.15,
+            0.3,
+            0.6,
+            0.3,
+            0.7,
+            0.5
+          ],
+          [
+            0.8,
+            0.5,
+            0.1,
+            0.4,
+            0.7,
+            0.2,
+            0.6,
+            0.5
+          ],
+          [
+            0.4,
+            0.4,
+            0.3,
+            0.5,
+            0.3,
+            0.4,
+            0.5,
+            0.5
+          ]
+        ],
+        "quantity_mismatch": [
+          [
+            0.95,
+            0.05,
+            0.02,
+            0.03,
+            0.5,
+            0.8,
+            0.95,
+            0.5
+          ],
+          [
+            0.5543576422487254,
+            0.3,
+            0.05980739585061156,
+            0.3100000000000001,
+            0.48038520829877684,
+            0.5,
+            0.880385208298777,
+            0.5
+          ],
+          [
+            0.5,
+            0.6,
+            0.15,
+            0.3,
+            0.6,
+            0.3,
+            0.7,
+            0.5
+          ],
+          [
+            0.8,
+            0.5,
+            0.1,
+            0.4,
+            0.7,
+            0.2,
+            0.6,
+            0.5
+          ],
+          [
+            0.4,
+            0.4,
+            0.3,
+            0.5,
+            0.3,
+            0.4,
+            0.5,
+            0.5
+          ]
+        ],
+        "duplicate_risk": [
+          [
+            0.95,
+            0.05,
+            0.02,
+            0.03,
+            0.5,
+            0.8,
+            0.95,
+            0.5
+          ],
+          [
+            0.5543576422487254,
+            0.3,
+            0.05980739585061156,
+            0.3100000000000001,
+            0.48038520829877684,
+            0.5,
+            0.880385208298777,
+            0.5
+          ],
+          [
+            0.5,
+            0.6,
+            0.15,
+            0.3,
+            0.6,
+            0.3,
+            0.7,
+            0.5
+          ],
+          [
+            0.8,
+            0.5,
+            0.1,
+            0.4,
+            0.7,
+            0.2,
+            0.6,
+            0.5
+          ],
+          [
+            0.4,
+            0.4,
+            0.3,
+            0.5,
+            0.3,
+            0.4,
+            0.5,
+            0.5
+          ]
+        ],
+        "contract_gap": [
+          [
+            0.95,
+            0.05,
+            0.02,
+            0.03,
+            0.5,
+            0.8,
+            0.95,
+            0.5
+          ],
+          [
+            0.5543576422487254,
+            0.3,
+            0.05980739585061156,
+            0.3100000000000001,
+            0.48038520829877684,
+            0.5,
+            0.880385208298777,
+            0.5
+          ],
+          [
+            0.5,
+            0.6,
+            0.15,
+            0.3,
+            0.6,
+            0.3,
+            0.7,
+            0.5
+          ],
+          [
+            0.8,
+            0.5,
+            0.1,
+            0.4,
+            0.7,
+            0.2,
+            0.6,
+            0.5
+          ],
+          [
+            0.4,
+            0.4,
+            0.3,
+            0.5,
+            0.3,
+            0.4,
+            0.5,
+            0.5
+          ]
+        ],
+        "format_compliance": [
+          [
+            0.95,
+            0.05,
+            0.02,
+            0.03,
+            0.5,
+            0.8,
+            0.95,
+            0.5
+          ],
+          [
+            0.5543576422487254,
+            0.3,
+            0.05980739585061156,
+            0.3100000000000001,
+            0.48038520829877684,
+            0.5,
+            0.880385208298777,
+            0.5
+          ],
+          [
+            0.5,
+            0.6,
+            0.15,
+            0.3,
+            0.6,
+            0.3,
+            0.7,
+            0.5
+          ],
+          [
+            0.8,
+            0.5,
+            0.1,
+            0.4,
+            0.7,
+            0.2,
+            0.6,
+            0.5
+          ],
+          [
+            0.4,
+            0.4,
+            0.3,
+            0.5,
+            0.3,
+            0.4,
+            0.5,
+            0.5
+          ]
+        ]
+      },
+      "sigma": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "factor_names": [
+        "match_status",
+        "amount_variance_ratio",
+        "duplicate_score",
+        "supplier_exception_history",
+        "payment_terms_impact",
+        "commodity_index_correlation",
+        "tax_regulatory_compliance",
+        "environmental_risk"
+      ],
+      "action_names": [
+        "auto_approve",
+        "hold_for_review",
+        "escalate_to_buyer",
+        "flag_leakage",
+        "refer_to_specialist"
+      ],
+      "category_names": [
+        "price_variance",
+        "quantity_mismatch",
+        "duplicate_risk",
+        "contract_gap",
+        "format_compliance"
+      ],
+      "n_actions": 5,
+      "n_factors": 8,
+      "tau": 0.1,
+      "tensor_shape": [
+        5,
+        5,
+        8
+      ],
+      "pre_restore_hash": "683724c09ab902c049133e1ba09c7d9f8846de18dd809aa1c6d141366e26b3b1",
+      "post_restore_hash": "38c5c5d09819dcadaf127a370906066c30b59ff7a778e43bd9957022434a4998",
+      "l5_rows_total": 6,
+      "l5_rows_applied": 6,
+      "provenance": {
+        "live_age_verified": false,
+        "database": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\s2p-copilot\\backend\\app\\data\\s2p.db",
+        "checkpoint_count": 174,
+        "latest_checkpoint": {
+          "id": 174,
+          "created_at": 1785586175.2645347,
+          "factor_names_hash": "7a56aae292b46ee04a0bb1d71aed2f6b4966478a3d3a4b5b143c80373fc49aa2"
+        },
+        "centroid_source": "real preset bootstrap prior",
+        "identical_action_centroids_by_category": {
+          "price_variance": false,
+          "quantity_mismatch": false,
+          "duplicate_risk": false,
+          "contract_gap": false,
+          "format_compliance": false
+        },
+        "evidence_scope": "real in-memory showcase seed; same source type supplied by application startup",
+        "construction": "CompoundingScorer.from_preset(profile='test', enable_rl=False) plus startup-equivalent L5 centroid overlay",
+        "pre_restore_hash": "683724c09ab902c049133e1ba09c7d9f8846de18dd809aa1c6d141366e26b3b1",
+        "post_restore_hash": "38c5c5d09819dcadaf127a370906066c30b59ff7a778e43bd9957022434a4998",
+        "l5_rows_total": 6,
+        "l5_rows_applied": 6,
+        "source": "copilot-sdk/copilot_sdk/scoring/scorer.py:320",
+        "l5_restore_source": "copilot-sdk/copilot_sdk/scoring/startup_restore.py:142",
+        "sigma_source": "router unit-vector fallback (not learned sigma)",
+        "sigma_reference": "copilot-sdk/copilot_sdk/backend/investigation_router.py:178",
+        "decisions": 871,
+        "verified_decisions": 160
+      }
+    }
+  },
+  "scenarios": {
+    "soc": {
+      "VLD-SOC-1": {
+        "category": "credential_access",
+        "factor_vector": [
+          0.0005,
+          0.7288,
+          0.693,
+          0.1188,
+          0.563,
+          0.2283
+        ],
+        "claimed_surface_action": "monitor",
+        "claimed_vld_action": "escalate",
+        "evidence_dims": [
+          0
+        ],
+        "evidence": {
+          "0": {
+            "value": 0.92,
+            "confidence": 0.92,
+            "source": "identity_graph"
+          },
+          "1": null,
+          "2": null,
+          "3": null,
+          "4": null,
+          "5": null
+        },
+        "surface_action": "monitor",
+        "final_action": "escalate",
+        "surface_margin": 0.11991623160266274,
+        "final_margin": 0.18020368495083194,
+        "source": "gen-ai-roi-demo-v4-v50/backend/app/vld_preseed.py:10",
+        "provider_source": "gen-ai-roi-demo-v4-v50/backend/app/evidence_provider.py:75"
+      },
+      "VLD-SOC-2": {
+        "category": "malware_execution",
+        "factor_vector": [
+          0.2939,
+          1.0,
+          0.2585,
+          0.0832,
+          0.6491,
+          0.2751
+        ],
+        "claimed_surface_action": "monitor",
+        "claimed_vld_action": "escalate",
+        "evidence_dims": [
+          2,
+          0
+        ],
+        "evidence": {
+          "0": {
+            "value": 0.92,
+            "confidence": 0.92,
+            "source": "identity_graph"
+          },
+          "1": null,
+          "2": null,
+          "3": {
+            "value": 0.9,
+            "confidence": 0.85,
+            "source": "historical_db"
+          },
+          "4": null,
+          "5": null
+        },
+        "surface_action": "monitor",
+        "final_action": "escalate",
+        "surface_margin": 0.11968118085096074,
+        "final_margin": 0.18011946901585535,
+        "source": "gen-ai-roi-demo-v4-v50/backend/app/vld_preseed.py:30",
+        "provider_source": "gen-ai-roi-demo-v4-v50/backend/app/evidence_provider.py:75"
+      },
+      "VLD-SOC-S1": {
+        "category": "malware_execution",
+        "factor_vector": [
+          0.75,
+          0.8,
+          0.9,
+          0.55,
+          0.6,
+          0.2
+        ],
+        "claimed_surface_action": "escalate",
+        "claimed_vld_action": "escalate",
+        "evidence_dims": [],
+        "evidence": {
+          "0": null,
+          "1": null,
+          "2": null,
+          "3": null,
+          "4": null,
+          "5": null
+        },
+        "surface_action": "escalate",
+        "final_action": "escalate",
+        "surface_margin": 0.6640199525229566,
+        "final_margin": 0.6640199525229566,
+        "source": "gen-ai-roi-demo-v4-v50/backend/app/vld_preseed.py:53",
+        "provider_source": "gen-ai-roi-demo-v4-v50/backend/app/evidence_provider.py:75"
+      }
+    },
+    "trading": {
+      "VLD-TRD-1": {
+        "category": "trend_following",
+        "factor_vector": [
+          0.3691,
+          0.1681,
+          0.9979,
+          0.7543,
+          0.0423,
+          0.9649,
+          0.0445,
+          0.8666,
+          0.583,
+          0.9457
+        ],
+        "claimed_surface_action": "strong_execution",
+        "claimed_vld_action": "partial_execution",
+        "evidence_dims": [
+          2,
+          1
+        ],
+        "evidence": {
+          "0": null,
+          "1": {
+            "value": 0.88,
+            "confidence": 0.9,
+            "source": "correlation_engine"
+          },
+          "2": null,
+          "3": {
+            "value": 0.25,
+            "confidence": 0.85,
+            "source": "momentum_tracker"
+          },
+          "4": null,
+          "5": null,
+          "6": null,
+          "7": null,
+          "8": null,
+          "9": null
+        },
+        "surface_action": "skip_recommended",
+        "final_action": "poor_execution",
+        "surface_margin": 0.8103035794827531,
+        "final_margin": 0.049606872544631586,
+        "source": "copilot-sdk/apps/trading/backend/app/vld_preseed.py:10",
+        "provider_source": "copilot-sdk/apps/trading/backend/app/evidence_provider.py:63"
+      },
+      "VLD-TRD-2": {
+        "category": "trend_following",
+        "factor_vector": [
+          0.9799,
+          0.2885,
+          0.0066,
+          0.8448,
+          0.6336,
+          0.9348,
+          0.1601,
+          0.0338,
+          0.4228,
+          0.7856
+        ],
+        "claimed_surface_action": "strong_execution",
+        "claimed_vld_action": "partial_execution",
+        "evidence_dims": [
+          2,
+          3
+        ],
+        "evidence": {
+          "0": null,
+          "1": {
+            "value": 0.78,
+            "confidence": 0.88,
+            "source": "correlation_engine"
+          },
+          "2": {
+            "value": 0.85,
+            "confidence": 0.92,
+            "source": "portfolio_engine"
+          },
+          "3": null,
+          "4": null,
+          "5": null,
+          "6": null,
+          "7": null,
+          "8": null,
+          "9": null
+        },
+        "surface_action": "strong_execution",
+        "final_action": "strong_execution",
+        "surface_margin": 0.8283455842412389,
+        "final_margin": 0.8283455842412389,
+        "source": "copilot-sdk/apps/trading/backend/app/vld_preseed.py:27",
+        "provider_source": "copilot-sdk/apps/trading/backend/app/evidence_provider.py:63"
+      },
+      "VLD-TRD-S1": {
+        "category": "trend_following",
+        "factor_vector": [
+          0.6,
+          0.2197,
+          0.2417,
+          0.0245,
+          0.4,
+          0.6566,
+          0.5,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "claimed_surface_action": "strong_execution",
+        "claimed_vld_action": "strong_execution",
+        "evidence_dims": [],
+        "evidence": {
+          "0": null,
+          "1": null,
+          "2": null,
+          "3": null,
+          "4": null,
+          "5": null,
+          "6": null,
+          "7": null,
+          "8": null,
+          "9": null
+        },
+        "surface_action": "strong_execution",
+        "final_action": "strong_execution",
+        "surface_margin": 0.8235056118252887,
+        "final_margin": 0.8235056118252887,
+        "source": "copilot-sdk/apps/trading/backend/app/vld_preseed.py:45",
+        "provider_source": "copilot-sdk/apps/trading/backend/app/evidence_provider.py:63"
+      }
+    },
+    "purchasing": {
+      "VLD-PUR-DEMAND-SPIKE": {
+        "category": "dry_goods",
+        "factor_vector": [
+          0.8,
+          0.5,
+          0.5,
+          0.5,
+          0.5,
+          0.35,
+          0.3
+        ],
+        "claimed_surface_action": "order_more",
+        "claimed_vld_action": "order_less",
+        "evidence_dims": [
+          5,
+          6
+        ],
+        "evidence": {
+          "0": {
+            "value": 0.8,
+            "confidence": 0.86,
+            "source": "demand_forecast",
+            "forecast_units": 320,
+            "inventory_units": 38,
+            "safety_stock_units": 90
+          },
+          "1": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "calendar"
+          },
+          "2": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "weather_service"
+          },
+          "3": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "event_calendar"
+          },
+          "4": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "vendor_tracker"
+          },
+          "5": {
+            "value": 0.25,
+            "confidence": 0.9,
+            "source": "lead_time_tracker",
+            "current_days": 21,
+            "baseline_days": 5,
+            "backlog_days": 21,
+            "stretch_pct": null
+          },
+          "6": {
+            "value": 0.82,
+            "confidence": 0.8,
+            "source": "vendor_catalog",
+            "alternate_vendor": "Rapid Components",
+            "alternate_lead_days": 2,
+            "premium_pct": 0.08
+          }
+        },
+        "surface_action": "skip",
+        "final_action": "skip",
+        "surface_margin": 0.05372093989719323,
+        "final_margin": 0.05372093989719323,
+        "source": "copilot-sdk/apps/purchasing/backend/app/vld_preseed.py:63",
+        "provider_source": "copilot-sdk/apps/purchasing/backend/app/evidence_provider.py:25"
+      },
+      "VLD-PUR-VENDOR-CASCADE": {
+        "category": "dry_goods",
+        "factor_vector": [
+          0.4,
+          0.5,
+          0.5,
+          0.5,
+          0.5,
+          0.4,
+          0.55
+        ],
+        "claimed_surface_action": "order_as_planned",
+        "claimed_vld_action": "skip",
+        "evidence_dims": [
+          4,
+          5
+        ],
+        "evidence": {
+          "0": {
+            "value": 0.4,
+            "confidence": 0.7,
+            "source": "demand_forecast"
+          },
+          "1": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "calendar"
+          },
+          "2": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "weather_service"
+          },
+          "3": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "event_calendar"
+          },
+          "4": {
+            "value": 0.72,
+            "confidence": 0.88,
+            "source": "vendor_tracker",
+            "reliability_score": 0.28,
+            "quality_incidents_30d": 2,
+            "notes": "Two seal-failure incidents in the last 30 days."
+          },
+          "5": {
+            "value": 0.72,
+            "confidence": 0.85,
+            "source": "lead_time_tracker",
+            "current_days": 9.8,
+            "baseline_days": 7.0,
+            "backlog_days": null,
+            "stretch_pct": 0.4
+          },
+          "6": {
+            "value": 0.55,
+            "confidence": 0.65,
+            "source": "cost_benchmark"
+          }
+        },
+        "surface_action": "order_more",
+        "final_action": "order_more",
+        "surface_margin": 0.6152102021556357,
+        "final_margin": 0.05972552813198162,
+        "source": "copilot-sdk/apps/purchasing/backend/app/vld_preseed.py:108",
+        "provider_source": "copilot-sdk/apps/purchasing/backend/app/evidence_provider.py:25"
+      },
+      "VLD-PUR-S1-STANDARD": {
+        "category": "dry_goods",
+        "factor_vector": [
+          0.58,
+          0.5,
+          0.5,
+          0.5,
+          0.2,
+          0.2,
+          0.84
+        ],
+        "claimed_surface_action": "order_as_planned",
+        "claimed_vld_action": "order_as_planned",
+        "evidence_dims": [],
+        "evidence": {
+          "0": {
+            "value": 0.58,
+            "confidence": 0.7,
+            "source": "demand_forecast"
+          },
+          "1": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "calendar"
+          },
+          "2": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "weather_service"
+          },
+          "3": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "event_calendar"
+          },
+          "4": {
+            "value": 0.2,
+            "confidence": 0.65,
+            "source": "vendor_tracker"
+          },
+          "5": {
+            "value": 0.2,
+            "confidence": 0.65,
+            "source": "lead_time_tracker"
+          },
+          "6": {
+            "value": 0.84,
+            "confidence": 0.65,
+            "source": "cost_benchmark"
+          }
+        },
+        "surface_action": "order_more",
+        "final_action": "order_more",
+        "surface_margin": 0.5964756615694576,
+        "final_margin": 0.5964756615694576,
+        "source": "copilot-sdk/apps/purchasing/backend/app/vld_preseed.py:140",
+        "provider_source": "copilot-sdk/apps/purchasing/backend/app/evidence_provider.py:25"
+      }
+    },
+    "dataops": {
+      "VLD-DO-1": {
+        "category": "pipeline_failure",
+        "factor_vector": [
+          0.1276,
+          0.3236,
+          0.5006,
+          0.6754,
+          0.6225,
+          0.8266
+        ],
+        "claimed_surface_action": "investigate",
+        "claimed_vld_action": "escalate_to_owner",
+        "evidence_dims": [
+          0,
+          3
+        ],
+        "evidence": {
+          "0": {
+            "value": 0.9,
+            "confidence": 0.92,
+            "source": "schema_registry",
+            "column": "MATKL_V2",
+            "change_type": "schema_expansion",
+            "join_fanout_factor": 9.0,
+            "impacted_systems": [
+              "pricing_engine",
+              "inventory_sync",
+              "billing_api"
+            ]
+          },
+          "1": {
+            "value": 0.45,
+            "confidence": 0.86,
+            "source": "pipeline_monitor",
+            "status": "degraded",
+            "system": "order_ingestion"
+          },
+          "2": {
+            "value": 0.5006,
+            "confidence": 0.85,
+            "source": "historical_alerts",
+            "prior_count": 2,
+            "pattern": null,
+            "known_resolution": null
+          },
+          "3": {
+            "value": 0.85,
+            "confidence": 0.88,
+            "source": "dependency_graph",
+            "downstream_systems": [
+              "pricing_engine",
+              "inventory_sync",
+              "billing_api"
+            ],
+            "upstream_systems": [],
+            "new_upstream_dependencies": []
+          },
+          "4": {
+            "value": 0.72,
+            "confidence": 0.82,
+            "source": "alert_correlator",
+            "correlated_alerts": [
+              "pricing_engine_latency",
+              "inventory_sync_retries",
+              "billing_api_errors"
+            ]
+          },
+          "5": {
+            "value": 0.84,
+            "confidence": 0.8,
+            "source": "impact_analysis",
+            "affected_systems": [
+              "pricing_engine",
+              "inventory_sync",
+              "billing_api"
+            ],
+            "affected_systems_count": 3
+          }
+        },
+        "surface_action": "investigate",
+        "final_action": "escalate_to_owner",
+        "surface_margin": 0.11983816984999662,
+        "final_margin": 0.9563962796220514,
+        "source": "copilot-sdk/apps/dataops/backend/app/vld_preseed.py:11",
+        "provider_source": "copilot-sdk/apps/dataops/backend/app/evidence_provider.py:38"
+      },
+      "VLD-DO-2": {
+        "category": "quality_anomaly",
+        "factor_vector": [
+          0.7108,
+          0.5718,
+          0.9189,
+          0.3112,
+          0.7742,
+          0.971
+        ],
+        "claimed_surface_action": "refer_to_specialist",
+        "claimed_vld_action": "escalate_to_owner",
+        "evidence_dims": [
+          2,
+          3
+        ],
+        "evidence": {
+          "0": null,
+          "1": {
+            "value": 0.45,
+            "confidence": 0.86,
+            "source": "pipeline_monitor",
+            "status": "degraded",
+            "system": "billing_api"
+          },
+          "2": {
+            "value": 0.65,
+            "confidence": 0.55,
+            "source": "historical_alerts",
+            "prior_count": 8,
+            "pattern": "billing_quality_drop",
+            "known_resolution": "Rebuild billing validation cache"
+          },
+          "3": {
+            "value": 0.88,
+            "confidence": 0.82,
+            "source": "dependency_graph",
+            "downstream_systems": [
+              "revenue_mart",
+              "customer_invoices"
+            ],
+            "upstream_systems": [
+              "payments_hourly"
+            ],
+            "new_upstream_dependencies": [
+              "data_lake_v2"
+            ]
+          },
+          "4": {
+            "value": 0.64,
+            "confidence": 0.74,
+            "source": "alert_correlator",
+            "correlated_alerts": [
+              "revenue_mart_missing_rows",
+              "invoice_export_retries"
+            ]
+          },
+          "5": null
+        },
+        "surface_action": "refer_to_specialist",
+        "final_action": "escalate_to_owner",
+        "surface_margin": 0.7063465559227687,
+        "final_margin": 0.6737946414169709,
+        "source": "copilot-sdk/apps/dataops/backend/app/vld_preseed.py:12",
+        "provider_source": "copilot-sdk/apps/dataops/backend/app/evidence_provider.py:38"
+      },
+      "VLD-DO-S1": {
+        "category": "pipeline_failure",
+        "factor_vector": [
+          0.1148601779890048,
+          0.5414560929201857,
+          0.23465565901226745,
+          0.530987929219016,
+          0.9007745072142764,
+          0.32200758172461463
+        ],
+        "claimed_surface_action": "auto_approve",
+        "claimed_vld_action": "auto_approve",
+        "evidence_dims": [],
+        "evidence": {
+          "0": null,
+          "1": {
+            "value": 0.92,
+            "confidence": 0.86,
+            "source": "pipeline_monitor",
+            "status": "ok",
+            "system": "staging_etl"
+          },
+          "2": {
+            "value": 0.23465565901226745,
+            "confidence": 0.85,
+            "source": "historical_alerts",
+            "prior_count": 0,
+            "pattern": null,
+            "known_resolution": null
+          },
+          "3": null,
+          "4": null,
+          "5": null
+        },
+        "surface_action": "auto_approve",
+        "final_action": "auto_approve",
+        "surface_margin": 0.9989963074062697,
+        "final_margin": 0.9989963074062697,
+        "source": "copilot-sdk/apps/dataops/backend/app/vld_preseed.py:13",
+        "provider_source": "copilot-sdk/apps/dataops/backend/app/evidence_provider.py:38"
+      }
+    },
+    "s2p": {
+      "VLD-S2P-1": {
+        "category": "price_variance",
+        "factor_vector": [
+          0.3906,
+          0.1186,
+          0.0,
+          0.4267,
+          0.3338,
+          0.7039,
+          1.0,
+          0.1912
+        ],
+        "claimed_surface_action": "hold_for_review",
+        "claimed_vld_action": "auto_approve",
+        "evidence_dims": [
+          0,
+          3
+        ],
+        "evidence": {
+          "0": {
+            "value": 0.95,
+            "confidence": 0.9,
+            "source": "contract_db",
+            "contract_ref": "CTR-ASTER-PARTIAL",
+            "clause": "Partial delivery may auto-approve when verified supplier history is clean.",
+            "coverage_score": 0.95,
+            "dimension": 0,
+            "factor_name": "match_status",
+            "invoice_id": "VLD-S2P-1"
+          },
+          "1": {
+            "value": 0.1186,
+            "confidence": 0.75,
+            "source": "pricing_benchmark",
+            "dimension": 1,
+            "factor_name": "amount_variance_ratio",
+            "invoice_id": "VLD-S2P-1"
+          },
+          "2": {
+            "value": 0.0,
+            "confidence": 0.82,
+            "source": "invoice_history",
+            "dimension": 2,
+            "factor_name": "duplicate_score",
+            "invoice_id": "VLD-S2P-1"
+          },
+          "3": {
+            "value": 0.03,
+            "confidence": 0.8214285714285714,
+            "source": "supplier_history",
+            "trust_score": 0.82,
+            "verified_priors": 23,
+            "partial_delivery_pricing_error_ratio": 3.1,
+            "dimension": 3,
+            "factor_name": "supplier_exception_history",
+            "invoice_id": "VLD-S2P-1"
+          },
+          "4": {
+            "value": 0.82,
+            "confidence": 0.8,
+            "source": "payment_terms",
+            "payment_terms": "Net 45",
+            "dimension": 4,
+            "factor_name": "payment_terms_impact",
+            "invoice_id": "VLD-S2P-1"
+          },
+          "5": null,
+          "6": {
+            "value": 0.8,
+            "confidence": 0.8,
+            "source": "compliance_db",
+            "flags": [],
+            "dimension": 6,
+            "factor_name": "tax_regulatory_compliance",
+            "invoice_id": "VLD-S2P-1"
+          },
+          "7": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "compliance_db",
+            "dimension": 7,
+            "factor_name": "environmental_risk",
+            "invoice_id": "VLD-S2P-1"
+          }
+        },
+        "surface_action": "hold_for_review",
+        "final_action": "auto_approve",
+        "surface_margin": 0.8828765858144514,
+        "final_margin": 0.9098284137950642,
+        "source": "s2p-copilot/backend/app/vld_preseed.py:65",
+        "provider_source": "s2p-copilot/backend/app/evidence_provider.py:28"
+      },
+      "VLD-S2P-2": {
+        "category": "price_variance",
+        "factor_vector": [
+          0.9237,
+          0.101,
+          0.0568,
+          0.0,
+          0.6731,
+          0.0,
+          0.3416,
+          0.2494
+        ],
+        "claimed_surface_action": "flag_leakage",
+        "claimed_vld_action": "auto_approve",
+        "evidence_dims": [
+          0,
+          1
+        ],
+        "evidence": {
+          "0": {
+            "value": 0.93,
+            "confidence": 0.9,
+            "source": "contract_db",
+            "contract_ref": "CTR-MERIDIAN-BULK",
+            "clause": "Bulk pricing pass-through activates above 2x forecast volume.",
+            "coverage_score": 0.93,
+            "dimension": 0,
+            "factor_name": "match_status",
+            "invoice_id": "VLD-S2P-2"
+          },
+          "1": {
+            "value": 0.05,
+            "confidence": 0.82,
+            "source": "pricing_benchmark",
+            "benchmark_delta_pct": 18.0,
+            "sample_size": 41,
+            "dimension": 1,
+            "factor_name": "amount_variance_ratio",
+            "invoice_id": "VLD-S2P-2"
+          },
+          "2": {
+            "value": 0.0568,
+            "confidence": 0.82,
+            "source": "invoice_history",
+            "dimension": 2,
+            "factor_name": "duplicate_score",
+            "invoice_id": "VLD-S2P-2"
+          },
+          "3": {
+            "value": 0.07317073170731707,
+            "confidence": 1.0,
+            "source": "supplier_history",
+            "trust_score": 0.926829268292683,
+            "verified_priors": 41,
+            "dimension": 3,
+            "factor_name": "supplier_exception_history",
+            "invoice_id": "VLD-S2P-2"
+          },
+          "4": {
+            "value": 0.82,
+            "confidence": 0.8,
+            "source": "payment_terms",
+            "payment_terms": "Net 60",
+            "dimension": 4,
+            "factor_name": "payment_terms_impact",
+            "invoice_id": "VLD-S2P-2"
+          },
+          "5": {
+            "value": 0.82,
+            "confidence": 0.78,
+            "source": "demand_forecast",
+            "volume_multiplier": 3.0,
+            "explanation": "Rush order exceeds the 2x bulk-pricing threshold.",
+            "dimension": 5,
+            "factor_name": "commodity_index_correlation",
+            "invoice_id": "VLD-S2P-2"
+          },
+          "6": {
+            "value": 0.8,
+            "confidence": 0.8,
+            "source": "compliance_db",
+            "flags": [],
+            "dimension": 6,
+            "factor_name": "tax_regulatory_compliance",
+            "invoice_id": "VLD-S2P-2"
+          },
+          "7": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "compliance_db",
+            "dimension": 7,
+            "factor_name": "environmental_risk",
+            "invoice_id": "VLD-S2P-2"
+          }
+        },
+        "surface_action": "flag_leakage",
+        "final_action": "flag_leakage",
+        "surface_margin": 0.8908947537786166,
+        "final_margin": 0.897183434541367,
+        "source": "s2p-copilot/backend/app/vld_preseed.py:100",
+        "provider_source": "s2p-copilot/backend/app/evidence_provider.py:28"
+      },
+      "VLD-S2P-S1": {
+        "category": "price_variance",
+        "factor_vector": [
+          0.942,
+          0.0716,
+          0.0253,
+          0.08,
+          0.4947,
+          0.7893,
+          0.9367,
+          0.5
+        ],
+        "claimed_surface_action": "auto_approve",
+        "claimed_vld_action": "auto_approve",
+        "evidence_dims": [],
+        "evidence": {
+          "0": {
+            "value": 0.98,
+            "confidence": 0.95,
+            "source": "contract_db",
+            "contract_ref": "CTR-NORTHSTAR-STANDARD",
+            "clause": "Standard matched invoice auto-approval.",
+            "dimension": 0,
+            "factor_name": "match_status",
+            "invoice_id": "VLD-S2P-S1"
+          },
+          "1": {
+            "value": 0.0716,
+            "confidence": 0.75,
+            "source": "pricing_benchmark",
+            "dimension": 1,
+            "factor_name": "amount_variance_ratio",
+            "invoice_id": "VLD-S2P-S1"
+          },
+          "2": {
+            "value": 0.0253,
+            "confidence": 0.82,
+            "source": "invoice_history",
+            "dimension": 2,
+            "factor_name": "duplicate_score",
+            "invoice_id": "VLD-S2P-S1"
+          },
+          "3": {
+            "value": 0.0125,
+            "confidence": 1.0,
+            "source": "supplier_history",
+            "trust_score": 0.9875,
+            "verified_priors": 80,
+            "dimension": 3,
+            "factor_name": "supplier_exception_history",
+            "invoice_id": "VLD-S2P-S1"
+          },
+          "4": {
+            "value": 0.82,
+            "confidence": 0.8,
+            "source": "payment_terms",
+            "payment_terms": "Net 45",
+            "dimension": 4,
+            "factor_name": "payment_terms_impact",
+            "invoice_id": "VLD-S2P-S1"
+          },
+          "5": null,
+          "6": {
+            "value": 0.8,
+            "confidence": 0.8,
+            "source": "compliance_db",
+            "flags": [],
+            "dimension": 6,
+            "factor_name": "tax_regulatory_compliance",
+            "invoice_id": "VLD-S2P-S1"
+          },
+          "7": {
+            "value": 0.5,
+            "confidence": 0.65,
+            "source": "compliance_db",
+            "dimension": 7,
+            "factor_name": "environmental_risk",
+            "invoice_id": "VLD-S2P-S1"
+          }
+        },
+        "surface_action": "auto_approve",
+        "final_action": "auto_approve",
+        "surface_margin": 0.9364876430725804,
+        "final_margin": 0.952171922632071,
+        "source": "s2p-copilot/backend/app/vld_preseed.py:150",
+        "provider_source": "s2p-copilot/backend/app/evidence_provider.py:28"
+      }
+    }
+  }
+}

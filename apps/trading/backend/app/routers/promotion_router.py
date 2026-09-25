@@ -62,7 +62,6 @@ def create_promotion_engine_router(
         )
 
     @router.get("/dashboard")
-    @cached_static("promotion")
     def dashboard(request: Request) -> list[dict[str, Any]]:
         return cast(list[dict[str, Any]], _engine().dashboard())
 

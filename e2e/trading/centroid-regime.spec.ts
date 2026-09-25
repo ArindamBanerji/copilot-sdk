@@ -15,3 +15,4 @@ test('trading checkpoint history exposes regime tags', async ({ request }) => {
     expect(tagged.some((checkpoint) => ['trending', 'ranging', 'volatile'].includes(String(checkpoint.regime_tag)))).toBe(true);
   }
 });
+

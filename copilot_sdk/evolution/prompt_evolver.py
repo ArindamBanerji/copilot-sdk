@@ -11,6 +11,7 @@ from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.conservation_contract import ConservationStateProvider
 from copilot_sdk.evolution.protocol import EvolutionEvent, EvolutionLedger
 from copilot_sdk.evolution.variant_store import InMemoryVariantStore, VariantSpec, VariantStats, VariantStore
+from copilot_sdk.config.graph_config import resolve_profile
 
 
 logger = logging.getLogger(__name__)
@@ -63,8 +64,13 @@ class PromptVariantEvolver:
         config: PromptEvolverConfig | None = None,
         store: VariantStore | None = None,
         ledger: EvolutionLedger | None = None,
+        *,
+        profile: str | None = None,
     ) -> None:
         self._config = config or PromptEvolverConfig()
+        active_profile = resolve_profile(profile, domain="")
+        if store is None and profile is not None and active_profile == "production":
+            raise RuntimeError("production prompt evolution requires an injected graph-backed variant store")
         self._store = store or InMemoryVariantStore()
         self._ledger = ledger
         self._promotion_gate = DefaultPromotionGate()

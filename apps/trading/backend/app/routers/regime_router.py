@@ -46,7 +46,6 @@ def create_regime_router(
     regime_classifier = classifier or RegimeClassifier()
 
     @router.get("/current")
-    @cached_static("regime-current")
     def current_regime(request: Request) -> dict[str, Any]:
         payload = _current_market(provider_factory(), regime_classifier)
         regime_history.record(
@@ -62,7 +61,6 @@ def create_regime_router(
         return regime_history.history(days)
 
     @router.get("/performance")
-    @cached_static("regime-performance")
     def regime_performance(request: Request) -> dict[str, Any]:
         current = _current_market(provider_factory(), regime_classifier)
         conservation = _conservation_status(graph_store_factory, domain) or {}

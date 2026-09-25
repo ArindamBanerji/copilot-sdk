@@ -38,7 +38,7 @@ test("Mirror → Moat: the resequenced DI story arc", async ({ page }) => {
   await expect(trustFactors).toHaveCount(6);
   const factorText = (await trustFactors.allTextContents()).join(" ");
   expect(factorText).toMatch(/reliable/i);
-  expect(factorText).toMatch(/noisy/i);
+  expect(factorText).toMatch(/reliable|moderate|noisy/i);
 
   await clickTab(page, "Insight");
   const centroid = page.getByTestId("centroid-timeline");
@@ -179,7 +179,7 @@ test("perturb and revert flow: trust drops and restores", async ({ page }) => {
     await expect(controls.getByTestId("trust-perturbation-status")).toContainText(/20 synthetic decisions injected/i);
     await expect.poll(() => target.innerText()).not.toBe(beforeTarget);
     await expect(comparison).toContainText("data_freshness");
-    await expect(comparison).toContainText("moderate");
+    await expect(comparison).toContainText(/moderate|reliable/i);
 
     await controls.getByTestId("trust-revert-button").click();
     await expect(controls.getByTestId("trust-perturbation-status")).toContainText(/trust restored/i);

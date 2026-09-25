@@ -7,7 +7,7 @@ async function gotoPerformance(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expect(page.getByText("Performance Summary")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("Centroid Timeline")).toBeVisible({ timeout: 15_000 });
 }
 
 function signalCard(page: Page) {
@@ -96,3 +96,4 @@ test("signal card shows accuracy by speed when data exists", async ({ page }) =>
   await expect(card.getByText(/Fast entry/i)).toBeVisible();
   await expect(card.getByText(/100% accuracy/)).toBeVisible();
 });
+

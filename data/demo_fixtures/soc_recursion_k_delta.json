@@ -1,0 +1,25 @@
+{
+  "copilot": "soc",
+  "decisions": [
+    {
+      "first_factor": "identity",
+      "k_entry_changed": true,
+      "n": 1,
+      "verified": true
+    },
+    {
+      "first_factor": "origin",
+      "k_entry_changed": false,
+      "n": 2,
+      "verified": false
+    }
+  ],
+  "expected": {
+    "delta_mu": 0.0,
+    "routing_changed": true
+  },
+  "fixture_id": "PL-MACH-3",
+  "injection_mode": "file_placement",
+  "planted": true,
+  "scenario": "MACH-03"
+}

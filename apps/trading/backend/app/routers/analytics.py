@@ -88,25 +88,21 @@ def create_analytics_router(
         }
 
     @router.get("/analytics/vol-sharpe")
-    @cached_static("vol-sharpe")
     def vol_sharpe(request: Request) -> dict[str, Any]:
         decisions = _verified_decisions(graph_store_factory, domain)
         return compute_clustering_adjusted_sharpe(decisions)
 
     @router.get("/analytics/vrp-attribution")
-    @cached_static("vrp-attribution")
     def vrp_attribution(request: Request) -> dict[str, Any]:
         decisions = _verified_decisions(graph_store_factory, domain)
         return compute_vrp_attribution(decisions)
 
     @router.get("/analytics/regime-vrp")
-    @cached_static("regime-vrp")
     def regime_vrp(request: Request) -> dict[str, Any]:
         decisions = _verified_decisions(graph_store_factory, domain)
         return compute_regime_vrp(decisions)
 
     @router.get("/analytics/dispersion-follow")
-    @cached_static("dispersion-follow")
     def dispersion_follow(request: Request) -> dict[str, Any]:
         decisions = _verified_decisions(graph_store_factory, domain)
         return compute_dispersion_follow_rate(decisions)

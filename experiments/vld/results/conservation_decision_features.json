@@ -1,0 +1,1507 @@
+{
+  "combined_model": {
+    "features_used": [
+      "delta_1",
+      "post_investigation_margin",
+      "recent_accuracy_w100",
+      "recent_accuracy_w50",
+      "recent_accuracy_w200",
+      "distance_from_floor",
+      "k_selected_2",
+      "k_selected_1",
+      "conservation_state",
+      "qk_reliability"
+    ],
+    "per_copilot": {
+      "dataops": {
+        "auc": 0.8260947064115989,
+        "ece": 0.08206822175858178
+      },
+      "purchasing": {
+        "auc": 0.8089079451606361,
+        "ece": 0.07284228628233719
+      },
+      "s2p": {
+        "auc": 0.8753339601531208,
+        "ece": 0.07106960126951678
+      },
+      "soc": {
+        "auc": 0.8184614926679342,
+        "ece": 0.045994273857034265
+      },
+      "trading": {
+        "auc": 0.8085796564275569,
+        "ece": 0.07202905552650589
+      }
+    },
+    "pooled_auc": 0.8140223758443705,
+    "pooled_ece": 0.010749723485755482
+  },
+  "feature_class_ablation": {
+    "all_classes": 0.8140223758443705,
+    "dominant_class": "routing",
+    "without_geometric": 0.8140223758443705,
+    "without_population": 0.7736989183181344,
+    "without_routing": 0.6422880539492197
+  },
+  "feature_ranking": {
+    "per_copilot": {
+      "dataops": [
+        {
+          "auc": 0.7689495420286435,
+          "class": "routing",
+          "feature": "post_investigation_margin"
+        },
+        {
+          "auc": 0.6586739479933332,
+          "class": "routing",
+          "feature": "k_selected_1"
+        },
+        {
+          "auc": 0.6564826914851252,
+          "class": "routing",
+          "feature": "delta_1"
+        },
+        {
+          "auc": 0.6343243263174974,
+          "class": "routing",
+          "feature": "q_gap"
+        },
+        {
+          "auc": 0.6328458384341951,
+          "class": "routing",
+          "feature": "q_entropy"
+        },
+        {
+          "auc": 0.6221630850012538,
+          "class": "routing",
+          "feature": "qk_reliability"
+        },
+        {
+          "auc": 0.6141522736323545,
+          "class": "geometric",
+          "feature": "nearest_centroid_distance"
+        },
+        {
+          "auc": 0.6054684434873671,
+          "class": "routing",
+          "feature": "delta_2"
+        },
+        {
+          "auc": 0.589486865587988,
+          "class": "geometric",
+          "feature": "second_centroid_distance"
+        },
+        {
+          "auc": 0.5682013746515435,
+          "class": "population",
+          "feature": "recent_accuracy_w100"
+        },
+        {
+          "auc": 0.5682013746515435,
+          "class": "population",
+          "feature": "distance_from_floor"
+        },
+        {
+          "auc": 0.5628275490788951,
+          "class": "population",
+          "feature": "recent_accuracy_w50"
+        },
+        {
+          "auc": 0.5618962669065914,
+          "class": "population",
+          "feature": "recent_accuracy_w200"
+        },
+        {
+          "auc": 0.5593031608135812,
+          "class": "routing",
+          "feature": "k_selected_2"
+        },
+        {
+          "auc": 0.5541984395050075,
+          "class": "population",
+          "feature": "conservation_state"
+        },
+        {
+          "auc": 0.549719538636263,
+          "class": "geometric",
+          "feature": "factor_1"
+        },
+        {
+          "auc": 0.5396825911886606,
+          "class": "geometric",
+          "feature": "factor_2"
+        },
+        {
+          "auc": 0.5342276434755675,
+          "class": "geometric",
+          "feature": "factor_4"
+        },
+        {
+          "auc": 0.532454903464653,
+          "class": "geometric",
+          "feature": "factor_5"
+        },
+        {
+          "auc": 0.5252264045192406,
+          "class": "population",
+          "feature": "d2_local"
+        },
+        {
+          "auc": 0.525224634581631,
+          "class": "population",
+          "feature": "residual"
+        },
+        {
+          "auc": 0.524924998893789,
+          "class": "geometric",
+          "feature": "factor_3"
+        },
+        {
+          "auc": 0.5191632619950147,
+          "class": "routing",
+          "feature": "k_mean"
+        },
+        {
+          "auc": 0.5152766264989159,
+          "class": "routing",
+          "feature": "decision_margin"
+        },
+        {
+          "auc": 0.5125796840661366,
+          "class": "geometric",
+          "feature": "geometric_margin"
+        },
+        {
+          "auc": 0.5123138246876797,
+          "class": "routing",
+          "feature": "k_std"
+        },
+        {
+          "auc": 0.5118257643918053,
+          "class": "routing",
+          "feature": "category_decision_count"
+        },
+        {
+          "auc": 0.511126270298972,
+          "class": "geometric",
+          "feature": "factor_0"
+        },
+        {
+          "auc": 0.5092438679036564,
+          "class": "population",
+          "feature": "category_coverage"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "sigma_signal"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "investigation_depth"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_6"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_7"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_8"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_9"
+        }
+      ],
+      "purchasing": [
+        {
+          "auc": 0.7442765594810684,
+          "class": "routing",
+          "feature": "delta_1"
+        },
+        {
+          "auc": 0.6930494344201339,
+          "class": "routing",
+          "feature": "k_selected_2"
+        },
+        {
+          "auc": 0.6871405747956688,
+          "class": "routing",
+          "feature": "k_selected_1"
+        },
+        {
+          "auc": 0.6753561605328797,
+          "class": "routing",
+          "feature": "post_investigation_margin"
+        },
+        {
+          "auc": 0.6658499354182159,
+          "class": "routing",
+          "feature": "qk_reliability"
+        },
+        {
+          "auc": 0.6432996843854412,
+          "class": "routing",
+          "feature": "k_mean"
+        },
+        {
+          "auc": 0.636959283231153,
+          "class": "routing",
+          "feature": "q_gap"
+        },
+        {
+          "auc": 0.6311803699842371,
+          "class": "routing",
+          "feature": "delta_2"
+        },
+        {
+          "auc": 0.6223601706524717,
+          "class": "routing",
+          "feature": "q_entropy"
+        },
+        {
+          "auc": 0.6180692359423425,
+          "class": "routing",
+          "feature": "k_std"
+        },
+        {
+          "auc": 0.5868196940638132,
+          "class": "population",
+          "feature": "recent_accuracy_w50"
+        },
+        {
+          "auc": 0.5848633107860475,
+          "class": "population",
+          "feature": "recent_accuracy_w100"
+        },
+        {
+          "auc": 0.5848633107860475,
+          "class": "population",
+          "feature": "distance_from_floor"
+        },
+        {
+          "auc": 0.5804933123160843,
+          "class": "population",
+          "feature": "recent_accuracy_w200"
+        },
+        {
+          "auc": 0.5617099406132244,
+          "class": "geometric",
+          "feature": "factor_2"
+        },
+        {
+          "auc": 0.551484242400521,
+          "class": "geometric",
+          "feature": "factor_1"
+        },
+        {
+          "auc": 0.5461619917520344,
+          "class": "geometric",
+          "feature": "nearest_centroid_distance"
+        },
+        {
+          "auc": 0.5416468177014577,
+          "class": "geometric",
+          "feature": "factor_3"
+        },
+        {
+          "auc": 0.5352698379940151,
+          "class": "population",
+          "feature": "conservation_state"
+        },
+        {
+          "auc": 0.533292532353161,
+          "class": "geometric",
+          "feature": "factor_0"
+        },
+        {
+          "auc": 0.5314213329822551,
+          "class": "routing",
+          "feature": "category_decision_count"
+        },
+        {
+          "auc": 0.5267029131188199,
+          "class": "geometric",
+          "feature": "second_centroid_distance"
+        },
+        {
+          "auc": 0.5135121460010887,
+          "class": "routing",
+          "feature": "decision_margin"
+        },
+        {
+          "auc": 0.5116351823056586,
+          "class": "geometric",
+          "feature": "factor_5"
+        },
+        {
+          "auc": 0.5111814374517416,
+          "class": "geometric",
+          "feature": "factor_4"
+        },
+        {
+          "auc": 0.5102545198353254,
+          "class": "geometric",
+          "feature": "geometric_margin"
+        },
+        {
+          "auc": 0.5093858147801551,
+          "class": "population",
+          "feature": "category_coverage"
+        },
+        {
+          "auc": 0.5052626147972344,
+          "class": "population",
+          "feature": "d2_local"
+        },
+        {
+          "auc": 0.5048595390675314,
+          "class": "population",
+          "feature": "residual"
+        },
+        {
+          "auc": 0.5026624062852487,
+          "class": "geometric",
+          "feature": "factor_6"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "sigma_signal"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "investigation_depth"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_7"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_8"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_9"
+        }
+      ],
+      "s2p": [
+        {
+          "auc": 0.812787204122528,
+          "class": "routing",
+          "feature": "delta_1"
+        },
+        {
+          "auc": 0.7756910961713519,
+          "class": "routing",
+          "feature": "post_investigation_margin"
+        },
+        {
+          "auc": 0.7148093335536805,
+          "class": "geometric",
+          "feature": "factor_4"
+        },
+        {
+          "auc": 0.6905389207296105,
+          "class": "geometric",
+          "feature": "factor_1"
+        },
+        {
+          "auc": 0.6377472689007004,
+          "class": "geometric",
+          "feature": "factor_0"
+        },
+        {
+          "auc": 0.6209667517856399,
+          "class": "geometric",
+          "feature": "factor_5"
+        },
+        {
+          "auc": 0.6195148910464806,
+          "class": "routing",
+          "feature": "decision_margin"
+        },
+        {
+          "auc": 0.6122790810240474,
+          "class": "geometric",
+          "feature": "factor_2"
+        },
+        {
+          "auc": 0.6102707742404423,
+          "class": "geometric",
+          "feature": "geometric_margin"
+        },
+        {
+          "auc": 0.5874320272513738,
+          "class": "population",
+          "feature": "recent_accuracy_w200"
+        },
+        {
+          "auc": 0.5845795573824122,
+          "class": "routing",
+          "feature": "delta_2"
+        },
+        {
+          "auc": 0.5800197733053619,
+          "class": "population",
+          "feature": "recent_accuracy_w100"
+        },
+        {
+          "auc": 0.5800197733053619,
+          "class": "population",
+          "feature": "distance_from_floor"
+        },
+        {
+          "auc": 0.5766776373539108,
+          "class": "population",
+          "feature": "recent_accuracy_w50"
+        },
+        {
+          "auc": 0.5764591944663066,
+          "class": "population",
+          "feature": "conservation_state"
+        },
+        {
+          "auc": 0.5760640662817673,
+          "class": "routing",
+          "feature": "k_selected_1"
+        },
+        {
+          "auc": 0.5586176805339951,
+          "class": "geometric",
+          "feature": "factor_6"
+        },
+        {
+          "auc": 0.5582054148411466,
+          "class": "routing",
+          "feature": "qk_reliability"
+        },
+        {
+          "auc": 0.5568512298535717,
+          "class": "routing",
+          "feature": "category_decision_count"
+        },
+        {
+          "auc": 0.556327047381107,
+          "class": "routing",
+          "feature": "q_gap"
+        },
+        {
+          "auc": 0.5500385473250281,
+          "class": "routing",
+          "feature": "k_std"
+        },
+        {
+          "auc": 0.5450715663956152,
+          "class": "routing",
+          "feature": "k_mean"
+        },
+        {
+          "auc": 0.540071034569653,
+          "class": "routing",
+          "feature": "q_entropy"
+        },
+        {
+          "auc": 0.5383381347857787,
+          "class": "geometric",
+          "feature": "second_centroid_distance"
+        },
+        {
+          "auc": 0.5350581927025111,
+          "class": "geometric",
+          "feature": "nearest_centroid_distance"
+        },
+        {
+          "auc": 0.5327459164053264,
+          "class": "geometric",
+          "feature": "factor_3"
+        },
+        {
+          "auc": 0.5249549476630151,
+          "class": "routing",
+          "feature": "k_selected_2"
+        },
+        {
+          "auc": 0.5112463087979462,
+          "class": "population",
+          "feature": "category_coverage"
+        },
+        {
+          "auc": 0.5023113912615442,
+          "class": "population",
+          "feature": "d2_local"
+        },
+        {
+          "auc": 0.5023113912615442,
+          "class": "population",
+          "feature": "residual"
+        },
+        {
+          "auc": 0.5002112016869101,
+          "class": "geometric",
+          "feature": "factor_7"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "sigma_signal"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "investigation_depth"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_8"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_9"
+        }
+      ],
+      "soc": [
+        {
+          "auc": 0.7205875994629982,
+          "class": "routing",
+          "feature": "delta_1"
+        },
+        {
+          "auc": 0.720216830042035,
+          "class": "routing",
+          "feature": "post_investigation_margin"
+        },
+        {
+          "auc": 0.6737258426829584,
+          "class": "population",
+          "feature": "recent_accuracy_w50"
+        },
+        {
+          "auc": 0.6708163945047474,
+          "class": "population",
+          "feature": "recent_accuracy_w100"
+        },
+        {
+          "auc": 0.6708163945047474,
+          "class": "population",
+          "feature": "distance_from_floor"
+        },
+        {
+          "auc": 0.6549055738387356,
+          "class": "population",
+          "feature": "recent_accuracy_w200"
+        },
+        {
+          "auc": 0.6414319673418734,
+          "class": "routing",
+          "feature": "decision_margin"
+        },
+        {
+          "auc": 0.6402837010718527,
+          "class": "geometric",
+          "feature": "geometric_margin"
+        },
+        {
+          "auc": 0.6141655862969359,
+          "class": "geometric",
+          "feature": "second_centroid_distance"
+        },
+        {
+          "auc": 0.6120980552041231,
+          "class": "geometric",
+          "feature": "factor_0"
+        },
+        {
+          "auc": 0.5757435322843156,
+          "class": "population",
+          "feature": "conservation_state"
+        },
+        {
+          "auc": 0.5746652266082299,
+          "class": "routing",
+          "feature": "k_selected_2"
+        },
+        {
+          "auc": 0.5657687159254429,
+          "class": "routing",
+          "feature": "delta_2"
+        },
+        {
+          "auc": 0.5512193023451355,
+          "class": "routing",
+          "feature": "category_decision_count"
+        },
+        {
+          "auc": 0.5459927897134462,
+          "class": "population",
+          "feature": "category_coverage"
+        },
+        {
+          "auc": 0.5452577689392779,
+          "class": "routing",
+          "feature": "k_std"
+        },
+        {
+          "auc": 0.5410900077804002,
+          "class": "routing",
+          "feature": "q_gap"
+        },
+        {
+          "auc": 0.5391077547407537,
+          "class": "routing",
+          "feature": "qk_reliability"
+        },
+        {
+          "auc": 0.5343939967726874,
+          "class": "routing",
+          "feature": "k_mean"
+        },
+        {
+          "auc": 0.5289344632186523,
+          "class": "geometric",
+          "feature": "factor_3"
+        },
+        {
+          "auc": 0.526018605607146,
+          "class": "population",
+          "feature": "d2_local"
+        },
+        {
+          "auc": 0.526018605607146,
+          "class": "population",
+          "feature": "residual"
+        },
+        {
+          "auc": 0.5252218804582027,
+          "class": "geometric",
+          "feature": "factor_1"
+        },
+        {
+          "auc": 0.5152359833841417,
+          "class": "routing",
+          "feature": "k_selected_1"
+        },
+        {
+          "auc": 0.5090741280291906,
+          "class": "geometric",
+          "feature": "factor_5"
+        },
+        {
+          "auc": 0.5079595384425859,
+          "class": "geometric",
+          "feature": "nearest_centroid_distance"
+        },
+        {
+          "auc": 0.5076515597410242,
+          "class": "routing",
+          "feature": "q_entropy"
+        },
+        {
+          "auc": 0.5072421164513641,
+          "class": "geometric",
+          "feature": "factor_2"
+        },
+        {
+          "auc": 0.5009211116086569,
+          "class": "geometric",
+          "feature": "factor_4"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "sigma_signal"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "investigation_depth"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_6"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_7"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_8"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "factor_9"
+        }
+      ],
+      "trading": [
+        {
+          "auc": 0.7128935102982955,
+          "class": "routing",
+          "feature": "post_investigation_margin"
+        },
+        {
+          "auc": 0.6883015580610795,
+          "class": "routing",
+          "feature": "delta_1"
+        },
+        {
+          "auc": 0.6742534845525568,
+          "class": "population",
+          "feature": "recent_accuracy_w100"
+        },
+        {
+          "auc": 0.6742534845525568,
+          "class": "population",
+          "feature": "distance_from_floor"
+        },
+        {
+          "auc": 0.6732857998934659,
+          "class": "population",
+          "feature": "recent_accuracy_w50"
+        },
+        {
+          "auc": 0.6575440562855114,
+          "class": "population",
+          "feature": "recent_accuracy_w200"
+        },
+        {
+          "auc": 0.6359224076704546,
+          "class": "geometric",
+          "feature": "factor_1"
+        },
+        {
+          "auc": 0.6314390980113636,
+          "class": "routing",
+          "feature": "k_selected_2"
+        },
+        {
+          "auc": 0.6117058771306818,
+          "class": "geometric",
+          "feature": "nearest_centroid_distance"
+        },
+        {
+          "auc": 0.5997809392755682,
+          "class": "geometric",
+          "feature": "second_centroid_distance"
+        },
+        {
+          "auc": 0.58349609375,
+          "class": "population",
+          "feature": "conservation_state"
+        },
+        {
+          "auc": 0.5776052024147728,
+          "class": "routing",
+          "feature": "delta_2"
+        },
+        {
+          "auc": 0.5718735573508523,
+          "class": "routing",
+          "feature": "q_gap"
+        },
+        {
+          "auc": 0.5694332608309659,
+          "class": "geometric",
+          "feature": "factor_9"
+        },
+        {
+          "auc": 0.5644077370383522,
+          "class": "routing",
+          "feature": "q_entropy"
+        },
+        {
+          "auc": 0.5536745383522726,
+          "class": "geometric",
+          "feature": "factor_5"
+        },
+        {
+          "auc": 0.5463613059303978,
+          "class": "routing",
+          "feature": "k_selected_1"
+        },
+        {
+          "auc": 0.5450573730468751,
+          "class": "routing",
+          "feature": "qk_reliability"
+        },
+        {
+          "auc": 0.5419663307883522,
+          "class": "geometric",
+          "feature": "factor_6"
+        },
+        {
+          "auc": 0.52340576171875,
+          "class": "routing",
+          "feature": "category_decision_count"
+        },
+        {
+          "auc": 0.5215478515625,
+          "class": "geometric",
+          "feature": "factor_2"
+        },
+        {
+          "auc": 0.5202169522372159,
+          "class": "population",
+          "feature": "d2_local"
+        },
+        {
+          "auc": 0.5202169522372159,
+          "class": "population",
+          "feature": "residual"
+        },
+        {
+          "auc": 0.5192193048650569,
+          "class": "population",
+          "feature": "category_coverage"
+        },
+        {
+          "auc": 0.5178046209161933,
+          "class": "geometric",
+          "feature": "factor_3"
+        },
+        {
+          "auc": 0.5122748357599431,
+          "class": "geometric",
+          "feature": "factor_8"
+        },
+        {
+          "auc": 0.5101716752485795,
+          "class": "geometric",
+          "feature": "factor_7"
+        },
+        {
+          "auc": 0.5073466352982955,
+          "class": "routing",
+          "feature": "decision_margin"
+        },
+        {
+          "auc": 0.5060905317826705,
+          "class": "routing",
+          "feature": "k_std"
+        },
+        {
+          "auc": 0.5035664506392046,
+          "class": "geometric",
+          "feature": "factor_4"
+        },
+        {
+          "auc": 0.5026986416903408,
+          "class": "geometric",
+          "feature": "geometric_margin"
+        },
+        {
+          "auc": 0.5022979181463068,
+          "class": "routing",
+          "feature": "k_mean"
+        },
+        {
+          "auc": 0.5007403009588068,
+          "class": "geometric",
+          "feature": "factor_0"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "sigma_signal"
+        },
+        {
+          "auc": 0.5,
+          "class": "geometric",
+          "feature": "investigation_depth"
+        }
+      ]
+    },
+    "pooled": [
+      {
+        "auc": 0.7212099670900192,
+        "class": "routing",
+        "feature": "delta_1"
+      },
+      {
+        "auc": 0.7117956255153732,
+        "class": "routing",
+        "feature": "post_investigation_margin"
+      },
+      {
+        "auc": 0.6403129303947133,
+        "class": "population",
+        "feature": "recent_accuracy_w100"
+      },
+      {
+        "auc": 0.6369091488535248,
+        "class": "population",
+        "feature": "recent_accuracy_w50"
+      },
+      {
+        "auc": 0.6355819215945546,
+        "class": "population",
+        "feature": "recent_accuracy_w200"
+      },
+      {
+        "auc": 0.6157873103999817,
+        "class": "population",
+        "feature": "distance_from_floor"
+      },
+      {
+        "auc": 0.5914634835282306,
+        "class": "routing",
+        "feature": "k_selected_2"
+      },
+      {
+        "auc": 0.5802459151176472,
+        "class": "routing",
+        "feature": "k_selected_1"
+      },
+      {
+        "auc": 0.5798031555551743,
+        "class": "population",
+        "feature": "conservation_state"
+      },
+      {
+        "auc": 0.5645487645381029,
+        "class": "routing",
+        "feature": "qk_reliability"
+      },
+      {
+        "auc": 0.5565775507693045,
+        "class": "geometric",
+        "feature": "nearest_centroid_distance"
+      },
+      {
+        "auc": 0.5536988444814872,
+        "class": "routing",
+        "feature": "q_gap"
+      },
+      {
+        "auc": 0.5507779187773755,
+        "class": "routing",
+        "feature": "delta_2"
+      },
+      {
+        "auc": 0.5468701412637733,
+        "class": "routing",
+        "feature": "q_entropy"
+      },
+      {
+        "auc": 0.54479898949815,
+        "class": "geometric",
+        "feature": "factor_1"
+      },
+      {
+        "auc": 0.5376384236825122,
+        "class": "geometric",
+        "feature": "geometric_margin"
+      },
+      {
+        "auc": 0.5361231496287691,
+        "class": "routing",
+        "feature": "decision_margin"
+      },
+      {
+        "auc": 0.532663165687158,
+        "class": "routing",
+        "feature": "k_mean"
+      },
+      {
+        "auc": 0.5317615539595886,
+        "class": "geometric",
+        "feature": "factor_0"
+      },
+      {
+        "auc": 0.5303709603873893,
+        "class": "geometric",
+        "feature": "factor_4"
+      },
+      {
+        "auc": 0.5247074359771864,
+        "class": "geometric",
+        "feature": "factor_6"
+      },
+      {
+        "auc": 0.5246817419057708,
+        "class": "geometric",
+        "feature": "factor_9"
+      },
+      {
+        "auc": 0.5205253404432345,
+        "class": "geometric",
+        "feature": "second_centroid_distance"
+      },
+      {
+        "auc": 0.5191666616123723,
+        "class": "routing",
+        "feature": "category_decision_count"
+      },
+      {
+        "auc": 0.5177529028063126,
+        "class": "geometric",
+        "feature": "factor_5"
+      },
+      {
+        "auc": 0.5161044320386705,
+        "class": "routing",
+        "feature": "k_std"
+      },
+      {
+        "auc": 0.5155269814491983,
+        "class": "geometric",
+        "feature": "factor_2"
+      },
+      {
+        "auc": 0.5142973071416354,
+        "class": "population",
+        "feature": "d2_local"
+      },
+      {
+        "auc": 0.5141822856024643,
+        "class": "population",
+        "feature": "residual"
+      },
+      {
+        "auc": 0.5053406817836654,
+        "class": "geometric",
+        "feature": "factor_3"
+      },
+      {
+        "auc": 0.5040829231798856,
+        "class": "population",
+        "feature": "category_coverage"
+      },
+      {
+        "auc": 0.5015677406714141,
+        "class": "geometric",
+        "feature": "factor_7"
+      },
+      {
+        "auc": 0.5006252753702939,
+        "class": "geometric",
+        "feature": "factor_8"
+      },
+      {
+        "auc": 0.5,
+        "class": "geometric",
+        "feature": "sigma_signal"
+      },
+      {
+        "auc": 0.5,
+        "class": "geometric",
+        "feature": "investigation_depth"
+      }
+    ]
+  },
+  "frontier_improvement": {
+    "baseline_frontier": {
+      "0.50": {
+        "accuracy": 0.8380022731831249,
+        "coverage": 0.9971333333333333
+      },
+      "0.55": {
+        "accuracy": 0.8393048845947396,
+        "coverage": 0.9936
+      },
+      "0.60": {
+        "accuracy": 0.8401564713023538,
+        "coverage": 0.9884666666666667
+      },
+      "0.65": {
+        "accuracy": 0.8417808219178082,
+        "coverage": 0.9733333333333334
+      },
+      "0.70": {
+        "accuracy": 0.8484372770087055,
+        "coverage": 0.9342666666666667
+      },
+      "0.75": {
+        "accuracy": 0.8559763589703709,
+        "coverage": 0.8572666666666666
+      },
+      "0.80": {
+        "accuracy": 0.8736891828058574,
+        "coverage": 0.7056666666666667
+      },
+      "0.85": {
+        "accuracy": 0.9148079306071871,
+        "coverage": 0.4304
+      },
+      "0.90": {
+        "accuracy": 0.9590723055934516,
+        "coverage": 0.09773333333333334
+      },
+      "0.95": {
+        "accuracy": null,
+        "coverage": 0.0
+      }
+    },
+    "improvement": "combined top-10 AUC 0.814 versus baseline model 0.656; pooled coverage at first tested 90% accuracy is 90.1%",
+    "per_copilot": {
+      "dataops": {
+        "0.50": {
+          "accuracy": 0.843862167982771,
+          "coverage": 0.9286666666666666
+        },
+        "0.55": {
+          "accuracy": 0.853551912568306,
+          "coverage": 0.915
+        },
+        "0.60": {
+          "accuracy": 0.8617494440326168,
+          "coverage": 0.8993333333333333
+        },
+        "0.65": {
+          "accuracy": 0.878822629969419,
+          "coverage": 0.872
+        },
+        "0.70": {
+          "accuracy": 0.8958579881656805,
+          "coverage": 0.845
+        },
+        "0.75": {
+          "accuracy": 0.907309105757452,
+          "coverage": 0.8163333333333334
+        },
+        "0.80": {
+          "accuracy": 0.9132849209739428,
+          "coverage": 0.7803333333333333
+        },
+        "0.85": {
+          "accuracy": 0.9253663003663004,
+          "coverage": 0.728
+        },
+        "0.90": {
+          "accuracy": 0.952076677316294,
+          "coverage": 0.626
+        },
+        "0.95": {
+          "accuracy": 0.9682080924855492,
+          "coverage": 0.346
+        }
+      },
+      "purchasing": {
+        "0.50": {
+          "accuracy": 0.902510460251046,
+          "coverage": 0.7966666666666666
+        },
+        "0.55": {
+          "accuracy": 0.9126256006989952,
+          "coverage": 0.763
+        },
+        "0.60": {
+          "accuracy": 0.9265249537892791,
+          "coverage": 0.7213333333333334
+        },
+        "0.65": {
+          "accuracy": 0.941620533467539,
+          "coverage": 0.6623333333333333
+        },
+        "0.70": {
+          "accuracy": 0.9507658643326039,
+          "coverage": 0.6093333333333333
+        },
+        "0.75": {
+          "accuracy": 0.9634146341463414,
+          "coverage": 0.5466666666666666
+        },
+        "0.80": {
+          "accuracy": 0.9684873949579832,
+          "coverage": 0.476
+        },
+        "0.85": {
+          "accuracy": 0.97847533632287,
+          "coverage": 0.37166666666666665
+        },
+        "0.90": {
+          "accuracy": 0.9722222222222222,
+          "coverage": 0.228
+        },
+        "0.95": {
+          "accuracy": 0.9743589743589743,
+          "coverage": 0.078
+        }
+      },
+      "s2p": {
+        "0.50": {
+          "accuracy": 0.8581560283687943,
+          "coverage": 0.94
+        },
+        "0.55": {
+          "accuracy": 0.8735048930772019,
+          "coverage": 0.9196666666666666
+        },
+        "0.60": {
+          "accuracy": 0.8916385451818523,
+          "coverage": 0.889
+        },
+        "0.65": {
+          "accuracy": 0.9233214143822011,
+          "coverage": 0.839
+        },
+        "0.70": {
+          "accuracy": 0.9518377693282636,
+          "coverage": 0.789
+        },
+        "0.75": {
+          "accuracy": 0.9807073954983923,
+          "coverage": 0.7256666666666667
+        },
+        "0.80": {
+          "accuracy": 0.9920870425321464,
+          "coverage": 0.674
+        },
+        "0.85": {
+          "accuracy": 0.9994526546250684,
+          "coverage": 0.609
+        },
+        "0.90": {
+          "accuracy": 1.0,
+          "coverage": 0.44633333333333336
+        },
+        "0.95": {
+          "accuracy": 1.0,
+          "coverage": 0.12966666666666668
+        }
+      },
+      "soc": {
+        "0.50": {
+          "accuracy": 0.9043771043771044,
+          "coverage": 0.99
+        },
+        "0.55": {
+          "accuracy": 0.9106354060482501,
+          "coverage": 0.981
+        },
+        "0.60": {
+          "accuracy": 0.9215889464594128,
+          "coverage": 0.965
+        },
+        "0.65": {
+          "accuracy": 0.9356435643564357,
+          "coverage": 0.9426666666666667
+        },
+        "0.70": {
+          "accuracy": 0.9541620828749542,
+          "coverage": 0.909
+        },
+        "0.75": {
+          "accuracy": 0.9646882043576258,
+          "coverage": 0.8873333333333333
+        },
+        "0.80": {
+          "accuracy": 0.9752034095311894,
+          "coverage": 0.8603333333333333
+        },
+        "0.85": {
+          "accuracy": 0.9798954563731403,
+          "coverage": 0.829
+        },
+        "0.90": {
+          "accuracy": 0.9926215277777778,
+          "coverage": 0.768
+        },
+        "0.95": {
+          "accuracy": 1.0,
+          "coverage": 0.555
+        }
+      },
+      "trading": {
+        "0.50": {
+          "accuracy": 0.9375436147941382,
+          "coverage": 0.9553333333333334
+        },
+        "0.55": {
+          "accuracy": 0.9508078994614003,
+          "coverage": 0.9283333333333333
+        },
+        "0.60": {
+          "accuracy": 0.9630183040717221,
+          "coverage": 0.8923333333333333
+        },
+        "0.65": {
+          "accuracy": 0.9734021437078205,
+          "coverage": 0.8396666666666667
+        },
+        "0.70": {
+          "accuracy": 0.9885964912280701,
+          "coverage": 0.76
+        },
+        "0.75": {
+          "accuracy": 0.9956331877729258,
+          "coverage": 0.687
+        },
+        "0.80": {
+          "accuracy": 0.9984042553191489,
+          "coverage": 0.6266666666666667
+        },
+        "0.85": {
+          "accuracy": 1.0,
+          "coverage": 0.5513333333333333
+        },
+        "0.90": {
+          "accuracy": 1.0,
+          "coverage": 0.43133333333333335
+        },
+        "0.95": {
+          "accuracy": 1.0,
+          "coverage": 0.21733333333333332
+        }
+      }
+    },
+    "pooled": {
+      "0.50": {
+        "accuracy": 0.8893146327356853,
+        "coverage": 0.9221333333333334
+      },
+      "0.55": {
+        "accuracy": 0.9000813549293691,
+        "coverage": 0.9014
+      },
+      "0.60": {
+        "accuracy": 0.912449431341119,
+        "coverage": 0.8734
+      },
+      "0.65": {
+        "accuracy": 0.9298147108366086,
+        "coverage": 0.8311333333333333
+      },
+      "0.70": {
+        "accuracy": 0.9472607991820737,
+        "coverage": 0.7824666666666666
+      },
+      "0.75": {
+        "accuracy": 0.9606879606879607,
+        "coverage": 0.7326
+      },
+      "0.80": {
+        "accuracy": 0.9677136168552477,
+        "coverage": 0.6834666666666667
+      },
+      "0.85": {
+        "accuracy": 0.974317470594583,
+        "coverage": 0.6178
+      },
+      "0.90": {
+        "accuracy": 0.9831977597012935,
+        "coverage": 0.49993333333333334
+      },
+      "0.95": {
+        "accuracy": 0.9901960784313726,
+        "coverage": 0.2652
+      }
+    }
+  },
+  "metadata": {
+    "columns": [
+      "recent_accuracy_w50",
+      "recent_accuracy_w100",
+      "recent_accuracy_w200",
+      "category_coverage",
+      "distance_from_floor",
+      "d2_local",
+      "residual",
+      "category_decision_count",
+      "decision_margin",
+      "q_vector",
+      "q_gap",
+      "q_entropy",
+      "k_selected_1",
+      "k_selected_2",
+      "k_mean",
+      "k_std",
+      "delta_1",
+      "delta_2",
+      "post_investigation_margin",
+      "qk_reliability",
+      "nearest_centroid_distance",
+      "second_centroid_distance",
+      "geometric_margin",
+      "sigma_signal",
+      "investigation_depth",
+      "conservation_state",
+      "verified_correct",
+      "true_correct",
+      "action_taken",
+      "category",
+      "copilot",
+      "condition",
+      "decision_index",
+      "seed",
+      "factor_0",
+      "factor_1",
+      "factor_2",
+      "factor_3",
+      "factor_4",
+      "factor_5",
+      "factor_6",
+      "factor_7",
+      "factor_8",
+      "factor_9"
+    ],
+    "conditions": [
+      "normal",
+      "poison_25"
+    ],
+    "copilots": [
+      "soc",
+      "dataops",
+      "trading",
+      "purchasing",
+      "s2p"
+    ],
+    "decisions_per_run": 1000,
+    "new_features_count": 25,
+    "rows_emitted": 30000,
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "source_hashes": {
+      "copilot_sdk\\backend\\investigation_router.py": "08f4df7ad872a6cf0dc53c0bd7250fe854ca7481e508aa592b35fe06440a744b",
+      "copilot_sdk\\scoring\\investigation.py": "3441dcbdb67a93e231ceda9827db36b46413e5d2fd29e750e3310caf1a2df6b4",
+      "copilot_sdk\\scoring\\scorer.py": "24ac9e49a070e0f9421fa0e3e7417a828c0ec88610ef906ce4987311c721b460"
+    },
+    "tier": "REAL_COMPONENT geometry + GEOMETRY-DERIVED + SIMULATED"
+  },
+  "verdict": {
+    "auc_delta": 0.16402237584437052,
+    "auc_improved": true,
+    "breakthrough_features": [
+      {
+        "auc": 0.7212099670900192,
+        "class": "routing",
+        "feature": "delta_1"
+      },
+      {
+        "auc": 0.7117956255153732,
+        "class": "routing",
+        "feature": "post_investigation_margin"
+      }
+    ],
+    "coverage_at_90pct_accuracy": 0.9014,
+    "dominant_feature_class": "routing",
+    "frontier_useful": true,
+    "new_auc": 0.8140223758443705,
+    "rationale": "Decision-level features are evaluated on the same geometry-derived correctness protocol; no candidate feature uses the current label.",
+    "v5_upgrade": "gating viable"
+  }
+}

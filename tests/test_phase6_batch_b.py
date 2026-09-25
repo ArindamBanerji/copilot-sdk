@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
+from copilot_sdk.config import GraphConfig
 from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
@@ -152,7 +153,7 @@ def test_claim_runner_structure() -> None:
 def test_demo_status_config_line(monkeypatch) -> None:
     demo = importlib.import_module("demo")
     monkeypatch.setattr(
-        demo.GraphConfig,
+        GraphConfig,
         "load",
         staticmethod(lambda domain, profile="production": SimpleNamespace(graph="soc_graph")),
     )

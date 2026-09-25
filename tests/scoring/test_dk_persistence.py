@@ -259,13 +259,14 @@ def test_persist_dk_no_tracker_or_empty_tracker_does_not_write() -> None:
     assert store.calls == []
 
 
-def test_persist_dk_nonfatal_on_l5_failure() -> None:
-    assert not persist_dk_after_reestimate(
-        domain="trading",
-        scorer=FakeScorer([[1.0]]),
-        learning_store=FakeLearningStore(fail=True),
-        welford_tracker=_populated_tracker(),
-    )
+def test_persist_dk_raises_on_l5_failure() -> None:
+    with pytest.raises(Exception):
+        persist_dk_after_reestimate(
+            domain="trading",
+            scorer=FakeScorer([[1.0]]),
+            learning_store=FakeLearningStore(fail=True),
+            welford_tracker=_populated_tracker(),
+        )
 
 
 def test_persist_dk_does_not_mutate_tracker_or_scorer() -> None:

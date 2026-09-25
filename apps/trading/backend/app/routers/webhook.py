@@ -7,7 +7,8 @@ from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
 import hashlib
 import math
-from typing import Any
+import os
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
@@ -53,6 +54,9 @@ class TradingViewWebhookRequest(BaseModel):
     category: str | None = None
     auto_score: bool = False
     indicators: dict[str, Any] = Field(default_factory=dict)
+    source: str | None = None
+    origin: str | None = None
+    synthetic: bool = False
 
     @field_validator("ticker")
     def ticker_required(cls, value: str) -> str:
@@ -93,6 +97,9 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
             "scored": False,
             "ticker": request.ticker,
             "mapped_factors": mapped_factors,
+            "source": request.source or "tradingview_webhook",
+            "origin": request.origin,
+            "synthetic": bool(request.synthetic),
         }
         history_item: dict[str, Any] = {
             "event_id": event_id,
@@ -103,6 +110,9 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
             "auto_score": bool(request.auto_score),
             "scored": False,
             "mapped_factors": mapped_factors,
+            "source": request.source or "tradingview_webhook",
+            "origin": request.origin,
+            "synthetic": bool(request.synthetic),
         }
 
         if request.auto_score:
@@ -122,13 +132,13 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
                 "observation_only": True,
                 "confidence": scored.get("confidence"),
                 "auto_score_status": scored.get("auto_score_status"),
+                "synthetic": bool(request.synthetic),
             })
 
         history.appendleft(_json_safe(history_item))
-        return _json_safe(response)
+        return cast(dict[str, Any], _json_safe(response))
 
     @router.get("/history")
-    @cached_static("webhook-history")
     def webhook_history(request: Request) -> list[dict[str, Any]]:
         return list(history)
 
@@ -155,6 +165,11 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
 
     @router.post("/test")
     def test_webhook(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        if os.environ.get("TRADING_DEMO_MODE") != "1":
+            raise HTTPException(
+                status_code=403,
+                detail="test webhook disabled outside demo mode",
+            )
         body = dict(payload or {})
         sample = {
             "ticker": body.get("ticker") or "AAPL",
@@ -168,9 +183,12 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
             "auto_score": bool(body.get("auto_score", False)),
             "indicators": body.get("indicators")
             or {"rsi": 28.5, "macd": -0.3, "atr": 2.1, "volume": 1_500_000, "vix": 18.2},
+            "source": "test_webhook",
+            "origin": "synthetic",
+            "synthetic": True,
         }
         request = TradingViewWebhookRequest(**sample)
-        return tradingview_webhook(request)
+        return cast(dict[str, Any], tradingview_webhook(request))
 
     return router
 
@@ -178,16 +196,16 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
 def compute_webhook_status() -> dict[str, Any]:
     history = list(_WEBHOOK_HISTORY)
     last_alert = history[0] if history else None
-    fast = [
-        alert for alert in history
-        if _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) is not None
-        and _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) < 300
-    ]
-    slow = [
-        alert for alert in history
-        if _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) is not None
-        and _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) > 1800
-    ]
+    fast: list[dict[str, Any]] = []
+    slow: list[dict[str, Any]] = []
+    for alert in history:
+        seconds = _number(
+            alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")
+        )
+        if seconds is not None and seconds < 300:
+            fast.append(alert)
+        if seconds is not None and seconds > 1800:
+            slow.append(alert)
     return {
         "total_alerts": len(history),
         "correlated_trades": len([alert for alert in history if alert.get("scored")]),
@@ -241,6 +259,8 @@ def _score_event(
             category,
             metadata={
                 "source": "tradingview_webhook",
+                "origin": request.origin,
+                "synthetic": bool(request.synthetic),
                 "webhook_event_id": event_id,
                 "ticker": request.ticker,
                 "exchange": request.exchange,
@@ -281,7 +301,7 @@ def _current_regime_from_indicators(indicators: dict[str, Any] | None) -> str | 
         adx = _number(values.get("adx"))
         if vix is None or adx is None:
             return None
-        return RegimeClassifier().classify(vix, adx)
+        return cast(str, RegimeClassifier().classify(vix, adx))
     except Exception:
         return None
 

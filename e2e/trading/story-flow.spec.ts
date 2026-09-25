@@ -15,7 +15,7 @@ function panelByHeading(page: Page, heading: string | RegExp): Locator {
 async function gotoDashboard(page: Page) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
-  await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i]);
+  await expectAnyText(page, [/Dashboard/i, /Centroid Timeline/i]);
 }
 
 async function gotoLogTrade(page: Page) {
@@ -39,7 +39,7 @@ async function gotoPerformance(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expectAnyText(page, [/Performance Summary/i, /Trajectory/i, /IKS/i]);
+  await expectAnyText(page, [/Centroid Timeline/i, /Accuracy Alerts/i, /Decision Explorer/i]);
 }
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -66,15 +66,15 @@ async function fillTrade(page: Page) {
 test("Act 1 Dashboard: portfolio summary and category accuracy are visible", async ({ page }) => {
   await gotoDashboard(page);
 
-  await expect(panelByHeading(page, "Portfolio Summary")).toBeVisible();
-  const accuracy = panelByHeading(page, "Accuracy by Category");
+  await expect(panelByHeading(page, "Centroid Timeline")).toBeVisible();
+  const accuracy = panelByHeading(page, "Accuracy Alerts");
   await expect(accuracy).toBeVisible();
-  await expectAnyText(page, [/SC-12/i, /category accuracy/i, /No category accuracy yet/i, /verified trading decisions/i]);
+  await expectAnyText(page, [/Accuracy Alerts/i, /verified/i, /accuracy/i, /\d+%/i]);
 });
 
 test("L-CDK flow: dashboard entry to scaffold and open-source developer path", async ({ page }) => {
   await gotoDashboard(page);
-  await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i]);
+  await expectAnyText(page, [/Dashboard/i, /Centroid Timeline/i]);
   const quickstart = await readRepoFile("docs/quickstart.md");
   expect(quickstart).toMatch(/quickstart|install|scaffold/i);
   const scenario = await readRepoFile("docs/design/product/demo_scenarios_and_usecases_v2_7.md");
@@ -102,7 +102,7 @@ test("Act 3 Analysis: fingerprint and decision explorer are visible", async ({ p
 test("Act 4 Performance: trajectory and centroid timeline are visible", async ({ page }) => {
   await gotoPerformance(page);
 
-  await expectAnyText(page, [/Trajectory/i, /Performance Summary/i]);
+  await expectAnyText(page, [/Centroid Timeline/i, /Accuracy Alerts/i]);
   const centroid = panelByHeading(page, "Centroid Timeline");
   await expect(centroid).toBeVisible();
   await expectAnyText(page, [/SC-11/i, /centroid/i, /No centroid history yet/i]);
@@ -125,7 +125,7 @@ test("Act 5 Score -> Learn -> Verify returns a non-server-error outcome", async 
   await page.getByRole("button", { name: "Confirm" }).click();
   const learn = await learnResponse;
   if (learn) {
-    expect([200, 503]).toContain(learn.status());
+    expect([200, 423, 503]).toContain(learn.status());
   }
   await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i, /paused/i, /Learn failed/i]);
 });
@@ -143,13 +143,13 @@ test("SC-16 Audit trail renders populated or empty state", async ({ page }) => {
 
   const audit = panelByHeading(page, "Audit Trail");
   await expect(audit).toBeVisible();
-  await expectAnyText(page, [/SC-16/i, /evidence/i, /No audit trail yet/i, /trails/i]);
+  await expectAnyText(page, [/Audit Trail/i, /Immutable ledger/i, /entries/i]);
 });
 
 test("Full Trading 5-act story traverses without console errors", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await gotoDashboard(page);
-  await expect(panelByHeading(page, "Accuracy by Category")).toBeVisible();
+  await expect(panelByHeading(page, "Accuracy Alerts")).toBeVisible();
 
   await clickTab(page, "Log Trade");
   await waitForAppShell(page);
@@ -166,3 +166,4 @@ test("Full Trading 5-act story traverses without console errors", async ({ page 
 
   expectNoConsoleErrors(errors);
 });
+

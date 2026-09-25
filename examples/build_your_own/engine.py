@@ -101,6 +101,7 @@ def _new_governed_arm(domain, work_dir: Path):
         reward_function=BinaryRewardFunction(),
         evolve=False,
         governed_writes=False,  # type: ignore[arg-type]
+        profile="offline",
     )
     return scorer, store
 

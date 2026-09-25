@@ -57,6 +57,7 @@ class TransferStatusResponse(FlexibleModel):
     opportunities: list[dict[str, Any]] = Field(default_factory=list)
     warnings: list[Any] = Field(default_factory=list)
     available_transfers: list[dict[str, Any]] = Field(default_factory=list)
+    source: str | None = None
 
 
 class ArchetypeSummary(FlexibleModel):

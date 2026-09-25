@@ -45,3 +45,4 @@ test("GU-06 comparison caption is present", async ({ page }) => {
   await openAnalysis(page);
   await expect(page.getByTestId("governance-caption")).toContainText("Same input. Same model. Different decision");
 });
+

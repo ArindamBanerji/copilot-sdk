@@ -112,3 +112,4 @@ test("no console errors on pre-score panel", async ({ page }) => {
 
   expectNoConsoleErrors(errors);
 });
+

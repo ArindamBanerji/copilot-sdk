@@ -165,6 +165,7 @@ def test_generated_config_constructs_scorer(tmp_path):
             preset,
             scorer,
             graph_store=graph_store,
+            profile="test",
         )
         assert wrapper._preset is preset
         assert wrapper._graph_store is graph_store

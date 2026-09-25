@@ -23,24 +23,26 @@ def run_experiment(
     gen_config: GeneratorConfig,
     oracle_config: OracleConfig,
     db_path: str | None = None,
+    mode: str = "offline",
 ) -> dict[str, Any]:
     """Run one Trading experiment through the shared APP-1 implementation."""
 
-    return _run_reference_experiment(label, gen_config, oracle_config, db_path)
+    return _run_reference_experiment(label, gen_config, oracle_config, db_path, mode=mode)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the offline Trading clone")
     parser.add_argument("--decisions", type=int, default=None)
     parser.add_argument("--output-dir", default=".")
+    parser.add_argument("--mode", choices=("age", "offline"), default="offline")
     args = parser.parse_args()
     if args.decisions is not None and args.decisions <= 0:
         parser.error("--decisions must be positive")
 
     gen_a = replace(RUN_A_GENERATOR, n_decisions=args.decisions) if args.decisions else RUN_A_GENERATOR
     gen_b = replace(RUN_B_GENERATOR, n_decisions=args.decisions) if args.decisions else RUN_B_GENERATOR
-    trajectory_a = run_experiment("trading_run_a", gen_a, RUN_A_ORACLE)
-    trajectory_b = run_experiment("trading_run_b", gen_b, RUN_B_ORACLE)
+    trajectory_a = run_experiment("trading_run_a", gen_a, RUN_A_ORACLE, mode=args.mode)
+    trajectory_b = run_experiment("trading_run_b", gen_b, RUN_B_ORACLE, mode=args.mode)
     generate_report(trajectory_a, trajectory_b, args.output_dir)
     print("Trading clone complete. Synthetic factors, SQLite, and paper-only scoring.")
 

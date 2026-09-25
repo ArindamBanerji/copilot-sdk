@@ -42,6 +42,7 @@ import DIWiringPanel from "../components/DIWiringPanel";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import { SAPDataBadge } from "../components/SAPDataBadge";
 import NLQueryPanel from "../components/NLQueryPanel";
+import SourceTrustPerturbPanel from "../components/SourceTrustPerturbPanel";
 import { DayZeroPanel } from "../../../../../copilot_sdk/frontend";
 
 interface DashboardScreenProps {
@@ -213,6 +214,8 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
       </section>
 
       <DIWiringPanel trust={state.trust} />
+
+      <SourceTrustPerturbPanel />
 
       <CompoundingCurveOverlay />
 

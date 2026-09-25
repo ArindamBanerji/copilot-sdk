@@ -7,9 +7,10 @@ from typing import Any, cast
 
 from copilot_sdk.config.tenant import current_tenant_id, validate_tenant_id
 from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.graph.production import GraphStoreWrapper
 
 
-class TenantScopedGraphStore:
+class TenantScopedGraphStore(GraphStoreWrapper):
     """Apply tenant scope to an existing domain-scoped GraphStore.
 
     The wrapped store remains the source of truth (AGE in production). Tenant
@@ -50,8 +51,18 @@ class TenantScopedGraphStore:
     def write_outcome(self, decision_id: str, actual_action: str, is_correct: bool, metadata: dict[str, Any] | None = None, **kwargs: Any) -> None:
         self._store.write_outcome(decision_id, actual_action, is_correct, self._stamp(metadata), **kwargs)
 
-    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None:
-        row = self._store.get_decision(decision_id, domain)
+    def get_decision(
+        self,
+        decision_id: str,
+        domain: str,
+        *,
+        include_outcome: bool = False,
+    ) -> dict[str, Any] | None:
+        row = self._store.get_decision(
+            decision_id,
+            domain,
+            include_outcome=include_outcome,
+        )
         return row if self._belongs(row) else None
 
     def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]:

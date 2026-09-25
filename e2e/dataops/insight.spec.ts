@@ -91,10 +91,10 @@ test("bottleneck panel shows pipeline duration breakdown", async ({ page }) => {
   const bottleneck = insightPanel(page, "Pipeline Bottleneck");
   await expect(bottleneck).toBeVisible();
   await expect(bottleneck.getByText(/bottleneck|duration|No transformation graph available/i).first()).toBeVisible();
-  await expect(bottleneck.getByText(/Join VBAK\/BSEG|join|No transformation graph available/i).first()).toBeVisible();
-  await expect(bottleneck.getByText(/Extract Orders Daily|extract|No transformation graph available/i).first()).toBeVisible();
-  await expect(bottleneck.getByText(/Aggregate Daily Revenue|aggregate|No transformation graph available/i).first()).toBeVisible();
-  await expect(bottleneck.getByText(/Load to Warehouse|load|\d+% of runtime|No transformation graph available/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/pipeline_failure|quality_anomaly|join|No transformation graph available/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/schema_change|pipeline_failure|extract|No transformation graph available/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/volume_anomaly|quality_anomaly|aggregate|No transformation graph available/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/freshness_violation|transform_drift|load|\d+% of runtime|No transformation graph available/i).first()).toBeVisible();
 });
 
 test("bottleneck panel shows optimization recommendation", async ({ page }) => {
@@ -133,10 +133,10 @@ test("what-if reordering shows transformation list", async ({ page }) => {
   await expect(whatIf).toBeVisible();
   await expect(whatIf.getByText(/Current order|No transformation graph available/i).first()).toBeVisible();
   await expect(whatIf.getByText(/Reorder order|No transformation graph available/i).first()).toBeVisible();
-  await expect(whatIf.getByText(/Extract Orders Daily|extract|No transformation graph available/i).first()).toBeVisible();
-  await expect(whatIf.getByText(/Join VBAK\/BSEG|join|No transformation graph available/i).first()).toBeVisible();
-  await expect(whatIf.getByText(/Aggregate Daily Revenue|aggregate|No transformation graph available/i).first()).toBeVisible();
-  await expect(whatIf.getByText(/Load to Warehouse|load|No transformation graph available/i).first()).toBeVisible();
+  await expect(whatIf.getByText(/schema_change|pipeline_failure|extract|No transformation graph available/i).first()).toBeVisible();
+  await expect(whatIf.getByText(/pipeline_failure|quality_anomaly|join|No transformation graph available/i).first()).toBeVisible();
+  await expect(whatIf.getByText(/volume_anomaly|quality_anomaly|aggregate|No transformation graph available/i).first()).toBeVisible();
+  await expect(whatIf.getByText(/freshness_violation|transform_drift|load|No transformation graph available/i).first()).toBeVisible();
 });
 
 test("what-if reordering shows estimated impact", async ({ page }) => {

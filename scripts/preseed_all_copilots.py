@@ -10,20 +10,24 @@ never carry privileged preseed bypass flags.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Protocol, Tuple
-from urllib import error, request
+from urllib.parse import urlsplit
 
 from copilot_sdk.backend.transfer import save_fingerprint
 
 
 HOST = os.environ.get("COPILOT_HOST", "127.0.0.1")
 TIMEOUT_SECONDS = 10
+READ_TIMEOUT_SECONDS = 30
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if __package__ in (None, ""):
+    sys.path.insert(0, str(REPO_ROOT))
 PRESEED_DECISIONS_PER_COPILOT = 200
 PRESEED_OVERRIDE_COUNT = 50
 S2P_PRESEED_DECISIONS = 200
@@ -196,32 +200,44 @@ def _api_json(method: str, base_url: str, path: str, body: Optional[Dict[str, An
         data = json.dumps(body).encode("utf-8")
         headers["Content-Type"] = "application/json"
 
-    req = request.Request(url, data=data, headers=headers, method=method)
+    parsed = urlsplit(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ApiError("Preseed API URL must use http or https")
+    timeout = READ_TIMEOUT_SECONDS if method == "GET" else TIMEOUT_SECONDS
+    connection_type = http.client.HTTPSConnection if parsed.scheme == "https" else http.client.HTTPConnection
+    connection = connection_type(parsed.hostname, parsed.port, timeout=timeout)
+    target = parsed.path + ("?" + parsed.query if parsed.query else "")
     try:
-        with request.urlopen(req, timeout=TIMEOUT_SECONDS) as response:
-            text = response.read().decode("utf-8")
-            return json.loads(text) if text else {}
-    except error.HTTPError as exc:
-        text = _read_error_text(exc)
-        raise ApiError("%s %s failed: HTTP %s %s" % (method, path, exc.code, text)) from exc
-    except error.URLError as exc:
-        raise ApiError("%s %s failed: %s" % (method, path, exc.reason)) from exc
+        # Consume the complete response before closing, including larger twin
+        # curves. Never retry writes: an outcome may already have committed.
+        connection.request(method, target, body=data, headers=headers)
+        response = connection.getresponse()
+        text = response.read().decode("utf-8")
+        if not 200 <= response.status < 300:
+            raise ApiError("%s %s failed: HTTP %s %s" % (method, path, response.status, text))
+        return json.loads(text) if text else {}
     except TimeoutError as exc:
-        raise ApiError("%s %s failed: timed out after %ss" % (method, path, TIMEOUT_SECONDS)) from exc
+        raise ApiError("%s %s failed: timed out after %ss" % (method, path, timeout)) from exc
+    except (OSError, http.client.HTTPException) as exc:
+        raise ApiError("%s %s failed: %s" % (method, path, exc)) from exc
     except json.JSONDecodeError as exc:
         raise ApiError("%s %s failed: invalid JSON response" % (method, path)) from exc
-
-
-def _read_error_text(exc: error.HTTPError) -> str:
-    try:
-        return exc.read().decode("utf-8", errors="replace")
-    except Exception:
-        return ""
+    finally:
+        connection.close()
 
 
 def check_health(base_url: str) -> Tuple[bool, Any]:
     try:
-        return True, api_get(base_url, "/health")
+        payload = api_get(base_url, "/health")
+        ready = (
+            isinstance(payload, dict)
+            and payload.get("ready") is True
+            and payload.get("graph_connected") is True
+            and payload.get("graph_name") == "soc_graph"
+        )
+        if not ready:
+            return False, {"reason": "AGE graph readiness contract failed", "health": payload}
+        return True, payload
     except ApiError as exc:
         return False, str(exc)
 
@@ -559,6 +575,9 @@ def seed_domain(
                 "category": category,
                 "factors": factors,
                 "context": {
+                    "planted": True,
+                    "provenance": "sample",
+                    "evidence_tier": "T-sim",
                     "seed_domain": config.name,
                     "seed_index": seed_sequence,
                     "seed_id": label,
@@ -585,6 +604,9 @@ def seed_domain(
                     "actual_action": action,
                     "outcome": "overridden" if is_override else "confirmed",
                     "context": {
+                        "planted": True,
+                        "provenance": "sample",
+                        "evidence_tier": "T-sim",
                         "seed_domain": config.name,
                         "seed_index": seed_sequence,
                         "seed_id": label,
@@ -621,6 +643,9 @@ def verify_domain(
     failures: int,
     total_reward: float,
 ) -> None:
+    healthy, health_payload = check_health(base_url)
+    if not healthy:
+        raise ApiError("post-seed AGE readiness verification failed: %s" % health_payload)
     try:
         trajectory = api_get(base_url, "/api/trajectory")
     except ApiError as exc:
@@ -684,6 +709,7 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     parser.add_argument("--s2p-only", action="store_true", help="Seed S2P only through its separate backend.")
     parser.add_argument("--dry-run", action="store_true", help="Load seeds and check backend health without mutating.")
     parser.add_argument("--force", action="store_true", help="Append seed decisions even if trajectory already has decisions.")
+    parser.add_argument("--demo-fixtures", action="store_true", help="Explicitly add synthetic demo states after ordinary seeding (includes degradation).")
     return parser.parse_args(argv)
 
 
@@ -717,7 +743,17 @@ def main(argv: List[str]) -> int:
         except Exception as exc:
             print("s2p: failed before seeding: %s" % exc)
             results.append(DomainResult("s2p", S2P_PRESEED_DECISIONS, 0, 1, 0, False, False, 0.0))
-    return print_summary(results)
+    exit_code = print_summary(results)
+    if args.demo_fixtures and not args.dry_run:
+        from scripts.preseed_demo_fixtures import run_scenarios
+        selected = selected_domains(args)
+        names = {config.name for config in selected}
+        scenarios = {"trading": ("trading",), "purchasing": ("purchasing", "projection", "gap"),
+                     "dataops": ("evolution", "investigation")}
+        for domain in names:
+            for scenario in scenarios[domain]:
+                exit_code = max(exit_code, run_scenarios(scenario))
+    return exit_code
 
 
 if __name__ == "__main__":

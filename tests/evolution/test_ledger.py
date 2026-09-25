@@ -1,29 +1,15 @@
 from __future__ import annotations
 
 import logging
+from unittest.mock import Mock
+
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 from copilot_sdk.evolution import EvolutionEvent, InMemoryEvolutionLedger
 
 
-class RecordingGraphStore:
-    def __init__(self):
-        self.calls = []
-
-    def save_evolution_event(self, domain, event_type=None, rule_name="", variant_id="", metadata=None):
-        if event_type is None or (variant_id == "" and rule_name):
-            old_event_type = domain
-            old_rule_name = event_type or ""
-            old_variant_id = rule_name
-            domain = "test"
-            event_type = old_event_type
-            rule_name = old_rule_name
-            variant_id = old_variant_id
-        self.calls.append((domain, event_type, rule_name, variant_id, metadata))
 
 
-class FailingGraphStore:
-    def save_evolution_event(self, **kwargs):
-        raise RuntimeError("write failed")
 
 
 def test_ledger_appends_events():
@@ -80,18 +66,23 @@ def test_ledger_reset_clears_events():
 
 
 def test_ledger_persists_to_graph_store():
-    graph_store = RecordingGraphStore()
+    graph_store = InMemoryGraphStore(domain="test")
     ledger = InMemoryEvolutionLedger(evolution_store=graph_store, domain="test")
 
     ledger.append(EvolutionEvent("shadow_started", "rule", "variant", metadata={"x": 1}))
 
-    assert graph_store.calls[0][1:4] == ("shadow_started", "rule", "variant")
-    assert graph_store.calls[0][4]["x"] == 1
-    assert graph_store.calls[0][4]["timestamp"]
+    events = graph_store.get_evolution_events("test")
+    assert len(events) == 1
+    assert (events[0]["event_type"], events[0]["rule_name"], events[0]["variant_id"]) == ("shadow_started", "rule", "variant")
+    assert events[0]["metadata"]["x"] == 1
+    assert events[0]["metadata"]["timestamp"]
+    assert graph_store.get_evolution_events("other") == []
 
 
 def test_ledger_graph_store_failure_logs_warning(caplog):
-    ledger = InMemoryEvolutionLedger(evolution_store=FailingGraphStore(), domain="test")
+    store = InMemoryGraphStore(domain="test")
+    store.write_evolution_event = Mock(side_effect=RuntimeError("write failed"))
+    ledger = InMemoryEvolutionLedger(evolution_store=store, domain="test")
 
     with caplog.at_level(logging.WARNING):
         ledger.append(EvolutionEvent("shadow_started", "rule", "variant"))

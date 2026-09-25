@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Iterator
 
 import pytest
+from unittest.mock import AsyncMock
+from ci_platform.graph.age_client import AGEClient
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
@@ -38,13 +40,6 @@ def environment(**values: str | None) -> Iterator[None]:
                 os.environ[key] = value
 
 
-class UnavailableAGEClient:
-    serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
-
-    def __init__(self, **kwargs: object) -> None:
-        raise ConnectionError("AGE unavailable for closure test")
-
-
 @pytest.mark.asyncio
 async def test_production_age_failure_returns_503() -> None:
     with environment(
@@ -53,7 +48,9 @@ async def test_production_age_failure_returns_503() -> None:
         DATAOPS_ACTIVE_AGE_GRAPH="governed_copilot_graph",
         DATAOPS_DEMO_MODE=None,
     ):
-        client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client_cls=UnavailableAGEClient)
+        age = AGEClient(dsn="host=unreachable port=5433 dbname=dataops", graph_name="protocol_v2_test_closure")
+        age.run_query = AsyncMock(side_effect=ConnectionError("AGE unavailable for closure test"))
+        client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=age)
         assert client._age_required is True
         calls: tuple[tuple[Callable[..., Awaitable[Any]], tuple[Any, ...]], ...] = (
             (client.get_pipelines, ()),
@@ -86,6 +83,11 @@ def test_production_no_fixture_in_decision_response() -> None:
     context_router.set_evolution_store_factory(lambda: store)
     try:
         decisions = context_router._all_context_decisions()
+        store.write_decision("dataops", "pipeline_failure", "investigate", 0.7, {"impact_scope": 0.9},
+                             metadata={"decision_id": "DOPS-LIVE-002"})
+        updated = context_router._all_context_decisions()
+        assert len(updated) == len(decisions) + 1
+        assert any(row["decision_id"] == "DOPS-LIVE-002" for row in updated)
     finally:
         context_router.set_evolution_store_factory(None)
 

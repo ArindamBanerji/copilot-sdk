@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sqlite3
 import sys
 import time
 from dataclasses import replace
@@ -32,20 +33,27 @@ from .evolution import (  # noqa: E402
     get_dataops_variants,
 )
 from .enterprise_router import router as enterprise_router  # noqa: E402
+from .enterprise_health_provider import create_enterprise_health_router  # noqa: E402
 from .graph_status import (  # noqa: E402
     DataOpsActiveGraphConfig,
     create_dataops_active_graph_store,
     router as dataops_graph_status_router,
 )
 from .graph_queries import DataOpsGraphClient  # noqa: E402
+from .evidence_provider import CONNECTOR_GATED_SOURCES, DataOpsEvidenceProvider, build_dataops_evidence_source  # noqa: E402
 from .services.investigation_loop import DataOpsFactorProvider, InvestigationLoop  # noqa: E402
 from .services.investigation_patterns import build_default_investigation_patterns  # noqa: E402
 from .services.investigation_router import InvestigationRouter  # noqa: E402
+from .vld_preseed import seed_vld_dataops_showcase  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from .routers.query import create_query_router  # noqa: E402
 from .routers.di_enrichment_router import create_dataops_di_enrichment_router  # noqa: E402
 from .routers.perturbation_router import create_perturbation_router  # noqa: E402
+from .routers.trust_perturbation_router import (  # noqa: E402
+    SourceTrustPerturbationService,
+    create_trust_perturbation_router,
+)
 from .routers.trust_router import create_trust_router  # noqa: E402
 from .routers.di_gateway_router import create_di_gateway_router  # noqa: E402
 from .routers.di_demo_beats import create_di_demo_beats_router  # noqa: E402
@@ -61,13 +69,22 @@ from copilot_sdk.backend import (  # noqa: E402
     create_di_router,
     create_evolution_router,
     create_scoring_router,
+    create_switching_cost_router,
     mount_self_computation_router,
 )
 from copilot_sdk.backend.discovery_router import create_discovery_router  # noqa: E402
+from copilot_sdk.backend.investigation_router import create_investigation_router  # noqa: E402
+from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
+from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
+from copilot_sdk.backend.signal_store import GraphSignalStore  # noqa: E402
+from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
 from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, create_variant_store  # noqa: E402
 from .evolution.evolver_config import DATAOPS_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
+from copilot_sdk.config.graph_config import resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.di import (  # noqa: E402
     AcquisitionAdvisor,
@@ -86,12 +103,29 @@ from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
+from copilot_sdk.scoring.composite_gate import CompositeGate  # noqa: E402
+from copilot_sdk.scoring.gate_enforced_scorer import GateEnforcedScorer  # noqa: E402
+from copilot_sdk.scoring.investigation import KUtilityStore  # noqa: E402
+from copilot_sdk.scoring.situation_classifier import SituationClassifier  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 
 
 DOMAIN = "dataops"
+
+
+class _VLDKDecisionConnection:
+    def __init__(self, path: Path):
+        self.conn = sqlite3.connect(path, check_same_thread=False)
+
+
+def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
+    return KUtilityStore(_VLDKDecisionConnection(path), dimensions)
+
+
+def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
+    return {"k_store": _create_vld_k_store(path, dimensions)}
 
 DATAOPS_QUERY_SOURCE_ID_MAP = {
     "compounding_scorer": "snowflake",
@@ -102,16 +136,12 @@ logger = logging.getLogger(__name__)
 
 
 def _resolve_profile() -> str:
-    """Select an explicit isolated profile for pytest app construction."""
-    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
-        return "test"
-    if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
-        return "development"
-    return "production"
+    """Select the DataOps runtime profile from explicit configuration."""
+    return str(resolve_profile(domain=DOMAIN))
 
 
 def _is_demo_or_test_mode() -> bool:
-    return os.environ.get("DATAOPS_DEMO_MODE") == "1" or _resolve_profile() == "test"
+    return os.environ.get("DATAOPS_DEMO_MODE") == "1"
 
 
 DB_FILENAME = "dataops.db"
@@ -148,35 +178,12 @@ def _cors_origins() -> list[str]:
     ]
 
 
-def _graph_store(db_path: str | Path):
-    # Active AGE configuration is owned by DATAOPS_ACTIVE_*; generic AGE
-    # settings remain deliberately ignored by the graph-status contract.
-    profile = _resolve_profile()
-    graph_config = None
-    try:
-        graph_config = GraphConfig.load(DOMAIN, profile=profile)
-        backend = graph_config.backend
-    except GraphConfigError:
-        if profile != "test":
-            raise
-        backend = "sqlite"
-    if graph_config is not None:
-        require_shared_graph(
-            backend=graph_config.backend,
-            graph=graph_config.graph,
-            domain=DOMAIN,
-            profile=profile,
-            test_mode=graph_config.active_test_mode,
-        )
+def _graph_store(db_path: str | Path, *, graph_config: GraphConfig | None = None):
+    graph_config = graph_config or GraphConfig.load(DOMAIN)
     store = create_graph_store(
-        backend=backend,
-        domain=DOMAIN,
+        config=graph_config,
         db_path=str(db_path),
         decision_id_prefix="DOPS-",
-        dsn=graph_config.dsn if graph_config is not None else None,
-        graph_name=graph_config.graph if graph_config is not None else None,
-        test_mode=graph_config.active_test_mode if graph_config is not None else False,
-        profile=profile,
     )
     setattr(store, "penalty_ratio", 10.0)
     return store
@@ -362,14 +369,16 @@ def _selected_graph_store_factory(
     *,
     active_config: DataOpsActiveGraphConfig,
     active_store_factory: Any | None = None,
+    graph_config: GraphConfig | None = None,
 ):
     active_store = create_dataops_active_graph_store(
         active_config,
         store_factory=active_store_factory,
+        graph_config=graph_config,
     )
     if active_store is not None:
         return active_store
-    return _graph_store(db_path)
+    return _graph_store(db_path, graph_config=graph_config)
 
 
 def _resolve_scoring_db(db_path: str | Path | None) -> str:
@@ -496,7 +505,7 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
     return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
 
 
-def _auto_seed_if_needed(graph_store: GraphStore) -> int:
+def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
@@ -510,7 +519,7 @@ def _auto_seed_if_needed(graph_store: GraphStore) -> int:
         graph_store=graph_store,
         evolve=True,
         consolidation_enabled=True,
-        profile=_resolve_profile(),
+        profile=resolve_profile(profile, domain=DOMAIN),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
@@ -605,7 +614,16 @@ def create_app(
     db_path: str | Path | None = None,
     demo_bundle_path: str | Path | bool | None = None,
     active_store_factory: Any | None = None,
+    *,
+    graph_config: GraphConfig | None = None,
+    profile: str | None = None,
 ) -> FastAPI:
+    graph_config = graph_config or GraphConfig.load(DOMAIN, profile=profile)
+    if graph_config.domain != DOMAIN:
+        raise GraphConfigError("DataOps app requires dataops GraphConfig")
+    if profile is not None and resolve_profile(profile) != graph_config.profile:
+        raise GraphConfigError("app profile conflicts with GraphConfig")
+    graph_config.validate()
     app = FastAPI(title="DataOps Copilot", version="0.1.0")
     app.add_middleware(TenantMiddleware)
     app.add_middleware(
@@ -632,11 +650,12 @@ def create_app(
         _bundle_path = False
     else:
         _bundle_path = Path(cast(str | Path, demo_bundle_path))
-    active_config = DataOpsActiveGraphConfig.from_env()
+    active_config = DataOpsActiveGraphConfig.from_env(graph_config=graph_config)
     selected_graph_store = _selected_graph_store_factory(
         scoring_db,
         active_config=active_config,
         active_store_factory=active_store_factory,
+        graph_config=graph_config,
     )
     graph_store_factory = lambda _db_path=scoring_db: selected_graph_store
     seed_graph_store = selected_graph_store
@@ -644,7 +663,12 @@ def create_app(
     app.state.dataops_active_graph_config = active_config
     app.state.dataops_selected_graph_store = selected_graph_store
     app.state.graph_store = selected_graph_store
-    context_graph_client = DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+    app.state.graph_config = graph_config
+    context_graph_client = DataOpsGraphClient(
+        fallback_dir=DATA_DIR / "fallback", config=graph_config,
+        graph_store=selected_graph_store,
+    )
+    app.state.dataops_topology = context_graph_client
     context_router_module.set_graph_client_factory(lambda: context_graph_client)
     dataops_profiler_registry = _dataops_profiler_registry()
     app.state.dataops_profiler_registry = dataops_profiler_registry
@@ -677,9 +701,10 @@ def create_app(
         claude_parser=ClaudeQueryParser() if os.environ.get("ANTHROPIC_API_KEY") else None,
     )
     app.state.di_query_service = di_query_service
-    scorer_proxy = FreshScorerProxy(
-        DOMAIN, scoring_db, graph_store_factory, profile=_resolve_profile()
+    raw_scorer_proxy = FreshScorerProxy(
+        DOMAIN, scoring_db, graph_store_factory, profile=graph_config.profile
     )
+    scorer_proxy: Any = GateEnforcedScorer(raw_scorer_proxy, CompositeGate())
     investigation_patterns = build_default_investigation_patterns(DATA_DIR)
     investigation_router = InvestigationRouter(investigation_patterns)
     app.state.dataops_investigation_loop = InvestigationLoop(
@@ -687,6 +712,13 @@ def create_app(
         investigation_router,
         DataOpsFactorProvider(),
     )
+    try:
+        app.state.dataops_vld_evidence_source = seed_vld_dataops_showcase(
+            build_dataops_evidence_source(DATA_DIR)
+        )
+    except Exception as exc:
+        logger.warning("DataOps VLD showcase preseed failed: %s", exc)
+        app.state.dataops_vld_evidence_source = build_dataops_evidence_source(DATA_DIR)
 
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
     governance_db = ":memory:" if scoring_db == ":memory:" else str(DATA_DIR / "dataops_governance.sqlite3")
@@ -697,7 +729,7 @@ def create_app(
         DATAOPS_EVOLVER_CONFIG,
         conservation_state_provider=conservation_provider,
     )
-    evolver = PromptVariantEvolver(config=evolver_config, store=create_variant_store(selected_graph_store, DOMAIN, test_mode=_resolve_profile() == "test"))
+    evolver = PromptVariantEvolver(config=evolver_config, store=create_variant_store(selected_graph_store, DOMAIN, test_mode=graph_config.profile == "test"))
     evolver.register_variants(get_dataops_variant_specs())
     app.state.evolver = evolver
 
@@ -719,6 +751,8 @@ def create_app(
         return str(selected.id) if selected is not None else None
     perturbation_service = PerturbationService()
     app.state.di_perturbation_service = perturbation_service
+    trust_perturbation_service = SourceTrustPerturbationService()
+    app.state.dataops_trust_perturbation_service = trust_perturbation_service
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",
@@ -740,9 +774,9 @@ def create_app(
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
             elif _is_demo_or_test_mode() and scoring_db != ":memory:":
-                if _bundle_path is not False:
+                if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
-                _auto_seed_if_needed(seed_graph_store)
+                _auto_seed_if_needed(seed_graph_store, profile=graph_config.profile)
                 _seed_demo_evolution_events_if_needed(seed_graph_store)
         if not startup_state["restored"]:
             startup_state["restored"] = True
@@ -811,6 +845,25 @@ def create_app(
         ),
         prefix="/api",
     )
+    app.include_router(
+        create_trust_perturbation_router(
+            scorer_provider=lambda: scorer_proxy,
+            service=trust_perturbation_service,
+        ),
+        prefix="/api/dataops",
+    )
+    app.include_router(
+        create_switching_cost_router(scorer_proxy, domain=DOMAIN),
+        prefix="/api",
+    )
+    app.include_router(
+        create_platform_router(scorer_proxy, current_domain=DOMAIN),
+        prefix="/api",
+    )
+    app.include_router(
+        create_cross_signal_router(GraphSignalStore(app.state.graph_store, DOMAIN)), prefix="/api"
+    )
+    app.include_router(create_concepts_router())
     @app.get("/api/di/profiles")
     def dataops_profiles_response() -> dict[str, Any]:
         return _dataops_profile_summaries(dataops_profiler_registry, dataops_profiles)
@@ -913,11 +966,27 @@ def create_app(
     app.include_router(dataops_status_router)
     _remove_route(app, "/api/dataops/enterprise-health", "GET", "enterprise_health_alias")
     app.include_router(enterprise_router, prefix="/api/dataops")
+    app.include_router(create_enterprise_health_router(), prefix="/api")
     app.include_router(
         create_query_router(lambda: selected_graph_store, query_service=di_query_service)
     )
     app.include_router(
         create_cohort_status_router(graph_store_factory=lambda: selected_graph_store)
+    )
+    app.include_router(
+        create_investigation_router(
+            scorer_provider=lambda: scorer_proxy._scorer(),
+            evidence_provider_factory=lambda decision_id: DataOpsEvidenceProvider(
+                app.state.dataops_vld_evidence_source,
+                decision_id,
+            ),
+            **_vld_k_router_kwargs(DATA_DIR / "k_utility.db", len(FACTOR_NAMES)),
+            classifier=SituationClassifier(),
+            factor_names=list(FACTOR_NAMES),
+            default_budget=2,
+            gated_sources={"schema_registry", "dependency_graph", *CONNECTOR_GATED_SOURCES,
+                           "schema_registry:synthetic", "dependency_graph:synthetic"},
+        )
     )
 
     @app.post("/api/dataops/investigate")
@@ -959,8 +1028,6 @@ def create_app(
 
     @app.middleware("http")
     async def direct_testclient_autoseed(request, call_next):
-        if request.url.path == "/api/health":
-            _run_startup_seed_once()
         return await call_next(request)
 
     @app.middleware("http")
@@ -976,29 +1043,15 @@ def create_app(
 
     @app.get("/health")
     @app.get("/api/health")
-    def health() -> dict[str, Any]:
-        graph = context_graph_client
-        graph_source = graph.graph_source
+    def health() -> Any:
+        payload = build_graph_health(app.state.dataops_selected_graph_store, app.state.graph_config, DOMAIN)
         cache_stats = entity_cache.stats()
-        return {
-            "status": "ok" if graph_source == "graph" else "error",
-            "domain": DOMAIN,
-            "phase": scorer_proxy.get_phase(),
-            "alpha": scorer_proxy.get_alpha(),
-            "graph_connected": graph.is_graph_connected,
-            "graph_source": graph_source,
-            "engine": (
-                "copilot_sdk.scoring + gae.profile_scorer + gae.calibration + "
-                "gae.evolution + ci_platform.graph"
-            ),
-            "cache_hits": cache_stats.hits,
-            "cache_misses": cache_stats.misses,
-            "cache_size": cache_stats.size,
-            "connectors": {
-                name: "demo" if type(dataops_profiler_registry[name].connector).__name__.startswith("Demo") else "real"
-                for name in sorted(dataops_profiler_registry)
-            },
-        }
+        payload.update(
+            cache_hits=cache_stats.hits,
+            cache_misses=cache_stats.misses,
+            cache_size=cache_stats.size,
+        )
+        return JSONResponse(payload, status_code=health_status_code(payload))
 
     return app
 

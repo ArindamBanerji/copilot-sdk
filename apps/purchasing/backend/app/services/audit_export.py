@@ -7,12 +7,20 @@ import io
 import json
 from datetime import datetime, timezone
 from typing import Any
+from copilot_sdk.config import resolve_profile
 
 
 class AuditExportService:
     """SOX-adjacent audit pack from existing evidence."""
 
     def generate_pack(self, period: str = "last_quarter") -> dict[str, Any]:
+        if resolve_profile(domain="purchasing") == "production":
+            return {
+                "period": period,
+                "status": "unavailable",
+                "provenance": "graph_unavailable",
+                "reason": "live receipt evidence is required",
+            }
         decision_trail = [
             {"decision_id": "PUR-001", "timestamp": "2026-04-02T12:00:00Z", "action": "approve", "override": False, "reason": "Par level within tolerance."},
             {"decision_id": "PUR-002", "timestamp": "2026-04-09T12:00:00Z", "action": "hold", "override": True, "reason": "Chef override during event week."},

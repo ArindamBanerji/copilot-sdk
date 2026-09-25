@@ -1,0 +1,3643 @@
+{
+  "best_tracker": {
+    "failed_copilots": [
+      "dataops",
+      "trading",
+      "purchasing",
+      "soc",
+      "s2p"
+    ],
+    "params": {
+      "X_pct": 0.2
+    },
+    "rationale": "Selected by maximum validated copilots, then lowest mean clean-pause rate. H-no remains if any copilot fails an acceptance axis.",
+    "regime": "T1_relative_20",
+    "validated_copilots": []
+  },
+  "metadata": {
+    "cusum_h": [
+      3.0,
+      5.0,
+      8.0
+    ],
+    "eval_clean_decisions": 500,
+    "ewma_lambda": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "relative_movement_X": [
+      0.1,
+      0.2,
+      0.3
+    ],
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "slow_drift_onset": 501,
+    "startup_N_sweep": [
+      100,
+      250,
+      500
+    ],
+    "startup_eval_disjoint": true,
+    "tier": "REAL_COMPONENT geometry + SIMULATED conditions"
+  },
+  "startup_characterization": {
+    "dataops": {
+      "100": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.73,
+          "fitted_floor_mean": 0.61,
+          "matches_r1_floor": false,
+          "r1_floor": 0.6694533333333333
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.81,
+            "fitted_floor": 0.6900000000000001,
+            "margin": 0.12,
+            "normal_region_hi": 0.81,
+            "normal_region_lo": 0.81,
+            "tracked_sigma": 0.01
+          },
+          "42": {
+            "fitted_baseline": 0.64,
+            "fitted_floor": 0.52,
+            "margin": 0.12,
+            "normal_region_hi": 0.64,
+            "normal_region_lo": 0.64,
+            "tracked_sigma": 0.01
+          },
+          "7": {
+            "fitted_baseline": 0.74,
+            "fitted_floor": 0.62,
+            "margin": 0.12,
+            "normal_region_hi": 0.74,
+            "normal_region_lo": 0.74,
+            "tracked_sigma": 0.01
+          }
+        }
+      },
+      "250": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.7449006622516556,
+          "fitted_floor_mean": 0.6249006622516556,
+          "matches_r1_floor": true,
+          "r1_floor": 0.6694533333333333
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.7491390728476821,
+            "fitted_floor": 0.6291390728476821,
+            "margin": 0.12,
+            "normal_region_hi": 0.8573928927451313,
+            "normal_region_lo": 0.6408852529502329,
+            "tracked_sigma": 0.05412690994872463
+          },
+          "42": {
+            "fitted_baseline": 0.7339735099337749,
+            "fitted_floor": 0.6139735099337749,
+            "margin": 0.12,
+            "normal_region_hi": 0.865758594261948,
+            "normal_region_lo": 0.6021884256056017,
+            "tracked_sigma": 0.06589254216408658
+          },
+          "7": {
+            "fitted_baseline": 0.7515894039735099,
+            "fitted_floor": 0.6315894039735099,
+            "margin": 0.12,
+            "normal_region_hi": 0.7939122073228537,
+            "normal_region_lo": 0.7092666006241661,
+            "tracked_sigma": 0.021161401674671888
+          }
+        }
+      },
+      "500": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.7632086450540315,
+          "fitted_floor_mean": 0.6432086450540315,
+          "matches_r1_floor": true,
+          "r1_floor": 0.6694533333333333
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.7689526184538653,
+            "fitted_floor": 0.6489526184538653,
+            "margin": 0.12,
+            "normal_region_hi": 0.8744881887891378,
+            "normal_region_lo": 0.6634170481185928,
+            "tracked_sigma": 0.05276778516763628
+          },
+          "42": {
+            "fitted_baseline": 0.7651870324189526,
+            "fitted_floor": 0.6451870324189526,
+            "margin": 0.12,
+            "normal_region_hi": 0.8734589249806353,
+            "normal_region_lo": 0.6569151398572699,
+            "tracked_sigma": 0.054135946280841354
+          },
+          "7": {
+            "fitted_baseline": 0.7554862842892768,
+            "fitted_floor": 0.6354862842892768,
+            "margin": 0.12,
+            "normal_region_hi": 0.8541825323041097,
+            "normal_region_lo": 0.6567900362744439,
+            "tracked_sigma": 0.04934812400741642
+          }
+        }
+      }
+    },
+    "purchasing": {
+      "100": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.6566666666666666,
+          "fitted_floor_mean": 0.5566666666666666,
+          "matches_r1_floor": false,
+          "r1_floor": 0.6554533333333333
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.72,
+            "fitted_floor": 0.62,
+            "margin": 0.1,
+            "normal_region_hi": 0.72,
+            "normal_region_lo": 0.72,
+            "tracked_sigma": 0.01
+          },
+          "42": {
+            "fitted_baseline": 0.58,
+            "fitted_floor": 0.48,
+            "margin": 0.1,
+            "normal_region_hi": 0.58,
+            "normal_region_lo": 0.58,
+            "tracked_sigma": 0.01
+          },
+          "7": {
+            "fitted_baseline": 0.67,
+            "fitted_floor": 0.5700000000000001,
+            "margin": 0.1,
+            "normal_region_hi": 0.67,
+            "normal_region_lo": 0.67,
+            "tracked_sigma": 0.01
+          }
+        }
+      },
+      "250": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.7330905077262693,
+          "fitted_floor_mean": 0.6330905077262693,
+          "matches_r1_floor": true,
+          "r1_floor": 0.6554533333333333
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.7849006622516557,
+            "fitted_floor": 0.6849006622516557,
+            "margin": 0.1,
+            "normal_region_hi": 0.8502420499924136,
+            "normal_region_lo": 0.7195592745108977,
+            "tracked_sigma": 0.03267069387037898
+          },
+          "42": {
+            "fitted_baseline": 0.7259602649006622,
+            "fitted_floor": 0.6259602649006623,
+            "margin": 0.1,
+            "normal_region_hi": 0.8425379269992889,
+            "normal_region_lo": 0.6093826028020356,
+            "tracked_sigma": 0.05828883104931332
+          },
+          "7": {
+            "fitted_baseline": 0.68841059602649,
+            "fitted_floor": 0.58841059602649,
+            "margin": 0.1,
+            "normal_region_hi": 0.7284167356368801,
+            "normal_region_lo": 0.6484044564160999,
+            "tracked_sigma": 0.020003069805195058
+          }
+        }
+      },
+      "500": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.7343391521197008,
+          "fitted_floor_mean": 0.6343391521197008,
+          "matches_r1_floor": true,
+          "r1_floor": 0.6554533333333333
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.7607481296758105,
+            "fitted_floor": 0.6607481296758105,
+            "margin": 0.1,
+            "normal_region_hi": 0.8310148506806407,
+            "normal_region_lo": 0.6904814086709803,
+            "tracked_sigma": 0.0351333605024151
+          },
+          "42": {
+            "fitted_baseline": 0.7201995012468828,
+            "fitted_floor": 0.6201995012468828,
+            "margin": 0.1,
+            "normal_region_hi": 0.8158497389834136,
+            "normal_region_lo": 0.624549263510352,
+            "tracked_sigma": 0.0478251188682654
+          },
+          "7": {
+            "fitted_baseline": 0.722069825436409,
+            "fitted_floor": 0.622069825436409,
+            "margin": 0.1,
+            "normal_region_hi": 0.8072969414009816,
+            "normal_region_lo": 0.6368427094718363,
+            "tracked_sigma": 0.04261355798228631
+          }
+        }
+      }
+    },
+    "s2p": {
+      "100": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.7999999999999999,
+          "fitted_floor_mean": 0.7499999999999999,
+          "matches_r1_floor": true,
+          "r1_floor": 0.7688266666666667
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.83,
+            "fitted_floor": 0.7799999999999999,
+            "margin": 0.05,
+            "normal_region_hi": 0.83,
+            "normal_region_lo": 0.83,
+            "tracked_sigma": 0.01
+          },
+          "42": {
+            "fitted_baseline": 0.83,
+            "fitted_floor": 0.7799999999999999,
+            "margin": 0.05,
+            "normal_region_hi": 0.83,
+            "normal_region_lo": 0.83,
+            "tracked_sigma": 0.01
+          },
+          "7": {
+            "fitted_baseline": 0.74,
+            "fitted_floor": 0.69,
+            "margin": 0.05,
+            "normal_region_hi": 0.74,
+            "normal_region_lo": 0.74,
+            "tracked_sigma": 0.01
+          }
+        }
+      },
+      "250": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.8271302428256071,
+          "fitted_floor_mean": 0.777130242825607,
+          "matches_r1_floor": true,
+          "r1_floor": 0.7688266666666667
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.846953642384106,
+            "fitted_floor": 0.7969536423841059,
+            "margin": 0.05,
+            "normal_region_hi": 0.8692690666205547,
+            "normal_region_lo": 0.8246382181476573,
+            "tracked_sigma": 0.011157712118224358
+          },
+          "42": {
+            "fitted_baseline": 0.853841059602649,
+            "fitted_floor": 0.803841059602649,
+            "margin": 0.05,
+            "normal_region_hi": 0.9093154580723503,
+            "normal_region_lo": 0.7983666611329477,
+            "tracked_sigma": 0.02773719923485065
+          },
+          "7": {
+            "fitted_baseline": 0.7805960264900662,
+            "fitted_floor": 0.7305960264900662,
+            "margin": 0.05,
+            "normal_region_hi": 0.8257143720094643,
+            "normal_region_lo": 0.7354776809706681,
+            "tracked_sigma": 0.02255917275969906
+          }
+        }
+      },
+      "500": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.8217705735660847,
+          "fitted_floor_mean": 0.7717705735660847,
+          "matches_r1_floor": true,
+          "r1_floor": 0.7688266666666667
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.8205486284289277,
+            "fitted_floor": 0.7705486284289277,
+            "margin": 0.05,
+            "normal_region_hi": 0.8841464374648601,
+            "normal_region_lo": 0.7569508193929954,
+            "tracked_sigma": 0.03179890451796621
+          },
+          "42": {
+            "fitted_baseline": 0.8464837905236907,
+            "fitted_floor": 0.7964837905236907,
+            "margin": 0.05,
+            "normal_region_hi": 0.8978338574462533,
+            "normal_region_lo": 0.7951337236011281,
+            "tracked_sigma": 0.025675033461281322
+          },
+          "7": {
+            "fitted_baseline": 0.7982793017456359,
+            "fitted_floor": 0.7482793017456358,
+            "margin": 0.05,
+            "normal_region_hi": 0.8490403642677498,
+            "normal_region_lo": 0.747518239223522,
+            "tracked_sigma": 0.025380531261056924
+          }
+        }
+      }
+    },
+    "soc": {
+      "100": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.7666666666666667,
+          "fitted_floor_mean": 0.6066666666666667,
+          "matches_r1_floor": false,
+          "r1_floor": 0.76362
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.79,
+            "fitted_floor": 0.63,
+            "margin": 0.16,
+            "normal_region_hi": 0.79,
+            "normal_region_lo": 0.79,
+            "tracked_sigma": 0.01
+          },
+          "42": {
+            "fitted_baseline": 0.73,
+            "fitted_floor": 0.57,
+            "margin": 0.16,
+            "normal_region_hi": 0.73,
+            "normal_region_lo": 0.73,
+            "tracked_sigma": 0.01
+          },
+          "7": {
+            "fitted_baseline": 0.78,
+            "fitted_floor": 0.62,
+            "margin": 0.16,
+            "normal_region_hi": 0.78,
+            "normal_region_lo": 0.78,
+            "tracked_sigma": 0.01
+          }
+        }
+      },
+      "250": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.844326710816777,
+          "fitted_floor_mean": 0.684326710816777,
+          "matches_r1_floor": false,
+          "r1_floor": 0.76362
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.8791390728476821,
+            "fitted_floor": 0.7191390728476821,
+            "margin": 0.16,
+            "normal_region_hi": 0.953970110688782,
+            "normal_region_lo": 0.8043080350065822,
+            "tracked_sigma": 0.03741551892054995
+          },
+          "42": {
+            "fitted_baseline": 0.7902649006622516,
+            "fitted_floor": 0.6302649006622516,
+            "margin": 0.16,
+            "normal_region_hi": 0.8689611317918315,
+            "normal_region_lo": 0.7115686695326717,
+            "tracked_sigma": 0.03934811556478995
+          },
+          "7": {
+            "fitted_baseline": 0.8635761589403974,
+            "fitted_floor": 0.7035761589403974,
+            "margin": 0.16,
+            "normal_region_hi": 0.9441812997180984,
+            "normal_region_lo": 0.7829710181626964,
+            "tracked_sigma": 0.040302570388850496
+          }
+        }
+      },
+      "500": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.9000249376558603,
+          "fitted_floor_mean": 0.7400249376558603,
+          "matches_r1_floor": true,
+          "r1_floor": 0.76362
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.9317955112219451,
+            "fitted_floor": 0.7717955112219451,
+            "margin": 0.16,
+            "normal_region_hi": 1.0285718418703407,
+            "normal_region_lo": 0.8350191805735496,
+            "tracked_sigma": 0.04838816532419774
+          },
+          "42": {
+            "fitted_baseline": 0.8459102244389027,
+            "fitted_floor": 0.6859102244389027,
+            "margin": 0.16,
+            "normal_region_hi": 0.961294987609212,
+            "normal_region_lo": 0.7305254612685935,
+            "tracked_sigma": 0.057692381585154585
+          },
+          "7": {
+            "fitted_baseline": 0.9223690773067331,
+            "fitted_floor": 0.7623690773067331,
+            "margin": 0.16,
+            "normal_region_hi": 1.0322703876744201,
+            "normal_region_lo": 0.812467766939046,
+            "tracked_sigma": 0.054950655183843566
+          }
+        }
+      }
+    },
+    "trading": {
+      "100": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.7733333333333333,
+          "fitted_floor_mean": 0.6233333333333333,
+          "matches_r1_floor": false,
+          "r1_floor": 0.7660399999999999
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.71,
+            "fitted_floor": 0.5599999999999999,
+            "margin": 0.15,
+            "normal_region_hi": 0.71,
+            "normal_region_lo": 0.71,
+            "tracked_sigma": 0.01
+          },
+          "42": {
+            "fitted_baseline": 0.77,
+            "fitted_floor": 0.62,
+            "margin": 0.15,
+            "normal_region_hi": 0.77,
+            "normal_region_lo": 0.77,
+            "tracked_sigma": 0.01
+          },
+          "7": {
+            "fitted_baseline": 0.84,
+            "fitted_floor": 0.69,
+            "margin": 0.15,
+            "normal_region_hi": 0.84,
+            "normal_region_lo": 0.84,
+            "tracked_sigma": 0.01
+          }
+        }
+      },
+      "250": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.8407505518763797,
+          "fitted_floor_mean": 0.6907505518763797,
+          "matches_r1_floor": false,
+          "r1_floor": 0.7660399999999999
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.8305298013245033,
+            "fitted_floor": 0.6805298013245032,
+            "margin": 0.15,
+            "normal_region_hi": 0.9532967550390328,
+            "normal_region_lo": 0.7077628476099738,
+            "tracked_sigma": 0.061383476857264745
+          },
+          "42": {
+            "fitted_baseline": 0.8172185430463577,
+            "fitted_floor": 0.6672185430463576,
+            "margin": 0.15,
+            "normal_region_hi": 0.9098663898928115,
+            "normal_region_lo": 0.7245706961999038,
+            "tracked_sigma": 0.04632392342322694
+          },
+          "7": {
+            "fitted_baseline": 0.8745033112582782,
+            "fitted_floor": 0.7245033112582782,
+            "margin": 0.15,
+            "normal_region_hi": 0.9212625929007333,
+            "normal_region_lo": 0.827744029615823,
+            "tracked_sigma": 0.023379640821227544
+          }
+        }
+      },
+      "500": {
+        "aggregate": {
+          "fitted_baseline_mean": 0.8882128013300084,
+          "fitted_floor_mean": 0.7382128013300083,
+          "matches_r1_floor": true,
+          "r1_floor": 0.7660399999999999
+        },
+        "per_seed": {
+          "123": {
+            "fitted_baseline": 0.8998753117206982,
+            "fitted_floor": 0.7498753117206982,
+            "margin": 0.15,
+            "normal_region_hi": 1.0370390930137707,
+            "normal_region_lo": 0.7627115304276257,
+            "tracked_sigma": 0.06858189064653622
+          },
+          "42": {
+            "fitted_baseline": 0.8863092269326683,
+            "fitted_floor": 0.7363092269326683,
+            "margin": 0.15,
+            "normal_region_hi": 1.0157676289927262,
+            "normal_region_lo": 0.7568508248726104,
+            "tracked_sigma": 0.064729201030029
+          },
+          "7": {
+            "fitted_baseline": 0.8784538653366584,
+            "fitted_floor": 0.7284538653366583,
+            "margin": 0.15,
+            "normal_region_hi": 0.9278129896926911,
+            "normal_region_lo": 0.8290947409806256,
+            "tracked_sigma": 0.024679562178016347
+          }
+        }
+      }
+    }
+  },
+  "tracking_results": {
+    "T0_static": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.04733333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": null,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.142,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 82,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 117,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": null,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 76,
+              "poison_25": 86,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 476,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.09266666666666667,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": null,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 212.66666666666666,
+          "slow_drift_lag_records_mean": 212.66666666666666,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.278,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 18,
+              "slow_drift": 44
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 44,
+            "slow_drift_lag_records": 44,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 36
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 36,
+            "slow_drift_lag_records": 36,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 558
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 558,
+            "slow_drift_lag_records": 558,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": null,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 289,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 530,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": null,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.3333333333333333,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 125,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T1_relative_10": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.08066666666666666,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.3333333333333333,
+          "slow_drift_lag_mean": 465,
+          "slow_drift_lag_records_mean": 465,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.208,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 69,
+              "slow_drift": 465
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 465,
+            "slow_drift_lag_records": 465,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 744,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.034,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 87,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 53,
+              "poison_25": 70,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 124,
+              "poison_25": 468,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.09266666666666667,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 212.66666666666666,
+          "slow_drift_lag_records_mean": 212.66666666666666,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.278,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 18,
+              "slow_drift": 44
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 44,
+            "slow_drift_lag_records": 44,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 36
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 36,
+            "slow_drift_lag_records": 36,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 558
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 558,
+            "slow_drift_lag_records": 558,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 127,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 365,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 97,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 181,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 60,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 71,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T1_relative_20": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.04733333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.142,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 82,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 117,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 76,
+              "poison_25": 86,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 476,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.09266666666666667,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 212.66666666666666,
+          "slow_drift_lag_records_mean": 212.66666666666666,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.278,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 18,
+              "slow_drift": 44
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 44,
+            "slow_drift_lag_records": 44,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 36
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 36,
+            "slow_drift_lag_records": 36,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 558
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 558,
+            "slow_drift_lag_records": 558,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 283,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 529,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.3333333333333333,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 125,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T1_relative_30": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.04733333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.3,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.142,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 82,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 117,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.3,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 76,
+              "poison_25": 86,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 476,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.09266666666666667,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.3,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 212.66666666666666,
+          "slow_drift_lag_records_mean": 212.66666666666666,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.278,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 18,
+              "slow_drift": 44
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 44,
+            "slow_drift_lag_records": 44,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 36
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 36,
+            "slow_drift_lag_records": 36,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": 558
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 558,
+            "slow_drift_lag_records": 558,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.3,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.6666666666666666,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 289,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 530,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": false,
+          "parameter": 0.3,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 0.3333333333333333,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": "missed",
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": false
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 125,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T2_cusum_h3": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.9853333333333333,
+          "fast_break_detection": 0.6666666666666666,
+          "fast_break_detection_rate": 0.6666666666666666,
+          "h_yes_axis1": false,
+          "h_yes_axis2": true,
+          "h_yes_axis3": true,
+          "parameter": 3.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.996,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.97,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.99,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.5013333333333333,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 3.0,
+          "slow_drift_detection_rate": 0.6666666666666666,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.684,
+            "detection_lag_records": {
+              "fast_break": 38,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 148,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.82,
+            "detection_lag_records": {
+              "fast_break": 114,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.5686666666666667,
+          "fast_break_detection": 1.0,
+          "fast_break_detection_rate": 1.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 3.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 157.33333333333334,
+          "slow_drift_lag_records_mean": 157.33333333333334,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.712,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.994,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 31,
+              "slow_drift": 470
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 470,
+            "slow_drift_lag_records": 470,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.33066666666666666,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 3.0,
+          "slow_drift_detection_rate": 0.3333333333333333,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.992,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 95,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 52,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.9106666666666666,
+          "fast_break_detection": 1.0,
+          "fast_break_detection_rate": 1.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": true,
+          "h_yes_axis3": true,
+          "parameter": 3.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.996,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.992,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.744,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T2_cusum_h5": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.9813333333333333,
+          "fast_break_detection": 0.6666666666666666,
+          "fast_break_detection_rate": 0.6666666666666666,
+          "h_yes_axis1": false,
+          "h_yes_axis2": true,
+          "h_yes_axis3": true,
+          "parameter": 5.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.994,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.966,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.984,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.498,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 5.0,
+          "slow_drift_detection_rate": 0.6666666666666666,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.676,
+            "detection_lag_records": {
+              "fast_break": 39,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 150,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.818,
+            "detection_lag_records": {
+              "fast_break": 116,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.5573333333333333,
+          "fast_break_detection": 1.0,
+          "fast_break_detection_rate": 1.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 5.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 158.66666666666666,
+          "slow_drift_lag_records_mean": 158.66666666666666,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.682,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.99,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 33,
+              "slow_drift": 474
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 474,
+            "slow_drift_lag_records": 474,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 5.0,
+          "slow_drift_detection_rate": 0.3333333333333333,
+          "slow_drift_lag_mean": 896,
+          "slow_drift_lag_records_mean": 896,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 87,
+              "slow_drift": 896
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 896,
+            "slow_drift_lag_records": 896,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 96,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 54,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.9026666666666666,
+          "fast_break_detection": 1.0,
+          "fast_break_detection_rate": 1.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": true,
+          "h_yes_axis3": true,
+          "parameter": 5.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.992,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.976,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.74,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T2_cusum_h8": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.978,
+          "fast_break_detection": 0.6666666666666666,
+          "fast_break_detection_rate": 0.6666666666666666,
+          "h_yes_axis1": false,
+          "h_yes_axis2": true,
+          "h_yes_axis3": true,
+          "parameter": 8.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.992,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.964,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.978,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.48600000000000004,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 8.0,
+          "slow_drift_detection_rate": 0.6666666666666666,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.672,
+            "detection_lag_records": {
+              "fast_break": 40,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 152,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.786,
+            "detection_lag_records": {
+              "fast_break": 117,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.5466666666666666,
+          "fast_break_detection": 1.0,
+          "fast_break_detection_rate": 1.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 8.0,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 159.66666666666666,
+          "slow_drift_lag_records_mean": 159.66666666666666,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.666,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.974,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 36,
+              "slow_drift": 477
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 477,
+            "slow_drift_lag_records": 477,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.0,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 8.0,
+          "slow_drift_detection_rate": 0.3333333333333333,
+          "slow_drift_lag_mean": 899,
+          "slow_drift_lag_records_mean": 899,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 89,
+              "slow_drift": 899
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 899,
+            "slow_drift_lag_records": 899,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 98,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 57,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.5686666666666667,
+          "fast_break_detection": 1.0,
+          "fast_break_detection_rate": 1.0,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 8.0,
+          "slow_drift_detection_rate": 0.6666666666666666,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 164,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.97,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.736,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T2_ewma_lambda10": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.33066666666666666,
+          "fast_break_detection": 0.6666666666666666,
+          "fast_break_detection_rate": 0.6666666666666666,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.3333333333333333,
+          "slow_drift_lag_mean": 178,
+          "slow_drift_lag_records_mean": 178,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.656,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 5,
+              "slow_drift": 178
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 178,
+            "slow_drift_lag_records": 178,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.034,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 139,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.302,
+            "detection_lag_records": {
+              "fast_break": 92,
+              "poison_25": 56,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.043333333333333335,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.076,
+            "detection_lag_records": {
+              "fast_break": 45,
+              "poison_25": 51,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 150,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.054,
+            "detection_lag_records": {
+              "fast_break": 117,
+              "poison_25": 49,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.35866666666666663,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 160,
+          "slow_drift_lag_records_mean": 160,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.586,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.49,
+            "detection_lag_records": {
+              "fast_break": 340,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 41,
+              "slow_drift": 478
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 478,
+            "slow_drift_lag_records": 478,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.006,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.012,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 91,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 101,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.006,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 60,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.04133333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.1,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.016,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 168,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.094,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 46,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.014,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 13,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T2_ewma_lambda20": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.32,
+          "fast_break_detection": 0.6666666666666666,
+          "fast_break_detection_rate": 0.6666666666666666,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.6666666666666666,
+          "slow_drift_lag_mean": 186.5,
+          "slow_drift_lag_records_mean": 186.5,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.64,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 5,
+              "slow_drift": 173
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 173,
+            "slow_drift_lag_records": 173,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.036,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 134,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.284,
+            "detection_lag_records": {
+              "fast_break": 89,
+              "poison_25": 53,
+              "slow_drift": 200
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 200,
+            "slow_drift_lag_records": 200,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.04466666666666667,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.08,
+            "detection_lag_records": {
+              "fast_break": 40,
+              "poison_25": 48,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 147,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.054,
+            "detection_lag_records": {
+              "fast_break": 115,
+              "poison_25": 47,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.36533333333333334,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 158.66666666666666,
+          "slow_drift_lag_records_mean": 158.66666666666666,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.604,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.492,
+            "detection_lag_records": {
+              "fast_break": 333,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 34,
+              "slow_drift": 474
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 474,
+            "slow_drift_lag_records": 474,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.005333333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.3333333333333333,
+          "slow_drift_lag_mean": 879,
+          "slow_drift_lag_records_mean": 879,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.01,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 87,
+              "slow_drift": 879
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 879,
+            "slow_drift_lag_records": 879,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 96,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.006,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 53,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.04133333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.2,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.014,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 165,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.086,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 42,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.024,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 10,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    },
+    "T2_ewma_lambda5": {
+      "dataops": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.36133333333333334,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.05,
+          "slow_drift_detection_rate": 0.3333333333333333,
+          "slow_drift_lag_mean": 1,
+          "slow_drift_lag_records_mean": 1,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.726,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.034,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 150,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.324,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 62,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "purchasing": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.028,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.05,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.06,
+            "detection_lag_records": {
+              "fast_break": 54,
+              "poison_25": 57,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 174,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.024,
+            "detection_lag_records": {
+              "fast_break": 123,
+              "poison_25": 56,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "s2p": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.354,
+          "fast_break_detection": 0.3333333333333333,
+          "fast_break_detection_rate": 0.3333333333333333,
+          "h_yes_axis1": false,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.05,
+          "slow_drift_detection_rate": 1.0,
+          "slow_drift_lag_mean": 162,
+          "slow_drift_lag_records_mean": 162,
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.598,
+            "detection_lag_records": {
+              "fast_break": 1,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": true,
+            "fast_break_detection": true,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.464,
+            "detection_lag_records": {
+              "fast_break": 346,
+              "poison_25": 1,
+              "slow_drift": 1
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 1,
+            "slow_drift_lag_records": 1,
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 53,
+              "slow_drift": 484
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": true,
+            "slow_drift_lag": 484,
+            "slow_drift_lag_records": 484,
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "soc": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.007333333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.05,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.016,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 101,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 112,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.006,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 71,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      },
+      "trading": {
+        "aggregate": {
+          "clean_pause_rate_mean": 0.04133333333333333,
+          "fast_break_detection": 0.0,
+          "fast_break_detection_rate": 0.0,
+          "h_yes_axis1": true,
+          "h_yes_axis2": false,
+          "h_yes_axis3": true,
+          "parameter": 0.05,
+          "slow_drift_detection_rate": 0.0,
+          "slow_drift_lag_mean": "missed",
+          "slow_drift_lag_records_mean": "missed",
+          "startup_N": 100,
+          "sustained_poison_detection_rate": 1.0,
+          "validated": false
+        },
+        "per_seed": {
+          "123": {
+            "clean_pause_rate": 0.018,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 175,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "42": {
+            "clean_pause_rate": 0.106,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 57,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          },
+          "7": {
+            "clean_pause_rate": 0.0,
+            "detection_lag_records": {
+              "fast_break": "missed",
+              "poison_25": 31,
+              "slow_drift": "missed"
+            },
+            "fast_break_detected": false,
+            "fast_break_detection": false,
+            "slow_drift_detected": false,
+            "slow_drift_lag": "missed",
+            "slow_drift_lag_records": "missed",
+            "sustained_poison_detected": true
+          }
+        }
+      }
+    }
+  },
+  "verdict": "H-no"
+}

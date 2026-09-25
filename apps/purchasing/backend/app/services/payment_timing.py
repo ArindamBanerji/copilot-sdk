@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from typing import Any
+from copilot_sdk.config import resolve_profile
 
 
 class PaymentTimingService:
     """Per-supplier payment behavior analysis."""
 
-    def __init__(self) -> None:
-        self._suppliers = [
+    def __init__(self, *, profile: str | None = None) -> None:
+        self._suppliers: list[dict[str, Any]] = [] if resolve_profile(profile, domain="purchasing") == "production" else [
             {
                 "supplier_id": "sysco",
                 "supplier": "Sysco",

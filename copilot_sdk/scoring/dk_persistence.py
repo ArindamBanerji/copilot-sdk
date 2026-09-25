@@ -268,6 +268,6 @@ def persist_dk_after_reestimate(
             entity_group=entity_group,
         )
     except Exception as exc:
-        log.warning("L5 DK persistence failed for %s: %s", domain, exc)
-        return False
+        log.error("L5 DK persistence failed for %s: %s", domain, exc)
+        raise
     return True

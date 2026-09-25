@@ -1,0 +1,1479 @@
+{
+  "variants": [
+    "greedy",
+    "thompson",
+    "ucb"
+  ],
+  "copilots": [
+    "dataops",
+    "trading",
+    "purchasing",
+    "soc",
+    "s2p"
+  ],
+  "budget": 2,
+  "seeds": 10,
+  "total_decisions": 500,
+  "checkpoint_interval": 50,
+  "evaluation_scenarios_per_checkpoint": 50,
+  "results": {
+    "dataops": {
+      "greedy": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.486,
+            "routing_std": 0.031048349392520054,
+            "accuracy_mean": 0.72,
+            "accuracy_std": 0.039999999999999994,
+            "saves_mean": 31.4
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.493,
+            "routing_std": 0.02900000000000001,
+            "accuracy_mean": 0.714,
+            "accuracy_std": 0.04386342439892262,
+            "saves_mean": 31.9
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.52,
+            "routing_std": 0.02999999999999999,
+            "accuracy_mean": 0.748,
+            "accuracy_std": 0.037094473981982824,
+            "saves_mean": 32.4
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.561,
+            "routing_std": 0.03780211634287158,
+            "accuracy_mean": 0.776,
+            "accuracy_std": 0.047999999999999994,
+            "saves_mean": 33.8
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.547,
+            "routing_std": 0.03899999999999999,
+            "accuracy_mean": 0.78,
+            "accuracy_std": 0.048989794855663536,
+            "saves_mean": 34.5
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.5509999999999999,
+            "routing_std": 0.043231932642434565,
+            "accuracy_mean": 0.768,
+            "accuracy_std": 0.06523802572120034,
+            "saves_mean": 32.7
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.5740000000000001,
+            "routing_std": 0.04431703961232066,
+            "accuracy_mean": 0.794,
+            "accuracy_std": 0.07378346698278687,
+            "saves_mean": 33.8
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.577,
+            "routing_std": 0.04817675788178361,
+            "accuracy_mean": 0.776,
+            "accuracy_std": 0.05919459434779497,
+            "saves_mean": 34.4
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.5650000000000001,
+            "routing_std": 0.043185645763378355,
+            "accuracy_mean": 0.782,
+            "accuracy_std": 0.08072174428244225,
+            "saves_mean": 34.6
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.5630000000000001,
+            "routing_std": 0.04148493702538307,
+            "accuracy_mean": 0.778,
+            "accuracy_std": 0.0532541078227774,
+            "saves_mean": 33.6
+          }
+        ],
+        "final_routing_mean": 0.5630000000000001,
+        "final_routing_std": 0.04148493702538307,
+        "final_accuracy_mean": 0.778,
+        "starvation": 0.075,
+        "decisions_to_90pct_asymptote": 150
+      },
+      "thompson": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.409,
+            "routing_std": 0.04011234224026316,
+            "accuracy_mean": 0.544,
+            "accuracy_std": 0.06499230723708768,
+            "saves_mean": 21.9
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.446,
+            "routing_std": 0.0363868107973205,
+            "accuracy_mean": 0.552,
+            "accuracy_std": 0.062096698785040094,
+            "saves_mean": 22.7
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.473,
+            "routing_std": 0.055865910893853704,
+            "accuracy_mean": 0.614,
+            "accuracy_std": 0.09759098319004682,
+            "saves_mean": 24.8
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.451,
+            "routing_std": 0.03935733730830886,
+            "accuracy_mean": 0.58,
+            "accuracy_std": 0.06131883886702356,
+            "saves_mean": 24.4
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.503,
+            "routing_std": 0.042673176586703734,
+            "accuracy_mean": 0.644,
+            "accuracy_std": 0.03322649545167231,
+            "saves_mean": 26.4
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.48,
+            "routing_std": 0.06957010852370435,
+            "accuracy_mean": 0.652,
+            "accuracy_std": 0.0913016976841066,
+            "saves_mean": 28.5
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.506,
+            "routing_std": 0.060033324079214544,
+            "accuracy_mean": 0.66,
+            "accuracy_std": 0.09797958971132711,
+            "saves_mean": 27.2
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.523,
+            "routing_std": 0.041243181254602544,
+            "accuracy_mean": 0.686,
+            "accuracy_std": 0.07045565981523415,
+            "saves_mean": 28.1
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.52,
+            "routing_std": 0.031937438845342656,
+            "accuracy_mean": 0.726,
+            "accuracy_std": 0.06696267617113283,
+            "saves_mean": 31.3
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.544,
+            "routing_std": 0.046946778377222005,
+            "accuracy_mean": 0.768,
+            "accuracy_std": 0.0664529909033446,
+            "saves_mean": 34.0
+          }
+        ],
+        "final_routing_mean": 0.544,
+        "final_routing_std": 0.046946778377222005,
+        "final_accuracy_mean": 0.768,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 250
+      },
+      "ucb": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.438,
+            "routing_std": 0.05173006862551025,
+            "accuracy_mean": 0.588,
+            "accuracy_std": 0.07054076835419358,
+            "saves_mean": 24.8
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.413,
+            "routing_std": 0.03976179070414209,
+            "accuracy_mean": 0.542,
+            "accuracy_std": 0.08072174428244226,
+            "saves_mean": 23.3
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.448,
+            "routing_std": 0.031559467676118995,
+            "accuracy_mean": 0.5920000000000001,
+            "accuracy_std": 0.05381449618829484,
+            "saves_mean": 24.6
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.513,
+            "routing_std": 0.051,
+            "accuracy_mean": 0.686,
+            "accuracy_std": 0.05936328831862333,
+            "saves_mean": 29.3
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.494,
+            "routing_std": 0.04673328578219168,
+            "accuracy_mean": 0.69,
+            "accuracy_std": 0.06340346993658943,
+            "saves_mean": 30.0
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.506,
+            "routing_std": 0.0417612260356422,
+            "accuracy_mean": 0.694,
+            "accuracy_std": 0.043863424398922615,
+            "saves_mean": 29.0
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.539,
+            "routing_std": 0.03832753579347359,
+            "accuracy_mean": 0.738,
+            "accuracy_std": 0.06477653896280658,
+            "saves_mean": 31.0
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.539,
+            "routing_std": 0.050487622245457345,
+            "accuracy_mean": 0.708,
+            "accuracy_std": 0.06705221845696084,
+            "saves_mean": 31.0
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.539,
+            "routing_std": 0.033600595232822876,
+            "accuracy_mean": 0.746,
+            "accuracy_std": 0.07901898506055365,
+            "saves_mean": 32.8
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.541,
+            "routing_std": 0.049081564767232105,
+            "accuracy_mean": 0.748,
+            "accuracy_std": 0.06144916598294887,
+            "saves_mean": 32.1
+          }
+        ],
+        "final_routing_mean": 0.541,
+        "final_routing_std": 0.049081564767232105,
+        "final_accuracy_mean": 0.748,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 200
+      },
+      "_metadata": {
+        "factor_names": [
+          "impact_scope",
+          "source_reliability",
+          "recurrence_frequency",
+          "downstream_urgency",
+          "data_freshness",
+          "business_criticality"
+        ],
+        "category_names": [
+          "schema_change",
+          "volume_anomaly",
+          "quality_anomaly",
+          "freshness_violation",
+          "pipeline_failure",
+          "transform_drift"
+        ]
+      }
+    },
+    "trading": {
+      "greedy": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.648,
+            "routing_std": 0.05564171097297423,
+            "accuracy_mean": 0.83,
+            "accuracy_std": 0.044045431091090485,
+            "saves_mean": 29.6
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.658,
+            "routing_std": 0.05306599664568641,
+            "accuracy_mean": 0.842,
+            "accuracy_std": 0.04686149805543993,
+            "saves_mean": 31.0
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.67,
+            "routing_std": 0.044721359549995794,
+            "accuracy_mean": 0.858,
+            "accuracy_std": 0.05546169849544817,
+            "saves_mean": 30.9
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.674,
+            "routing_std": 0.040049968789001564,
+            "accuracy_mean": 0.892,
+            "accuracy_std": 0.03370459909270544,
+            "saves_mean": 33.1
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.694,
+            "routing_std": 0.027640549922170486,
+            "accuracy_mean": 0.89,
+            "accuracy_std": 0.03130495168499705,
+            "saves_mean": 32.0
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.683,
+            "routing_std": 0.04583666654546335,
+            "accuracy_mean": 0.876,
+            "accuracy_std": 0.04963869458396343,
+            "saves_mean": 33.4
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.684,
+            "routing_std": 0.058172158288995954,
+            "accuracy_mean": 0.91,
+            "accuracy_std": 0.022360679774997876,
+            "saves_mean": 35.2
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.708,
+            "routing_std": 0.06838128398911505,
+            "accuracy_mean": 0.902,
+            "accuracy_std": 0.05249761899362673,
+            "saves_mean": 33.1
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.7090000000000001,
+            "routing_std": 0.04253234063627347,
+            "accuracy_mean": 0.908,
+            "accuracy_std": 0.05455272678794343,
+            "saves_mean": 33.6
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.736,
+            "routing_std": 0.03800000000000001,
+            "accuracy_mean": 0.914,
+            "accuracy_std": 0.03799999999999999,
+            "saves_mean": 34.3
+          }
+        ],
+        "final_routing_mean": 0.736,
+        "final_routing_std": 0.03800000000000001,
+        "final_accuracy_mean": 0.914,
+        "starvation": 0.482,
+        "decisions_to_90pct_asymptote": 150
+      },
+      "thompson": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.359,
+            "routing_std": 0.059236812878479546,
+            "accuracy_mean": 0.406,
+            "accuracy_std": 0.07592101158440923,
+            "saves_mean": 10.6
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.419,
+            "routing_std": 0.04763402145525821,
+            "accuracy_mean": 0.47600000000000003,
+            "accuracy_std": 0.06681317235396027,
+            "saves_mean": 12.3
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.426,
+            "routing_std": 0.06406246951218786,
+            "accuracy_mean": 0.502,
+            "accuracy_std": 0.07769169839822011,
+            "saves_mean": 14.2
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.444,
+            "routing_std": 0.04608687448721165,
+            "accuracy_mean": 0.522,
+            "accuracy_std": 0.060299253726725344,
+            "saves_mean": 14.5
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.458,
+            "routing_std": 0.060630025564896474,
+            "accuracy_mean": 0.562,
+            "accuracy_std": 0.07820485918406862,
+            "saves_mean": 16.3
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.454,
+            "routing_std": 0.0463033476111609,
+            "accuracy_mean": 0.542,
+            "accuracy_std": 0.05758472019555188,
+            "saves_mean": 16.0
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.48,
+            "routing_std": 0.03974921382870357,
+            "accuracy_mean": 0.612,
+            "accuracy_std": 0.05075431016179808,
+            "saves_mean": 20.2
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.487,
+            "routing_std": 0.07668767828015137,
+            "accuracy_mean": 0.604,
+            "accuracy_std": 0.09666436778875657,
+            "saves_mean": 18.0
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.511,
+            "routing_std": 0.05521775076911409,
+            "accuracy_mean": 0.642,
+            "accuracy_std": 0.08121576201698782,
+            "saves_mean": 20.9
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.53,
+            "routing_std": 0.056035702904487596,
+            "accuracy_mean": 0.678,
+            "accuracy_std": 0.06838128398911503,
+            "saves_mean": 22.5
+          }
+        ],
+        "final_routing_mean": 0.53,
+        "final_routing_std": 0.056035702904487596,
+        "final_accuracy_mean": 0.678,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 350
+      },
+      "ucb": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.486,
+            "routing_std": 0.10101485039339514,
+            "accuracy_mean": 0.582,
+            "accuracy_std": 0.10524257693538296,
+            "saves_mean": 17.2
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.486,
+            "routing_std": 0.04923413450036468,
+            "accuracy_mean": 0.624,
+            "accuracy_std": 0.05919459434779495,
+            "saves_mean": 20.1
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.545,
+            "routing_std": 0.04153311931459037,
+            "accuracy_mean": 0.67,
+            "accuracy_std": 0.053103672189407015,
+            "saves_mean": 21.5
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.5589999999999999,
+            "routing_std": 0.09027181176868003,
+            "accuracy_mean": 0.706,
+            "accuracy_std": 0.09799999999999998,
+            "saves_mean": 23.8
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.594,
+            "routing_std": 0.04694677837722202,
+            "accuracy_mean": 0.73,
+            "accuracy_std": 0.05385164807134502,
+            "saves_mean": 24.0
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.591,
+            "routing_std": 0.05717516943569123,
+            "accuracy_mean": 0.724,
+            "accuracy_std": 0.054990908339470096,
+            "saves_mean": 25.8
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.586,
+            "routing_std": 0.07657675887630658,
+            "accuracy_mean": 0.754,
+            "accuracy_std": 0.05730619512757761,
+            "saves_mean": 27.4
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.635,
+            "routing_std": 0.058008620049092706,
+            "accuracy_mean": 0.772,
+            "accuracy_std": 0.03600000000000002,
+            "saves_mean": 26.6
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.617,
+            "routing_std": 0.040509258201058204,
+            "accuracy_mean": 0.788,
+            "accuracy_std": 0.05810335618533578,
+            "saves_mean": 27.6
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.65,
+            "routing_std": 0.03660601043544626,
+            "accuracy_mean": 0.82,
+            "accuracy_std": 0.025298221281347014,
+            "saves_mean": 29.6
+          }
+        ],
+        "final_routing_mean": 0.65,
+        "final_routing_std": 0.03660601043544626,
+        "final_accuracy_mean": 0.82,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 250
+      },
+      "_metadata": {
+        "factor_names": [
+          "signal_alignment",
+          "market_regime",
+          "position_sizing",
+          "timing_quality",
+          "risk_reward_actual",
+          "emotional_indicator",
+          "signal_confidence",
+          "options_delta_exposure",
+          "options_iv_percentile",
+          "options_gamma_risk"
+        ],
+        "category_names": [
+          "trend_following",
+          "mean_reversion",
+          "event_driven",
+          "income_strategy",
+          "scalp_intraday"
+        ]
+      }
+    },
+    "purchasing": {
+      "greedy": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.589,
+            "routing_std": 0.04678675026115834,
+            "accuracy_mean": 0.658,
+            "accuracy_std": 0.06161168720299745,
+            "saves_mean": 26.3
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.575,
+            "routing_std": 0.06682065548915245,
+            "accuracy_mean": 0.662,
+            "accuracy_std": 0.1115168148756052,
+            "saves_mean": 27.5
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.637,
+            "routing_std": 0.03661966684720112,
+            "accuracy_mean": 0.712,
+            "accuracy_std": 0.0466476151587624,
+            "saves_mean": 29.7
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.643,
+            "routing_std": 0.049203658400570165,
+            "accuracy_mean": 0.732,
+            "accuracy_std": 0.06273754856543248,
+            "saves_mean": 30.4
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.675,
+            "routing_std": 0.034423828956116995,
+            "accuracy_mean": 0.772,
+            "accuracy_std": 0.05741080037762928,
+            "saves_mean": 32.4
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.665,
+            "routing_std": 0.05123475382979799,
+            "accuracy_mean": 0.748,
+            "accuracy_std": 0.05381449618829483,
+            "saves_mean": 31.6
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.664,
+            "routing_std": 0.04152107898405339,
+            "accuracy_mean": 0.74,
+            "accuracy_std": 0.06196773353931868,
+            "saves_mean": 31.6
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.69,
+            "routing_std": 0.017320508075688742,
+            "accuracy_mean": 0.778,
+            "accuracy_std": 0.0373630833845388,
+            "saves_mean": 32.0
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.677,
+            "routing_std": 0.040999999999999995,
+            "accuracy_mean": 0.754,
+            "accuracy_std": 0.04903060268852504,
+            "saves_mean": 32.1
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.664,
+            "routing_std": 0.04673328578219169,
+            "accuracy_mean": 0.752,
+            "accuracy_std": 0.056709787515031314,
+            "saves_mean": 31.8
+          }
+        ],
+        "final_routing_mean": 0.664,
+        "final_routing_std": 0.04673328578219169,
+        "final_accuracy_mean": 0.752,
+        "starvation": 0.3142857142857143,
+        "decisions_to_90pct_asymptote": 150
+      },
+      "thompson": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.386,
+            "routing_std": 0.06785278181474949,
+            "accuracy_mean": 0.438,
+            "accuracy_std": 0.086,
+            "saves_mean": 14.7
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.383,
+            "routing_std": 0.04712748667179271,
+            "accuracy_mean": 0.422,
+            "accuracy_std": 0.06477653896280658,
+            "saves_mean": 15.5
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.378,
+            "routing_std": 0.06764613810115105,
+            "accuracy_mean": 0.424,
+            "accuracy_std": 0.08187795796183489,
+            "saves_mean": 15.2
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.431,
+            "routing_std": 0.05088221693283421,
+            "accuracy_mean": 0.506,
+            "accuracy_std": 0.052952809179494895,
+            "saves_mean": 20.1
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.404,
+            "routing_std": 0.03006659275674582,
+            "accuracy_mean": 0.462,
+            "accuracy_std": 0.06954135460285485,
+            "saves_mean": 18.1
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.455,
+            "routing_std": 0.04944694126030447,
+            "accuracy_mean": 0.5,
+            "accuracy_std": 0.0644980619863884,
+            "saves_mean": 18.9
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.423,
+            "routing_std": 0.05216320542297991,
+            "accuracy_mean": 0.48,
+            "accuracy_std": 0.0687022561492707,
+            "saves_mean": 18.8
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.47100000000000003,
+            "routing_std": 0.038845849199110064,
+            "accuracy_mean": 0.536,
+            "accuracy_std": 0.05642694391866352,
+            "saves_mean": 20.3
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.484,
+            "routing_std": 0.055713553108736484,
+            "accuracy_mean": 0.538,
+            "accuracy_std": 0.07345747068882784,
+            "saves_mean": 21.8
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.517,
+            "routing_std": 0.07443789357578572,
+            "accuracy_mean": 0.58,
+            "accuracy_std": 0.07483314773547883,
+            "saves_mean": 23.0
+          }
+        ],
+        "final_routing_mean": 0.517,
+        "final_routing_std": 0.07443789357578572,
+        "final_accuracy_mean": 0.58,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 400
+      },
+      "ucb": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.413,
+            "routing_std": 0.0588302643203309,
+            "accuracy_mean": 0.426,
+            "accuracy_std": 0.09467840302835699,
+            "saves_mean": 14.7
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.412,
+            "routing_std": 0.06144916598294887,
+            "accuracy_mean": 0.444,
+            "accuracy_std": 0.08138795979750323,
+            "saves_mean": 16.6
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.453,
+            "routing_std": 0.06870953354520754,
+            "accuracy_mean": 0.49,
+            "accuracy_std": 0.08354639429682169,
+            "saves_mean": 18.6
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.448,
+            "routing_std": 0.03429285639896448,
+            "accuracy_mean": 0.488,
+            "accuracy_std": 0.024,
+            "saves_mean": 18.2
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.575,
+            "routing_std": 0.059707620954112715,
+            "accuracy_mean": 0.652,
+            "accuracy_std": 0.06881860213634101,
+            "saves_mean": 26.4
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.547,
+            "routing_std": 0.05441507144165116,
+            "accuracy_mean": 0.612,
+            "accuracy_std": 0.06997142273814361,
+            "saves_mean": 24.8
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.599,
+            "routing_std": 0.05107837115648852,
+            "accuracy_mean": 0.658,
+            "accuracy_std": 0.08219489035213805,
+            "saves_mean": 27.5
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.637,
+            "routing_std": 0.027946377224964264,
+            "accuracy_mean": 0.714,
+            "accuracy_std": 0.049030602688525056,
+            "saves_mean": 28.8
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.652,
+            "routing_std": 0.045122056690713924,
+            "accuracy_mean": 0.736,
+            "accuracy_std": 0.04363484845854288,
+            "saves_mean": 31.2
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.644,
+            "routing_std": 0.04152107898405339,
+            "accuracy_mean": 0.738,
+            "accuracy_std": 0.05473572873361605,
+            "saves_mean": 31.1
+          }
+        ],
+        "final_routing_mean": 0.644,
+        "final_routing_std": 0.04152107898405339,
+        "final_accuracy_mean": 0.738,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 350
+      },
+      "_metadata": {
+        "factor_names": [
+          "expected_demand",
+          "day_of_week",
+          "weather_forecast",
+          "event_flag",
+          "historical_waste",
+          "supplier_lead_time",
+          "price_memory_index"
+        ],
+        "category_names": [
+          "protein",
+          "produce",
+          "dairy",
+          "dry_goods",
+          "beverages"
+        ]
+      }
+    },
+    "soc": {
+      "greedy": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.638,
+            "routing_std": 0.030265491900843138,
+            "accuracy_mean": 0.76,
+            "accuracy_std": 0.04381780460041329,
+            "saves_mean": 31.3
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.733,
+            "routing_std": 0.032572994949804666,
+            "accuracy_mean": 0.818,
+            "accuracy_std": 0.04331281565541543,
+            "saves_mean": 32.9
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.739,
+            "routing_std": 0.04614108798023731,
+            "accuracy_mean": 0.8240000000000001,
+            "accuracy_std": 0.05851495535331118,
+            "saves_mean": 32.7
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.764,
+            "routing_std": 0.03039736830714133,
+            "accuracy_mean": 0.852,
+            "accuracy_std": 0.0567097875150313,
+            "saves_mean": 34.1
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.792,
+            "routing_std": 0.03893584466786357,
+            "accuracy_mean": 0.91,
+            "accuracy_std": 0.03492849839314595,
+            "saves_mean": 37.0
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.7989999999999999,
+            "routing_std": 0.03618010503025107,
+            "accuracy_mean": 0.89,
+            "accuracy_std": 0.06526867548832287,
+            "saves_mean": 36.8
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.798,
+            "routing_std": 0.036823905279043924,
+            "accuracy_mean": 0.888,
+            "accuracy_std": 0.04749736834815166,
+            "saves_mean": 36.3
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.793,
+            "routing_std": 0.039,
+            "accuracy_mean": 0.9179999999999999,
+            "accuracy_std": 0.0596322060635023,
+            "saves_mean": 37.5
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.808,
+            "routing_std": 0.044,
+            "accuracy_mean": 0.912,
+            "accuracy_std": 0.03370459909270542,
+            "saves_mean": 36.8
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.81,
+            "routing_std": 0.0469041575982343,
+            "accuracy_mean": 0.9239999999999999,
+            "accuracy_std": 0.05851495535331116,
+            "saves_mean": 37.8
+          }
+        ],
+        "final_routing_mean": 0.81,
+        "final_routing_std": 0.0469041575982343,
+        "final_accuracy_mean": 0.9239999999999999,
+        "starvation": 0.32222222222222224,
+        "decisions_to_90pct_asymptote": 100
+      },
+      "thompson": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.463,
+            "routing_std": 0.048176757881783626,
+            "accuracy_mean": 0.5,
+            "accuracy_std": 0.04979959839195495,
+            "saves_mean": 15.1
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.475,
+            "routing_std": 0.026925824035672525,
+            "accuracy_mean": 0.53,
+            "accuracy_std": 0.056745043836444416,
+            "saves_mean": 17.7
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.476,
+            "routing_std": 0.044542114902640186,
+            "accuracy_mean": 0.526,
+            "accuracy_std": 0.07952358140828418,
+            "saves_mean": 17.6
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.493,
+            "routing_std": 0.03769615364994155,
+            "accuracy_mean": 0.544,
+            "accuracy_std": 0.058514955353311165,
+            "saves_mean": 18.7
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.502,
+            "routing_std": 0.048332183894378294,
+            "accuracy_mean": 0.5680000000000001,
+            "accuracy_std": 0.06462197768561403,
+            "saves_mean": 20.8
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.521,
+            "routing_std": 0.03672873534441392,
+            "accuracy_mean": 0.568,
+            "accuracy_std": 0.0567097875150313,
+            "saves_mean": 20.2
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.528,
+            "routing_std": 0.05810335618533581,
+            "accuracy_mean": 0.594,
+            "accuracy_std": 0.09297311439335566,
+            "saves_mean": 23.5
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.562,
+            "routing_std": 0.03789459064299282,
+            "accuracy_mean": 0.644,
+            "accuracy_std": 0.07683749084919418,
+            "saves_mean": 25.0
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.62,
+            "routing_std": 0.0360555127546399,
+            "accuracy_mean": 0.662,
+            "accuracy_std": 0.04935585071701226,
+            "saves_mean": 25.3
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.601,
+            "routing_std": 0.04229657196511318,
+            "accuracy_mean": 0.694,
+            "accuracy_std": 0.06755738301621816,
+            "saves_mean": 28.9
+          }
+        ],
+        "final_routing_mean": 0.601,
+        "final_routing_std": 0.04229657196511318,
+        "final_accuracy_mean": 0.694,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 400
+      },
+      "ucb": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.506,
+            "routing_std": 0.08126499861564017,
+            "accuracy_mean": 0.65,
+            "accuracy_std": 0.07758865896508328,
+            "saves_mean": 25.8
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.611,
+            "routing_std": 0.06331666447310692,
+            "accuracy_mean": 0.732,
+            "accuracy_std": 0.056709787515031286,
+            "saves_mean": 28.6
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.622,
+            "routing_std": 0.05035871324805668,
+            "accuracy_mean": 0.702,
+            "accuracy_std": 0.06779380502671316,
+            "saves_mean": 26.6
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.664,
+            "routing_std": 0.05885575587824864,
+            "accuracy_mean": 0.74,
+            "accuracy_std": 0.07099295739719541,
+            "saves_mean": 28.5
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.7,
+            "routing_std": 0.046475800154489,
+            "accuracy_mean": 0.786,
+            "accuracy_std": 0.06003332407921454,
+            "saves_mean": 30.8
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.745,
+            "routing_std": 0.04477722635447622,
+            "accuracy_mean": 0.83,
+            "accuracy_std": 0.053103672189406995,
+            "saves_mean": 33.8
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.749,
+            "routing_std": 0.03780211634287159,
+            "accuracy_mean": 0.8160000000000001,
+            "accuracy_std": 0.03979949748426479,
+            "saves_mean": 32.7
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.788,
+            "routing_std": 0.0208806130178211,
+            "accuracy_mean": 0.892,
+            "accuracy_std": 0.03815756805667784,
+            "saves_mean": 36.2
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.795,
+            "routing_std": 0.045880278987817845,
+            "accuracy_mean": 0.898,
+            "accuracy_std": 0.030265491900843124,
+            "saves_mean": 36.1
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.811,
+            "routing_std": 0.028792360097775922,
+            "accuracy_mean": 0.916,
+            "accuracy_std": 0.044542114902640165,
+            "saves_mean": 37.4
+          }
+        ],
+        "final_routing_mean": 0.811,
+        "final_routing_std": 0.028792360097775922,
+        "final_accuracy_mean": 0.916,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 300
+      },
+      "_metadata": {
+        "factor_names": [
+          "privileged_identity_context",
+          "asset_criticality",
+          "threat_intel_enrichment",
+          "pattern_history",
+          "time_anomaly",
+          "device_trust"
+        ],
+        "category_names": [
+          "credential_access",
+          "malware_execution",
+          "lateral_movement",
+          "data_exfiltration",
+          "insider_threat",
+          "cloud_infrastructure"
+        ]
+      }
+    },
+    "s2p": {
+      "greedy": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.631,
+            "routing_std": 0.047634021455258205,
+            "accuracy_mean": 0.794,
+            "accuracy_std": 0.0681469001496033,
+            "saves_mean": 33.1
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.665,
+            "routing_std": 0.04201190307520002,
+            "accuracy_mean": 0.8160000000000001,
+            "accuracy_std": 0.03666060555964671,
+            "saves_mean": 33.0
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.632,
+            "routing_std": 0.041424630354415966,
+            "accuracy_mean": 0.82,
+            "accuracy_std": 0.04647580015448901,
+            "saves_mean": 34.5
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.642,
+            "routing_std": 0.05564171097297422,
+            "accuracy_mean": 0.812,
+            "accuracy_std": 0.055281099844341014,
+            "saves_mean": 36.2
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.665,
+            "routing_std": 0.05084289527554465,
+            "accuracy_mean": 0.86,
+            "accuracy_std": 0.044721359549995794,
+            "saves_mean": 35.3
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.65,
+            "routing_std": 0.04449719092257397,
+            "accuracy_mean": 0.8180000000000001,
+            "accuracy_std": 0.05963220606350228,
+            "saves_mean": 34.3
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.623,
+            "routing_std": 0.07211795892841116,
+            "accuracy_mean": 0.786,
+            "accuracy_std": 0.0698856208386246,
+            "saves_mean": 33.9
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.649,
+            "routing_std": 0.03726929030716844,
+            "accuracy_mean": 0.824,
+            "accuracy_std": 0.0397994974842648,
+            "saves_mean": 35.0
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.673,
+            "routing_std": 0.02794637722496423,
+            "accuracy_mean": 0.824,
+            "accuracy_std": 0.048,
+            "saves_mean": 34.1
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.663,
+            "routing_std": 0.06466065264130884,
+            "accuracy_mean": 0.798,
+            "accuracy_std": 0.07507329751649383,
+            "saves_mean": 32.8
+          }
+        ],
+        "final_routing_mean": 0.663,
+        "final_routing_std": 0.06466065264130884,
+        "final_accuracy_mean": 0.798,
+        "starvation": 0.205,
+        "decisions_to_90pct_asymptote": 50
+      },
+      "thompson": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.371,
+            "routing_std": 0.060901559914340445,
+            "accuracy_mean": 0.468,
+            "accuracy_std": 0.09724196624914574,
+            "saves_mean": 17.8
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.389,
+            "routing_std": 0.05717516943569123,
+            "accuracy_mean": 0.476,
+            "accuracy_std": 0.05425863986500216,
+            "saves_mean": 16.8
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.419,
+            "routing_std": 0.04867237409455183,
+            "accuracy_mean": 0.55,
+            "accuracy_std": 0.04669047011971501,
+            "saves_mean": 20.6
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.447,
+            "routing_std": 0.03874274125562102,
+            "accuracy_mean": 0.584,
+            "accuracy_std": 0.07578918128598566,
+            "saves_mean": 23.2
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.432,
+            "routing_std": 0.06852736679604728,
+            "accuracy_mean": 0.594,
+            "accuracy_std": 0.07269112738154498,
+            "saves_mean": 24.4
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.431,
+            "routing_std": 0.03672873534441392,
+            "accuracy_mean": 0.6,
+            "accuracy_std": 0.05727128425310541,
+            "saves_mean": 24.7
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.453,
+            "routing_std": 0.029681644159311654,
+            "accuracy_mean": 0.654,
+            "accuracy_std": 0.04476605857119876,
+            "saves_mean": 27.6
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.488,
+            "routing_std": 0.05173006862551025,
+            "accuracy_mean": 0.6839999999999999,
+            "accuracy_std": 0.07255342858886822,
+            "saves_mean": 27.1
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.492,
+            "routing_std": 0.057584720195551865,
+            "accuracy_mean": 0.682,
+            "accuracy_std": 0.074,
+            "saves_mean": 29.1
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.512,
+            "routing_std": 0.0451220566907139,
+            "accuracy_mean": 0.734,
+            "accuracy_std": 0.09551963149007643,
+            "saves_mean": 31.3
+          }
+        ],
+        "final_routing_mean": 0.512,
+        "final_routing_std": 0.0451220566907139,
+        "final_accuracy_mean": 0.734,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 400
+      },
+      "ucb": {
+        "checkpoints": [
+          {
+            "decision_count": 50,
+            "routing_mean": 0.519,
+            "routing_std": 0.047423622805517505,
+            "accuracy_mean": 0.702,
+            "accuracy_std": 0.06477653896280658,
+            "saves_mean": 28.5
+          },
+          {
+            "decision_count": 100,
+            "routing_mean": 0.593,
+            "routing_std": 0.03579106033634655,
+            "accuracy_mean": 0.776,
+            "accuracy_std": 0.03440930106817049,
+            "saves_mean": 31.0
+          },
+          {
+            "decision_count": 150,
+            "routing_mean": 0.573,
+            "routing_std": 0.04796873982084582,
+            "accuracy_mean": 0.764,
+            "accuracy_std": 0.05199999999999999,
+            "saves_mean": 31.7
+          },
+          {
+            "decision_count": 200,
+            "routing_mean": 0.577,
+            "routing_std": 0.04775981574503821,
+            "accuracy_mean": 0.746,
+            "accuracy_std": 0.028354893757515674,
+            "saves_mean": 32.9
+          },
+          {
+            "decision_count": 250,
+            "routing_mean": 0.62,
+            "routing_std": 0.031304951684997084,
+            "accuracy_mean": 0.802,
+            "accuracy_std": 0.04599999999999999,
+            "saves_mean": 32.4
+          },
+          {
+            "decision_count": 300,
+            "routing_mean": 0.61,
+            "routing_std": 0.0604979338490167,
+            "accuracy_mean": 0.768,
+            "accuracy_std": 0.06523802572120034,
+            "saves_mean": 31.8
+          },
+          {
+            "decision_count": 350,
+            "routing_mean": 0.608,
+            "routing_std": 0.04354308211415449,
+            "accuracy_mean": 0.774,
+            "accuracy_std": 0.058685603004484825,
+            "saves_mean": 33.3
+          },
+          {
+            "decision_count": 400,
+            "routing_mean": 0.64,
+            "routing_std": 0.030983866769659342,
+            "accuracy_mean": 0.798,
+            "accuracy_std": 0.03155946767611898,
+            "saves_mean": 33.7
+          },
+          {
+            "decision_count": 450,
+            "routing_mean": 0.654,
+            "routing_std": 0.042237424163885755,
+            "accuracy_mean": 0.8180000000000001,
+            "accuracy_std": 0.05895761189193471,
+            "saves_mean": 33.8
+          },
+          {
+            "decision_count": 500,
+            "routing_mean": 0.666,
+            "routing_std": 0.051224993899462765,
+            "accuracy_mean": 0.806,
+            "accuracy_std": 0.05063595560468865,
+            "saves_mean": 33.2
+          }
+        ],
+        "final_routing_mean": 0.666,
+        "final_routing_std": 0.051224993899462765,
+        "final_accuracy_mean": 0.806,
+        "starvation": 0.0,
+        "decisions_to_90pct_asymptote": 250
+      },
+      "_metadata": {
+        "factor_names": [
+          "match_status",
+          "amount_variance_ratio",
+          "duplicate_score",
+          "supplier_exception_history",
+          "payment_terms_impact",
+          "commodity_index_correlation",
+          "tax_regulatory_compliance",
+          "environmental_risk"
+        ],
+        "category_names": [
+          "price_variance",
+          "quantity_mismatch",
+          "duplicate_risk",
+          "contract_gap",
+          "format_compliance"
+        ]
+      }
+    }
+  },
+  "starvation_reduction": {
+    "dataops_greedy": 7.5,
+    "dataops_thompson": 0.0,
+    "dataops_ucb": 0.0,
+    "trading_greedy": 48.199999999999996,
+    "trading_thompson": 0.0,
+    "trading_ucb": 0.0,
+    "purchasing_greedy": 31.428571428571427,
+    "purchasing_thompson": 0.0,
+    "purchasing_ucb": 0.0,
+    "soc_greedy": 32.22222222222222,
+    "soc_thompson": 0.0,
+    "soc_ucb": 0.0,
+    "s2p_greedy": 20.5,
+    "s2p_thompson": 0.0,
+    "s2p_ucb": 0.0
+  },
+  "kill_keep_verdict": "greedy",
+  "kill_keep_reason": "No bandit variant met all pre-registered keep criteria on Trading starvation, routing quality, and speed."
+}

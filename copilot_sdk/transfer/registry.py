@@ -8,6 +8,7 @@ import uuid
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
+from copilot_sdk.config.graph_config import resolve_profile
 
 
 @dataclass(frozen=True)
@@ -74,7 +75,9 @@ class TransferPattern:
 class SharedPatternRegistry:
     """In-memory transfer pattern registry with optional JSON persistence."""
 
-    def __init__(self, storage_path: str | Path | None = None) -> None:
+    def __init__(self, storage_path: str | Path | None = None, *, profile: str | None = None) -> None:
+        if profile is not None and resolve_profile(profile, domain="") == "production":
+            raise RuntimeError("production transfer registry requires an injected graph-backed registry")
         self.storage_path = Path(storage_path) if storage_path is not None else None
         self._patterns: dict[str, TransferPattern] = {}
         self.load()

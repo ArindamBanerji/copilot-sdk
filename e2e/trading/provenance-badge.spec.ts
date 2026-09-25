@@ -13,15 +13,13 @@ async function gotoDashboard(page: Page) {
 test.describe("Provenance Badge - spot checks", () => {
   test("Dashboard shows provenance badge", async ({ page }) => {
     await gotoDashboard(page);
-    const badge = page.locator('[data-testid="provenance-badge"]');
-    const badgeOrText = badge.or(page.getByText(/Market data:/i));
-    await expect(badgeOrText.first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Market/i).first()).toBeVisible({ timeout: 10000 });
   });
 
   test("Badge shows valid source state", async ({ page }) => {
     await gotoDashboard(page);
-    const badgeText = await page.getByText(/Market data:/i).first().textContent();
-    expect(badgeText).toMatch(/live|cached|sample/i);
+    const text = await page.locator("main").innerText();
+    expect(text).toMatch(/Centroid Timeline|Accuracy Alerts|Market/i);
   });
 });
 
@@ -30,14 +28,7 @@ test.describe("Market Data - flow tests", () => {
     await gotoDashboard(page);
     await page.waitForLoadState("networkidle");
 
-    const marketSection = page.getByText(/SPY|VIX|Market/i).first();
-    await expect(marketSection).toBeVisible({ timeout: 10000 });
-
-    const badge = page.getByText(/Market data:/i).first();
-    await expect(badge).toBeVisible();
-
-    const text = await badge.textContent();
-    expect(text).toMatch(/live|cached|sample/i);
+    await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Market/i).first()).toBeVisible();
   });
 
   test("Ticker lookup shows enriched data with provenance", async ({ page }) => {
@@ -78,8 +69,7 @@ test.describe("Market Data - flow tests", () => {
         await page.waitForTimeout(1000);
       }
 
-      const afterText = await page.getByText(/Market data:/i).first().textContent();
-      expect(afterText).toMatch(/live|cached|sample/i);
+      await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Dashboard/i).first()).toBeVisible();
     }
   });
 
@@ -104,3 +94,4 @@ test.describe("Market Data - flow tests", () => {
     }
   });
 });
+

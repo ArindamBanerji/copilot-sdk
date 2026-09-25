@@ -1,0 +1,52 @@
+{
+  "experiment": "E-JM-3: Cross-Domain Transfer",
+  "n_factors": 7,
+  "n_decisions_source": 500,
+  "n_decisions_target": 400,
+  "n_trials_per_similarity": 20,
+  "quality_threshold": 0.8,
+  "results_by_similarity": {
+    "0.0": {
+      "cold_convergence_mean": 70.45,
+      "warm_convergence_mean": 34.2,
+      "partial_convergence_mean": 36.5,
+      "speedup_ratio": 2.059941520467836,
+      "negative_transfer_rate_pct": 25.0
+    },
+    "0.2": {
+      "cold_convergence_mean": 53.55,
+      "warm_convergence_mean": 49.3,
+      "partial_convergence_mean": 43.35,
+      "speedup_ratio": 1.0862068965517242,
+      "negative_transfer_rate_pct": 25.0
+    },
+    "0.4": {
+      "cold_convergence_mean": 65.4,
+      "warm_convergence_mean": 34.7,
+      "partial_convergence_mean": 42.55,
+      "speedup_ratio": 1.8847262247838616,
+      "negative_transfer_rate_pct": 0.0
+    },
+    "0.6": {
+      "cold_convergence_mean": 36.75,
+      "warm_convergence_mean": 31.6,
+      "partial_convergence_mean": 32.05,
+      "speedup_ratio": 1.1629746835443038,
+      "negative_transfer_rate_pct": 5.0
+    },
+    "0.8": {
+      "cold_convergence_mean": 49.6,
+      "warm_convergence_mean": 33.55,
+      "partial_convergence_mean": 39.55,
+      "speedup_ratio": 1.4783904619970196,
+      "negative_transfer_rate_pct": 15.0
+    },
+    "1.0": {
+      "cold_convergence_mean": 62.2,
+      "warm_convergence_mean": 31.55,
+      "partial_convergence_mean": 41.5,
+      "speedup_ratio": 1.971473851030111,
+      "negative_transfer_rate_pct": 5.0
+    }
+  }
+}

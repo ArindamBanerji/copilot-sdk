@@ -4,33 +4,25 @@ import json
 import os
 import sys
 import uuid
+from importlib import import_module
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 from copilot_sdk.config import GraphConfig
-from copilot_sdk.testing import age_available
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
-os.environ.setdefault("TRADING_PROFILE", "test")
-os.environ.setdefault("TRADING_SAMPLE_DATA", "1")
-
 for path in (BACKEND_ROOT, REPO_ROOT):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from app import context_router  # noqa: E402
-from app.main import create_app  # noqa: E402
-from apps.trading.backend.app.connectors.market_source import MockMarketSource  # noqa: E402
-from apps.trading.backend.app.services.market_data_provider import MarketDataProvider  # noqa: E402
-
-
 @pytest.fixture
 def trading_live_age_graph():
     """Run live AGE tests against an isolated disposable graph."""
+    from copilot_sdk.testing import age_available
     if not age_available():
         yield
         return
@@ -72,6 +64,9 @@ def trading_live_age_graph():
 
 @pytest.fixture
 def client(tmp_path, monkeypatch) -> TestClient:
+    context_router = import_module("app.context_router")
+    create_app = import_module("app.main").create_app
+
     source_data = BACKEND_ROOT / "data"
     temp_data = tmp_path / "data"
     temp_data.mkdir()
@@ -100,10 +95,14 @@ def client(tmp_path, monkeypatch) -> TestClient:
 @pytest.fixture
 def mock_market_source():
     """Shared mock market source for all trading tests."""
+    from apps.trading.backend.app.connectors.market_source import MockMarketSource
+
     return MockMarketSource()
 
 
 @pytest.fixture
 def market_provider(mock_market_source):
     """Shared market data provider with mock source."""
+    from apps.trading.backend.app.services.market_data_provider import MarketDataProvider
+
     return MarketDataProvider(source=mock_market_source)

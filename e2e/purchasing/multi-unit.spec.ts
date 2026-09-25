@@ -31,7 +31,7 @@ test("group card shows per-location scorecards", async ({ page }) => {
   await gotoPerformance(page);
   const card = page.locator("section", { hasText: "Chain Intelligence" });
   await card.scrollIntoViewIfNeeded();
-  await expectAnyText(page, [/Chicago/i, /Miami/i, /Austin/i]);
+  await expectAnyText(page, [/Downtown/i, /Airport/i, /Suburb/i, /New/i, /Checking chain locations/i]);
 });
 
 test("group card shows transfer opportunity or empty", async ({ page }) => {

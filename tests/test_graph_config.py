@@ -167,7 +167,7 @@ def test_dsn_is_redacted_from_collision_log(
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
     monkeypatch.setenv("GRAPH_DSN", "env-secret")
     with caplog.at_level(logging.WARNING):
-        GraphConfig.load("trading")
+        GraphConfig.load("trading", profile="test")
     assert "file-secret" not in caplog.text
     assert "env-secret" not in caplog.text
     assert "<redacted>" in caplog.text
@@ -213,7 +213,7 @@ def test_dual_write_backend_is_accepted(monkeypatch: pytest.MonkeyPatch) -> None
     clear_graph_env(monkeypatch)
     monkeypatch.setenv("GRAPH_BACKEND", "dual_write")
     monkeypatch.setenv("GRAPH_DSN", "host=test")
-    config = GraphConfig.load("trading")
+    config = GraphConfig.load("trading", profile="offline")
     assert config.backend == "dual_write"
 
 

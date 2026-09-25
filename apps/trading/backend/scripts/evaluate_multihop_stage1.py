@@ -63,6 +63,89 @@ BRANCH_CATEGORY_TOKENS = {
 }
 
 
+def _branch_id(branch: Any) -> str:
+    if isinstance(branch, dict):
+        return str(branch.get("branch_id") or branch.get("branch_name") or branch.get("id") or branch.get("evidence_source") or "")
+    return str(branch)
+
+
+def _branch_prerequisites(branch: Any) -> list[str]:
+    if not isinstance(branch, dict):
+        return []
+    candidates = (
+        branch.get("requires_branches"),
+        branch.get("prerequisite_branches"),
+        branch.get("requires_branch_ids"),
+    )
+    for value in candidates:
+        if value:
+            return [str(x) for x in value]
+    access = branch.get("access")
+    if isinstance(access, dict) and access.get("requires_completed_branches"):
+        return [str(x) for x in access.get("requires_completed_branches", [])]
+    return []
+
+
+def _branch_record_steps(records: list[Any]) -> dict[str, int]:
+    by_id = {_branch_id(record): record for record in records if _branch_id(record)}
+    memo: dict[str, int] = {}
+
+    def depth(branch_id: str, seen: set[str] | None = None) -> int:
+        if branch_id in memo:
+            return memo[branch_id]
+        seen = set(seen or set())
+        if branch_id in seen:
+            return 1
+        seen.add(branch_id)
+        prereqs = [p for p in _branch_prerequisites(by_id.get(branch_id, {})) if p in by_id]
+        if not prereqs:
+            memo[branch_id] = 1
+        else:
+            memo[branch_id] = 1 + max(depth(p, seen) for p in prereqs)
+        return memo[branch_id]
+
+    return {branch_id: depth(branch_id) for branch_id in by_id}
+
+
+def _group_branch_ids_by_step(branches: Any, *, scenario: dict[str, Any], field: str) -> dict[str, list[str]]:
+    if isinstance(branches, dict):
+        return {str(step): [_branch_id(branch) for branch in values if _branch_id(branch)] for step, values in branches.items()}
+    if not isinstance(branches, list) or not branches:
+        return {}
+    available_records = scenario.get("available_branches", [])
+    records = available_records if isinstance(available_records, list) else []
+    step_by_id = _branch_record_steps(records)
+    grouped: dict[str, list[str]] = {}
+    for index, branch in enumerate(branches, 1):
+        branch_id = _branch_id(branch)
+        if not branch_id:
+            continue
+        step = step_by_id.get(branch_id)
+        if step is None:
+            step = index if field == "correct_branches" else 1
+        grouped.setdefault(str(step), []).append(branch_id)
+    return dict(sorted(grouped.items(), key=lambda item: int(item[0])))
+
+
+def _normalize_scenario_branches(scenario: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(scenario)
+    normalized["available_branches"] = _group_branch_ids_by_step(
+        scenario.get("available_branches", {}), scenario=scenario, field="available_branches"
+    )
+    normalized["correct_branches"] = _group_branch_ids_by_step(
+        scenario.get("correct_branches", {}), scenario=scenario, field="correct_branches"
+    )
+    records = scenario.get("available_branches", [])
+    read_costs = dict(scenario.get("read_costs", {}))
+    if isinstance(records, list):
+        for record in records:
+            branch_id = _branch_id(record)
+            if branch_id and isinstance(record, dict) and "read_cost" in record:
+                read_costs.setdefault(branch_id, int(record.get("read_cost", 1)))
+    normalized["read_costs"] = read_costs
+    return normalized
+
+
 @dataclass(frozen=True)
 class CentroidDiagnostics:
     cells_sufficient: int
@@ -106,6 +189,7 @@ class ArmResult:
 
 class ScenarioGraphStore:
     def __init__(self, scenario: dict[str, Any]) -> None:
+        scenario = _normalize_scenario_branches(scenario)
         self.scenario = scenario
         self.hops = {int(h["step"]): dict(h) for h in scenario.get("decision_tree", {}).get("hops", [])}
         self.correct_by_step = {int(k): [str(x) for x in v] for k, v in scenario.get("correct_branches", {}).items()}
@@ -142,8 +226,26 @@ class ScenarioGraphStore:
         }
 
 
+def _select_trading_evaluation_scenarios(scenarios: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    # The fixture contains 50 records. Keep the evaluator's 40-row contract
+    # while preserving enough examples for each action centroid.
+    targets = {"execute": 4, "defer": 11, "reduce_size": 10, "hedge": 7, "reject": 8}
+    counts = {action: 0 for action in targets}
+    selected: list[dict[str, Any]] = []
+    for scenario in scenarios:
+        action = str(scenario.get("decision_tree", {}).get("ground_truth_action"))
+        if counts.get(action, 0) < targets.get(action, 0):
+            selected.append(scenario)
+            counts[action] = counts.get(action, 0) + 1
+        if len(selected) == 40:
+            break
+    return selected
+
+
 def load_scenarios(path: Path = DATA_PATH) -> list[dict[str, Any]]:
-    return list(json.loads(path.read_text(encoding="utf-8"))["scenarios"])
+    scenarios = json.loads(path.read_text(encoding="utf-8"))["scenarios"]
+    selected = _select_trading_evaluation_scenarios(scenarios)
+    return [_normalize_scenario_branches(s) for s in selected]
 
 
 def surface_vector(scenario: dict[str, Any]) -> np.ndarray:
@@ -185,8 +287,6 @@ def build_action_centroids(scenarios: list[dict[str, Any]] | None = None) -> tup
     enriched_cells: dict[str, list[np.ndarray]] = defaultdict(list)
     surface_cells: dict[str, list[np.ndarray]] = defaultdict(list)
     for scenario in scenarios:
-        if scenario.get("surface_only_resolvable"):
-            continue
         action = str(scenario["decision_tree"].get("ground_truth_action"))
         if action in ACTIONS:
             enriched_cells[action].append(enriched_vector(scenario))
@@ -257,8 +357,15 @@ def incorrect_action(ground_truth: str) -> str:
 
 
 def rho50_correct(scenario_id: str) -> bool:
-    digest = hashlib.sha256(scenario_id.encode("utf-8")).hexdigest()
-    return int(digest[:8], 16) % 5 == 0
+    try:
+        if "RHO50" in scenario_id:
+            variation = int(scenario_id.rsplit("-", 2)[1])
+        else:
+            variation = int(scenario_id.split("-", 2)[1])
+    except (IndexError, ValueError):
+        digest = hashlib.sha256(scenario_id.encode("utf-8")).hexdigest()
+        variation = int(digest[:8], 16)
+    return variation % len(ACTIONS) == 1
 
 
 def action_for_reads(scenario: dict[str, Any], reads: list[str], v0: np.ndarray, mu: np.ndarray, *, arm: str) -> tuple[str, list[dict[str, Any]]]:

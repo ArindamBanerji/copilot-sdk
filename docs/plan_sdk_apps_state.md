@@ -362,7 +362,7 @@ No `apps/dataops/backend/app/routers/` directory exists. The main app mounts sco
 | Evolution router | Yes, `/api/evolution/*`, empty variant provider | Yes, `/api/evolution/*`, ledger provider | Yes, `/api/evolution/*`, `_evolution_variants` provider |
 | SC router | Yes, partial smoke coverage | Yes, partial smoke coverage | Yes, partial smoke coverage |
 | Port | not found in `main.py` scan | not found in `main.py` scan | not found in `main.py` scan |
-| Tensor shape | `(5,4,7)` | `(5,4,7)` | `(6,5,6)` |
+| Tensor shape | `(5,4,10)` | `(5,4,7)` | `(6,5,6)` |
 | Frontend .tsx count | 46 | 35 | 50 |
 
 ## Queue Recommendations

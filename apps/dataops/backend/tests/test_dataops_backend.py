@@ -44,12 +44,12 @@ def _learn(client: TestClient, decision_id: str, actual_action: str) -> dict:
 def test_health(client: TestClient) -> None:
     response = client.get("/health")
 
-    assert response.status_code == 200
+    assert response.status_code == 503
     payload = response.json()
     assert payload["status"] == "error"
     assert payload["domain"] == "dataops"
     assert payload["graph_connected"] is False
-    assert payload["graph_source"] == "fixture"
+    assert payload["graph_source"] == "unavailable"
     assert "gae.evolution" in payload["engine"]
 
 
@@ -65,11 +65,16 @@ def test_ent1_discovery_and_intelligence_map_routes(client: TestClient) -> None:
 
 def test_api_health_returns_phase_alpha_and_engine(client: TestClient) -> None:
     response = client.get("/api/health")
+    root_response = client.get("/health")
 
-    assert response.status_code == 200
+    assert response.status_code == 503
     payload = response.json()
-    assert payload["phase"] in {"A", "B"}
-    assert isinstance(payload["alpha"], (int, float))
+    root_payload = root_response.json()
+    payload["graph_status"].pop("checked_at")
+    root_payload["graph_status"].pop("checked_at")
+    assert payload == root_payload
+    assert payload["domain"] == "dataops"
+    assert payload["graph_connected"] is False
     assert "engine" in payload
     assert payload["engine"]
 
@@ -77,10 +82,10 @@ def test_api_health_returns_phase_alpha_and_engine(client: TestClient) -> None:
 def test_pipelines(client: TestClient) -> None:
     payload = client.get("/api/context/pipelines").json()
 
-    assert payload["source"] == "fixture"
-    assert len(payload["pipelines"]) == 9
-    assert payload["pipelines"][0]["name"]
-    assert "downstream_count" in payload["pipelines"][0]
+    assert payload["source"] == "graph"
+    assert payload["count"] == len(payload["pipelines"])
+    assert all(pipeline["name"] for pipeline in payload["pipelines"])
+    assert all(pipeline["domain"] == "dataops" for pipeline in payload["pipelines"])
 
 
 def test_alerts(client: TestClient) -> None:
@@ -96,7 +101,7 @@ def test_auto_seed_empty_db(tmp_path: Path) -> None:
 
     db_path = tmp_path / "dataops_seeded.db"
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     expected_verified, expected_correct = _fixture_outcome_counts(DATAOPS_SEED_PATH)
     assert _count_decisions(db_path, "dataops") == 20
@@ -116,7 +121,7 @@ def test_auto_seed_skips_populated(tmp_path: Path) -> None:
         store.close()
 
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     assert _count_decisions(db_path, "dataops") == 1
 
@@ -127,7 +132,7 @@ def test_ci_data_dir_creates_db(tmp_path: Path, monkeypatch) -> None:
     data_dir = tmp_path / "ci-data"
     monkeypatch.setenv("CI_DATA_DIR", str(data_dir))
     with TestClient(create_app(demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     db_path = data_dir / "dataops.db"
     assert db_path.exists()
@@ -143,7 +148,7 @@ def test_explicit_db_path_wins(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("CI_DATA_DIR", str(ci_dir))
 
     with TestClient(create_app(db_path=explicit_db, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     assert explicit_db.exists()
     assert not (ci_dir / "dataops.db").exists()
@@ -156,7 +161,7 @@ def test_no_env_uses_explicit_fallback(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("CI_DATA_DIR", raising=False)
     db_path = tmp_path / "fallback.db"
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     assert db_path.exists()
     assert _count_decisions(db_path, "dataops") == 20
@@ -166,7 +171,7 @@ def test_startup_records_l5_source_status(tmp_path: Path) -> None:
     from app.main import create_app
 
     with TestClient(create_app(db_path=tmp_path / "l5-status.db", demo_bundle_path=False)) as client:
-        assert client.get("/health").status_code == 200
+        assert client.get("/health").status_code == 503
         status = client.app.state.l5_startup_status
     assert status["dk_source"] in {"missing", "l5", "error", "deferred"}
     assert status["welford_source"] in {"missing", "l5", "error"}
@@ -179,7 +184,8 @@ def test_l5_startup_restore_runs_after_seed_setup(tmp_path: Path, monkeypatch) -
 
     calls: list[str] = []
 
-    def fake_seed(_store):
+    def fake_seed(_store, *, profile):
+        assert profile == "test"
         calls.append("seed")
 
     def fake_evolution_seed(_store):
@@ -204,7 +210,7 @@ def test_l5_startup_restore_runs_after_seed_setup(tmp_path: Path, monkeypatch) -
     monkeypatch.setattr(app_main, "restore_l5_runtime_state", fake_restore)
 
     with TestClient(app_main.create_app(db_path=tmp_path / "ordered.db", demo_bundle_path=False)) as client:
-        assert client.get("/health").status_code == 200
+        assert client.get("/health").status_code == 503
         status = client.app.state.l5_startup_status
 
     assert calls == ["seed", "evolution_seed", "restore"]
@@ -276,15 +282,15 @@ def test_factor_auto_fill(client: TestClient) -> None:
     assert payload["factors"]["impact_scope"]["value"] >= 0
 
 
-def test_audit_trail_for_known_alert(client: TestClient) -> None:
+def test_audit_trail_returns_honest_empty_state_when_graph_id_is_absent(client: TestClient) -> None:
     response = client.get("/api/context/audit-trail/ALERT-TIRE-001")
 
     assert response.status_code == 200
     payload = response.json()
     assert payload["alert_id"] == "ALERT-TIRE-001"
-    assert len(payload["chain"]) >= 2
-    assert payload["chain"][0]["step"] == "signal"
-    assert any(step["step"] == "context" for step in payload["chain"])
+    assert payload["chain"] == []
+    assert payload["complete"] is False
+    assert payload["source"] == "graph"
 
 
 def test_audit_trail_incomplete_for_untriaged(client: TestClient) -> None:
@@ -294,17 +300,17 @@ def test_audit_trail_incomplete_for_untriaged(client: TestClient) -> None:
     payload = response.json()
     assert payload["alert_id"] == "ALERT-TIRE-020"
     assert payload["complete"] is False
-    assert not any(step["step"] == "outcome" for step in payload["chain"])
+    assert payload["chain"] == []
 
 
 def test_audit_trail_unknown_alert_returns_empty(client: TestClient) -> None:
     response = client.get("/api/context/audit-trail/NONEXISTENT")
 
-    assert response.status_code in {200, 404}
-    if response.status_code == 200:
-        payload = response.json()
-        assert payload["chain"] == []
-        assert payload["complete"] is False
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["chain"] == []
+    assert payload["complete"] is False
+    assert payload["source"] == "graph"
 
 
 def test_similar_alerts(client: TestClient) -> None:
@@ -350,26 +356,22 @@ def test_similar_alerts_empty_category(client: TestClient) -> None:
     assert payload["count"] == 0
 
 
-def test_sap_naming_in_pipelines(client: TestClient) -> None:
+def test_pipeline_names_are_grouped_from_graph_decisions(client: TestClient) -> None:
+    _score(client)
     payload = client.get("/api/context/pipelines").json()
     names = {pipeline["name"] for pipeline in payload["pipelines"]}
-    sap_pipeline = next(
-        pipeline for pipeline in payload["pipelines"] if pipeline["name"] == "sap_mm"
-    )
 
-    assert "sap_mm" in names
-    assert "erp_export" not in names
-    assert "SAP" in sap_pipeline["display_name"]
+    assert payload["source"] == "graph"
+    assert len(names) == payload["count"]
+    assert all(pipeline["decision_count"] > 0 for pipeline in payload["pipelines"])
 
 
-def test_sap_downstream_references(client: TestClient) -> None:
+def test_pipeline_decision_counts_cover_graph_rows(client: TestClient) -> None:
+    _score(client)
     payload = client.get("/api/context/pipelines").json()
-    pipeline_map = {pipeline["name"]: pipeline for pipeline in payload["pipelines"]}
 
-    assert "sap_mm" in pipeline_map["sap_fi"]["upstream"]
-    assert "sap_mm" in pipeline_map["warehouse_wms"]["upstream"]
-    assert "erp_export" not in pipeline_map["sap_fi"]["upstream"]
-    assert "erp_export" not in pipeline_map["warehouse_wms"]["upstream"]
+    assert sum(pipeline["decision_count"] for pipeline in payload["pipelines"]) >= 1
+    assert all(pipeline["domain"] == "dataops" for pipeline in payload["pipelines"])
 
 
 def test_ae_recommendation_match(client: TestClient) -> None:
@@ -442,6 +444,20 @@ def test_ae_fresh_store_returns_empty_responses(tmp_path: Path) -> None:
 
 
 def test_dataops_audit_trail_uses_store_backed_recommendation(client: TestClient) -> None:
+    client.app.state.graph_store.write_governed_decision(
+        decision_id="ALERT-TIRE-018",
+        domain="dataops",
+        category="pipeline_failure",
+        category_index=0,
+        recommended_action="escalate",
+        recommended_index=0,
+        confidence=0.8,
+        probabilities=[0.8],
+        factor_vector=list(DATAOPS_FACTORS.values()),
+        factor_names=list(DATAOPS_FACTORS),
+        source="test",
+        metadata={"alert_id": "ALERT-TIRE-018", "recurrence_count": 8},
+    )
     payload = client.get("/api/context/audit-trail/ALERT-TIRE-018").json()
 
     ae_steps = [step for step in payload["chain"] if step.get("label") == "AE Recommendation"]
@@ -457,9 +473,9 @@ def test_dataops_audit_trail_fresh_store_has_clean_empty_recommendation(tmp_path
     payload = client.get("/api/context/audit-trail/ALERT-TIRE-018").json()
 
     ae_steps = [step for step in payload["chain"] if step.get("label") == "AE Recommendation"]
-    assert ae_steps
-    assert ae_steps[0]["detail"] == "No AE recommendation"
-    assert ae_steps[0]["data"] == {}
+    assert ae_steps == []
+    assert payload["source"] == "graph"
+    assert payload["complete"] is False
 
 
 def test_ae_impact(client: TestClient) -> None:
@@ -498,10 +514,10 @@ def test_pattern_origin_includes_genealogy(client: TestClient) -> None:
 def test_pattern_origin_exposes_seeded_shadow_rule_source(tmp_path: Path) -> None:
     from app.main import create_app
 
-    client = TestClient(create_app(db_path=tmp_path / "seeded_pattern_origin.db", demo_bundle_path=False))
-    client.get("/api/health")
-
-    payload = client.get("/api/ae/pattern-origin").json()
+    with TestClient(
+        create_app(db_path=tmp_path / "seeded_pattern_origin.db", demo_bundle_path=False)
+    ) as client:
+        payload = client.get("/api/ae/pattern-origin").json()
 
     assert payload["chain"]
     assert any(step["copilot"] == "S2P" for step in payload["chain"])
@@ -524,9 +540,9 @@ def test_rule_lifecycle_has_events(client: TestClient) -> None:
     assert payload["total"] == 1
     rule = payload["rules"][0]
     event_types = [event["type"] for event in rule["lifecycle_events"]]
-    assert event_types[0] == "proposed"
-    assert "shadow_result" in event_types
-    assert "promoted" in event_types
+    # This fixture persists only promotion_approved. Aggregate evaluation
+    # counts do not prove that separate proposal/shadow events were recorded.
+    assert event_types == ["promoted"]
     assert rule["win_rate"] == 0.75
     assert rule["decisions_evaluated"] == 24
 
@@ -837,14 +853,15 @@ def test_centroid_history_shared_route_returns_envelope(client: TestClient) -> N
 
 
 def test_transformations_for_known_system(client: TestClient) -> None:
+    _score(client)
     response = client.get("/api/context/transformations/sap_mm")
 
     assert response.status_code == 200
     payload = response.json()
     assert payload["system"] == "sap_mm"
-    assert len(payload["transformations"]) == 3
-    assert payload["summary"]["total"] == 3
-    assert payload["summary"]["bottleneck"]
+    assert payload["transformations"]
+    assert payload["summary"]["total"] == len(payload["transformations"])
+    assert all(step["source"] == "graph" for step in payload["transformations"])
 
 
 def test_transformations_unknown_system(client: TestClient) -> None:
@@ -862,10 +879,12 @@ def test_transformations_unknown_system(client: TestClient) -> None:
 
 
 def test_transformations_summary_has_bottleneck(client: TestClient) -> None:
+    _score(client)
     payload = client.get("/api/context/transformations/sap_mm").json()
 
-    assert payload["summary"]["bottleneck"] == "Map Supplier Catalog"
-    assert payload["summary"]["bottleneck_pct"] > 0.5
+    assert payload["summary"]["total"] == len(payload["transformations"])
+    assert payload["summary"]["total_duration_minutes"] == 0
+    assert payload["summary"]["bottleneck"] is None
 
 
 def test_bottleneck_for_known_system(client: TestClient) -> None:
@@ -898,50 +917,49 @@ def test_bottleneck_steps_ranked_by_duration(client: TestClient) -> None:
 
 
 def test_schema_impact_for_known_system(client: TestClient) -> None:
+    _score(client)
     response = client.get("/api/context/schema-impact/sap_mm")
 
     assert response.status_code == 200
     payload = response.json()
     assert payload["schema_changes"]
-    assert payload["total_changes"] == 1
-    assert payload["total_impacts"] >= 1
+    assert payload["total_changes"] == len(payload["schema_changes"])
+    assert payload["total_impacts"] == payload["total_changes"]
+    assert all(change["source"] == "graph" for change in payload["schema_changes"])
 
 
-def test_schema_impact_has_proposed_fix(client: TestClient) -> None:
+def test_schema_impact_uses_graph_categories_without_invented_fixes(client: TestClient) -> None:
+    _score(client)
     payload = client.get("/api/context/schema-impact/sap_mm").json()
 
-    assert payload["schema_changes"][0]["proposed_fix"]
-    assert payload["schema_changes"][0]["column"] == "MATKL_V2"
-    assert payload["total_alerts_preventable"] == 11
+    assert payload["schema_changes"][0]["column"] == "freshness_violation"
+    assert "proposed_fix" not in payload["schema_changes"][0]
+    assert payload["total_alerts_preventable"] == 0
 
 
 def test_process_timeline_endpoint_returns_activities(client: TestClient) -> None:
+    _score(client)
     response = client.get("/api/context/process-timeline")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["bottleneck_id"] == "ACT-MATCH"
-    assert payload["normal_duration"] == 252
-    assert payload["current_duration"] == 2520
-    assert payload["slowdown_multiplier"] == 10.0
-    assert [activity["name"] for activity in payload["activities"]] == [
-        "Create Purchase Requisition",
-        "Approve Purchase Order",
-        "Match Invoice to GR",
-        "Process Payment",
-    ]
+    assert payload["source"] == "graph"
+    assert payload["total"] == len(payload["activities"])
+    assert payload["activities"]
+    assert all(activity["source"] == "graph" for activity in payload["activities"])
 
 
-def test_process_timeline_has_bottleneck_flag(client: TestClient) -> None:
+def test_process_timeline_does_not_invent_bottleneck_metrics(client: TestClient) -> None:
+    _score(client)
     payload = client.get("/api/context/process-timeline").json()
 
-    bottlenecks = [activity for activity in payload["activities"] if activity["is_bottleneck"]]
-    assert len(bottlenecks) == 1
-    assert bottlenecks[0]["id"] == "ACT-MATCH"
-    assert bottlenecks[0]["slowdown_multiplier"] == 10.0
+    assert all(activity["avg_duration"] == 0 for activity in payload["activities"])
+    assert all(activity["automation_rate"] is None for activity in payload["activities"])
+    assert all(activity["rework_rate"] is None for activity in payload["activities"])
 
 
 def test_process_timeline_activities_have_required_fields(client: TestClient) -> None:
+    _score(client)
     payload = client.get("/api/context/process-timeline").json()
 
     required = {"id", "name", "avg_duration", "automation_rate", "rework_rate"}
@@ -949,23 +967,15 @@ def test_process_timeline_activities_have_required_fields(client: TestClient) ->
     for activity in payload["activities"]:
         assert required <= set(activity)
         assert isinstance(activity["avg_duration"], (int, float))
-        assert 0 <= activity["automation_rate"] <= 1
-        assert 0 <= activity["rework_rate"] <= 1
+        assert activity["automation_rate"] is None
+        assert activity["rework_rate"] is None
 
 
-def test_process_timeline_dollar_calibration_matches_story(client: TestClient) -> None:
+def test_process_timeline_omits_unmeasured_dollar_story(client: TestClient) -> None:
     payload = client.get("/api/context/process-timeline").json()
-    calibration = payload["dollar_calibration"]
 
-    assert calibration["exception_cost_per_investigation"] == 47
-    assert calibration["daily_invoice_volume"] == 8400
-    assert calibration["current_exception_rate"] == 0.12
-    assert calibration["target_exception_rate"] == 0.048
-    assert calibration["annual_exception_cost"] == 17300000
-    assert calibration["target_annual_exception_cost"] == 7100000
-    assert calibration["bottleneck_cost_per_day"] == 8400
-    assert calibration["option_a_savings_per_year"] == 547000
-    assert calibration["total_trajectory_per_year"] == 1620000
+    assert payload["source"] == "graph"
+    assert "dollar_calibration" not in payload
 
 
 def test_cross_graph_insight_returns_triple_correlation(client: TestClient) -> None:
@@ -977,18 +987,15 @@ def test_cross_graph_insight_returns_triple_correlation(client: TestClient) -> N
     assert payload["process_signal"]
     assert payload["erp_impact"]
     assert payload["root_cause"]
-    assert payload["sources_used"] == ["celonis", "sap", "graph"]
+    assert payload["sources_used"] == ["celonis", "graph", "sap"]
 
 
 def test_cross_graph_insight_has_combined_impact(client: TestClient) -> None:
     payload = client.get("/api/context/cross-graph-insight/ALERT-TIRE-001").json()
 
     assert payload["process_signal"]["slowdown_factor"] == 10.0
-    assert payload["erp_impact"]["daily_cost"] == 8400
-    assert payload["combined_impact"]["daily_cost"] == 8400
-    assert payload["combined_impact"]["monthly_cost"] == 252000
-    assert payload["combined_impact"]["annualized_cost"] == 3066000
-    assert payload["combined_impact"]["confidence"] == 0.89
+    assert payload["combined_impact"]["sources"] == ["celonis", "graph", "sap"]
+    assert payload["combined_impact"]["amount"] == 0.0
 
 
 def test_cross_graph_insight_unknown_alert_returns_404(client: TestClient) -> None:
@@ -1295,6 +1302,69 @@ def test_alert_metadata_requires_decision_id(client: TestClient) -> None:
 
     assert response.status_code == 400
     assert "decision_id" in response.json()["detail"]
+
+
+def test_decision_linked_to_pipeline(client: TestClient) -> None:
+    response = client.post(
+        "/api/context/alert-metadata",
+        json={
+            "decision_id": "DO-PIPE-001",
+            "alert_id": "DQ-017",
+            "system_name": "billing_api",
+            "category": "freshness_violation",
+            "action_taken": "investigate",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["metadata"]["pipeline_system_id"] == "billing_api"
+    payload = client.get("/api/context/decisions?system=billing_api").json()
+    decision = next(item for item in payload["decisions"] if item["decision_id"] == "DO-PIPE-001")
+    assert decision["pipeline_system_id"] == "billing_api"
+
+
+def test_pipeline_decisions_query(client: TestClient) -> None:
+    client.post(
+        "/api/context/alert-metadata",
+        json={
+            "decision_id": "DO-PIPE-002",
+            "alert_id": "DQ-018",
+            "pipeline_system_id": "billing_api",
+            "category": "schema_change",
+            "action_taken": "escalate_to_owner",
+        },
+    )
+
+    payload = client.get("/api/context/pipeline/billing_api/decisions").json()
+
+    assert payload["pipeline_system_id"] == "billing_api"
+    assert payload["total"] >= 1
+    assert any(item["decision_id"] == "DO-PIPE-002" for item in payload["decisions"])
+
+
+def test_multiple_decisions_same_pipeline(client: TestClient) -> None:
+    for suffix in ("A", "B"):
+        client.post(
+            "/api/context/alert-metadata",
+            json={
+                "decision_id": f"DO-PIPE-MULTI-{suffix}",
+                "alert_id": f"DQ-MULTI-{suffix}",
+                "system_name": "billing_api",
+                "category": "pipeline_failure",
+                "action_taken": "investigate",
+            },
+        )
+
+    payload = client.get("/api/context/pipeline/billing_api/decisions?limit=100").json()
+    ids = {item["decision_id"] for item in payload["decisions"]}
+
+    assert {"DO-PIPE-MULTI-A", "DO-PIPE-MULTI-B"} <= ids
+
+
+def test_pipeline_not_found(client: TestClient) -> None:
+    response = client.get("/api/context/pipeline/not_a_pipeline/decisions")
+
+    assert response.status_code == 404
 
 
 def test_fingerprint(client: TestClient) -> None:

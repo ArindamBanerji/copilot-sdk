@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, cast
 
 from fastapi import APIRouter
 from starlette.concurrency import run_in_threadpool
+from copilot_sdk.config.graph_config import resolve_profile
 
 from .graph_queries import DataOpsGraphClient
 
@@ -20,7 +23,10 @@ S2P_SOURCE_RULES = {"s2p_invoice_quality_scheduling_signal"}
 
 
 def _graph_client() -> DataOpsGraphClient:
-    return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+    profile = resolve_profile(os.getenv("GRAPH_PROFILE"), domain="dataops")
+    if profile == "production":
+        return DataOpsGraphClient(profile=profile)
+    return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback", profile=profile)
 
 
 def reset_ae_fixtures() -> None:
@@ -67,7 +73,10 @@ def _event_to_variant(event: dict[str, Any]) -> dict[str, Any]:
 
 
 def _variants(evolution_store_factory: EvolutionStoreFactory | None, domain: str) -> list[dict[str, Any]]:
-    return [_event_to_variant(event) for event in _events(evolution_store_factory, domain)]
+    # Synthetic lifecycle imports are displayed by rule-lifecycle, but must
+    # never activate operational recommendations or contribute measured wins.
+    variants = [_event_to_variant(event) for event in _events(evolution_store_factory, domain)]
+    return [variant for variant in variants if variant.get("planted") is not True]
 
 
 def _load_json(filename: str, default: Any) -> Any:
@@ -180,67 +189,12 @@ def _source_copilot(variant: dict[str, Any], domain: str = "dataops") -> str | N
     return _explicit_source_copilot(variant)
 
 
-def _variant_date(variant: dict[str, Any], keys: tuple[str, ...], fallback: str) -> str:
-    for key in keys:
-        value = variant.get(key)
-        if value:
-            return str(value)
-    return fallback
 
 
 def _rule_identifier(variant: dict[str, Any]) -> str:
     return str(variant.get("id") or _variant_id(variant) or variant.get("rule_name") or "")
 
 
-def _generate_lifecycle_events(variant: dict[str, Any], status: str, win_rate: float | None, evaluations: int) -> list[dict[str, Any]]:
-    events = [
-        {
-            "type": "proposed",
-            "date": _variant_date(variant, ("proposed_at", "proposedAt"), "2026-04-01"),
-            "detail": "Pattern detected from accumulated decisions",
-        }
-    ]
-    if evaluations > 0:
-        events.append(
-            {
-                "type": "shadow_start",
-                "date": _variant_date(variant, ("shadow_started", "shadowStarted"), "2026-04-05"),
-                "detail": "Shadow-testing against live decisions",
-            }
-        )
-        events.append(
-            {
-                "type": "shadow_result",
-                "date": _variant_date(variant, ("shadow_ended", "shadowEnded"), "2026-04-19"),
-                "detail": f"{evaluations} decisions, {int((win_rate or 0.0) * 100)}% win rate",
-            }
-        )
-    if status == "promoted":
-        events.append(
-            {
-                "type": "promoted",
-                "date": _variant_date(variant, ("promoted_at", "promotedAt", "timestamp"), "2026-04-20"),
-                "detail": "Win rate >= 60%, conservation GREEN",
-            }
-        )
-    elif status == "rejected":
-        reason = _variant_rejected_reason(variant) or f"Win rate {int((win_rate or 0.0) * 100)}% below threshold"
-        events.append(
-            {
-                "type": "rejected",
-                "date": _variant_date(variant, ("rejected_at", "rejectedAt", "timestamp"), "2026-04-25"),
-                "detail": reason,
-            }
-        )
-    elif status == "shadow":
-        events.append(
-            {
-                "type": "shadow_running",
-                "date": _variant_date(variant, ("timestamp",), "2026-04-19"),
-                "detail": "Rule is still under shadow evaluation",
-            }
-        )
-    return events
 
 
 def _normalize_rule_lifecycle(variant: dict[str, Any]) -> dict[str, Any]:
@@ -268,8 +222,52 @@ def _normalize_rule_lifecycle(variant: dict[str, Any]) -> dict[str, Any]:
         "match": variant.get("match") or {},
         "metadata": metadata,
     }
-    rule["lifecycle_events"] = _generate_lifecycle_events(variant, status, win_rate, evaluations)
+    # History is populated only from persisted events by the response builder.
+    rule["lifecycle_events"] = []
     return rule
+
+
+def _persisted_rule_lifecycles(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Group stored events; never infer an earlier promotion from current status."""
+    def event_time(event: dict[str, Any]) -> float:
+        value = event.get("timestamp", event.get("created_at"))
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            try:
+                date = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+                return date.replace(tzinfo=date.tzinfo or timezone.utc).timestamp()
+            except ValueError:
+                return 0.0
+
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for event in sorted(events, key=event_time):
+        variant = _event_to_variant(event)
+        identity = _variant_id(variant)
+        if identity:
+            groups.setdefault(identity, []).append(event)
+    rules = []
+    for history in groups.values():
+        rule = _normalize_rule_lifecycle(_event_to_variant(history[-1]))
+        transitions = []
+        for event in history:
+            kind = str(event.get("event_type") or "")
+            # These aliases refer to recorded transitions, not inferred history.
+            kind = {"variant_promoted": "promoted", "promotion_approved": "promoted",
+                    "variant_demoted": "demoted", "promotion_demoted": "demoted",
+                    "variant_rejected": "rejected", "promotion_rejected": "rejected",
+                    "variant_proposed": "proposed"}.get(kind, kind)
+            metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+            metadata = cast(dict[str, Any], metadata)
+            transitions.append({"type": kind, "date": event.get("timestamp", event.get("created_at")),
+                                "event_id": event.get("event_id", event.get("id")),
+                                "detail": metadata.get("reason") or metadata.get("reject_reason") or metadata.get("description"),
+                                "planted": metadata.get("planted", False)})
+        rule["lifecycle_events"] = transitions
+        if transitions and transitions[-1]["type"] in {"proposed", "promoted", "demoted", "rejected", "shadow"}:
+            rule["status"] = transitions[-1]["type"]
+        rules.append(rule)
+    return rules
 
 
 def match_ae_rule(alert: dict[str, Any], variant: dict[str, Any]) -> tuple[bool, str]:
@@ -485,7 +483,7 @@ def create_ae_router(
     @router.get("/rule-lifecycle")
     def rule_lifecycle(variant_id: str | None = None, status: str | None = None) -> dict[str, Any]:
         normalized_status = status.strip().lower() if status else None
-        rules = [_normalize_rule_lifecycle(variant) for variant in store_variants()]
+        rules = _persisted_rule_lifecycles(_events(evolution_store_factory, domain))
         if variant_id:
             rules = [
                 rule for rule in rules
@@ -496,8 +494,7 @@ def create_ae_router(
         summary = {"promoted": 0, "rejected": 0, "shadow": 0, "proposed": 0}
         for rule in rules:
             rule_status = str(rule.get("status") or "proposed")
-            if rule_status in summary:
-                summary[rule_status] += 1
+            summary[rule_status] = summary.get(rule_status, 0) + 1
         return {
             "source": "evolution_store",
             "rules": rules,

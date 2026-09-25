@@ -1,41 +1,21 @@
+import pytest
+from types import SimpleNamespace
+
 from copilot_sdk.backend.diagnostics_models import _cypher_count, build_diagnostics
 from copilot_sdk.graph import InMemoryGraphStore
 
 
-class _Store:
-    domain = "trading"
-    backend = "age"
-    graph_name = "soc_graph"
 
-    def get_decisions(self, domain, limit=1):
-        return [{"category": "a"}] * 500
 
-    def count_decisions(self, domain):
-        return 500
-
-    def count_verified_decisions(self, domain):
-        return 100
-
-    def count_correct(self, domain):
-        return 100
-
-    def count_categories_with_n(self, domain, n=1):
-        return 5
-
-    def count_outcomes(self, domain):
-        return 0
-
-    def has_domain_anchor(self, domain):
-        return True
-
-    def get_conservation_state(self, domain):
-        return {"status": "GREEN", "V": 100, "q": 1.0, "alpha": 1.0, "theta_min": 0.75}
-
-    def write_conservation_status(self, *args, **kwargs):
-        pass
-
-    def write_centroid_checkpoint(self, *args, **kwargs):
-        pass
+def _seed_store():
+    store = InMemoryGraphStore(domain="trading")
+    for index in range(500):
+        decision_id = store.write_decision("trading", f"category-{index % 5}", "hold", 0.8, {"signal": 0.5})
+        if index < 100:
+            store.write_outcome(decision_id, "hold", True, domain="trading")
+    store.update_conservation_state("trading", "GREEN", 1.0, 1.0, 100, 0.75, 100.0,
+                                    5, 5, 0.0, 0.0, "false")
+    return store
 
 
 class _Shape:
@@ -49,7 +29,8 @@ class _Preset:
 
 
 class _Scorer:
-    graph_store = _Store()
+    def __init__(self):
+        self.graph_store = _seed_store()
     _preset = _Preset()
 
     def get_verified_count(self):
@@ -111,27 +92,21 @@ def test_diagnostics_outbox_reflects_pending_and_abandoned_counts():
     class _PendingScorer(_Scorer):
         _outbox = _PendingOutbox()
 
-    payload = build_diagnostics("trading", _PendingScorer(), _Store())
+    payload = build_diagnostics("trading", _PendingScorer(), _seed_store())
 
     assert payload["infrastructure"]["outbox_pending"] == 3
     assert payload["infrastructure"]["outbox_abandoned"] == 2
 
 
-def test_diagnostics_finds_age_query_through_nested_active_store():
-    class _RawAGEStore:
-        def _run_query(self, query):
-            assert "RETURN count(n) AS cnt" in query
-            return [{"cnt": 7}]
-
-    class _SDKAdapter:
-        def __init__(self):
-            self._store = _RawAGEStore()
-
-    class _ActiveStore:
-        def __init__(self):
-            self._store = _SDKAdapter()
-
-    assert _cypher_count(_ActiveStore(), "Fingerprint", "trading") == 7
+@pytest.mark.age
+def test_diagnostics_finds_age_query_through_nested_active_store(disposable_age):
+    store = disposable_age.store("trading")
+    for index in range(7):
+        store.write_fingerprint(f"fingerprint-{index}", "trading", ["signal"],
+                                {"factors": []}, 0, index)
+    active = SimpleNamespace(_store=store)
+    assert _cypher_count(active, "Fingerprint", "trading") == 7
+    assert _cypher_count(active, "Fingerprint", "other") == 0
 
 
 def test_diagnostics_prefers_live_scorer_conservation_state():
@@ -149,7 +124,7 @@ def test_diagnostics_prefers_live_scorer_conservation_state():
                 "theta_min": 23.53,
             }
 
-    payload = build_diagnostics("soc", _LiveScorer(), _Store())
+    payload = build_diagnostics("soc", _LiveScorer(), _seed_store())
     assert payload["conservation"]["V"] == 4862
     assert payload["conservation"]["q"] == 3712 / 4862
 
@@ -172,5 +147,8 @@ def test_j6_readiness_ready_when_conservation_red():
 
     payload = build_diagnostics("soc", _RedScorer(), _RedScorer.graph_store)
 
+    # J6 readiness reports persistence/infrastructure readiness. A RED
+    # conservation gate blocks learning separately without making the graph
+    # store or outbox unavailable.
     assert payload["j6_readiness"]["status"] == "ready"
     assert payload["conservation"]["conservation_status"] == "RED"

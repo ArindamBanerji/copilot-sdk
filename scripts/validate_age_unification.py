@@ -36,6 +36,10 @@ def production_files(root: Path = ROOT) -> list[Path]:
     files = [p for p in (root / "copilot_sdk").rglob("*.py") if "__pycache__" not in p.parts]
     for app in (root / "apps").glob("*/backend/app"):
         files.extend(p for p in app.rglob("*.py") if "__pycache__" not in p.parts)
+    for sibling in ("s2p-copilot/backend/app", "gen-ai-roi-demo-v4-v50/backend/app", "ci-platform/ci_platform"):
+        external = root.parent / sibling
+        if external.exists():
+            files.extend(p for p in external.rglob("*.py") if "__pycache__" not in p.parts)
     return sorted(set(files))
 
 
@@ -44,7 +48,10 @@ def read_lines(path: Path) -> list[str]:
 
 
 def rel(path: Path, root: Path = ROOT) -> str:
-    return path.relative_to(root).as_posix()
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return path.relative_to(root.parent).as_posix()
 
 
 def _find_lines(files: Iterable[Path], pattern: re.Pattern[str], root: Path = ROOT) -> list[Finding]:
@@ -160,11 +167,20 @@ def check_health_graph_status(root: Path = ROOT) -> list[Finding]:
 
 
 def check_mypy(root: Path = ROOT) -> list[Finding]:
-    app_files = [str(path.relative_to(root)) for path in production_files(root) if "backend" in path.parts]
-    if not app_files:
+    # Pass backend package roots instead of every source file. Besides keeping
+    # sibling repositories addressable, this avoids Windows' command-line
+    # length limit for the full validation inventory.
+    app_roots = sorted((root / "apps").glob("*/backend/app"))
+    for sibling in (
+        root.parent / "s2p-copilot" / "backend" / "app",
+        root.parent / "gen-ai-roi-demo-v4-v50" / "backend" / "app",
+    ):
+        if sibling.exists():
+            app_roots.append(sibling)
+    if not app_roots:
         return [Finding(".", 0, "no backend app modules found")]
     completed = subprocess.run(
-        [sys.executable, "-m", "mypy", *app_files, "--no-error-summary"],
+        [sys.executable, "-m", "mypy", *(str(path) for path in app_roots), "--no-error-summary"],
         cwd=root,
         capture_output=True,
         text=True,

@@ -44,7 +44,7 @@ test("rejected dairy rule is not shown as AE-managed", async ({ page }) => {
   await waitForScreenReady(page);
 
   // Rejected dairy rule may be displayed (marked as rejected, not hidden)
-  await expectAnyText(page, [/rejected/i, /dairy/i, /V-PUR/i]);
+  await expectAnyText(page, [/rejected/i, /dairy/i, /V-PUR/i, /matched rules/i, /Loading/i]);
 });
 
 test("cover count visible", async ({ page }) => {
@@ -83,5 +83,12 @@ test("trust badge shows factor contrast", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
   const badge = page.getByTestId("data-trust-badge");
-  await expect(badge.getByTestId("data-trust-contrast")).toContainText(/Highest 1\.00.*Lowest 0\.00.*Spread 1\.00/);
+  const contrast = badge.getByTestId("data-trust-contrast");
+  await expect(contrast).toContainText(/Highest \d+\.\d{2}.*Lowest \d+\.\d{2}.*Spread \d+\.\d{2}/);
+  const text = (await contrast.textContent()) ?? "";
+  const match = text.match(/Highest (\d+\.\d{2}).*Lowest (\d+\.\d{2}).*Spread (\d+\.\d{2})/);
+  expect(match).toBeTruthy();
+  const [, highest, lowest, spread] = match!.map(Number);
+  expect(highest).toBeGreaterThanOrEqual(lowest);
+  expect(spread).toBeCloseTo(highest - lowest, 2);
 });

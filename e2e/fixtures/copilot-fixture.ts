@@ -1,4 +1,4 @@
-import { test as base, expect, type APIRequestContext, type Page } from "@playwright/test";
+import { test as base, expect, type APIRequestContext, type APIResponse, type Page } from "@playwright/test";
 
 const HOST = process.env.COPILOT_HOST || "127.0.0.1";
 
@@ -12,6 +12,101 @@ type CopilotProject = keyof typeof BACKEND_PORTS;
 
 function isCopilotProject(name: string): name is CopilotProject {
   return name in BACKEND_PORTS;
+}
+
+function withQueryParams(
+  url: string | URL,
+  options?: { params?: URLSearchParams | string | Record<string, string | number | boolean> },
+) {
+  const target = new URL(String(url));
+  const params = options?.params;
+  if (params instanceof URLSearchParams) {
+    params.forEach((value, key) => target.searchParams.append(key, value));
+  } else if (typeof params === "string") {
+    new URLSearchParams(params).forEach((value, key) => target.searchParams.append(key, value));
+  } else if (params) {
+    Object.entries(params).forEach(([key, value]) => target.searchParams.append(key, String(value)));
+  }
+  return target;
+}
+
+async function fetchApiResponse(
+  method: "GET" | "POST",
+  url: string | URL,
+  options?: {
+    data?: unknown;
+    headers?: Record<string, string>;
+    params?: URLSearchParams | string | Record<string, string | number | boolean>;
+    timeout?: number;
+  },
+  timeout = 30_000,
+): Promise<APIResponse> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options?.timeout ?? timeout);
+  try {
+    const headers = new Headers(options?.headers);
+    const body = options && "data" in options && options.data !== undefined ? JSON.stringify(options.data) : undefined;
+    if (body && !headers.has("content-type")) {
+      headers.set("content-type", "application/json");
+    }
+    const response = await fetch(withQueryParams(url, options), {
+      body,
+      headers,
+      method,
+      signal: controller.signal,
+    });
+    const bodyText = await response.text();
+    return {
+      ok: () => response.ok,
+      status: () => response.status,
+      statusText: () => response.statusText,
+      url: () => response.url,
+      headers: () => Object.fromEntries(response.headers.entries()),
+      json: async () => JSON.parse(bodyText),
+      text: async () => bodyText,
+      body: async () => Buffer.from(bodyText),
+    } as APIResponse;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function applyDefaultRequestTimeouts(request: APIRequestContext, timeout = 30_000) {
+  request.get = (async (
+    url: Parameters<APIRequestContext["get"]>[0],
+    options?: Parameters<APIRequestContext["get"]>[1],
+  ) => {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await fetchApiResponse("GET", url, options, timeout);
+      } catch (error) {
+        lastError = error;
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+        }
+      }
+    }
+    throw lastError;
+  }) as APIRequestContext["get"];
+
+  request.post = (async (
+    url: Parameters<APIRequestContext["post"]>[0],
+    options?: Parameters<APIRequestContext["post"]>[1],
+  ) => {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await fetchApiResponse("POST", url, options, timeout);
+      } catch (error) {
+        lastError = error;
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+        }
+      }
+    }
+    throw lastError;
+  }) as APIRequestContext["post"];
 }
 
 async function retryHealthCheck(
@@ -37,14 +132,32 @@ async function retryHealthCheck(
 }
 
 export const test = base.extend<{ backendHealth: void }>({
+  request: async ({ request }, use) => {
+    applyDefaultRequestTimeouts(request);
+    await use(request);
+  },
   page: async ({ page }, use) => {
     const originalGoto = page.goto.bind(page);
-    page.goto = ((url: Parameters<Page["goto"]>[0], options?: Parameters<Page["goto"]>[1]) =>
-      originalGoto(url, { waitUntil: "domcontentloaded", ...options })) as Page["goto"];
+    applyDefaultRequestTimeouts(page.request);
+    page.goto = (async (url: Parameters<Page["goto"]>[0], options?: Parameters<Page["goto"]>[1]) => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          return await originalGoto(url, { waitUntil: "commit", timeout: 45_000, ...options });
+        } catch (error) {
+          lastError = error;
+          if (attempt < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 750 * 2 ** attempt));
+          }
+        }
+      }
+      throw lastError;
+    }) as Page["goto"];
     await use(page);
   },
   backendHealth: [
     async ({ request }, use, testInfo) => {
+      testInfo.setTimeout(Math.max(testInfo.timeout, 60_000));
       const projectName = testInfo.project.name;
       if (!isCopilotProject(projectName)) {
         throw new Error(`Unknown copilot Playwright project "${projectName}". Expected trading, purchasing, or dataops.`);

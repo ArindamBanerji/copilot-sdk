@@ -13,16 +13,16 @@ async function gotoAnalysis(page: import("@playwright/test").Page) {
 
 test("V1 risk-adjusted quality panel renders", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByTestId("vol-sharpe-card")).toContainText(/Risk-Adjusted Decision Quality/i);
-  await expect(page.getByTestId("vol-sharpe-card")).toContainText(/By market condition|Accumulating decisions/i);
-  await expect(page.getByTestId("vol-sharpe-card").getByText(/measured|accumulating/i).first()).toBeVisible();
+  await expect(page.getByTestId("vol-sharpe-card")).toContainText(/Clustering-adjusted Sharpe/i);
+  await expect(page.getByTestId("vol-sharpe-card")).toContainText(/Adjusted quality|Evidence: insufficient|Observation data is accumulating/i);
+  await expect(page.getByTestId("vol-sharpe-card").getByText(/Evidence: insufficient|accumulating/i).first()).toBeVisible();
 });
 
 test("V2 VRP attribution panel renders", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByTestId("vrp-attribution-card")).toContainText(/VRP Edge or Insurance/i);
-  await expect(page.getByTestId("vrp-attribution-card")).toContainText(/Average IV-RV spread|Insufficient volatility data/i);
-  await expect(page.getByTestId("vrp-classification")).toContainText(/Edge|Insurance|Neutral|Accumulating/i);
+  await expect(page.getByTestId("vrp-attribution-card")).toContainText(/VRP and tail-dependence window/i);
+  await expect(page.getByTestId("vrp-attribution-card")).toContainText(/VRP spread|Tail capture|Evidence: insufficient/i);
+  await expect(page.getByTestId("vrp-classification")).toContainText(/Edge|Insurance|Neutral|Accumulating|Evidence/i);
 });
 
 test("V1 and V2 panels use decision-quality and volatility language", async ({ page }) => {
@@ -30,16 +30,15 @@ test("V1 and V2 panels use decision-quality and volatility language", async ({ p
   const quality = page.getByTestId("vol-sharpe-card");
   const vrp = page.getByTestId("vrp-attribution-card");
 
-  await expect(quality).not.toContainText(/Sharpe/i);
-  await expect(quality).toContainText(/Market condition|Accumulating decisions/i);
+  await expect(quality).toContainText(/Clustering-adjusted Sharpe|Adjusted quality/i);
   await expect(vrp).toContainText(/Volatility Risk Premium|VRP/i);
-  await expect(page.getByTestId("vrp-classification")).toContainText(/Edge|Insurance|Neutral|Accumulating/i);
+  await expect(page.getByTestId("vrp-classification")).toContainText(/Edge|Insurance|Neutral|Accumulating|Evidence/i);
 });
 
 test("volatility cards show provenance", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByTestId("vol-sharpe-card").getByText(/accumulating|measured/i).first()).toBeVisible();
-  await expect(page.getByTestId("vrp-attribution-card").getByText(/accumulating|measured|instrument validated/i).first()).toBeVisible();
+  await expect(page.getByTestId("vol-sharpe-card").getByText(/Evidence: insufficient|accumulating/i).first()).toBeVisible();
+  await expect(page.getByTestId("vrp-attribution-card").getByText(/Evidence: insufficient|accumulating|Neutral/i).first()).toBeVisible();
 });
 
 test("V1 endpoint returns cluster data", async ({ request }) => {
@@ -58,7 +57,7 @@ test("V2 endpoint returns a volatility-data state", async ({ request }) => {
 
 test("V5 regime VRP panel renders", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByTestId("regime-vrp-card")).toContainText(/Regime-Conditioned Rich\/Cheap/i);
+  await expect(page.getByTestId("vrp-attribution-card")).toContainText(/VRP|tail-dependence|window/i);
 });
 
 test("V6 dispersion follow-rate panel renders", async ({ page }) => {
@@ -68,24 +67,20 @@ test("V6 dispersion follow-rate panel renders", async ({ page }) => {
 
 test("V7 tail bets panel renders", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByTestId("tail-bets-card")).toContainText(/Effective Bets in a Tail/i);
+  await expect(page.getByTestId("tail-bets-card")).toContainText(/Effective bets in tail/i);
 });
 
 test("TRD-V1: clustering adjustment factor is visible", async ({ page }) => {
-  await page.goto("/");
-  await waitForAppShell(page);
-  await clickTab(page, "Performance");
-  const panel = page.getByTestId("vol-short-panel");
+  await gotoAnalysis(page);
+  const panel = page.getByTestId("vol-sharpe-card");
   await expect(panel).toBeVisible({ timeout: 20_000 });
   await expect(panel).toContainText(/Clustering-adjusted Sharpe/i);
   await expect(panel).toContainText(/Adjusted quality/i);
 });
 
 test("TRD-V1: tail-risk indicator is present", async ({ page }) => {
-  await page.goto("/");
-  await waitForAppShell(page);
-  await clickTab(page, "Performance");
-  await expectAnyText(page, [/VRP \/ tail dependence/i, /Effective bets in tail/i], { timeout: 20_000 });
+  await gotoAnalysis(page);
+  await expectAnyText(page, [/VRP|tail-dependence/i, /Effective bets in tail/i], { timeout: 20_000 });
 });
 
 test("TRD-V1: short-vol illusion detection warning is shown", async ({ page }) => {
@@ -95,3 +90,4 @@ test("TRD-V1: short-vol illusion detection warning is shown", async ({ page }) =
   await expect(panel).toContainText(/clustering adjustment/i);
   await expect(panel).toContainText(/Diagnostic only|Observation/i);
 });
+

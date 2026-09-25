@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from threading import RLock
 from typing import Any, Mapping, Protocol, runtime_checkable
+from copilot_sdk.config.graph_config import resolve_profile
 
 
 class PromotionStage(str, Enum):
@@ -110,7 +111,9 @@ class PromotionResult:
 class PromotionStore:
     """SQLite-backed persistence for promotion records."""
 
-    def __init__(self, db_path: str = ":memory:") -> None:
+    def __init__(self, db_path: str = ":memory:", *, profile: str | None = None) -> None:
+        if profile is not None and resolve_profile(profile, domain="") == "production":
+            raise RuntimeError("production promotion state requires a graph-backed PromotionStore")
         self._connection = sqlite3.connect(db_path, check_same_thread=False)
         self._lock = RLock()
         self._connection.execute(

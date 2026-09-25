@@ -8,7 +8,9 @@ from copilot_sdk.evolution import DefaultPromotionGate
 def _shadow():
     return {
         "sufficient": True,
-        "total": 20,
+        "total": 2_000,
+        "correct": 1_640,
+        "baseline_correct": 1_400,
         "accuracy": 0.82,
         "baseline_accuracy": 0.70,
         "batch_accuracies": [0.82, 0.82, 0.82],

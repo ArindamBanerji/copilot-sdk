@@ -170,6 +170,32 @@ def load_seed_entries(path: Path) -> list[dict[str, Any]]:
     raise ValueError(f"Unsupported seed shape: {path}")
 
 
+def load_bootstrap_centroids(config: DomainConfig) -> list[list[list[float]]] | None:
+    """Return differentiated preset priors when they match this demo shape."""
+
+    path = REPO / f"copilot_sdk/scoring/presets/{config.name}_bootstrap.json"
+    if not path.exists():
+        return None
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    centroids = raw.get("centroids") if isinstance(raw, dict) else None
+    expected = (len(config.categories), len(config.actions), len(config.factors))
+    if (
+        isinstance(centroids, list)
+        and len(centroids) == expected[0]
+        and all(isinstance(category, list) and len(category) == expected[1] for category in centroids)
+        and all(
+            isinstance(action, list) and len(action) == expected[2]
+            for category in centroids
+            for action in category
+        )
+    ):
+        return [
+            [[round(float(value), 4) for value in action] for action in category]
+            for category in centroids
+        ]
+    return None
+
+
 def build_bundle(config: DomainConfig, seed_entries: list[dict[str, Any]]) -> dict[str, Any]:
     decisions = build_decisions(config, seed_entries)
     centroids = build_centroids(config, decisions)
@@ -320,20 +346,57 @@ def probabilities_for(actions: tuple[str, ...], recommended_index: int, confiden
 
 
 def build_centroids(config: DomainConfig, decisions: list[dict[str, Any]]) -> list[list[list[float]]]:
+    by_cell = {
+        (category, action): []
+        for category in config.categories
+        for action in config.actions
+    }
     by_category = {category: [] for category in config.categories}
     for decision in decisions:
-        by_category[decision["category"]].append(decision["factor_vector"])
+        category = decision["category"]
+        action = decision["recommended_action"]
+        vector = decision["factor_vector"]
+        by_category[category].append(vector)
+        by_cell[(category, action)].append(vector)
+
+    bootstrap = load_bootstrap_centroids(config)
     centroids: list[list[list[float]]] = []
-    for category in config.categories:
-        vectors = by_category[category]
-        if vectors:
-            base = [
-                round(sum(vector[pos] for vector in vectors) / len(vectors), 4)
+    for category_index, category in enumerate(config.categories):
+        category_vectors = by_category[category]
+        category_mean = (
+            [
+                round(sum(vector[pos] for vector in category_vectors) / len(category_vectors), 4)
                 for pos in range(len(config.factors))
             ]
-        else:
-            base = [0.5 for _ in config.factors]
-        centroids.append([list(base) for _ in config.actions])
+            if category_vectors
+            else [0.5 for _ in config.factors]
+        )
+        action_rows: list[list[float]] = []
+        for action_index, action in enumerate(config.actions):
+            vectors = by_cell[(category, action)]
+            if vectors:
+                row = [
+                    round(sum(vector[pos] for vector in vectors) / len(vectors), 4)
+                    for pos in range(len(config.factors))
+                ]
+            elif bootstrap is not None:
+                row = list(bootstrap[category_index][action_index])
+            else:
+                row = [
+                    round(max(0.0, min(value + 0.035 * (action_index - (len(config.actions) - 1) / 2), 1.0)), 4)
+                    for value in category_mean
+                ]
+            action_rows.append(row)
+
+        for left_index, left in enumerate(action_rows):
+            for right_index, right in enumerate(action_rows[left_index + 1 :], left_index + 1):
+                separation = max(abs(a - b) for a, b in zip(left, right))
+                assert separation > 0.01, (
+                    f"identical or insufficiently unique action centroids for "
+                    f"{config.name}/{category}: {config.actions[left_index]} vs "
+                    f"{config.actions[right_index]} separation={separation:.6f}"
+                )
+        centroids.append(action_rows)
     return centroids
 
 

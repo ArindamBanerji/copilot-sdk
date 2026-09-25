@@ -81,10 +81,12 @@ class TabStateCache:
         *,
         warn_bytes: int = WARN_BYTES,
         reject_bytes: int = REJECT_BYTES,
+        ttl_seconds: float | None = None,
     ) -> None:
         self.copilot = str(copilot)
         self.warn_bytes = int(warn_bytes)
         self.reject_bytes = int(reject_bytes)
+        self.ttl_seconds = float(ttl_seconds) if ttl_seconds is not None else None
         self._registrations: dict[str, KeySpec] = {}
         self._dynamic_keys: set[str] = set()
         self._entries: dict[str, CacheEntry] = {}
@@ -209,6 +211,7 @@ class TabStateCache:
         )
 
     async def warm_up(self) -> None:
+        self._expire_stale()
         async with self._warm_lock:
             if self._warm:
                 return
@@ -225,6 +228,7 @@ class TabStateCache:
             self._log_cache_size()
 
     async def get(self, keys: list[str] | tuple[str, ...] | str) -> dict[str, dict[str, Any]]:
+        self._expire_stale()
         if isinstance(keys, str):
             requested = [item.strip() for item in keys.split(",")]
         else:
@@ -412,6 +416,18 @@ class TabStateCache:
     def _log_cache_size(self) -> None:
         total = sum(_json_size(entry.data) for entry in self._entries.values() if entry.data is not None)
         log.info("tab-state cache %s warm size %s bytes", self.copilot, total)
+
+    def _expire_stale(self) -> None:
+        if self.ttl_seconds is None:
+            return
+        now = time.time()
+        expired = False
+        for entry in self._entries.values():
+            if entry.computed_at is not None and now - entry.computed_at >= self.ttl_seconds:
+                entry.computed_at = None
+                expired = True
+        if expired:
+            self._warm = False
 
     def _entry_key(self, key: str, param_value: str | None = None) -> str:
         registration = self._registrations.get(key)

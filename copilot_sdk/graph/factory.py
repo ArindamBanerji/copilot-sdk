@@ -6,16 +6,17 @@ import importlib
 import logging
 import os
 from pathlib import Path
-from typing import Mapping, cast
+from typing import Any, Mapping, cast
 
 from copilot_sdk.config import GraphConfig, GraphConfigError
+from copilot_sdk.config.graph_config import resolve_profile
 from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 from copilot_sdk.graph.tenant_store import TenantScopedGraphStore
 
 logger = logging.getLogger(__name__)
 
-_VALID_BACKENDS = {"sqlite", "age", "dual_write"}
+_VALID_BACKENDS = {"sqlite", "memory", "age", "dual_write"}
 
 
 def _tenant_store(store: GraphStore, env: Mapping[str, str]) -> GraphStore:
@@ -42,25 +43,6 @@ def _normalize_backend(value: str | None) -> str:
             f"invalid graph backend {value!r}; expected one of {sorted(_VALID_BACKENDS)}"
         )
     return backend
-
-
-def _resolve_aliased_env(
-    env: Mapping[str, str],
-    canonical_key: str,
-    alias_key: str,
-    explicit_value: str | None,
-) -> str | None:
-    if explicit_value is not None:
-        return str(explicit_value)
-
-    canonical = _env_value(env, canonical_key)
-    alias = _env_value(env, alias_key)
-    if canonical is not None and alias is not None and canonical != alias:
-        raise ValueError(
-            f"conflicting {canonical_key} and {alias_key} values; pass an explicit "
-            "argument to override env"
-        )
-    return canonical if canonical is not None else alias
 
 
 def _resolve_sqlite_path(
@@ -138,47 +120,58 @@ def create_graph_store(
     test_mode: bool = False,
     read_only_soc_projection: bool = False,
     shared_graph_authorization: str | None = None,
-    profile: str = "production",
+    profile: str | None = None,
+    config: GraphConfig | None = None,
 ) -> GraphStore:
     """Create a GraphStore.
 
-    With no explicit backend, DSN, or graph, the domain's typed GraphConfig is
-    authoritative. Explicit arguments remain available for tests and migration
-    tooling. AGE and dual-write configurations fail before store construction
-    when their required connection settings are absent.
+    Every path uses GraphConfig, including explicit legacy arguments. A supplied
+    config is immutable: conflicting overrides are rejected. Local/dual-write
+    stores require an explicit test/offline profile; test_mode is not a profile.
     """
 
     env_map: Mapping[str, str] = os.environ if env is None else env
-    config: GraphConfig | None = None
     config_driven = backend is None and dsn is None and graph_name is None
-    if config_driven:
+    if backend is not None:
+        _normalize_backend(backend)
+    if domain is not None:
+        _validate_graph_domain(env_map, domain)
+    if config is None:
         if not domain:
-            raise GraphConfigError(
-                "create_graph_store requires domain when backend, dsn, and graph "
-                "are not explicitly provided"
-            )
-        config = GraphConfig.load(domain, profile=profile)
-        selected_backend = _normalize_backend(config.backend)
-        selected_domain = config.domain
-        if (
-            profile == "production"
-            and config.expected_backend == "age"
-            and selected_backend == "sqlite"
-        ):
-            raise GraphConfigError(
-                f"production domain '{domain}' resolved SQLite while AGE is expected"
-            )
-        dsn = config.dsn
-        graph_name = config.graph
-        if shared_graph_authorization is None:
-            shared_graph_authorization = config.authorized
-        test_mode = test_mode or config.active_test_mode
+            raise GraphConfigError("create_graph_store requires an explicit domain or GraphConfig")
+        overrides: dict[str, Any] = {key: value for key, value in (
+            ("backend", backend), ("dsn", dsn), ("graph", graph_name),
+        ) if value is not None}
+        if test_mode:
+            overrides["active_test_mode"] = True
+        config = GraphConfig.load(domain, profile=profile, env=env_map, overrides=overrides)
     else:
-        selected_backend = _normalize_backend(
-            backend if backend is not None else _env_value(env_map, "GRAPH_BACKEND")
-        )
-        selected_domain = str(domain or "graph")
+        for key, value, resolved in (
+            ("domain", domain, config.domain), ("backend", backend, config.backend),
+            ("dsn", dsn, config.dsn), ("graph", graph_name, config.graph),
+        ):
+            if value is not None and value != resolved:
+                raise GraphConfigError(f"{key} override conflicts with supplied GraphConfig")
+        if profile is not None and resolve_profile(profile) != config.profile:
+            raise GraphConfigError("profile conflicts with supplied GraphConfig")
+        if test_mode and not config.active_test_mode:
+            raise GraphConfigError("test_mode conflicts with supplied GraphConfig")
+        config_driven = True
+    config.validate()
+    # Probe before constructing any stateful adapter or SQLite outbox.
+    config.require_shared_graph()
+    selected_backend = config.backend
+    selected_domain = config.domain
+    dsn, graph_name = config.dsn, config.graph
+    test_mode = config.active_test_mode
+    if config_driven and shared_graph_authorization is None:
+        shared_graph_authorization = config.authorized
     _validate_graph_domain(env_map, selected_domain)
+
+    if selected_backend == "memory":
+        from copilot_sdk.graph.memory_store import InMemoryGraphStore
+
+        return _tenant_store(InMemoryGraphStore(domain=selected_domain), env_map)
 
     if selected_backend == "sqlite":
         sqlite_path = _resolve_sqlite_path(
@@ -211,21 +204,14 @@ def create_graph_store(
             domain=selected_domain,
             decision_id_prefix=decision_id_prefix,
         )
-        selected_dsn = _resolve_aliased_env(env_map, "GRAPH_DSN", "AGE_DSN", dsn)
+        selected_dsn = config.dsn
         if not selected_dsn or not str(selected_dsn).strip():
             primary.close()
             raise GraphConfigError(
                 "dual_write backend requires an AGE DSN; set GRAPH_DSN or "
                 f"{selected_domain.upper()}_ACTIVE_AGE_DSN"
             )
-        selected_graph = _resolve_aliased_env(
-            env_map,
-            "GRAPH_NAME",
-            "AGE_GRAPH_NAME",
-            graph_name,
-        )
-        if selected_graph is None:
-            selected_graph = _env_value(env_map, "GRAPH_DOMAIN")
+        selected_graph = config.graph
         dual_write_authorization = (
             shared_graph_authorization
             if shared_graph_authorization is not None
@@ -275,16 +261,11 @@ def create_graph_store(
     if not selected_domain.strip():
         raise ValueError("AGE graph backend requires explicit non-blank domain")
 
-    selected_dsn = _resolve_aliased_env(env_map, "GRAPH_DSN", "AGE_DSN", dsn)
+    selected_dsn = config.dsn
     if not selected_dsn or not str(selected_dsn).strip():
         raise ValueError("AGE graph backend requires explicit GRAPH_DSN")
 
-    selected_graph = _resolve_aliased_env(
-        env_map,
-        "GRAPH_NAME",
-        "AGE_GRAPH_NAME",
-        graph_name,
-    )
+    selected_graph = config.graph
     selected_graph = _validate_age_graph_name(
         selected_graph,
         test_mode=test_mode,
@@ -302,4 +283,15 @@ def create_graph_store(
     )
     adapter = adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph)
     setattr(adapter, "domain", selected_domain)
-    return _tenant_store(cast(GraphStore, adapter), env_map)
+    setattr(adapter, "graph_config", config)
+    store = _tenant_store(cast(GraphStore, adapter), env_map)
+    if config.profile == "production":
+        from copilot_sdk.graph.production import validate_production_store
+
+        try:
+            capabilities = validate_production_store(store, config)
+            setattr(adapter, "graph_capabilities", capabilities)
+        except Exception:
+            adapter.close()
+            raise
+    return store

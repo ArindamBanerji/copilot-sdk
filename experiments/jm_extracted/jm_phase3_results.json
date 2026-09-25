@@ -1,0 +1,165 @@
+{
+  "E-JM-1": {
+    "diagnosis": "design_flaw",
+    "fix": "Paired both arms on identical Person-B labels, observations, and noise; compared retained Person-A centroids with cold relearning; corrected the complete 300-decision window.",
+    "mean_advantage_pp": 10.588888888888887,
+    "ci95": [
+      10.011715606121392,
+      11.166062171656382
+    ],
+    "trials": 60,
+    "seed_base": 42
+  },
+  "E-JM-3": {
+    "diagnosis": "design_flaw",
+    "fix": "Paired target streams and operator difficulty; only centroid initialization differs among cold, partial, and warm arms.",
+    "similarities": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8,
+      1.0
+    ],
+    "speedup": [
+      0.1992708975148901,
+      0.25612498520534976,
+      0.49886277482941627,
+      1.7659241891363813,
+      1.78,
+      1.56125
+    ],
+    "speedup_spearman": 0.8285714285714287,
+    "trials_per_similarity": 60,
+    "seed_base": 42
+  },
+  "E-JM-4": {
+    "diagnosis": "design_flaw",
+    "fix": "Replaced the toy cumulative gate with the SDK's 100-decision recent-quality threshold (0.75), retained a clean control, and measured downstream quality after fail-safe human routing.",
+    "detection_rates_pct": {
+      "No degradation": 0.0,
+      "Personnel change": 100.0,
+      "Data corruption (30%)": 100.0,
+      "Gradual drift": 100.0,
+      "Adversarial (10%)": 56.99999999999999
+    },
+    "advantage_pp": {
+      "Personnel change": 28.590000000000003,
+      "Data corruption (30%)": 22.06666666666667,
+      "Gradual drift": 13.3,
+      "Adversarial (10%)": 3.12
+    },
+    "advantage_ci95": {
+      "Personnel change": 0.7113535026985258,
+      "Data corruption (30%)": 0.6858727278254413,
+      "Gradual drift": 0.7073446241235893,
+      "Adversarial (10%)": 0.7923784796964305
+    },
+    "trials": 100,
+    "seed_base": 42
+  },
+  "E-JM-5": {
+    "diagnosis": "bug",
+    "fix": "Replaced Spearman/Kendall on argsort arrays with direct value-based rank correlations; preserved the archived online estimator and seeds.",
+    "final_metrics": {
+      "spearman": 0.4399285714285715,
+      "top3": 0.636,
+      "cosine": 0.8253864013759373,
+      "kendall": 0.3523809523809524
+    },
+    "final_ci95_half_width": {
+      "spearman": 0.029495919623884554,
+      "top3": 0.019874260785223065,
+      "cosine": 0.011465461515766344,
+      "kendall": 0.024587592977373885
+    },
+    "runs": 500,
+    "seed": 42
+  },
+  "E-JM-6": {
+    "diagnosis": "design_flaw",
+    "fix": "Replaced the toy DK loop with existing real five-copilot K-learning outputs; utility is routing quality times action accuracy and scope uses the SDK recent-q threshold 0.75.",
+    "copilots": [
+      "dataops",
+      "trading",
+      "purchasing",
+      "soc",
+      "s2p"
+    ],
+    "seeds": [
+      20260912,
+      20261657,
+      20261988,
+      20261237,
+      20261189
+    ],
+    "learning_fit": {
+      "baseline": 0.39939605409730117,
+      "amplitude": 0.22000552258285458,
+      "exponent": 0.6432160647418932,
+      "r2": 0.9549281799061008
+    },
+    "control_fit": {
+      "baseline": 0.39035758209916865,
+      "amplitude": 0.011825278450289602,
+      "exponent": 3.6497388891948472,
+      "r2": 0.0661132757864098
+    },
+    "final_utility_gain_pp": 21.955999999999996,
+    "eligible_scope": [
+      3,
+      3,
+      4,
+      3,
+      3,
+      5,
+      4,
+      5,
+      5,
+      5
+    ],
+    "combined_fit": {
+      "baseline": 0.24336695320697824,
+      "amplitude": 0.40255218931845294,
+      "exponent": 1.2430864486735629,
+      "r2": 0.794792739302067
+    },
+    "bootstrap_seed": 6042,
+    "bootstrap_samples": 2000,
+    "bootstrap_ci95": [
+      0.3550377591957918,
+      1.8172631468156355
+    ]
+  },
+  "E-JM-7": {
+    "diagnosis": "design_flaw",
+    "fix": "Implemented truly independent per-entity stores and a distinct hierarchical semantic-times-judgment arm with shared global prior; all arms use the same imbalanced entity stream.",
+    "late_accuracy": {
+      "global": 0.6944,
+      "separate": 0.74484,
+      "hierarchical": 0.7410800000000001
+    },
+    "hierarchical_vs_global_pp": 4.668,
+    "hierarchical_vs_global_ci95": [
+      3.8998539241257806,
+      5.43614607587422
+    ],
+    "trials": 50,
+    "seed_base": 42
+  },
+  "FIGURE-2": {
+    "diagnosis": "bug",
+    "fix": "The Phase 2 generator ignored action when sampling factors. The corrected stream samples around action-conditioned ground-truth centroids and updates the matching cell.",
+    "snapshots": [
+      50,
+      500,
+      3000
+    ],
+    "silhouette_scores": {
+      "50": 0.2573205929595475,
+      "500": 0.6654399790801792,
+      "3000": 0.7005699875351089
+    },
+    "seed": 42
+  }
+}

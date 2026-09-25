@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import time
 from pathlib import Path
@@ -27,6 +28,8 @@ def save_fingerprint(
     base_path: Path | str | None = None,
     *,
     source_url: str | None = None,
+    graph_store: Any | None = None,
+    profile: str | None = None,
 ) -> Path:
     normalized_domain = _safe_domain(domain)
     directory = fingerprint_dir(base_path)
@@ -38,19 +41,52 @@ def save_fingerprint(
     }
     if source_url:
         payload["source_url"] = str(source_url)
+    if profile == "production":
+        if graph_store is None:
+            raise RuntimeError("Production fingerprint persistence requires GraphStore.write_fingerprint")
+        graph_store.write_fingerprint(
+            fingerprint_id=f"{normalized_domain}-{hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]}",
+            domain=normalized_domain,
+            factor_names=list(payload["fingerprint"].get("factor_names", [])) if isinstance(payload["fingerprint"], Mapping) else [],
+            factor_stats=dict(payload["fingerprint"] if isinstance(payload["fingerprint"], Mapping) else {}),
+            skipped_incompatible=int(payload["fingerprint"].get("skipped_incompatible", 0)) if isinstance(payload["fingerprint"], Mapping) else 0,
+            window=int(payload["fingerprint"].get("window", 0)) if isinstance(payload["fingerprint"], Mapping) else 0,
+            metadata={"source_url": source_url, "provenance": "graph"},
+        )
+        return Path(f"graph://fingerprints/{normalized_domain}")
     path = directory / f"{normalized_domain}.json"
     write_json_atomic(path, payload)
     return path
 
 
-def load_fingerprints(base_path: Path | str | None = None) -> dict[str, Any]:
-    loaded, _warnings = load_fingerprints_with_warnings(base_path)
+def load_fingerprints(
+    base_path: Path | str | None = None,
+    *,
+    graph_store: Any | None = None,
+    profile: str | None = None,
+) -> dict[str, Any]:
+    loaded, _warnings = load_fingerprints_with_warnings(
+        base_path, graph_store=graph_store, profile=profile
+    )
     return loaded
 
 
 def load_fingerprints_with_warnings(
     base_path: Path | str | None = None,
+    *,
+    graph_store: Any | None = None,
+    profile: str | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    if profile == "production":
+        if graph_store is None:
+            raise RuntimeError("Production fingerprint discovery requires GraphStore.list_fingerprints")
+        loaded: dict[str, Any] = {}
+        for payload in graph_store.list_fingerprints():
+            if isinstance(payload, Mapping):
+                domain = _safe_domain(payload.get("domain"))
+                if domain:
+                    loaded[domain] = dict(payload)
+        return loaded, []
     directory = fingerprint_dir(base_path)
     if not directory.exists():
         return {}, []

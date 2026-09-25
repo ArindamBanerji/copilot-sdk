@@ -8,7 +8,7 @@ function statusFor(system?: EnterpriseSystemHealth) {
   }
 
   const connected = system.connected === true || system.live === true;
-  const label = system.source === "fixture" ? "Fixture" : connected ? "Live" : "Offline";
+  const label = system.cached ? "Cached" : system.source === "fixture" ? "Fixture" : connected ? "Live" : "Unavailable";
   return { label, connected };
 }
 
@@ -77,7 +77,7 @@ export function EnterpriseHealthBar() {
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         <HealthPill label="SAP S/4HANA" system={health?.sap} metric={`${health?.sap?.recordCount ?? 0} records`} />
         <HealthPill label="Celonis" system={health?.celonis} metric={`${health?.celonis?.kpiCount ?? 0} KPIs`} />
-        <HealthPill label="Graph" system={health?.graph} metric={`${health?.graph?.nodeCount ?? 0} nodes`} />
+        <HealthPill label="Graph" system={health?.graph} metric={`${health?.graph?.pipelineCount ?? 0} pipelines`} />
       </div>
       {health?.combinedImpact ? (
         <div data-testid="enterprise-impact" className="mt-4 rounded-md border border-purple-300/20 bg-purple-500/10 px-3 py-2 text-sm text-purple-100">

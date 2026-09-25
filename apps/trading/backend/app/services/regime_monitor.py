@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
+import math
 from typing import Any, Optional
 
 
@@ -69,6 +71,50 @@ class RegimeMonitor:
                 self._regime_break_active = True
                 event = "regime_break"
         return event
+
+    def restore(self, decisions: list[dict[str, Any]]) -> int:
+        """Replay persisted tags without scoring, learning or writing decisions.
+
+        Do not assume a store's default ordering. Tagged rows with missing or
+        invalid chronology fail startup rather than restore a misleading throttle.
+        """
+        history: list[tuple[float, str, str]] = []
+        seen: set[str] = set()
+        for row in decisions:
+            if row.get("domain", "trading") != "trading" or row.get("archived"):
+                continue
+            metadata = row.get("metadata") or {}
+            regime_metadata = metadata.get("regime_metadata") or {}
+            regime = metadata.get("regime_tag") or regime_metadata.get("regime")
+            if not regime:
+                continue  # Legacy untagged rows cannot establish a market regime.
+            if regime not in {"trending", "ranging", "volatile"}:
+                raise ValueError(f"Unknown persisted regime: {regime}")
+            decision_id = str(row.get("decision_id") or "")
+            if not decision_id:
+                raise ValueError("Tagged decision has no identity")
+            if decision_id in seen:
+                continue
+            seen.add(decision_id)
+            value = row.get("created_at", row.get("timestamp_epoch"))
+            if value is None:
+                value = regime_metadata.get("tagged_at")
+            try:
+                timestamp = float(value)
+            except (TypeError, ValueError):
+                parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+                timestamp = (parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)).timestamp()
+            if not math.isfinite(timestamp):
+                raise ValueError("Tagged decision has invalid chronology")
+            history.append((timestamp, decision_id, regime))
+        self._history = []
+        self._previous_regime = None
+        self._new_regime = None
+        self._decisions_in_new_regime = 0
+        self._regime_break_active = False
+        for _, _, regime in sorted(history):
+            self.record(regime)
+        return len(history)
 
     @property
     def current_regime(self) -> Optional[str]:

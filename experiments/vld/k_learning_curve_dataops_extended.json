@@ -1,0 +1,3072 @@
+{
+  "copilot": "dataops",
+  "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+  "centroid_source": "real_centroids_v1.json",
+  "category_names": [
+    "schema_change",
+    "volume_anomaly",
+    "quality_anomaly",
+    "freshness_violation",
+    "pipeline_failure",
+    "transform_drift"
+  ],
+  "action_names": [
+    "auto_approve",
+    "investigate",
+    "escalate_to_owner",
+    "pause_downstream",
+    "refer_to_specialist"
+  ],
+  "factor_names": [
+    "impact_scope",
+    "source_reliability",
+    "recurrence_frequency",
+    "downstream_urgency",
+    "data_freshness",
+    "business_criticality"
+  ],
+  "dimension_sources": {
+    "0": "schema_registry",
+    "1": "pipeline_monitor",
+    "2": "quality_rules",
+    "3": "lineage_graph",
+    "4": "freshness_tracker",
+    "5": "business_catalog"
+  },
+  "total_decisions": 2000,
+  "checkpoint_interval": 100,
+  "evaluation_scenarios_per_checkpoint": 50,
+  "budget": 2,
+  "k_bounds": [
+    0.1,
+    3.0
+  ],
+  "learning_rates": {
+    "positive": 0.02,
+    "negative": 0.005
+  },
+  "random_seed": 20260912,
+  "starvation_epsilon": 0.02,
+  "checkpoints": [
+    {
+      "decision_count": 100,
+      "learning_arm": {
+        "routing_quality": 0.5,
+        "accuracy": 0.8,
+        "saves": 38,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.495,
+            0.475,
+            1.1800000000000006,
+            0.495,
+            0.5,
+            0.49
+          ],
+          "volume_anomaly": [
+            0.485,
+            0.485,
+            0.6700000000000002,
+            0.5,
+            0.48,
+            0.51
+          ],
+          "quality_anomaly": [
+            0.48,
+            0.49,
+            0.6000000000000001,
+            0.44499999999999995,
+            0.495,
+            0.9400000000000004
+          ],
+          "freshness_violation": [
+            0.535,
+            0.6150000000000001,
+            0.5,
+            0.485,
+            0.5,
+            0.6900000000000002
+          ],
+          "pipeline_failure": [
+            0.8400000000000003,
+            0.48,
+            0.48,
+            0.5,
+            0.56,
+            0.505
+          ],
+          "transform_drift": [
+            0.49,
+            0.6200000000000001,
+            0.6950000000000002,
+            0.475,
+            0.9750000000000004,
+            0.5
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 17,
+          "total_category_dims": 36,
+          "starvation_rate": 0.4722222222222222,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 3
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "schema_change",
+              "dimension": 5
+            },
+            {
+              "category": "volume_anomaly",
+              "dimension": 0
+            },
+            {
+              "category": "volume_anomaly",
+              "dimension": 1
+            },
+            {
+              "category": "volume_anomaly",
+              "dimension": 3
+            },
+            {
+              "category": "volume_anomaly",
+              "dimension": 5
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 1
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 3
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 5
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 5
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.44,
+        "accuracy": 0.66,
+        "saves": 31,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 200,
+      "learning_arm": {
+        "routing_quality": 0.52,
+        "accuracy": 0.72,
+        "saves": 32,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.495,
+            0.475,
+            1.8200000000000012,
+            0.5750000000000001,
+            0.5,
+            0.47
+          ],
+          "volume_anomaly": [
+            0.485,
+            0.5,
+            0.9750000000000004,
+            0.545,
+            0.47,
+            0.5950000000000001
+          ],
+          "quality_anomaly": [
+            0.48,
+            0.48,
+            0.5750000000000001,
+            0.4149999999999999,
+            0.495,
+            1.4600000000000009
+          ],
+          "freshness_violation": [
+            0.525,
+            0.9150000000000004,
+            0.5,
+            0.46499999999999997,
+            0.495,
+            1.0100000000000005
+          ],
+          "pipeline_failure": [
+            1.2400000000000007,
+            0.475,
+            0.44499999999999995,
+            0.5,
+            0.5750000000000001,
+            0.45499999999999996
+          ],
+          "transform_drift": [
+            0.49,
+            0.7800000000000002,
+            0.7600000000000002,
+            0.45499999999999996,
+            1.1700000000000006,
+            0.52
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 9,
+          "total_category_dims": 36,
+          "starvation_rate": 0.25,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "volume_anomaly",
+              "dimension": 0
+            },
+            {
+              "category": "volume_anomaly",
+              "dimension": 1
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.42,
+        "accuracy": 0.56,
+        "saves": 24,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 300,
+      "learning_arm": {
+        "routing_quality": 0.58,
+        "accuracy": 0.88,
+        "saves": 37,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.495,
+            0.46499999999999997,
+            2.2200000000000015,
+            0.56,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.48,
+            0.555,
+            1.1600000000000006,
+            0.5750000000000001,
+            0.44999999999999996,
+            0.7300000000000002
+          ],
+          "quality_anomaly": [
+            0.44499999999999995,
+            0.44499999999999995,
+            0.6950000000000002,
+            0.3899999999999999,
+            0.495,
+            2.4200000000000017
+          ],
+          "freshness_violation": [
+            0.55,
+            1.0300000000000005,
+            0.5,
+            0.43499999999999994,
+            0.495,
+            1.4350000000000012
+          ],
+          "pipeline_failure": [
+            1.620000000000001,
+            0.44999999999999996,
+            0.41999999999999993,
+            0.5,
+            0.5850000000000001,
+            0.41999999999999993
+          ],
+          "transform_drift": [
+            0.49,
+            0.9200000000000004,
+            0.9950000000000004,
+            0.43499999999999994,
+            1.3450000000000013,
+            0.555
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 7,
+          "total_category_dims": 36,
+          "starvation_rate": 0.19444444444444445,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.41,
+        "accuracy": 0.6,
+        "saves": 23,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 400,
+      "learning_arm": {
+        "routing_quality": 0.53,
+        "accuracy": 0.84,
+        "saves": 38,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.495,
+            0.46499999999999997,
+            2.760000000000002,
+            0.5850000000000001,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.48,
+            0.6100000000000001,
+            1.3750000000000013,
+            0.5650000000000001,
+            0.43499999999999994,
+            0.7850000000000003
+          ],
+          "quality_anomaly": [
+            0.42499999999999993,
+            0.42999999999999994,
+            1.0200000000000005,
+            0.3849999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.56,
+            1.1150000000000013,
+            0.5,
+            0.4149999999999999,
+            0.495,
+            1.6900000000000024
+          ],
+          "pipeline_failure": [
+            2.0800000000000014,
+            0.42999999999999994,
+            0.4049999999999999,
+            0.5,
+            0.6350000000000001,
+            0.3949999999999999
+          ],
+          "transform_drift": [
+            0.49,
+            1.0600000000000005,
+            1.2200000000000009,
+            0.3899999999999999,
+            1.4650000000000019,
+            0.545
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 7,
+          "total_category_dims": 36,
+          "starvation_rate": 0.19444444444444445,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.4,
+        "accuracy": 0.64,
+        "saves": 28,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 500,
+      "learning_arm": {
+        "routing_quality": 0.63,
+        "accuracy": 0.9,
+        "saves": 38,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.505,
+            0.46499999999999997,
+            3.0,
+            0.7300000000000002,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.46499999999999997,
+            0.6050000000000001,
+            1.5800000000000023,
+            0.5650000000000001,
+            0.43499999999999994,
+            1.0100000000000005
+          ],
+          "quality_anomaly": [
+            0.4149999999999999,
+            0.41999999999999993,
+            1.0850000000000009,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.5750000000000001,
+            1.3150000000000015,
+            0.5,
+            0.3899999999999999,
+            0.495,
+            1.9250000000000032
+          ],
+          "pipeline_failure": [
+            2.800000000000002,
+            0.4049999999999999,
+            0.3849999999999999,
+            0.5,
+            0.6850000000000002,
+            0.34999999999999987
+          ],
+          "transform_drift": [
+            0.49,
+            1.3200000000000007,
+            1.420000000000001,
+            0.35499999999999987,
+            1.5350000000000026,
+            0.54
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 7,
+          "total_category_dims": 36,
+          "starvation_rate": 0.19444444444444445,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.44,
+        "accuracy": 0.58,
+        "saves": 22,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 600,
+      "learning_arm": {
+        "routing_quality": 0.61,
+        "accuracy": 0.9,
+        "saves": 40,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.505,
+            0.475,
+            3.0,
+            0.7950000000000003,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.46499999999999997,
+            0.6000000000000001,
+            1.925000000000003,
+            0.56,
+            0.43499999999999994,
+            1.0850000000000015
+          ],
+          "quality_anomaly": [
+            0.3899999999999999,
+            0.3999999999999999,
+            1.2250000000000014,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.6200000000000001,
+            1.5100000000000018,
+            0.5,
+            0.3749999999999999,
+            0.495,
+            2.3100000000000036
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.3999999999999999,
+            0.34499999999999986,
+            0.5,
+            0.7050000000000002,
+            0.30999999999999983
+          ],
+          "transform_drift": [
+            0.49,
+            1.560000000000001,
+            1.665000000000002,
+            0.32499999999999984,
+            1.9750000000000039,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 7,
+          "total_category_dims": 36,
+          "starvation_rate": 0.19444444444444445,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.43,
+        "accuracy": 0.66,
+        "saves": 28,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 700,
+      "learning_arm": {
+        "routing_quality": 0.6,
+        "accuracy": 0.92,
+        "saves": 42,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.44999999999999996,
+            3.0,
+            0.8850000000000003,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.46499999999999997,
+            0.5850000000000001,
+            2.130000000000004,
+            0.56,
+            0.43499999999999994,
+            1.2150000000000023
+          ],
+          "quality_anomaly": [
+            0.3599999999999999,
+            0.3899999999999999,
+            1.2500000000000027,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.6850000000000002,
+            1.625000000000002,
+            0.5,
+            0.34999999999999987,
+            0.485,
+            2.7250000000000045
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.3799999999999999,
+            0.31999999999999984,
+            0.5,
+            0.7000000000000002,
+            0.2949999999999998
+          ],
+          "transform_drift": [
+            0.49,
+            1.740000000000001,
+            1.7950000000000024,
+            0.31999999999999984,
+            2.1000000000000045,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 7,
+          "total_category_dims": 36,
+          "starvation_rate": 0.19444444444444445,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.43,
+        "accuracy": 0.62,
+        "saves": 27,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 800,
+      "learning_arm": {
+        "routing_quality": 0.6,
+        "accuracy": 0.82,
+        "saves": 37,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.47,
+            3.0,
+            1.0400000000000005,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45999999999999996,
+            0.5850000000000001,
+            2.3150000000000053,
+            0.56,
+            0.42999999999999994,
+            1.4100000000000035
+          ],
+          "quality_anomaly": [
+            0.31999999999999984,
+            0.3799999999999999,
+            1.4550000000000036,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.6950000000000002,
+            1.7550000000000028,
+            0.5,
+            0.34999999999999987,
+            0.485,
+            2.9850000000000003
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.3699999999999999,
+            0.2999999999999998,
+            0.5,
+            0.7100000000000002,
+            0.2799999999999998
+          ],
+          "transform_drift": [
+            0.49,
+            1.9950000000000014,
+            1.9550000000000025,
+            0.31999999999999984,
+            2.2450000000000054,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 7,
+          "total_category_dims": 36,
+          "starvation_rate": 0.19444444444444445,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 4
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.45,
+        "accuracy": 0.6,
+        "saves": 26,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 900,
+      "learning_arm": {
+        "routing_quality": 0.57,
+        "accuracy": 0.8,
+        "saves": 35,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.515,
+            3.0,
+            1.160000000000001,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45999999999999996,
+            0.5800000000000001,
+            2.6850000000000063,
+            0.56,
+            0.42499999999999993,
+            1.4750000000000048
+          ],
+          "quality_anomaly": [
+            0.30999999999999983,
+            0.3749999999999999,
+            1.5700000000000047,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.6850000000000002,
+            1.8850000000000036,
+            0.5,
+            0.32999999999999985,
+            0.475,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.35499999999999987,
+            0.3049999999999998,
+            0.49,
+            0.7100000000000002,
+            0.24999999999999978
+          ],
+          "transform_drift": [
+            0.49,
+            2.225000000000002,
+            2.2950000000000026,
+            0.31999999999999984,
+            2.6200000000000063,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 7,
+          "total_category_dims": 36,
+          "starvation_rate": 0.19444444444444445,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 1
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.45,
+        "accuracy": 0.6,
+        "saves": 25,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1000,
+      "learning_arm": {
+        "routing_quality": 0.64,
+        "accuracy": 0.86,
+        "saves": 38,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.495,
+            0.535,
+            3.0,
+            1.240000000000002,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45999999999999996,
+            0.5750000000000001,
+            2.945000000000007,
+            0.56,
+            0.42499999999999993,
+            1.6050000000000055
+          ],
+          "quality_anomaly": [
+            0.2799999999999998,
+            0.3699999999999999,
+            1.6200000000000063,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7300000000000002,
+            2.070000000000004,
+            0.5,
+            0.31999999999999984,
+            0.44999999999999996,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.34999999999999987,
+            0.32499999999999984,
+            0.485,
+            0.7150000000000002,
+            0.23999999999999977
+          ],
+          "transform_drift": [
+            0.49,
+            2.3950000000000022,
+            2.635000000000003,
+            0.31999999999999984,
+            2.790000000000007,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 6,
+          "total_category_dims": 36,
+          "starvation_rate": 0.16666666666666666,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.49,
+        "accuracy": 0.62,
+        "saves": 26,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1100,
+      "learning_arm": {
+        "routing_quality": 0.59,
+        "accuracy": 0.88,
+        "saves": 38,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.49,
+            0.535,
+            3.0,
+            1.2800000000000025,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45999999999999996,
+            0.5750000000000001,
+            3.0,
+            0.56,
+            0.41999999999999993,
+            1.7200000000000066
+          ],
+          "quality_anomaly": [
+            0.2699999999999998,
+            0.35499999999999987,
+            1.7950000000000075,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7450000000000002,
+            2.185000000000004,
+            0.5,
+            0.3049999999999998,
+            0.42999999999999994,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.34499999999999986,
+            0.3599999999999999,
+            0.485,
+            0.6850000000000002,
+            0.22499999999999976
+          ],
+          "transform_drift": [
+            0.49,
+            2.5450000000000026,
+            2.915000000000003,
+            0.31999999999999984,
+            3.0,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 6,
+          "total_category_dims": 36,
+          "starvation_rate": 0.16666666666666666,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "pipeline_failure",
+              "dimension": 3
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.5,
+        "accuracy": 0.74,
+        "saves": 31,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1200,
+      "learning_arm": {
+        "routing_quality": 0.58,
+        "accuracy": 0.76,
+        "saves": 28,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.49,
+            0.52,
+            3.0,
+            1.2750000000000035,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45999999999999996,
+            0.5700000000000001,
+            2.9800000000000004,
+            0.56,
+            0.4149999999999999,
+            1.9700000000000075
+          ],
+          "quality_anomaly": [
+            0.2599999999999998,
+            0.33999999999999986,
+            2.205000000000009,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7600000000000002,
+            2.3400000000000043,
+            0.5,
+            0.2949999999999998,
+            0.4149999999999999,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.33499999999999985,
+            0.3699999999999999,
+            0.47,
+            0.7250000000000002,
+            0.20999999999999974
+          ],
+          "transform_drift": [
+            0.49,
+            2.760000000000003,
+            3.0,
+            0.31999999999999984,
+            2.995,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 5,
+          "total_category_dims": 36,
+          "starvation_rate": 0.1388888888888889,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.46,
+        "accuracy": 0.54,
+        "saves": 17,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1300,
+      "learning_arm": {
+        "routing_quality": 0.64,
+        "accuracy": 0.92,
+        "saves": 39,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.49,
+            0.49,
+            3.0,
+            1.4600000000000048,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45999999999999996,
+            0.555,
+            3.0,
+            0.555,
+            0.4149999999999999,
+            2.040000000000009
+          ],
+          "quality_anomaly": [
+            0.2549999999999998,
+            0.33499999999999985,
+            2.26000000000001,
+            0.3749999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7550000000000002,
+            2.525000000000005,
+            0.5,
+            0.2849999999999998,
+            0.4049999999999999,
+            2.995
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.33499999999999985,
+            0.3649999999999999,
+            0.43999999999999995,
+            0.7250000000000002,
+            0.20499999999999974
+          ],
+          "transform_drift": [
+            0.49,
+            2.8450000000000033,
+            3.0,
+            0.31999999999999984,
+            3.0,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 6,
+          "total_category_dims": 36,
+          "starvation_rate": 0.16666666666666666,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 1
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.46,
+        "accuracy": 0.64,
+        "saves": 25,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1400,
+      "learning_arm": {
+        "routing_quality": 0.6,
+        "accuracy": 0.92,
+        "saves": 40,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.49,
+            0.525,
+            3.0,
+            1.5450000000000053,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45499999999999996,
+            0.555,
+            3.0,
+            0.555,
+            0.4099999999999999,
+            2.21500000000001
+          ],
+          "quality_anomaly": [
+            0.23499999999999976,
+            0.31999999999999984,
+            2.415000000000011,
+            0.3699999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7500000000000002,
+            2.6700000000000053,
+            0.5,
+            0.2799999999999998,
+            0.3949999999999999,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.31499999999999984,
+            0.3749999999999999,
+            0.43999999999999995,
+            0.7350000000000002,
+            0.19499999999999973
+          ],
+          "transform_drift": [
+            0.49,
+            3.0,
+            3.0,
+            0.31999999999999984,
+            2.995,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 5,
+          "total_category_dims": 36,
+          "starvation_rate": 0.1388888888888889,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.43,
+        "accuracy": 0.62,
+        "saves": 25,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1500,
+      "learning_arm": {
+        "routing_quality": 0.62,
+        "accuracy": 0.92,
+        "saves": 43,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.49,
+            0.5,
+            3.0,
+            1.570000000000007,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45499999999999996,
+            0.555,
+            2.995,
+            0.555,
+            0.4099999999999999,
+            2.3950000000000116
+          ],
+          "quality_anomaly": [
+            0.21499999999999975,
+            0.30999999999999983,
+            2.5000000000000124,
+            0.3649999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7350000000000002,
+            2.8200000000000056,
+            0.5,
+            0.2799999999999998,
+            0.3949999999999999,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.30999999999999983,
+            0.3599999999999999,
+            0.43499999999999994,
+            0.7250000000000002,
+            0.18999999999999972
+          ],
+          "transform_drift": [
+            0.49,
+            3.0,
+            3.0,
+            0.31999999999999984,
+            3.0,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 6,
+          "total_category_dims": 36,
+          "starvation_rate": 0.16666666666666666,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 1
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.5,
+        "accuracy": 0.72,
+        "saves": 33,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1600,
+      "learning_arm": {
+        "routing_quality": 0.65,
+        "accuracy": 0.84,
+        "saves": 37,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.49,
+            0.47,
+            3.0,
+            1.580000000000008,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45499999999999996,
+            0.55,
+            2.99,
+            0.555,
+            0.4099999999999999,
+            2.4200000000000137
+          ],
+          "quality_anomaly": [
+            0.20999999999999974,
+            0.3049999999999998,
+            2.4700000000000135,
+            0.3649999999999999,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7450000000000002,
+            3.0,
+            0.5,
+            0.2799999999999998,
+            0.3949999999999999,
+            2.995
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.2899999999999998,
+            0.35499999999999987,
+            0.4099999999999999,
+            0.6800000000000002,
+            0.17999999999999972
+          ],
+          "transform_drift": [
+            0.49,
+            3.0,
+            3.0,
+            0.31999999999999984,
+            3.0,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 5,
+          "total_category_dims": 36,
+          "starvation_rate": 0.1388888888888889,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.5,
+        "accuracy": 0.64,
+        "saves": 27,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1700,
+      "learning_arm": {
+        "routing_quality": 0.62,
+        "accuracy": 0.9,
+        "saves": 40,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.49,
+            0.515,
+            3.0,
+            1.7100000000000088,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45499999999999996,
+            0.55,
+            2.99,
+            0.55,
+            0.3999999999999999,
+            2.570000000000015
+          ],
+          "quality_anomaly": [
+            0.20499999999999974,
+            0.2999999999999998,
+            2.505000000000014,
+            0.35499999999999987,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7900000000000003,
+            3.0,
+            0.5,
+            0.2799999999999998,
+            0.3899999999999999,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.2799999999999998,
+            0.33999999999999986,
+            0.4099999999999999,
+            0.7450000000000002,
+            0.1749999999999997
+          ],
+          "transform_drift": [
+            0.49,
+            3.0,
+            3.0,
+            0.31999999999999984,
+            2.99,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 6,
+          "total_category_dims": 36,
+          "starvation_rate": 0.16666666666666666,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 1
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.46,
+        "accuracy": 0.66,
+        "saves": 28,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1800,
+      "learning_arm": {
+        "routing_quality": 0.54,
+        "accuracy": 0.88,
+        "saves": 42,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.485,
+            0.5900000000000001,
+            3.0,
+            1.78000000000001,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45499999999999996,
+            0.55,
+            3.0,
+            0.55,
+            0.3999999999999999,
+            2.6600000000000157
+          ],
+          "quality_anomaly": [
+            0.19999999999999973,
+            0.2999999999999998,
+            2.695000000000015,
+            0.34999999999999987,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.7950000000000003,
+            3.0,
+            0.5,
+            0.2799999999999998,
+            0.3899999999999999,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.2649999999999998,
+            0.31499999999999984,
+            0.3999999999999999,
+            0.7500000000000002,
+            0.1699999999999997
+          ],
+          "transform_drift": [
+            0.49,
+            3.0,
+            3.0,
+            0.31999999999999984,
+            3.0,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 5,
+          "total_category_dims": 36,
+          "starvation_rate": 0.1388888888888889,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.43,
+        "accuracy": 0.68,
+        "saves": 32,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 1900,
+      "learning_arm": {
+        "routing_quality": 0.68,
+        "accuracy": 0.94,
+        "saves": 37,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.485,
+            0.5750000000000001,
+            3.0,
+            1.9300000000000108,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.45499999999999996,
+            0.54,
+            2.995,
+            0.545,
+            0.3949999999999999,
+            2.8000000000000163
+          ],
+          "quality_anomaly": [
+            0.18999999999999972,
+            0.2949999999999998,
+            2.8550000000000155,
+            0.34499999999999986,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.8400000000000003,
+            2.995,
+            0.5,
+            0.2749999999999998,
+            0.3899999999999999,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.23999999999999977,
+            0.31999999999999984,
+            0.3999999999999999,
+            0.7650000000000002,
+            0.1699999999999997
+          ],
+          "transform_drift": [
+            0.49,
+            2.995,
+            3.0,
+            0.31999999999999984,
+            2.995,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 5,
+          "total_category_dims": 36,
+          "starvation_rate": 0.1388888888888889,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.5,
+        "accuracy": 0.66,
+        "saves": 23,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "decision_count": 2000,
+      "learning_arm": {
+        "routing_quality": 0.63,
+        "accuracy": 0.9,
+        "saves": 40,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.485,
+            0.5800000000000001,
+            3.0,
+            1.995000000000012,
+            0.5,
+            0.45999999999999996
+          ],
+          "volume_anomaly": [
+            0.44499999999999995,
+            0.535,
+            2.995,
+            0.545,
+            0.3949999999999999,
+            2.935000000000018
+          ],
+          "quality_anomaly": [
+            0.1749999999999997,
+            0.2899999999999998,
+            2.8950000000000164,
+            0.34499999999999986,
+            0.495,
+            3.0
+          ],
+          "freshness_violation": [
+            0.8700000000000003,
+            2.995,
+            0.5,
+            0.2749999999999998,
+            0.3899999999999999,
+            3.0
+          ],
+          "pipeline_failure": [
+            3.0,
+            0.22999999999999976,
+            0.2899999999999998,
+            0.3999999999999999,
+            0.8000000000000003,
+            0.1699999999999997
+          ],
+          "transform_drift": [
+            0.49,
+            3.0,
+            3.0,
+            0.31999999999999984,
+            2.99,
+            0.53
+          ]
+        },
+        "starvation": {
+          "epsilon": 0.02,
+          "baseline_weight": 0.5,
+          "starved_category_dims": 5,
+          "total_category_dims": 36,
+          "starvation_rate": 0.1388888888888889,
+          "starved_dims": [
+            {
+              "category": "schema_change",
+              "dimension": 0
+            },
+            {
+              "category": "schema_change",
+              "dimension": 4
+            },
+            {
+              "category": "quality_anomaly",
+              "dimension": 4
+            },
+            {
+              "category": "freshness_violation",
+              "dimension": 2
+            },
+            {
+              "category": "transform_drift",
+              "dimension": 0
+            }
+          ]
+        }
+      },
+      "control_arm": {
+        "routing_quality": 0.46,
+        "accuracy": 0.64,
+        "saves": 27,
+        "hurts": 0,
+        "k_weights_by_category": {
+          "schema_change": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "volume_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "quality_anomaly": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "freshness_violation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pipeline_failure": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transform_drift": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    }
+  ]
+}

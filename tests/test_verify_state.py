@@ -19,127 +19,6 @@ from copilot_sdk.migrate.verify_state import (
 )
 
 
-class FakeConn:  # MOCK-OK: in-memory AGE boundary double for migration Cypher topology.
-    """Minimal committed/uncommitted AGE model for migration verification tests."""
-
-    _NODE_MARKERS = {
-        "CREATE (d:Decision": "Decision",
-        "CREATE (o:Outcome": "Outcome",
-        "CREATE (c:CentroidCheckpoint": "CentroidCheckpoint",
-        "CREATE (r:EvidenceReceipt": "EvidenceReceipt",
-    }
-
-    def __init__(self) -> None:
-        self.nodes: list[dict[str, str | None]] = []
-        self.edges: list[dict[str, str | None]] = []
-        self._pending_nodes: list[dict[str, str | None]] = []
-        self._pending_edges: list[dict[str, str | None]] = []
-        self._last_row: tuple[int, ...] | None = None
-        self._last_rows: list[tuple[int, ...]] = []
-        self.queries: list[str] = []
-        self.commit_count = 0
-        self.rollback_count = 0
-        self.closed = False
-
-    @staticmethod
-    def _literal(query: str, name: str) -> str | None:
-        match = re.search(rf"{name}: '((?:\\\\'|[^'])*)'", query)
-        return match.group(1).replace("\\'", "'") if match else None
-
-    def _topology_count(self, label: str, query: str) -> int:
-        domain = self._literal(query, "domain")
-        return sum(
-            node["label"] == label
-            and node["domain"] == domain
-            and node["migration_source"] == "sqlite"
-            for node in self.nodes
-        )
-
-    def execute(self, query: str) -> FakeConn:
-        """Handle the constrained MATCH/CREATE/count patterns emitted by the writer."""
-        self.queries.append(query)
-        self._last_row = None
-        self._last_rows = []
-
-        if "MATCH (d:Decision" in query and "RETURN d" in query:
-            # The migration's MATCH-before-CREATE idempotency check sees no
-            # existing node in these fresh test graphs.
-            return self
-
-        for marker, label in self._NODE_MARKERS.items():
-            if marker in query:
-                self._pending_nodes.append(
-                    {
-                        "label": label,
-                        "domain": self._literal(query, "domain"),
-                        "decision_id": self._literal(query, "decision_id"),
-                        "migration_source": self._literal(query, "migration_source"),
-                    }
-                )
-                return self
-
-        edge_match = re.search(r"CREATE \(d\)-\[:([A-Z_]+)", query)
-        if edge_match:
-            self._pending_edges.append(
-                {
-                    "label": edge_match.group(1),
-                    "domain": self._literal(query, "domain"),
-                    "decision_id": self._literal(query, "decision_id"),
-                }
-            )
-            return self
-
-        if "RETURN count(DISTINCT o) AS outcomes, count(r) AS edges" in query:
-            domain = self._literal(query, "domain")
-            decision_id = self._literal(query, "decision_id")
-            outcome_count = sum(
-                node["label"] == "Outcome"
-                and node["domain"] == domain
-                and node["decision_id"] == decision_id
-                for node in self.nodes
-            )
-            edge_count = sum(
-                edge["label"] == "HAS_OUTCOME"
-                and edge["domain"] == domain
-                and edge["decision_id"] == decision_id
-                for edge in self.edges
-            )
-            self._last_row = (outcome_count, edge_count)
-            return self
-
-        if "RETURN count(r) AS cnt" in query and "HAS_OUTCOME" in query:
-            domain = self._literal(query, "domain")
-            self._last_row = (
-                sum(edge["label"] == "HAS_OUTCOME" and edge["domain"] == domain for edge in self.edges),
-            )
-            return self
-
-        for label in self._NODE_MARKERS.values():
-            if f"MATCH ({label[0].lower()}:" in query and "RETURN count(" in query:
-                self._last_row = (self._topology_count(label, query),)
-                return self
-        return self
-
-    def fetchone(self) -> tuple[int, ...] | None:
-        return self._last_row
-
-    def fetchall(self) -> list[tuple[int, ...]]:
-        return self._last_rows
-
-    def commit(self) -> None:
-        self.nodes.extend(self._pending_nodes)
-        self.edges.extend(self._pending_edges)
-        self._pending_nodes.clear()
-        self._pending_edges.clear()
-        self.commit_count += 1
-
-    def rollback(self) -> None:
-        self._pending_nodes.clear()
-        self._pending_edges.clear()
-        self.rollback_count += 1
-
-    def close(self) -> None:
-        self.closed = True
 
 
 def _decision(
@@ -341,34 +220,25 @@ def test_compare_dk_divergence():
     assert math.isclose(comparison.details["dk"]["max_abs_delta"], 1.0)
 
 
-def test_level3_pass_with_matching_sources(monkeypatch):
+@pytest.mark.age
+def test_level3_pass_with_matching_sources(monkeypatch, migration_probe):
     decision, outcome = _decision("d1", created_at=1.0, factor_value=0.2)
-    expected_state = _state(decision_count=1, conservation_V=1)
+    conn = migration_probe()
+    sqlite_to_age._write_batch(conn, [{"decision": {**decision, **outcome}, "outcome": outcome}], conn.graph)
     monkeypatch.setattr(sqlite_to_age, "_read_verified_decisions", lambda source: [decision])
     monkeypatch.setattr(sqlite_to_age, "_read_outcomes", lambda source: {"d1": outcome})
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.verify_state.read_decisions_from_age",
-        lambda conn, graph, domain: [{**decision, **outcome}],
-    )
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.verify_state.replay_decisions",
-        lambda decisions, outcomes, domain, preset_config: expected_state,
-    )
-
-    result = verify_level3("source.db", object(), "graph", "trading", "trading")
+    result = verify_level3("source.db", conn, conn.graph, "trading", "trading")
 
     assert result["passed"] is True
 
 
-def test_level3_fail_with_mismatched_count(monkeypatch):
+@pytest.mark.age
+def test_level3_fail_with_mismatched_count(monkeypatch, migration_probe):
     decisions = [_decision(f"d{i}", created_at=float(i), factor_value=0.2)[0] for i in range(10)]
     monkeypatch.setattr(sqlite_to_age, "_read_verified_decisions", lambda source: decisions)
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.verify_state.read_decisions_from_age",
-        lambda conn, graph, domain: decisions[:9],
-    )
-
-    result = verify_level3("source.db", object(), "graph", "trading", "trading")
+    conn = migration_probe()
+    sqlite_to_age._write_batch(conn, decisions[:9], conn.graph)
+    result = verify_level3("source.db", conn, conn.graph, "trading", "trading")
 
     assert result["passed"] is False
     assert result["comparison"]["reason"] == "decision_count_mismatch"
@@ -376,48 +246,20 @@ def test_level3_fail_with_mismatched_count(monkeypatch):
     assert result["comparison"]["age_count"] == 9
 
 
-def test_read_decisions_from_age():
-    class Cursor:
-        def __init__(self, rows):
-            self._rows = rows
-
-        def fetchall(self):
-            return self._rows
-
-    class Conn:
-        def __init__(self):
-            self.query = ""
-
-        def execute(self, query):
-            self.query = query
-            rows = [
-                (
-                    "d1",
-                    "trading",
-                    "trend_following",
-                    0,
-                    "{}",
-                    "[0.1]",
-                    "strong_execution",
-                    0,
-                    0.8,
-                    "[0.8, 0.2]",
-                    "confirmed",
-                    1.0,
-                    "strong_execution",
-                    0,
-                    1,
-                    2.0,
-                    "{}",
-                )
-            ]
-            return Cursor(rows)
-
-    conn = Conn()
-
-    decisions = read_decisions_from_age(conn, "graph", "trading")
-
-    assert "ORDER BY d.created_at ASC, d.decision_id ASC" in conn.query
+@pytest.mark.age
+def test_read_decisions_from_age(migration_probe):
+    conn = migration_probe()
+    decision = {"decision_id": "d1", "domain": "trading", "category": "trend_following",
+                "category_index": 0, "factors_json": "{}", "factor_vector_json": "[0.1]",
+                "recommended_action": "strong_execution", "recommended_index": 0,
+                "confidence": 0.8, "probabilities_json": "[0.8, 0.2]", "status": "confirmed", "created_at": 1.0}
+    outcome = {"actual_action": "strong_execution", "actual_index": 0, "is_correct": 1,
+               "verified_at": 2.0, "context_json": "{}"}
+    assert sqlite_to_age._write_batch(conn, [{"decision": {**decision, **outcome}, "outcome": outcome}], conn.graph)["written"] == 1
+    decisions = read_decisions_from_age(conn, conn.graph, "trading")
+    assert "ORDER BY d.created_at ASC, d.decision_id ASC" in conn.queries[-1]
+    for field in ("category_index", "recommended_index", "confidence", "created_at", "actual_index", "is_correct", "verified_at"):
+        decisions[0][field] = float(decisions[0][field])
     assert decisions == [
         {
             "decision_id": "d1",
@@ -441,56 +283,27 @@ def test_read_decisions_from_age():
     ]
 
 
-def test_l3_handles_agtype_encoded_values(monkeypatch):
+@pytest.mark.age
+def test_l3_handles_agtype_encoded_values(monkeypatch, migration_probe):
     decision, outcome = _decision("d1", created_at=1.0, factor_value=0.2)
 
-    class Cursor:
-        def __init__(self, rows):
-            self._rows = rows
-
-        def fetchall(self):
-            return self._rows
-
-    class Conn:
-        def execute(self, query):
-            return Cursor(
-                [
-                    (
-                        '"d1"',
-                        '"trading"',
-                        '"trend_following"',
-                        0,
-                        '"{\\"signal_alignment\\": 0.200}"',
-                        '"[0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]"',
-                        '"strong_execution"',
-                        0,
-                        0.8,
-                        '"[0.8, 0.1, 0.05, 0.05]"',
-                        '"confirmed"',
-                        1.0,
-                        '"strong_execution"',
-                        0,
-                        1,
-                        101.0,
-                        '"{}"',
-                    )
-                ]
-            )
-
+    conn = migration_probe()
+    assert sqlite_to_age._write_batch(conn, [{"decision": {**decision, **outcome}, "outcome": outcome}], conn.graph)["written"] == 1
     monkeypatch.setattr(sqlite_to_age, "_read_verified_decisions", lambda source: [decision])
     monkeypatch.setattr(sqlite_to_age, "_read_outcomes", lambda source: {"d1": outcome})
 
-    result = verify_level3("source.db", Conn(), "graph", "trading", "trading")
+    result = verify_level3("source.db", conn, conn.graph, "trading", "trading")
 
     assert result["passed"] is True
 
 
-def test_run_migration_level3_failure_gates_result(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_run_migration_level3_failure_gates_result(tmp_path, monkeypatch, migration_probe):
     from tests.test_sqlite_to_age_migration import _make_db
 
     db_path = _make_db(tmp_path)
 
-    conn = FakeConn()
+    conn = migration_probe()
     monkeypatch.setattr(sqlite_to_age, "_connect_age", lambda *args: conn)
     monkeypatch.setattr(sqlite_to_age, "_verify_level1", lambda *args: {"passed": True, "details": {}})
     monkeypatch.setattr(sqlite_to_age, "_verify_level2", lambda *args: {"passed": True, "details": {}})
@@ -503,7 +316,7 @@ def test_run_migration_level3_failure_gates_result(tmp_path, monkeypatch):
         "trading",
         str(db_path),
         "dsn",
-        "graph",
+        conn.graph,
         verify_l3=True,
         preset_config="trading",
     )
@@ -513,15 +326,16 @@ def test_run_migration_level3_failure_gates_result(tmp_path, monkeypatch):
     assert result["verification"]["level3"]["comparison"]["reason"] == "state_divergence"
 
 
-def test_scratch_l3_verifies_live_not_scratch(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_scratch_l3_verifies_live_not_scratch(tmp_path, monkeypatch, migration_probe):
     from tests.test_sqlite_to_age_migration import _make_db
 
     db_path = _make_db(tmp_path)
     l3_graphs = []
 
-    conn = FakeConn()
+    conn = migration_probe()
     monkeypatch.setattr(sqlite_to_age, "_connect_age", lambda *args: conn)
-    monkeypatch.setattr(sqlite_to_age, "create_scratch_graph", lambda dsn, domain: "scratch_graph")
+    monkeypatch.setattr(sqlite_to_age, "create_scratch_graph", lambda dsn, domain: conn.graph)
     monkeypatch.setattr(sqlite_to_age, "verify_scratch_clean", lambda conn, graph: True)
     monkeypatch.setattr(sqlite_to_age, "_verify_level1", lambda *args: {"passed": True, "details": {}})
     monkeypatch.setattr(sqlite_to_age, "_verify_level2", lambda *args: {"passed": True, "details": {}})

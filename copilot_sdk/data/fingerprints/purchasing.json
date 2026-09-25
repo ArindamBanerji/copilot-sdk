@@ -1,8 +1,8 @@
 {
   "domain": "purchasing",
-  "exported_at": "2026-07-14T02:35:28Z",
+  "exported_at": "2026-09-21T03:19:28Z",
   "fingerprint": {
-    "decisions_analyzed": 388,
+    "decisions_analyzed": 406,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
@@ -11,53 +11,53 @@
       {
         "interpretation": "moderate",
         "name": "expected_demand",
-        "sigma": 0.103,
-        "weight": 0.447
-      },
-      {
-        "interpretation": "noisy",
-        "name": "day_of_week",
-        "sigma": 0.285,
-        "weight": 0.059
+        "sigma": 0.107,
+        "weight": 0.009
       },
       {
         "interpretation": "moderate",
+        "name": "day_of_week",
+        "sigma": 0.197,
+        "weight": 0.003
+      },
+      {
+        "interpretation": "noisy",
         "name": "weather_forecast",
-        "sigma": 0.15,
-        "weight": 0.212
+        "sigma": 0.206,
+        "weight": 0.002
       },
       {
         "interpretation": "noisy",
         "name": "event_flag",
-        "sigma": 0.216,
-        "weight": 0.103
+        "sigma": 0.236,
+        "weight": 0.002
       },
       {
         "interpretation": "clean",
         "name": "historical_waste",
-        "sigma": 0.084,
-        "weight": 0.674
+        "sigma": 0.088,
+        "weight": 0.013
       },
       {
         "interpretation": "moderate",
         "name": "supplier_lead_time",
-        "sigma": 0.122,
-        "weight": 0.323
+        "sigma": 0.138,
+        "weight": 0.005
       },
       {
         "interpretation": "clean",
         "name": "price_memory_index",
-        "sigma": 0.069,
+        "sigma": 0.01,
         "weight": 1.0
       }
     ],
-    "overall_win_rate": 0.75,
+    "overall_win_rate": 0.746,
     "per_category_precision": {
-      "beverages": 0.875,
-      "dairy": 0.656,
-      "dry_goods": 0.875,
-      "produce": 0.404,
-      "protein": 0.812
+      "beverages": 0.5,
+      "dairy": 0.738,
+      "dry_goods": 1.0,
+      "produce": 0.664,
+      "protein": 0.833
     },
     "skipped_decisions": 0
   },

@@ -59,9 +59,16 @@ def test_age_production_rejects_omitted_graph_name() -> None:
         )
 
 
-def test_sqlite_allows_any_graph_name() -> None:
+def test_production_rejects_sqlite_even_with_explicit_graph_name() -> None:
+    with pytest.raises(GraphConfigError, match="AGE primary"):
+        require_shared_graph(
+            backend="sqlite", graph="local_scratch_graph", domain="trading", profile="production"
+        )
+
+
+def test_offline_sqlite_allows_any_graph_name() -> None:
     require_shared_graph(
-        backend="sqlite", graph="local_scratch_graph", domain="trading", profile="production"
+        backend="sqlite", graph="local_scratch_graph", domain="trading", profile="offline"
     )
 
 

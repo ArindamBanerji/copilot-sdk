@@ -61,6 +61,7 @@ def _build_scorer(
         preset,
         scorer,
         graph_store=graph_store,
+        profile="test",
         consolidation_enabled=consolidation_enabled,
     )
     setattr(wrapper, "_conservation_pause", lambda: None)

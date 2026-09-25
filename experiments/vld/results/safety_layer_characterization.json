@@ -1,0 +1,4363 @@
+{
+  "cells": {
+    "dataops": {
+      "G-ABS": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.026666666666666665
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-BOTH": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.026666666666666665
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-REL": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.669,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "purchasing": {
+      "G-ABS": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.04
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.06,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 6,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 6,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 6,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-BOTH": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.04
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.06,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 6,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 6,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 6,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-REL": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.655,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "s2p": {
+      "G-ABS": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.02
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-BOTH": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.02
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-REL": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.769,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "soc": {
+      "G-ABS": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.023333333333333334
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-BOTH": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.023333333333333334
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-REL": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.764,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "trading": {
+      "G-ABS": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.026666666666666665
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-BOTH": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.026666666666666665
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.02,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.03,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 0,
+              "detection_lag_std": 0.0,
+              "detection_rate": 1,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 2,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": true,
+                "detection_lag": 0,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 3,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 86,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0.3333333333333333,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 86,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 14,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      },
+      "G-REL": {
+        "COLD-START": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 486,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0.3333333333333333,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 486,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        },
+        "STEADY-STATE": {
+          "CLEAN": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": null,
+              "false_pause_rate_mean": 0.0
+            },
+            "per_seed": {
+              "123": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": null,
+                "detection_lag": null,
+                "false_pause_rate": 0.0,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUDDEN-DROP": {
+            "aggregate": {
+              "detection_lag_mean": null,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          },
+          "SUSTAINED-POISON": {
+            "aggregate": {
+              "detection_lag_mean": 86,
+              "detection_lag_std": 0.0,
+              "detection_rate": 0.3333333333333333,
+              "false_pause_rate_mean": null
+            },
+            "per_seed": {
+              "123": {
+                "detected": true,
+                "detection_lag": 86,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 14,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "42": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              },
+              "7": {
+                "detected": false,
+                "detection_lag": null,
+                "false_pause_rate": null,
+                "floor": 0.766,
+                "n_decisions": 100,
+                "paused_decisions": 0,
+                "relative_multiplier": 0.7,
+                "tier": "T-real (floors) + T-sim (injected threats)"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "metadata": {
+    "configs": [
+      "G-ABS",
+      "G-REL",
+      "G-BOTH"
+    ],
+    "copilots": [
+      "soc",
+      "dataops",
+      "s2p",
+      "trading",
+      "purchasing"
+    ],
+    "factorial_cells": 90,
+    "floors": {
+      "dataops": 0.669,
+      "purchasing": 0.655,
+      "s2p": 0.769,
+      "soc": 0.764,
+      "trading": 0.766
+    },
+    "oracle": "geometry-derived existing conservation stream",
+    "q_window": 100,
+    "regimes": [
+      "COLD-START",
+      "STEADY-STATE"
+    ],
+    "relative_multiplier": 0.7,
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "threats": [
+      "CLEAN",
+      "SUSTAINED-POISON",
+      "SUDDEN-DROP"
+    ],
+    "tier": "T-real (floors) + T-sim (injected threats)",
+    "two_layer_rule": "G-BOTH covers all cells and each single layer fails at least one cell covered by G-BOTH"
+  },
+  "multiplier_sensitivity": {
+    "dataops": {
+      "0.6": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.7": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.8": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      }
+    },
+    "purchasing": {
+      "0.6": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.7": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.8": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      }
+    },
+    "s2p": {
+      "0.6": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.7": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.8": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      }
+    },
+    "soc": {
+      "0.6": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.7": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.8": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      }
+    },
+    "trading": {
+      "0.6": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.7": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      },
+      "0.8": {
+        "CLEAN": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        },
+        "SUDDEN-DROP": {
+          "detection_lag_mean": null,
+          "false_pause_rate_mean": 0.0,
+          "per_seed": [
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            },
+            {
+              "detection_lag": null,
+              "false_pause_rate": 0.0
+            }
+          ]
+        }
+      }
+    }
+  },
+  "v_clear": {
+    "dataops": {
+      "123": 3,
+      "42": 4,
+      "7": 4
+    },
+    "purchasing": {
+      "123": 4,
+      "42": 4,
+      "7": 7
+    },
+    "s2p": {
+      "123": 3,
+      "42": 3,
+      "7": 3
+    },
+    "soc": {
+      "123": 3,
+      "42": 4,
+      "7": 3
+    },
+    "trading": {
+      "123": 3,
+      "42": 4,
+      "7": 4
+    }
+  },
+  "verdict": {
+    "g_abs_fails_cell_both_covers": true,
+    "g_both_covers_all_cells": false,
+    "g_rel_fails_cell_both_covers": true,
+    "interpretation": "The preregistered two-layer criterion was not fully met; report the observed failures rather than upgrading the claim.",
+    "prediction_accuracy_cells": 0,
+    "prediction_cells": 15,
+    "two_layer_necessity": "NOT ESTABLISHED"
+  }
+}

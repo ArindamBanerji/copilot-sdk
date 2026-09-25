@@ -2418,8 +2418,46 @@ class SQLiteGraphStore:
             raise RuntimeError("outbox enqueue did not produce an outbox_id")
         return int(outbox_id)
 
-    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None:
+    def get_decision(
+        self,
+        decision_id: str,
+        domain: str,
+        *,
+        include_outcome: bool = False,
+    ) -> dict[str, Any] | None:
         domain_value = _normalize_domain(domain)
+        if include_outcome:
+            row = self.connection.execute(
+                """
+                SELECT
+                    d.*,
+                    o.actual_action,
+                    o.actual_index,
+                    o.is_correct,
+                    o.verified_at,
+                    o.context_json
+                FROM decisions d
+                LEFT JOIN outcomes o ON d.decision_id = o.decision_id
+                WHERE d.decision_id = ? AND d.domain = ?
+                """,
+                (decision_id, domain_value),
+            ).fetchone()
+            if row is None:
+                return None
+            data = self._decision_from_row(row)
+            if row["actual_action"] is not None:
+                context_val = _from_json(row["context_json"]) if row["context_json"] else {}
+                data.update(
+                    {
+                        "actual_action": row["actual_action"],
+                        "actual_index": int(row["actual_index"]),
+                        "is_correct": bool(row["is_correct"]),
+                        "verified_at": float(row["verified_at"]),
+                        "context": context_val,
+                        "outcome_metadata": {"context": context_val},
+                    }
+                )
+            return data
         row = self.connection.execute(
             "SELECT * FROM decisions WHERE decision_id = ? AND domain = ?",
             (decision_id, domain_value),
@@ -3312,6 +3350,84 @@ class SQLiteGraphStore:
             (domain_value, str(entity_id), _bounded_traversal_limit(limit)),
         ).fetchall()
         return [dict(row) for row in rows]
+
+    def decision_movement(self, domain: str, decision_id: str) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
+        if self.get_decision(str(decision_id), domain=domain_value) is None:
+            return []
+        return self.query_context(str(decision_id), 3, domain=domain_value)
+
+    def contextual_judgment(
+        self, domain: str, entity_group: str, category: str
+    ) -> list[dict[str, Any]]:
+        group_value = str(entity_group)
+        rows: list[dict[str, Any]] = []
+        for decision in self.get_decisions(_normalize_domain(domain), str(category), limit=1000):
+            metadata = decision.get("metadata")
+            metadata = metadata if isinstance(metadata, dict) else {}
+            if group_value not in {
+                str(decision.get("entity_group") or ""),
+                str(decision.get("entity_id") or ""),
+                str(metadata.get("entity_group") or ""),
+                str(metadata.get("entity_id") or ""),
+            }:
+                continue
+            rows.append({"decision": decision})
+        return rows[:100]
+
+    def promotion_basis(self, domain: str, rule_id: str) -> list[dict[str, Any]]:
+        rule_value = str(rule_id)
+        return [
+            {"evolution_event": event}
+            for event in self.get_evolution_events(_normalize_domain(domain), limit=1000)
+            if rule_value in {
+                str(event.get("rule_name") or ""),
+                str(event.get("source_rule") or ""),
+                str(event.get("target_rule") or ""),
+            }
+        ][:100]
+
+    def transfer_witness(
+        self, source_domain: str, target_domain: str, pattern_id: str
+    ) -> list[dict[str, Any]]:
+        pattern_value = str(pattern_id).strip()
+        return [
+            {"transfer_pattern": pattern}
+            for pattern in self.get_transfer_patterns(
+                source_domain=str(source_domain), target_domain=str(target_domain)
+            )
+            if pattern_value.lower() in {"", "any"}
+            or str(pattern.get("pattern_id")) == pattern_value
+        ][:100]
+
+    def list_fingerprints(self, domain: str | None = None) -> list[dict[str, Any]]:
+        params: tuple[Any, ...] = () if domain is None else (_normalize_domain(domain),)
+        where = "" if domain is None else "WHERE domain = ?"
+        rows = self.connection.execute(
+            f"""
+            SELECT fingerprint_id, domain, factor_names_json, factor_stats_json,
+                   skipped_incompatible, window, metadata_json, created_at
+            FROM fingerprints
+            {where}
+            ORDER BY created_at ASC, fingerprint_id ASC
+            LIMIT 500
+            """,
+            params,
+        ).fetchall()
+        return [
+            {
+                "fingerprint_id": row["fingerprint_id"],
+                "domain": row["domain"],
+                "factor_names": _from_json(row["factor_names_json"]),
+                "factor_stats": _from_json(row["factor_stats_json"]),
+                "fingerprint": _from_json(row["factor_stats_json"]),
+                "skipped_incompatible": int(row["skipped_incompatible"]),
+                "window": int(row["window"]),
+                "metadata": _from_json(row["metadata_json"]),
+                "created_at": float(row["created_at"]),
+            }
+            for row in rows
+        ]
 
     def query_similar(self, entity_id: str, limit: int, *, domain: str) -> list[dict[str, Any]]:
         domain_value = _normalize_domain(domain)

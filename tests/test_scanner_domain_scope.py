@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from copilot_sdk.di.nl_query import _query_template
 from scripts.scan_forbidden_patterns import (
     ACTIVE_SCAN_REPOSITORIES,
@@ -73,22 +75,20 @@ def test_read_model_mutation_rule_is_property_scoped_and_writer_scoped():
     assert not any("archived" in finding.source for finding in findings)
 
 
-def test_known_template_lines_are_allowlisted():
+def test_legacy_projection_allowlist_entries_remain_recognized():
     root = Path(__file__).resolve().parents[1]
     allowlist = load_allowlist()
-    for relative, line in (
-        ("copilot_sdk/di/nl_query.py", 133),
-        ("copilot_sdk/graph/projection.py", 44),
-    ):
-        source = (root / relative).read_text(encoding="utf-8")
-        findings = scan_unscoped_decision_queries(root / relative, source, allowlist, 8)
-        assert any(finding.line == line and finding.category == "ALLOWLISTED" for finding in findings)
+    relative = "copilot_sdk/graph/projection.py"
+    source = (root / relative).read_text(encoding="utf-8")
+    findings = scan_unscoped_decision_queries(root / relative, source, allowlist, 8)
+    assert any(finding.category == "ALLOWLISTED" for finding in findings)
 
 
 def test_nl_query_domain_injection_handles_relationship_match():
     assert "d.domain = 'soc'" in _query_template("impact", domain="soc")
     assert "d.domain = 'soc'" in _query_template("metric", domain="soc")
-    assert _query_template("metric", domain=None) == "MATCH (d:Decision) RETURN d"
+    with pytest.raises(ValueError, match="domain is required"):
+        _query_template("metric", domain=None)
 
 
 def test_default_scan_is_limited_to_active_repositories():

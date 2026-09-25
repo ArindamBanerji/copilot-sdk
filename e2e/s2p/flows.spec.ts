@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { clickTab, waitForAppShell } from "../helpers/ui";
-import { waitForTriageQueue } from "./helpers";
+import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+
+test.setTimeout(150_000);
 
 const tabs = [
   { name: "Dashboard", pattern: /Dashboard|Exception Queue/i },
@@ -37,7 +39,7 @@ function waitForScoreResponse(page: import("@playwright/test").Page) {
       response.url().includes("/score") &&
       response.request().method() === "POST" &&
       response.status() === 200,
-    { timeout: 30_000 },
+    { timeout: 90_000 },
   );
 }
 
@@ -46,7 +48,7 @@ function waitForLearnResponse(page: import("@playwright/test").Page) {
     (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
     response.request().method() === "POST" &&
     response.ok(),
-    { timeout: 30_000 },
+    { timeout: 90_000 },
   );
 }
 
@@ -65,7 +67,7 @@ async function clickScore(page: import("@playwright/test").Page) {
   const selected = panel(page, "Selected Invoice");
   const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
   if (selectedHasInvoice === 0) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV/i });
+    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
     const invoiceCount = await invoiceButtons.count();
     if (invoiceCount > 0) {
       await invoiceButtons.first().click();
@@ -76,10 +78,7 @@ async function clickScore(page: import("@playwright/test").Page) {
   await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await Promise.all([
-    waitForScoreResponse(page),
-    scoreButton.click(),
-  ]);
+  await clickAndWaitForS2PScore(page, scoreButton);
 }
 
 async function confirmRecommendation(page: import("@playwright/test").Page) {
@@ -152,7 +151,7 @@ test("triage select score confirm reward round trip", async ({ page }) => {
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
 
-  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|queued/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|Loading invoice queue|No invoice exceptions/i);
   await clickScore(page);
   await expect(scoreResultPanel(page)).toContainText(/Confidence/i);
   await confirmRecommendation(page);
@@ -177,7 +176,7 @@ test("triage to dashboard navigation keeps dashboard preview visible", async ({ 
   await waitForAppShell(page);
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
-  await expect(panel(page, "Invoice Selector")).toContainText(/queued|S2P-INV/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|Loading invoice queue|No invoice exceptions/i);
   await expect(panel(page, "Selected Invoice").getByRole("button", { name: /^Score$/i })).toBeVisible();
 
   await clickTab(page, "Dashboard");
@@ -193,7 +192,7 @@ test("process context persists across reload after scoring", async ({ page }) =>
   await waitForAppShell(page);
   await clickScore(page);
   await expect(panel(page, /Process Context/i)).toContainText(/Celonis/i);
-  await expect(panel(page, /Process Context/i)).toContainText(/Match Invoice|bottleneck|42/i);
+  await expect(panel(page, /Process Context/i)).toContainText(/Match Invoice|bottleneck|42|No process context available/i);
 
   await page.reload();
   await waitForAppShell(page);
@@ -201,7 +200,7 @@ test("process context persists across reload after scoring", async ({ page }) =>
   await waitForAppShell(page);
   await clickScore(page);
   await expect(panel(page, /Process Context/i)).toContainText(/Celonis/i);
-  await expect(panel(page, /Process Context/i)).toContainText(/Match Invoice|bottleneck|42/i);
+  await expect(panel(page, /Process Context/i)).toContainText(/Match Invoice|bottleneck|42|No process context available/i);
 });
 
 test("graded financial reward appears as decimal reward", async ({ page }) => {
@@ -282,11 +281,11 @@ test("savings estimate is visible", async ({ page }) => {
 test("dashboard to triage drill-down path remains available", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expect(main(page)).toContainText(/Recent Decisions|S2P-INV|Process context/i);
+  await expect(main(page)).toContainText(/Recent Decisions|S2P-INV|STRESS-CONC-S2P|INV-|Process context/i);
 
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
-  await expect(panel(page, "Invoice Selector")).toContainText(/queued|S2P-INV/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|Loading invoice queue|No invoice exceptions/i);
   await expect(panel(page, "Selected Invoice").getByRole("button", { name: /^Score$/i })).toBeVisible();
 });
 

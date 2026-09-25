@@ -158,7 +158,7 @@ def test_execute_copies_centroids(tmp_path) -> None:
     assert not np.array_equal(scorer.gae_scorer.centroids, before)
 
 
-def test_execute_resets_conservation(tmp_path) -> None:
+def test_execute_does_not_manufacture_green_conservation(tmp_path) -> None:
     scorer = _trading_scorer(tmp_path)
     scorer.graph_store.update_conservation_state(
         domain="trading",
@@ -180,11 +180,11 @@ def test_execute_resets_conservation(tmp_path) -> None:
         json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
     )
 
-    assert response.json()["conservation_reset"] is True
+    assert response.json()["conservation_reset"] is False
     state = scorer.graph_store.get_conservation_state("trading")
     assert state is not None
-    assert state["V"] == 0
-    assert state["status"] == "GREEN"
+    assert state["V"] == 8
+    assert state["status"] == "AMBER"
 
 
 def test_execute_requires_source_green(tmp_path) -> None:
@@ -263,5 +263,5 @@ def test_full_flow_discover_dryrun_execute_validate(tmp_path) -> None:
     status = client.get("/api/transfer/status").json()
 
     assert dry_run["dry_run"] is True
-    assert applied["conservation_reset"] is True
+    assert applied["conservation_reset"] is False
     assert status["warm_started"] is True

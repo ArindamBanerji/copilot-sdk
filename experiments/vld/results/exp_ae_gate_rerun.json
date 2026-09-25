@@ -1,0 +1,114 @@
+{
+  "10": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.04805,
+    "null_trials": 20000,
+    "power": 0.07855
+  },
+  "100": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.04995,
+    "null_trials": 20000,
+    "power": 0.19905
+  },
+  "1000": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.049,
+    "null_trials": 20000,
+    "power": 0.8058
+  },
+  "1250": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.05045,
+    "null_trials": 20000,
+    "power": 0.86975
+  },
+  "1500": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.03245,
+    "null_trials": 20000,
+    "power": 0.88545
+  },
+  "2000": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.0183,
+    "null_trials": 20000,
+    "power": 0.91565
+  },
+  "25": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.0456,
+    "null_trials": 20000,
+    "power": 0.10215
+  },
+  "250": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.04855,
+    "null_trials": 20000,
+    "power": 0.35065
+  },
+  "50": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.0528,
+    "null_trials": 20000,
+    "power": 0.1411
+  },
+  "500": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.0513,
+    "null_trials": 20000,
+    "power": 0.5486
+  },
+  "750": {
+    "alpha": 0.05,
+    "alt_trials": 20000,
+    "delta_threshold": 0.03,
+    "fpr": 0.0506,
+    "null_trials": 20000,
+    "power": 0.70515
+  },
+  "baseline": {
+    "fpr": 0.44,
+    "gate_type": "strict_inequality",
+    "n_min": 10,
+    "power": 0.59
+  },
+  "metadata": {
+    "alpha": 0.05,
+    "gate_type": "two_proportion_z_test",
+    "one_sided": true,
+    "payload_sha256": "4f0708688789863bf4ba1fb5b121e8470ae2da437b401f7e857ce141a728eb54",
+    "practical_significance": 0.03,
+    "protocol": "independent_binomial_shadow_windows",
+    "seed": 20260915,
+    "target": "power > 0.80 and fpr < 0.10",
+    "trials_per_condition": 20000,
+    "two_rebuild_byte_identical": true
+  },
+  "recommendation": {
+    "fpr": 0.049,
+    "meets_target": true,
+    "n_min": 1000,
+    "power": 0.8058
+  }
+}

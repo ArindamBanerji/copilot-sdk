@@ -113,7 +113,7 @@ test("blast radius tree renders", async ({ page }) => {
   const opened = await openFirstTriage(page);
   test.skip(!opened, "No grouped alert available to triage.");
 
-  await expect(page.getByText("Dependency Tree")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dependency Tree" })).toBeVisible();
   await expectAnyText(page, [/Blast radius/i, /affected/i, /No dependency data/i, /SLA/i]);
 });
 

@@ -1,0 +1,846 @@
+{
+  "dataops": {
+    "A_q_closed": {
+      "action_mean": 0.8133333333333334,
+      "action_std": 0.019206480387850586,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.8133333333333334,
+          "routing_quality": 0.5933333333333334
+        },
+        "2024": {
+          "action_accuracy": 0.7766666666666666,
+          "routing_quality": 0.57
+        },
+        "42": {
+          "action_accuracy": 0.82,
+          "routing_quality": 0.5716666666666667
+        },
+        "7": {
+          "action_accuracy": 0.83,
+          "routing_quality": 0.5883333333333334
+        },
+        "99": {
+          "action_accuracy": 0.8266666666666667,
+          "routing_quality": 0.565
+        }
+      },
+      "routing_mean": 0.5776666666666667,
+      "routing_std": 0.0110855260988773
+    },
+    "B_q_linear_fit": {
+      "action_mean": 0.592,
+      "action_std": 0.024458581770458843,
+      "delta_vs_A_routing": -4.733333333333334,
+      "learned_weights": {
+        "discriminative": -3.391813567068296,
+        "leverage": 7.2895924406572234,
+        "precision": -0.7742693695497602
+      },
+      "learned_weights_per_seed": {
+        "123": {
+          "discriminative": -3.0823632811110397,
+          "leverage": 6.2534210726144535,
+          "precision": -0.7856526995980055
+        },
+        "2024": {
+          "discriminative": -3.522107446742477,
+          "leverage": 7.825876487025411,
+          "precision": -0.816628206905579
+        },
+        "42": {
+          "discriminative": -3.177431615654656,
+          "leverage": 6.753622959514239,
+          "precision": -0.7284770911501611
+        },
+        "7": {
+          "discriminative": -3.415891948964592,
+          "leverage": 7.462456383563636,
+          "precision": -0.7764136579212082
+        },
+        "99": {
+          "discriminative": -3.7612735428687127,
+          "leverage": 8.152585300568374,
+          "precision": -0.7641751921738474
+        }
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.6133333333333333,
+          "routing_quality": 0.5466666666666666
+        },
+        "2024": {
+          "action_accuracy": 0.5833333333333334,
+          "routing_quality": 0.5166666666666667
+        },
+        "42": {
+          "action_accuracy": 0.5766666666666667,
+          "routing_quality": 0.53
+        },
+        "7": {
+          "action_accuracy": 0.6266666666666667,
+          "routing_quality": 0.5483333333333333
+        },
+        "99": {
+          "action_accuracy": 0.56,
+          "routing_quality": 0.51
+        }
+      },
+      "recovery_fraction_of_C": -0.2634508348794064,
+      "routing_mean": 0.5303333333333333,
+      "routing_std": 0.015434449203720283
+    },
+    "C_fqi": {
+      "action_mean": 0.9593333333333334,
+      "action_std": 0.014666666666666665,
+      "delta_vs_A_routing": 17.966666666666665,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9433333333333334,
+          "routing_quality": 0.7633333333333333
+        },
+        "2024": {
+          "action_accuracy": 0.9733333333333334,
+          "routing_quality": 0.75
+        },
+        "42": {
+          "action_accuracy": 0.98,
+          "routing_quality": 0.7783333333333333
+        },
+        "7": {
+          "action_accuracy": 0.9533333333333334,
+          "routing_quality": 0.7433333333333333
+        },
+        "99": {
+          "action_accuracy": 0.9466666666666667,
+          "routing_quality": 0.7516666666666667
+        }
+      },
+      "routing_mean": 0.7573333333333333,
+      "routing_std": 0.012319812408384218
+    },
+    "S1_ood": {
+      "available": true,
+      "in_dist_routing": 0.7573333333333333,
+      "ood_gap": 15.09999999999999,
+      "ood_gap_exceeds_5pp": true,
+      "ood_routing": 0.6063333333333334
+    },
+    "S2_data_efficiency": {
+      "100": {
+        "routing_mean": 0.48933333333333334,
+        "routing_std": 0.042092490752838295
+      },
+      "250": {
+        "routing_mean": 0.6526666666666666,
+        "routing_std": 0.027720830515055705
+      },
+      "50": {
+        "routing_mean": 0.46399999999999997,
+        "routing_std": 0.045711656670433136
+      },
+      "500": {
+        "routing_mean": 0.7223333333333333,
+        "routing_std": 0.02535525367431549
+      },
+      "all": {
+        "routing_mean": 0.7573333333333333,
+        "routing_std": 0.012319812408384218
+      },
+      "crossover_n": 250,
+      "crossover_note": "First evaluated verified-outcome decision count with mean FQI routing above A; all = 800."
+    },
+    "routing_action_dissociation": {
+      "A_routing_gain_vs_action_gain": "C-A routing=+17.97pp; action=+14.60pp",
+      "dissociated": false,
+      "note": "Routing gain moves action_accuracy under this geometry-derived verified-action protocol."
+    }
+  },
+  "leakage_check": {
+    "dataops": {
+      "passed": true
+    },
+    "purchasing": {
+      "passed": true
+    },
+    "s2p": {
+      "passed": true
+    },
+    "soc": {
+      "passed": true
+    },
+    "trading": {
+      "passed": true
+    }
+  },
+  "metadata": {
+    "budget": 2,
+    "fqi_method": "ExtraTreesRegressor via vld_offline_rl_router_v1",
+    "linear_fit_method": "three-term logistic regression without intercept",
+    "payload_sha256": "e837aff54c85dff6e90099546292f81125b06c86921353d9026a6de19d1e6462",
+    "pre_registered_reads": "(b) B recovers >=70% of C gain; (c) C S_B loss >=5pp; (a) C>>B and OOD gap <5pp",
+    "prior_rl1_seeds_reused": [
+      42,
+      123,
+      7
+    ],
+    "s1_stream": "B2 S_B shifted-firm (SOC and DataOps only; unsupported profiles explicit)",
+    "s2_sizes": [
+      50,
+      100,
+      250,
+      500,
+      "all"
+    ],
+    "seeds": [
+      42,
+      123,
+      7,
+      2024,
+      99
+    ],
+    "tier": "REAL_COMPONENT geometry + GEOMETRY-DERIVED labels",
+    "transition_count_per_seed": 1600,
+    "two_rebuild_byte_identical": true
+  },
+  "purchasing": {
+    "A_q_closed": {
+      "action_mean": 0.77,
+      "action_std": 0.02836272984824352,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.7766666666666666,
+          "routing_quality": 0.7
+        },
+        "2024": {
+          "action_accuracy": 0.8133333333333334,
+          "routing_quality": 0.7466666666666667
+        },
+        "42": {
+          "action_accuracy": 0.7566666666666667,
+          "routing_quality": 0.675
+        },
+        "7": {
+          "action_accuracy": 0.7766666666666666,
+          "routing_quality": 0.6766666666666666
+        },
+        "99": {
+          "action_accuracy": 0.7266666666666667,
+          "routing_quality": 0.6483333333333333
+        }
+      },
+      "routing_mean": 0.6893333333333334,
+      "routing_std": 0.03300841643513903
+    },
+    "B_q_linear_fit": {
+      "action_mean": 0.5773333333333334,
+      "action_std": 0.05113815709537363,
+      "delta_vs_A_routing": -16.666666666666664,
+      "learned_weights": {
+        "discriminative": -0.5962450358727127,
+        "leverage": 5.680235587255849,
+        "precision": -0.9826579592015344
+      },
+      "learned_weights_per_seed": {
+        "123": {
+          "discriminative": -0.7492351893425431,
+          "leverage": 5.436164411785246,
+          "precision": -1.0008421623724104
+        },
+        "2024": {
+          "discriminative": -0.8647046147000064,
+          "leverage": 6.512120875116374,
+          "precision": -0.814562038392992
+        },
+        "42": {
+          "discriminative": -0.793023325262249,
+          "leverage": 6.241211375619712,
+          "precision": -1.1455858353570598
+        },
+        "7": {
+          "discriminative": -0.41597326056926187,
+          "leverage": 5.241125110999523,
+          "precision": -1.0004016268563831
+        },
+        "99": {
+          "discriminative": -0.15828878948950273,
+          "leverage": 4.970556162758391,
+          "precision": -0.9518981330288265
+        }
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.5033333333333333,
+          "routing_quality": 0.47
+        },
+        "2024": {
+          "action_accuracy": 0.5833333333333334,
+          "routing_quality": 0.535
+        },
+        "42": {
+          "action_accuracy": 0.5366666666666666,
+          "routing_quality": 0.485
+        },
+        "7": {
+          "action_accuracy": 0.63,
+          "routing_quality": 0.56
+        },
+        "99": {
+          "action_accuracy": 0.6333333333333333,
+          "routing_quality": 0.5633333333333334
+        }
+      },
+      "recovery_fraction_of_C": -0.9416195856873826,
+      "routing_mean": 0.5226666666666667,
+      "routing_std": 0.03845054543754154
+    },
+    "C_fqi": {
+      "action_mean": 0.9733333333333333,
+      "action_std": 0.026246692913372702,
+      "delta_vs_A_routing": 17.699999999999992,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9933333333333333,
+          "routing_quality": 0.885
+        },
+        "2024": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8883333333333333
+        },
+        "42": {
+          "action_accuracy": 0.9466666666666667,
+          "routing_quality": 0.8566666666666667
+        },
+        "7": {
+          "action_accuracy": 0.99,
+          "routing_quality": 0.8683333333333333
+        },
+        "99": {
+          "action_accuracy": 0.9366666666666666,
+          "routing_quality": 0.8333333333333334
+        }
+      },
+      "routing_mean": 0.8663333333333333,
+      "routing_std": 0.020094222497468693
+    },
+    "S1_ood": {
+      "available": false,
+      "in_dist_routing": null,
+      "note": "B2 S_B shifted-firm profile is defined only for SOC and DataOps.",
+      "ood_gap": null,
+      "ood_gap_exceeds_5pp": null,
+      "ood_routing": null
+    },
+    "S2_data_efficiency": {
+      "100": {
+        "routing_mean": 0.6486666666666667,
+        "routing_std": 0.07785599241905249
+      },
+      "250": {
+        "routing_mean": 0.7666666666666666,
+        "routing_std": 0.022607766610417544
+      },
+      "50": {
+        "routing_mean": 0.5413333333333333,
+        "routing_std": 0.0857412127016848
+      },
+      "500": {
+        "routing_mean": 0.8436666666666667,
+        "routing_std": 0.02283759084394752
+      },
+      "all": {
+        "routing_mean": 0.8663333333333333,
+        "routing_std": 0.020094222497468693
+      },
+      "crossover_n": 250,
+      "crossover_note": "First evaluated verified-outcome decision count with mean FQI routing above A; all = 800."
+    },
+    "routing_action_dissociation": {
+      "A_routing_gain_vs_action_gain": "C-A routing=+17.70pp; action=+20.33pp",
+      "dissociated": false,
+      "note": "Routing gain moves action_accuracy under this geometry-derived verified-action protocol."
+    }
+  },
+  "s2p": {
+    "A_q_closed": {
+      "action_mean": 0.848,
+      "action_std": 0.021249836600678952,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.8366666666666667,
+          "routing_quality": 0.6616666666666666
+        },
+        "2024": {
+          "action_accuracy": 0.8833333333333333,
+          "routing_quality": 0.65
+        },
+        "42": {
+          "action_accuracy": 0.8366666666666667,
+          "routing_quality": 0.6683333333333333
+        },
+        "7": {
+          "action_accuracy": 0.8233333333333334,
+          "routing_quality": 0.6266666666666667
+        },
+        "99": {
+          "action_accuracy": 0.86,
+          "routing_quality": 0.6866666666666666
+        }
+      },
+      "routing_mean": 0.6586666666666666,
+      "routing_std": 0.019927646903513476
+    },
+    "B_q_linear_fit": {
+      "action_mean": 0.7686666666666666,
+      "action_std": 0.016275407487644937,
+      "delta_vs_A_routing": -3.7999999999999923,
+      "learned_weights": {
+        "discriminative": -2.4997913596339147,
+        "leverage": 9.054676687893608,
+        "precision": -1.4665545355598024
+      },
+      "learned_weights_per_seed": {
+        "123": {
+          "discriminative": -2.2177350138305036,
+          "leverage": 8.876095361326282,
+          "precision": -1.4991410822571405
+        },
+        "2024": {
+          "discriminative": -2.5658120566708655,
+          "leverage": 8.981625230860624,
+          "precision": -1.4472668090493863
+        },
+        "42": {
+          "discriminative": -2.783701304345767,
+          "leverage": 9.48975966296598,
+          "precision": -1.6848216325609404
+        },
+        "7": {
+          "discriminative": -2.6688104068642264,
+          "leverage": 9.461317430407014,
+          "precision": -1.322981903839575
+        },
+        "99": {
+          "discriminative": -2.2628980164582084,
+          "leverage": 8.464585753908132,
+          "precision": -1.3785612500919697
+        }
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.78,
+          "routing_quality": 0.645
+        },
+        "2024": {
+          "action_accuracy": 0.7733333333333333,
+          "routing_quality": 0.6083333333333333
+        },
+        "42": {
+          "action_accuracy": 0.74,
+          "routing_quality": 0.5916666666666667
+        },
+        "7": {
+          "action_accuracy": 0.7633333333333333,
+          "routing_quality": 0.6266666666666667
+        },
+        "99": {
+          "action_accuracy": 0.7866666666666666,
+          "routing_quality": 0.6316666666666667
+        }
+      },
+      "recovery_fraction_of_C": -0.19095477386934628,
+      "routing_mean": 0.6206666666666667,
+      "routing_std": 0.018666666666666682
+    },
+    "C_fqi": {
+      "action_mean": 0.9953333333333333,
+      "action_std": 0.0077746025264604085,
+      "delta_vs_A_routing": 19.900000000000006,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.85
+        },
+        "2024": {
+          "action_accuracy": 0.9966666666666667,
+          "routing_quality": 0.8533333333333334
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.86
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8666666666666667
+        },
+        "99": {
+          "action_accuracy": 0.98,
+          "routing_quality": 0.8583333333333333
+        }
+      },
+      "routing_mean": 0.8576666666666667,
+      "routing_std": 0.0057348835113617555
+    },
+    "S1_ood": {
+      "available": false,
+      "in_dist_routing": null,
+      "note": "B2 S_B shifted-firm profile is defined only for SOC and DataOps.",
+      "ood_gap": null,
+      "ood_gap_exceeds_5pp": null,
+      "ood_routing": null
+    },
+    "S2_data_efficiency": {
+      "100": {
+        "routing_mean": 0.6946666666666667,
+        "routing_std": 0.05307646475709466
+      },
+      "250": {
+        "routing_mean": 0.7973333333333333,
+        "routing_std": 0.014779866184930233
+      },
+      "50": {
+        "routing_mean": 0.5863333333333334,
+        "routing_std": 0.0438355512746852
+      },
+      "500": {
+        "routing_mean": 0.8513333333333334,
+        "routing_std": 0.010718623460542358
+      },
+      "all": {
+        "routing_mean": 0.8576666666666667,
+        "routing_std": 0.0057348835113617555
+      },
+      "crossover_n": 100,
+      "crossover_note": "First evaluated verified-outcome decision count with mean FQI routing above A; all = 800."
+    },
+    "routing_action_dissociation": {
+      "A_routing_gain_vs_action_gain": "C-A routing=+19.90pp; action=+14.73pp",
+      "dissociated": false,
+      "note": "Routing gain moves action_accuracy under this geometry-derived verified-action protocol."
+    }
+  },
+  "soc": {
+    "A_q_closed": {
+      "action_mean": 0.9213333333333333,
+      "action_std": 0.0143913554299486,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9233333333333333,
+          "routing_quality": 0.7766666666666666
+        },
+        "2024": {
+          "action_accuracy": 0.9466666666666667,
+          "routing_quality": 0.8066666666666666
+        },
+        "42": {
+          "action_accuracy": 0.9033333333333333,
+          "routing_quality": 0.7716666666666666
+        },
+        "7": {
+          "action_accuracy": 0.9133333333333333,
+          "routing_quality": 0.8066666666666666
+        },
+        "99": {
+          "action_accuracy": 0.92,
+          "routing_quality": 0.785
+        }
+      },
+      "routing_mean": 0.7893333333333333,
+      "routing_std": 0.01477986618493025
+    },
+    "B_q_linear_fit": {
+      "action_mean": 0.8513333333333334,
+      "action_std": 0.019390719429665335,
+      "delta_vs_A_routing": -2.9333333333333322,
+      "learned_weights": {
+        "discriminative": -3.66238988216121,
+        "leverage": 9.950416128612016,
+        "precision": -0.3027283878978362
+      },
+      "learned_weights_per_seed": {
+        "123": {
+          "discriminative": -3.6634203657252957,
+          "leverage": 9.466679332644786,
+          "precision": -0.27131080691005427
+        },
+        "2024": {
+          "discriminative": -3.7847243157416646,
+          "leverage": 10.474960233028602,
+          "precision": -0.3205765964630136
+        },
+        "42": {
+          "discriminative": -3.2684592445118303,
+          "leverage": 9.60538774636631,
+          "precision": -0.32067215129082194
+        },
+        "7": {
+          "discriminative": -4.030430749619367,
+          "leverage": 10.490663075239485,
+          "precision": -0.28478110894175956
+        },
+        "99": {
+          "discriminative": -3.564914735207892,
+          "leverage": 9.7143902557809,
+          "precision": -0.3163012758835316
+        }
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.8166666666666667,
+          "routing_quality": 0.735
+        },
+        "2024": {
+          "action_accuracy": 0.8533333333333334,
+          "routing_quality": 0.7366666666666667
+        },
+        "42": {
+          "action_accuracy": 0.8533333333333334,
+          "routing_quality": 0.7733333333333333
+        },
+        "7": {
+          "action_accuracy": 0.8566666666666667,
+          "routing_quality": 0.775
+        },
+        "99": {
+          "action_accuracy": 0.8766666666666667,
+          "routing_quality": 0.78
+        }
+      },
+      "recovery_fraction_of_C": -0.3223443223443223,
+      "routing_mean": 0.76,
+      "routing_std": 0.019860625479688313
+    },
+    "C_fqi": {
+      "action_mean": 0.998,
+      "action_std": 0.0026666666666666783,
+      "delta_vs_A_routing": 9.099999999999998,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9966666666666667,
+          "routing_quality": 0.8833333333333333
+        },
+        "2024": {
+          "action_accuracy": 0.9933333333333333,
+          "routing_quality": 0.8683333333333333
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8816666666666667
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8966666666666666
+        },
+        "99": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8716666666666667
+        }
+      },
+      "routing_mean": 0.8803333333333333,
+      "routing_std": 0.009966610925150688
+    },
+    "S1_ood": {
+      "available": true,
+      "in_dist_routing": 0.8803333333333333,
+      "ood_gap": 50.4,
+      "ood_gap_exceeds_5pp": true,
+      "ood_routing": 0.37633333333333335
+    },
+    "S2_data_efficiency": {
+      "100": {
+        "routing_mean": 0.6723333333333333,
+        "routing_std": 0.03161574853701167
+      },
+      "250": {
+        "routing_mean": 0.8113333333333334,
+        "routing_std": 0.038055515004033535
+      },
+      "50": {
+        "routing_mean": 0.5503333333333333,
+        "routing_std": 0.11083721797703554
+      },
+      "500": {
+        "routing_mean": 0.869,
+        "routing_std": 0.010883218478209677
+      },
+      "all": {
+        "routing_mean": 0.8803333333333333,
+        "routing_std": 0.009966610925150688
+      },
+      "crossover_n": 250,
+      "crossover_note": "First evaluated verified-outcome decision count with mean FQI routing above A; all = 800."
+    },
+    "routing_action_dissociation": {
+      "A_routing_gain_vs_action_gain": "C-A routing=+9.10pp; action=+7.67pp",
+      "dissociated": false,
+      "note": "Routing gain moves action_accuracy under this geometry-derived verified-action protocol."
+    }
+  },
+  "trading": {
+    "A_q_closed": {
+      "action_mean": 0.9253333333333333,
+      "action_std": 0.015719768163402138,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9366666666666666,
+          "routing_quality": 0.745
+        },
+        "2024": {
+          "action_accuracy": 0.8966666666666666,
+          "routing_quality": 0.7133333333333334
+        },
+        "42": {
+          "action_accuracy": 0.9366666666666666,
+          "routing_quality": 0.7066666666666667
+        },
+        "7": {
+          "action_accuracy": 0.92,
+          "routing_quality": 0.7166666666666667
+        },
+        "99": {
+          "action_accuracy": 0.9366666666666666,
+          "routing_quality": 0.6983333333333334
+        }
+      },
+      "routing_mean": 0.716,
+      "routing_std": 0.01579732748143037
+    },
+    "B_q_linear_fit": {
+      "action_mean": 0.8646666666666667,
+      "action_std": 0.0236267268622258,
+      "delta_vs_A_routing": -0.6333333333333302,
+      "learned_weights": {
+        "discriminative": 0.47531465755186036,
+        "leverage": 6.42915647214505,
+        "precision": -1.195327727052735
+      },
+      "learned_weights_per_seed": {
+        "123": {
+          "discriminative": 0.8403884370376251,
+          "leverage": 6.4466831685415205,
+          "precision": -1.41712609885605
+        },
+        "2024": {
+          "discriminative": 0.33779294073561306,
+          "leverage": 6.405832556873551,
+          "precision": -1.1796049498695413
+        },
+        "42": {
+          "discriminative": 0.1114389271817301,
+          "leverage": 6.752753016534299,
+          "precision": -1.13450424044212
+        },
+        "7": {
+          "discriminative": 0.5681631167848578,
+          "leverage": 6.301421203937192,
+          "precision": -1.2023865029828766
+        },
+        "99": {
+          "discriminative": 0.518789866019476,
+          "leverage": 6.239092414838687,
+          "precision": -1.0430168431130864
+        }
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9033333333333333,
+          "routing_quality": 0.735
+        },
+        "2024": {
+          "action_accuracy": 0.8466666666666667,
+          "routing_quality": 0.7283333333333334
+        },
+        "42": {
+          "action_accuracy": 0.84,
+          "routing_quality": 0.69
+        },
+        "7": {
+          "action_accuracy": 0.8533333333333334,
+          "routing_quality": 0.7016666666666667
+        },
+        "99": {
+          "action_accuracy": 0.88,
+          "routing_quality": 0.6933333333333334
+        }
+      },
+      "recovery_fraction_of_C": -0.06249999999999966,
+      "routing_mean": 0.7096666666666667,
+      "routing_std": 0.01848122170083883
+    },
+    "C_fqi": {
+      "action_mean": 0.96,
+      "action_std": 0.019776529298921756,
+      "delta_vs_A_routing": 10.133333333333338,
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9933333333333333,
+          "routing_quality": 0.8516666666666667
+        },
+        "2024": {
+          "action_accuracy": 0.9433333333333334,
+          "routing_quality": 0.82
+        },
+        "42": {
+          "action_accuracy": 0.9633333333333334,
+          "routing_quality": 0.7866666666666666
+        },
+        "7": {
+          "action_accuracy": 0.9633333333333334,
+          "routing_quality": 0.8266666666666667
+        },
+        "99": {
+          "action_accuracy": 0.9366666666666666,
+          "routing_quality": 0.8016666666666666
+        }
+      },
+      "routing_mean": 0.8173333333333334,
+      "routing_std": 0.022176063171306548
+    },
+    "S1_ood": {
+      "available": false,
+      "in_dist_routing": null,
+      "note": "B2 S_B shifted-firm profile is defined only for SOC and DataOps.",
+      "ood_gap": null,
+      "ood_gap_exceeds_5pp": null,
+      "ood_routing": null
+    },
+    "S2_data_efficiency": {
+      "100": {
+        "routing_mean": 0.5956666666666667,
+        "routing_std": 0.02630166872610516
+      },
+      "250": {
+        "routing_mean": 0.698,
+        "routing_std": 0.021380156947766103
+      },
+      "50": {
+        "routing_mean": 0.5760000000000001,
+        "routing_std": 0.051839495882322506
+      },
+      "500": {
+        "routing_mean": 0.7896666666666666,
+        "routing_std": 0.022171052197754528
+      },
+      "all": {
+        "routing_mean": 0.8173333333333334,
+        "routing_std": 0.022176063171306548
+      },
+      "crossover_n": 500,
+      "crossover_note": "First evaluated verified-outcome decision count with mean FQI routing above A; all = 800."
+    },
+    "routing_action_dissociation": {
+      "A_routing_gain_vs_action_gain": "C-A routing=+10.13pp; action=+3.47pp",
+      "dissociated": false,
+      "note": "Routing gain moves action_accuracy under this geometry-derived verified-action protocol."
+    }
+  },
+  "verdict": {
+    "B_recovers_pct_of_C": -0.35617390335609145,
+    "C_minus_B_routing_pp_mean": 20.71333333333333,
+    "S1_ood_gap_mean": 32.74999999999999,
+    "S2_crossover_mean": 270,
+    "rationale": "At least one supported B2 shifted-firm OOD profile loses >=5pp routing_quality.",
+    "read": "(c)",
+    "section_7_framing": "\u00a77 should not present the observed FQI gain as portable beyond the measured geometry-derived stream; retain closed-form Q as the day-zero reference, while treating its cross-firm OOD performance as unmeasured here."
+  }
+}

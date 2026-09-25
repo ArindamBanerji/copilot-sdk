@@ -1,0 +1,139 @@
+........................................................................ [  2%]
+........................................................................ [  4%]
+........................................................................ [  6%]
+........................................................................ [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 12%]
+........................................................................ [ 14%]
+........................................................................ [ 16%]
+........................................................................ [ 18%]
+........................................................................ [ 20%]
+........................................................................ [ 22%]
+........................................................................ [ 24%]
+........................................................................ [ 26%]
+........................................................................ [ 28%]
+........................................................................ [ 30%]
+........................................................................ [ 32%]
+........................................................................ [ 34%]
+........................................................................ [ 36%]
+........................................................................ [ 38%]
+........................................................................ [ 41%]
+........................................................................ [ 43%]
+........................................................................ [ 45%]
+........................................................................ [ 47%]
+........................................................................ [ 49%]
+........................................................................ [ 51%]
+........................................................................ [ 53%]
+........................................................................ [ 55%]
+........................................................................ [ 57%]
+........................................................................ [ 59%]
+........................................................................ [ 61%]
+........................................................................ [ 63%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 69%]
+........................................................................ [ 71%]
+........................................................................ [ 73%]
+........................................................................ [ 75%]
+........................................................................ [ 77%]
+........................................................................ [ 79%]
+........................................................................ [ 82%]
+........................................................................ [ 84%]
+........................................................................ [ 86%]
+........................................................................ [ 88%]
+........................................................................ [ 90%]
+........................................................................ [ 92%]
+........................................................................ [ 94%]
+........................................................................ [ 96%]
+........................................................................ [ 98%]
+.......................................................                  [100%]
+============================== warnings summary ===============================
+apps\trading\backend\app\main.py:681: 2 warnings
+tests/test_evolution_telemetry.py: 10 warnings
+tests/test_rl_evolution_matrix.py: 6 warnings
+tests/test_schema_currency.py: 1 warning
+tests/test_trading_evolver_wiring.py: 4 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\trading\backend\app\main.py:681: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+..\..\..\proj-envs\python_expts_venv\Lib\site-packages\fastapi\applications.py:4495: 2 warnings
+tests/test_chain_transfer.py: 17 warnings
+tests/test_cross_copilot_integration.py: 5 warnings
+tests/test_evolution_telemetry.py: 35 warnings
+tests/test_evolver_wiring.py: 6 warnings
+tests/test_rl_evolution_matrix.py: 18 warnings
+tests/test_schema_currency.py: 1 warning
+tests/test_supplier_signal.py: 14 warnings
+tests/test_trading_evolver_wiring.py: 4 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+..\..\..\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: 7022 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(pytest.__version__) < LooseVersion('3.6.0'):
+
+tests/test_chain_transfer.py: 17 warnings
+tests/test_cross_copilot_integration.py: 5 warnings
+tests/test_evolution_telemetry.py: 10 warnings
+tests/test_evolver_wiring.py: 3 warnings
+tests/test_rl_evolution_matrix.py: 6 warnings
+tests/test_supplier_signal.py: 14 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\purchasing\backend\app\main.py:929: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests/test_correctness_scanner.py::test_scanner_finds_no_violations_in_current_code
+tests/test_jm_v27_validation.py::test_correctness_scanner_clean
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\fix_playwright_failures.py:1: DeprecationWarning: invalid escape sequence '\e'
+    """
+
+tests/test_evolution_telemetry.py::test_summary_schema_version
+tests/test_evolution_telemetry.py::test_summary_has_required_keys
+tests/test_evolution_telemetry.py::test_summary_event_types_valid
+tests/test_evolution_telemetry.py::test_summary_domain_matches
+tests/test_evolution_telemetry.py::test_summary_cross_copilot_parity
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\s2p-copilot\backend\app\main.py:395: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests/test_evolution_telemetry.py: 10 warnings
+tests/test_evolver_wiring.py: 3 warnings
+tests/test_rl_evolution_matrix.py: 6 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\main.py:1003: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests/test_l5_proof.py: 13 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\tests\test_l5_proof.py:97: UserWarning: No DSN supplied - using localhost fallback. Set --dsn with WSL2 NAT IP per Rule #40.
+    proof = l5.L5CompletionProof()
+
+tests/test_l5_proof.py::test_no_age_graceful
+tests/test_l5_proof.py::test_json_output
+tests/test_l5_proof.py::test_cli_exit_codes
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\scripts\verify_l5_completion.py:459: UserWarning: No DSN supplied - using localhost fallback. Set --dsn with WSL2 NAT IP per Rule #40.
+    proof = L5CompletionProof(dsn=args.dsn, graph_name=args.graph_name)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+3511 passed, 7244 warnings in 1433.83s (0:23:53)

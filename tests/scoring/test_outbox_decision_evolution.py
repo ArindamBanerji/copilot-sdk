@@ -71,7 +71,7 @@ def _scorer(mock_preset, store: InMemoryGraphStore) -> CompoundingScorer:
         actions=list(mock_preset.shape.action_names),
         categories=list(mock_preset.shape.category_names),
     )
-    return CompoundingScorer(mock_preset, engine, graph_store=store)
+    return CompoundingScorer(mock_preset, engine, graph_store=store, profile="test")
 
 
 def _payload(decision_id: str) -> dict[str, Any]:
@@ -91,10 +91,8 @@ def test_score_queues_decision_on_store_failure(mock_preset, tmp_path: Path) -> 
     scorer = _scorer(mock_preset, store)
     scorer._outbox = PersistenceOutbox("mock", tmp_path / "outbox.db")
 
-    result = scorer.score({"amount": 0.2, "risk": 0.3, "history": 0.4}, "alpha")
-
-    assert result.confidence >= 0.0
-    assert result.action
+    with pytest.raises(ConnectionError, match="AGE unavailable for Decision write"):
+        scorer.score({"amount": 0.2, "risk": 0.3, "history": 0.4}, "alpha")
     assert scorer._outbox.pending_count() == 1
 
 
@@ -113,18 +111,17 @@ def test_score_decision_drain_replays(mock_preset, tmp_path: Path) -> None:
 
 def test_score_outbox_replay_preserves_decision_id(mock_preset, tmp_path: Path) -> None:
     store = FailingGraphStore(domain="mock")
-    store.fail_decision = True
     scorer = _scorer(mock_preset, store)
     outbox = PersistenceOutbox("mock", tmp_path / "outbox.db")
     scorer._outbox = outbox
 
-    result = scorer.score({"amount": 0.2, "risk": 0.3, "history": 0.4}, "alpha")
-    store.fail_decision = False
+    decision_id = "queued-score-decision"
+    outbox.record_failure(decision_id, "decision", _payload(decision_id), "AGE unavailable")
 
     assert outbox.drain(store) == (1, 0)
-    persisted = store.get_decision(result.decision_id, domain="mock")
+    persisted = store.get_decision(decision_id, domain="mock")
     assert persisted is not None
-    assert persisted["decision_id"] == result.decision_id
+    assert persisted["decision_id"] == decision_id
 
 
 def test_learn_finds_replayed_decision(mock_preset, tmp_path: Path) -> None:
@@ -134,14 +131,15 @@ def test_learn_finds_replayed_decision(mock_preset, tmp_path: Path) -> None:
     outbox = PersistenceOutbox("mock", tmp_path / "outbox.db")
     scorer._outbox = outbox
 
-    result = scorer.score({"amount": 0.2, "risk": 0.3, "history": 0.4}, "alpha")
+    decision_id = "queued-learn-decision"
+    outbox.record_failure(decision_id, "decision", _payload(decision_id), "AGE unavailable")
     store.fail_decision = False
     assert outbox.drain(store) == (1, 0)
 
-    learned = scorer.learn(result.decision_id, result.action)
+    learned = scorer.learn(decision_id, "approve")
 
     assert not isinstance(learned, dict)
-    assert learned.decision_id == result.decision_id
+    assert learned.decision_id == decision_id
 
 
 def test_outbox_cleared_on_reset(mock_preset, tmp_path: Path) -> None:

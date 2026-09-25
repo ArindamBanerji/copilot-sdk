@@ -27,3 +27,14 @@ def test_development_profile_uses_sqlite_store(tmp_path):
 def test_invalid_profile_raises():
     with pytest.raises(ValueError):
         CompoundingScorer.from_preset("trading", profile="bogus")
+
+
+def test_direct_production_constructor_rejects_inmemory_store():
+    scorer = CompoundingScorer.from_preset("trading", profile="test", enable_rl=False)
+    with pytest.raises(RuntimeError, match="AGE-backed GraphStore primary"):
+        CompoundingScorer(
+            scorer._preset,
+            scorer._scorer,
+            InMemoryGraphStore(domain="trading"),
+            profile="production",
+        )

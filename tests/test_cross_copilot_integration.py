@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from importlib import import_module
 import importlib.util
 import sys
 import time
@@ -16,6 +17,7 @@ PURCHASING_BACKEND = ROOT / "apps" / "purchasing" / "backend"
 S2P_BACKEND = WORKSPACE / "s2p-copilot" / "backend"
 
 from copilot_sdk.outbox import OutboxEventType, OutboxStore
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 _s2p_path = WORKSPACE / "s2p-copilot" / "backend" / "app" / "services" / "cross_copilot_signals.py"
 _spec = importlib.util.spec_from_file_location("s2p_cross_copilot_signals", _s2p_path)
@@ -40,15 +42,11 @@ def isolated_app_imports():
 
 
 def _publisher_class():
-    from app.services.supplier_signal_publisher import SupplierSignalPublisher
-
-    return SupplierSignalPublisher
+    return import_module("app.services.supplier_signal_publisher").SupplierSignalPublisher
 
 
 def _active_supplier_signals(*args, **kwargs):
-    from app.services.supplier_signal_publisher import active_supplier_signals
-
-    return active_supplier_signals(*args, **kwargs)
+    return import_module("app.services.supplier_signal_publisher").active_supplier_signals(*args, **kwargs)
 
 
 def _import_s2p_router():
@@ -58,10 +56,7 @@ def _import_s2p_router():
     if str(S2P_BACKEND) in sys.path:
         sys.path.remove(str(S2P_BACKEND))
     sys.path.insert(0, str(S2P_BACKEND))
-    from app.domains.s2p.config import S2PDomainConfig
-    from app.routers import s2p as s2p_router
-
-    return s2p_router, S2PDomainConfig
+    return import_module("app.routers.s2p"), import_module("app.domains.s2p.config").S2PDomainConfig
 
 
 @dataclass
@@ -116,23 +111,8 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
                 }
             ]
 
-    class GraphStore:
-        def __init__(self):
-            self.context_rows = []
-            self.links = []
-
-        def query_context(self, entity_id, max_depth=2, domain=None):
-            assert domain == "s2p"
-            return list(self.context_rows)
-
-        def get_decision_links(self, decision_id):
-            return []
-
-        def link_decision_to_entity(self, decision_id, entity_id, edge_type):
-            return None
-
     class Scorer:
-        graph_store = GraphStore()
+        graph_store = InMemoryGraphStore(domain="s2p")
 
         def score(self, factors, category, metadata=None):
             return SimpleNamespace(
@@ -151,6 +131,9 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
 
     app = FastAPI()
     app.state.scorer = Scorer()
+    # Match current S2P startup: the route calls this writer synchronously;
+    # async_record_* methods on a store would not be called by this path.
+    app.state.audit_writer = s2p_router.S2PScoreAuditWriter()
     app.include_router(s2p_router.router)
     monkeypatch.setattr(s2p_router, "CrossCopilotSignalConsumer", Consumer)
     monkeypatch.setattr(s2p_router, "compute_all_factors", fake_compute_all_factors)
@@ -177,6 +160,25 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
     assert signal["delta"] is None
     assert signal["warning"] == "Purchasing: reliability 74%"
     assert calls[0]["supplier_exception_history"] == 0.26
+
+    store = app.state.scorer.graph_store
+    entries = s2p_router.audit._read_entries(store)
+    assert len(entries) == 1
+    decision = entries[0]
+    assert decision.decision_id == data["decision_id"]
+    assert decision.action == data["action"]
+    assert decision.entry_hash == decision.compute_hash()
+    assert decision.prev_hash == "0" * 64
+
+    # Exercise the outcome half of the same real writer/store contract too.
+    app.state.audit_writer.record_outcome(
+        store, decision_id=data["decision_id"], actual_action=data["action"], outcome="confirm",
+    )
+    entries = s2p_router.audit._read_entries(store)
+    assert len(entries) == 2
+    assert entries[1].decision_id == decision.decision_id
+    assert entries[1].prev_hash == decision.entry_hash
+    assert entries[1].entry_hash == entries[1].compute_hash()
 
 
 def test_no_signal_leaves_s2p_context_unchanged(tmp_path):

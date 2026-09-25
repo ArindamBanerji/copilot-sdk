@@ -59,7 +59,7 @@ def test_single_pass_uses_only_surface_factors() -> None:
 
 
 def test_breadth_reads_all_branches_up_to_budget() -> None:
-    scenario = by_kind("content_keyed")
+    scenario = by_kind("score_keyed")
     mu = mh.build_centroids(scenarios())
     result = mh.breadth(scenario, mu)
     spent = sum(mh.read_cost(scenario, str(step["branch_name"])) for step in result.trace)

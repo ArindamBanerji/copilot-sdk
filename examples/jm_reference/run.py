@@ -22,6 +22,8 @@ from typing import Any
 import numpy as np
 
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.config import GraphConfig
+from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.scoring.measurement_state import compute_measurement_state
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
@@ -74,13 +76,19 @@ def run_experiment(
     gen_config: GeneratorConfig,
     oracle_config: OracleConfig,
     db_path: str | None = None,
+    mode: str = "offline",
 ) -> dict[str, Any]:
     """Run one oracle-separated experiment with real SDK persistence."""
 
     temporary_db = db_path is None
     if db_path is None:
         db_path = str(Path(tempfile.mkdtemp(prefix=f"jm_{label}_")) / f"{label}.db")
-    store = SQLiteGraphStore(db_path, domain="trading")
+    if mode == "age":
+        store = create_graph_store(config=GraphConfig.load("trading", profile="production"), domain="trading")
+    elif mode == "offline":
+        store = SQLiteGraphStore(db_path, domain="trading")
+    else:
+        raise ValueError("mode must be 'age' or 'offline'")
     previous_outbox_path = os.environ.get("CI_PERSISTENCE_OUTBOX_PATH")
     outbox_path = str(Path(db_path).with_name(f"{label}_outbox.db"))
     os.environ["CI_PERSISTENCE_OUTBOX_PATH"] = outbox_path
@@ -90,7 +98,7 @@ def run_experiment(
             graph_store=store,
             # SQLite is intentionally a standalone reference-app store; the SDK
             # test profile permits it while still executing the real scorer path.
-            profile="test",
+            profile="production" if mode == "age" else "test",
             evolve=True,
             consolidation_enabled=True,
             enable_rl=False,
@@ -204,6 +212,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the offline JM reference app")
     parser.add_argument("--decisions", type=int, default=None, help="override decisions per run")
     parser.add_argument("--output-dir", default=".", help="directory for report.json/report.html")
+    parser.add_argument("--mode", choices=("age", "offline"), default="offline")
     args = parser.parse_args()
     if args.decisions is not None and args.decisions <= 0:
         parser.error("--decisions must be positive")
@@ -214,9 +223,9 @@ def main() -> None:
     print("JM Reference App — Judgment Memory Compounding Demo")
     print("=" * 64)
     print("\n--- Run A: epsilon_firm > 0.128 ---")
-    trajectory_a = run_experiment("run_a", gen_a, RUN_A_ORACLE)
+    trajectory_a = run_experiment("run_a", gen_a, RUN_A_ORACLE, mode=args.mode)
     print("\n--- Run B: epsilon_firm < 0.128 ---")
-    trajectory_b = run_experiment("run_b", gen_b, RUN_B_ORACLE)
+    trajectory_b = run_experiment("run_b", gen_b, RUN_B_ORACLE, mode=args.mode)
     print("\n--- Generating report ---")
     generate_report(trajectory_a, trajectory_b, args.output_dir)
     print("Done. Open report.html to view the offline compounding surfaces.")

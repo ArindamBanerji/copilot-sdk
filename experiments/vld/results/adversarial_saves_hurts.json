@@ -1,0 +1,745 @@
+{
+  "dataops": {
+    "adversarial_q": {
+      "aggregate": {
+        "action_accuracy": 0.06190476190476191,
+        "hurts": 197,
+        "n_scenarios": 210,
+        "neutral_correct": 13,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:197",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.08571428571428572,
+          "hurts": 64,
+          "n_scenarios": 70,
+          "neutral_correct": 6,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:64",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.07142857142857142,
+          "hurts": 65,
+          "n_scenarios": 70,
+          "neutral_correct": 5,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:65",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.02857142857142857,
+          "hurts": 68,
+          "n_scenarios": 70,
+          "neutral_correct": 2,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:68",
+          "saves": 0
+        }
+      }
+    },
+    "all_tiers": {
+      "action_accuracy": 0.348,
+      "hurts": 473,
+      "n_scenarios": 750,
+      "neutral_correct": 37,
+      "neutral_wrong": 16,
+      "pre_action_accuracy": 0.68,
+      "ratio": "224:473",
+      "saves": 224
+    },
+    "boundary": {
+      "aggregate": {
+        "action_accuracy": 0.9333333333333333,
+        "hurts": 0,
+        "n_scenarios": 240,
+        "neutral_correct": 0,
+        "neutral_wrong": 16,
+        "pre_action_accuracy": 0.0,
+        "ratio": "224:0",
+        "saves": 224
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9125,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 7,
+          "pre_action_accuracy": 0.0,
+          "ratio": "73:0",
+          "saves": 73
+        },
+        "42": {
+          "action_accuracy": 0.9375,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 5,
+          "pre_action_accuracy": 0.0,
+          "ratio": "75:0",
+          "saves": 75
+        },
+        "7": {
+          "action_accuracy": 0.95,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 4,
+          "pre_action_accuracy": 0.0,
+          "ratio": "76:0",
+          "saves": 76
+        }
+      }
+    },
+    "misleading": {
+      "aggregate": {
+        "action_accuracy": 0.08,
+        "hurts": 276,
+        "n_scenarios": 300,
+        "neutral_correct": 24,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:276",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.07,
+          "hurts": 93,
+          "n_scenarios": 100,
+          "neutral_correct": 7,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:93",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.08,
+          "hurts": 92,
+          "n_scenarios": 100,
+          "neutral_correct": 8,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:92",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.09,
+          "hurts": 91,
+          "n_scenarios": 100,
+          "neutral_correct": 9,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:91",
+          "saves": 0
+        }
+      }
+    }
+  },
+  "metadata": {
+    "comparison": "Astra 57:0 was favorable construction; this is adversarial",
+    "construction_spec": {
+      "adversarial_q": "all acquired values are generated from the wrong action, targeting dimensions selected by Q",
+      "boundary": "closest action-pair midpoint plus small truth-side perturbation; one partial dimension set toward the competing action",
+      "misleading": "initial Q top-2 dimensions receive wrong-action acquired evidence; all other acquired dimensions are truthful"
+    },
+    "determinism_two_rebuilds": true,
+    "pre_registered_rule": "report honestly; hurts expected and should reduce the favorable 57:0 ratio",
+    "scenarios_per_copilot": 250,
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "source": "scripts/k_learning_curve_cross_copilot.py VLDInvestigator Q-selection reused in standalone experiment script",
+    "tier": "GEOMETRY-DERIVED + SIMULATED",
+    "tier_counts": {
+      "adversarial_q": 70,
+      "boundary": 80,
+      "misleading": 100
+    }
+  },
+  "purchasing": {
+    "adversarial_q": {
+      "aggregate": {
+        "action_accuracy": 0.0,
+        "hurts": 210,
+        "n_scenarios": 210,
+        "neutral_correct": 0,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:210",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.0,
+          "hurts": 70,
+          "n_scenarios": 70,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:70",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.0,
+          "hurts": 70,
+          "n_scenarios": 70,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:70",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.0,
+          "hurts": 70,
+          "n_scenarios": 70,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:70",
+          "saves": 0
+        }
+      }
+    },
+    "all_tiers": {
+      "action_accuracy": 0.32,
+      "hurts": 510,
+      "n_scenarios": 750,
+      "neutral_correct": 0,
+      "neutral_wrong": 0,
+      "pre_action_accuracy": 0.68,
+      "ratio": "240:510",
+      "saves": 240
+    },
+    "boundary": {
+      "aggregate": {
+        "action_accuracy": 1.0,
+        "hurts": 0,
+        "n_scenarios": 240,
+        "neutral_correct": 0,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 0.0,
+        "ratio": "240:0",
+        "saves": 240
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        }
+      }
+    },
+    "misleading": {
+      "aggregate": {
+        "action_accuracy": 0.0,
+        "hurts": 300,
+        "n_scenarios": 300,
+        "neutral_correct": 0,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:300",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.0,
+          "hurts": 100,
+          "n_scenarios": 100,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:100",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.0,
+          "hurts": 100,
+          "n_scenarios": 100,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:100",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.0,
+          "hurts": 100,
+          "n_scenarios": 100,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:100",
+          "saves": 0
+        }
+      }
+    }
+  },
+  "s2p": {
+    "adversarial_q": {
+      "aggregate": {
+        "action_accuracy": 0.014285714285714285,
+        "hurts": 207,
+        "n_scenarios": 210,
+        "neutral_correct": 3,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:207",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.014285714285714285,
+          "hurts": 69,
+          "n_scenarios": 70,
+          "neutral_correct": 1,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:69",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.02857142857142857,
+          "hurts": 68,
+          "n_scenarios": 70,
+          "neutral_correct": 2,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:68",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.0,
+          "hurts": 70,
+          "n_scenarios": 70,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:70",
+          "saves": 0
+        }
+      }
+    },
+    "all_tiers": {
+      "action_accuracy": 0.3253333333333333,
+      "hurts": 506,
+      "n_scenarios": 750,
+      "neutral_correct": 4,
+      "neutral_wrong": 0,
+      "pre_action_accuracy": 0.68,
+      "ratio": "240:506",
+      "saves": 240
+    },
+    "boundary": {
+      "aggregate": {
+        "action_accuracy": 1.0,
+        "hurts": 0,
+        "n_scenarios": 240,
+        "neutral_correct": 0,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 0.0,
+        "ratio": "240:0",
+        "saves": 240
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        }
+      }
+    },
+    "misleading": {
+      "aggregate": {
+        "action_accuracy": 0.0033333333333333335,
+        "hurts": 299,
+        "n_scenarios": 300,
+        "neutral_correct": 1,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:299",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.0,
+          "hurts": 100,
+          "n_scenarios": 100,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:100",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.01,
+          "hurts": 99,
+          "n_scenarios": 100,
+          "neutral_correct": 1,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:99",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.0,
+          "hurts": 100,
+          "n_scenarios": 100,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:100",
+          "saves": 0
+        }
+      }
+    }
+  },
+  "soc": {
+    "adversarial_q": {
+      "aggregate": {
+        "action_accuracy": 0.2904761904761905,
+        "hurts": 149,
+        "n_scenarios": 210,
+        "neutral_correct": 61,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:149",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.2857142857142857,
+          "hurts": 50,
+          "n_scenarios": 70,
+          "neutral_correct": 20,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:50",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.2857142857142857,
+          "hurts": 50,
+          "n_scenarios": 70,
+          "neutral_correct": 20,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:50",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.3,
+          "hurts": 49,
+          "n_scenarios": 70,
+          "neutral_correct": 21,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:49",
+          "saves": 0
+        }
+      }
+    },
+    "all_tiers": {
+      "action_accuracy": 0.512,
+      "hurts": 366,
+      "n_scenarios": 750,
+      "neutral_correct": 144,
+      "neutral_wrong": 0,
+      "pre_action_accuracy": 0.68,
+      "ratio": "240:366",
+      "saves": 240
+    },
+    "boundary": {
+      "aggregate": {
+        "action_accuracy": 1.0,
+        "hurts": 0,
+        "n_scenarios": 240,
+        "neutral_correct": 0,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 0.0,
+        "ratio": "240:0",
+        "saves": 240
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        }
+      }
+    },
+    "misleading": {
+      "aggregate": {
+        "action_accuracy": 0.27666666666666667,
+        "hurts": 217,
+        "n_scenarios": 300,
+        "neutral_correct": 83,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:217",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.27,
+          "hurts": 73,
+          "n_scenarios": 100,
+          "neutral_correct": 27,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:73",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.29,
+          "hurts": 71,
+          "n_scenarios": 100,
+          "neutral_correct": 29,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:71",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.27,
+          "hurts": 73,
+          "n_scenarios": 100,
+          "neutral_correct": 27,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:73",
+          "saves": 0
+        }
+      }
+    }
+  },
+  "trading": {
+    "adversarial_q": {
+      "aggregate": {
+        "action_accuracy": 0.13333333333333333,
+        "hurts": 182,
+        "n_scenarios": 210,
+        "neutral_correct": 28,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:182",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.12857142857142856,
+          "hurts": 61,
+          "n_scenarios": 70,
+          "neutral_correct": 9,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:61",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.12857142857142856,
+          "hurts": 61,
+          "n_scenarios": 70,
+          "neutral_correct": 9,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:61",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.14285714285714285,
+          "hurts": 60,
+          "n_scenarios": 70,
+          "neutral_correct": 10,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:60",
+          "saves": 0
+        }
+      }
+    },
+    "all_tiers": {
+      "action_accuracy": 0.43066666666666664,
+      "hurts": 427,
+      "n_scenarios": 750,
+      "neutral_correct": 83,
+      "neutral_wrong": 0,
+      "pre_action_accuracy": 0.68,
+      "ratio": "240:427",
+      "saves": 240
+    },
+    "boundary": {
+      "aggregate": {
+        "action_accuracy": 1.0,
+        "hurts": 0,
+        "n_scenarios": 240,
+        "neutral_correct": 0,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 0.0,
+        "ratio": "240:0",
+        "saves": 240
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "hurts": 0,
+          "n_scenarios": 80,
+          "neutral_correct": 0,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 0.0,
+          "ratio": "80:0",
+          "saves": 80
+        }
+      }
+    },
+    "misleading": {
+      "aggregate": {
+        "action_accuracy": 0.18333333333333332,
+        "hurts": 245,
+        "n_scenarios": 300,
+        "neutral_correct": 55,
+        "neutral_wrong": 0,
+        "pre_action_accuracy": 1.0,
+        "ratio": "0:245",
+        "saves": 0
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.17,
+          "hurts": 83,
+          "n_scenarios": 100,
+          "neutral_correct": 17,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:83",
+          "saves": 0
+        },
+        "42": {
+          "action_accuracy": 0.18,
+          "hurts": 82,
+          "n_scenarios": 100,
+          "neutral_correct": 18,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:82",
+          "saves": 0
+        },
+        "7": {
+          "action_accuracy": 0.2,
+          "hurts": 80,
+          "n_scenarios": 100,
+          "neutral_correct": 20,
+          "neutral_wrong": 0,
+          "pre_action_accuracy": 1.0,
+          "ratio": "0:80",
+          "saves": 0
+        }
+      }
+    }
+  }
+}

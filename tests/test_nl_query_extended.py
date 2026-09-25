@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import Mock
+
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 from freezegun import freeze_time
+import pytest
 
 from copilot_sdk.di import (
     AccuracyPattern,
@@ -20,26 +24,25 @@ from copilot_sdk.di import (
 )
 
 
-class FakeGraphStore:
-    def __init__(self, decisions: list[dict], verified: list[dict] | None = None) -> None:
-        self.decisions = decisions
-        self.verified = verified if verified is not None else decisions
-        self.calls: list[str] = []
-
-    def get_verified_decisions(self, domain: str = "dataops") -> list[dict]:
-        self.calls.append(f"verified:{domain}")
-        return list(self.verified)
-
-    def get_all_decisions(self, domain: str = "dataops") -> list[dict]:
-        self.calls.append(f"all:{domain}")
-        return list(self.decisions)
 
 
-class StrictNoDbStore(FakeGraphStore):
-    def __getattr__(self, name: str):
-        if name.startswith("_run") or "query" in name.lower() or "connection" in name.lower():
-            raise AssertionError(f"raw DB access attempted: {name}")
-        raise AttributeError(name)
+
+
+def _seed_store(decisions):
+    store = InMemoryGraphStore(domain="dataops")
+    for row in decisions:
+        metadata = {**row.get("metadata", {}), **row}
+        timestamp = metadata.get("created_at")
+        if isinstance(timestamp, datetime):
+            metadata["created_at"] = timestamp.timestamp()
+        elif isinstance(timestamp, str):
+            metadata["created_at"] = datetime.fromisoformat(timestamp).timestamp()
+        decision_id = store.write_decision(row["domain"], row["category"], row["recommended_action"],
+            row["confidence"], row["factors"], metadata=metadata)
+        if row.get("is_correct") is not None:
+            action = row.get("actual_action") or (row["recommended_action"] if row["is_correct"] else "review")
+            store.write_outcome(decision_id, action, row["is_correct"], domain=row["domain"])
+    return store
 
 
 def _now() -> datetime:
@@ -62,6 +65,7 @@ def _decision(
 ) -> dict:
     data = {
         "decision_id": decision_id,
+        "domain": "dataops",
         "category": category,
         "supplier_id": supplier_id,
         "source_id": source_id,
@@ -92,22 +96,38 @@ def _sample_decisions() -> list[dict]:
 
 
 def test_multi_entity_all_suppliers():
-    result = NLQueryRouter().query("which suppliers have decisions", _sample_decisions())
+    result = NLQueryRouter().query("which suppliers have decisions", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "multi_entity"
     assert result["result"]["entities"][0]["entity"] == "SUP-A"
     assert result["metadata"]["dimension"] == "supplier"
 
 
+def test_nl_query_requires_domain_and_filters_same_decision_id_by_domain():
+    rows = [
+        {**_decision("same-id"), "domain": "soc", "category": "soc-only"},
+        {**_decision("same-id"), "domain": "dataops", "category": "dataops-only"},
+    ]
+
+    with pytest.raises(ValueError, match="domain is required"):
+        NLQueryRouter().query("which suppliers have decisions", rows)
+
+    result = NLQueryRouter().query(
+        "which suppliers have decisions", rows, domain="soc"
+    )
+    assert result["result"]["entities"][0]["entity"] == "SUP-A"
+    assert result["metadata"]["count"] == 1
+
+
 def test_multi_entity_filtered_threshold():
-    result = NLQueryRouter().query("list suppliers > 1", _sample_decisions())
+    result = NLQueryRouter().query("list suppliers > 1", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "multi_entity"
     assert [row["entity"] for row in result["result"]["entities"]] == ["SUP-A", "SUP-B"]
 
 
 def test_multi_entity_empty():
-    result = NLQueryRouter().query("list all suppliers", [])
+    result = NLQueryRouter().query("list all suppliers", [], domain="dataops")
 
     assert result["intent"] == "multi_entity"
     assert result["metadata"]["count"] == 0
@@ -115,7 +135,7 @@ def test_multi_entity_empty():
 
 
 def test_time_window_7_days():
-    result = NLQueryRouter().query("show last 7 days", _sample_decisions())
+    result = NLQueryRouter().query("show last 7 days", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["count"] == 1
@@ -123,14 +143,14 @@ def test_time_window_7_days():
 
 
 def test_time_window_30_days():
-    result = NLQueryRouter().query("show past 30 days", _sample_decisions())
+    result = NLQueryRouter().query("show past 30 days", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["count"] == 2
 
 
 def test_time_window_no_timestamp_data_is_safe():
-    result = NLQueryRouter().query("show last 7 days", [_decision("missing", created_at=None)])
+    result = NLQueryRouter().query("show last 7 days", [_decision("missing", created_at=None)], domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["count"] == 0
@@ -139,7 +159,7 @@ def test_time_window_no_timestamp_data_is_safe():
 
 def test_time_window_no_matches():
     old = [_decision("old", created_at=_now() - timedelta(days=400))]
-    result = NLQueryRouter().query("show last 7 days", old)
+    result = NLQueryRouter().query("show last 7 days", old, domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["count"] == 0
@@ -148,7 +168,7 @@ def test_time_window_no_matches():
 
 def test_time_window_since_iso_date_filters_correctly():
     since = (_now() - timedelta(days=20)).date().isoformat()
-    result = NLQueryRouter().query(f"show decisions since {since}", _sample_decisions())
+    result = NLQueryRouter().query(f"show decisions since {since}", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["window"] == f"since {since}"
@@ -156,7 +176,7 @@ def test_time_window_since_iso_date_filters_correctly():
 
 
 def test_time_window_since_invalid_date_returns_unsupported():
-    result = NLQueryRouter().query("show decisions since 2026-99-99", _sample_decisions())
+    result = NLQueryRouter().query("show decisions since 2026-99-99", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["supported"] is False
@@ -165,7 +185,7 @@ def test_time_window_since_invalid_date_returns_unsupported():
 
 
 def test_time_window_unrecognized_window_does_not_default_to_30_days():
-    result = NLQueryRouter().query("show last decisions", _sample_decisions())
+    result = NLQueryRouter().query("show last decisions", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["supported"] is False
@@ -174,14 +194,14 @@ def test_time_window_unrecognized_window_does_not_default_to_30_days():
 
 
 def test_time_window_missing_timestamp_count_metadata():
-    result = NLQueryRouter().query("show last 7 days", [_decision("missing", created_at=None)])
+    result = NLQueryRouter().query("show last 7 days", [_decision("missing", created_at=None)], domain="dataops")
 
     assert result["intent"] == "time_window"
     assert result["metadata"]["missing_timestamp_count"] == 1
 
 
 def test_aggregation_average_confidence_by_category():
-    result = NLQueryRouter().query("average confidence by category", _sample_decisions())
+    result = NLQueryRouter().query("average confidence by category", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "aggregation"
     rows = {row["group"]: row for row in result["result"]["groups"]}
@@ -190,7 +210,7 @@ def test_aggregation_average_confidence_by_category():
 
 
 def test_aggregation_count_decisions_by_supplier():
-    result = NLQueryRouter().query("count decisions by supplier", _sample_decisions())
+    result = NLQueryRouter().query("count decisions by supplier", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "aggregation"
     assert result["metadata"]["group_by"] == "supplier"
@@ -198,7 +218,7 @@ def test_aggregation_count_decisions_by_supplier():
 
 
 def test_aggregation_handles_empty_data():
-    result = NLQueryRouter().query("count decisions by supplier", [])
+    result = NLQueryRouter().query("count decisions by supplier", [], domain="dataops")
 
     assert result["intent"] == "aggregation"
     assert result["metadata"]["count"] == 0
@@ -207,7 +227,7 @@ def test_aggregation_handles_empty_data():
 def test_aggregation_handles_missing_metric():
     rows = [_decision("d1")]
     rows[0].pop("confidence")
-    result = NLQueryRouter().query("average confidence by category", rows)
+    result = NLQueryRouter().query("average confidence by category", rows, domain="dataops")
 
     assert result["intent"] == "aggregation"
     assert result["result"]["groups"][0]["value"] is None
@@ -221,7 +241,7 @@ def test_comparison_this_month_vs_last_month():
         _decision("this", created_at=now - timedelta(days=1)),
         _decision("last", created_at=(now.replace(day=1) - timedelta(days=1))),
     ]
-    result = NLQueryRouter().query("compare this month vs last month", rows)
+    result = NLQueryRouter().query("compare this month vs last month", rows, domain="dataops")
 
     assert result["intent"] == "comparison"
     assert result["result"]["period_a"]["count"] == 1
@@ -229,7 +249,7 @@ def test_comparison_this_month_vs_last_month():
 
 
 def test_comparison_missing_period_data_is_safe():
-    result = NLQueryRouter().query("compare this month vs last month", [_decision("missing", created_at=None)])
+    result = NLQueryRouter().query("compare this month vs last month", [_decision("missing", created_at=None)], domain="dataops")
 
     assert result["intent"] == "comparison"
     assert result["result"]["period_a"]["count"] == 0
@@ -237,7 +257,7 @@ def test_comparison_missing_period_data_is_safe():
 
 
 def test_comparison_missing_timestamp_count_metadata():
-    result = NLQueryRouter().query("compare this month vs last month", [_decision("missing", created_at=None)])
+    result = NLQueryRouter().query("compare this month vs last month", [_decision("missing", created_at=None)], domain="dataops")
 
     assert result["intent"] == "comparison"
     assert result["metadata"]["missing_timestamp_count"] == 1
@@ -252,7 +272,7 @@ def test_comparison_improvement_trend():
         _decision("this-2", created_at=this_start + timedelta(hours=2)),
         _decision("last", created_at=this_start - timedelta(days=1)),
     ]
-    result = NLQueryRouter().query("compare this month vs last month", rows)
+    result = NLQueryRouter().query("compare this month vs last month", rows, domain="dataops")
 
     assert result["intent"] == "comparison"
     assert result["result"]["trend"] == "improved"
@@ -260,7 +280,7 @@ def test_comparison_improvement_trend():
 
 
 def test_accuracy_overall():
-    result = NLQueryRouter().query("accuracy overall", _sample_decisions())
+    result = NLQueryRouter().query("accuracy overall", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "accuracy"
     assert result["result"]["groups"][0]["correct"] == 2
@@ -268,7 +288,7 @@ def test_accuracy_overall():
 
 
 def test_accuracy_by_category():
-    result = NLQueryRouter().query("accuracy by category", _sample_decisions())
+    result = NLQueryRouter().query("accuracy by category", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "accuracy"
     rows = {row["group"]: row for row in result["result"]["groups"]}
@@ -277,7 +297,7 @@ def test_accuracy_by_category():
 
 
 def test_accuracy_by_source():
-    result = NLQueryRouter().query("accuracy by source", _sample_decisions())
+    result = NLQueryRouter().query("accuracy by source", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "accuracy"
     assert result["metadata"]["group_by"] == "source"
@@ -286,7 +306,7 @@ def test_accuracy_by_source():
 
 
 def test_accuracy_by_supplier_or_entity():
-    result = NLQueryRouter().query("accuracy by supplier", _sample_decisions())
+    result = NLQueryRouter().query("accuracy by supplier", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "accuracy"
     assert result["metadata"]["group_by"] == "supplier"
@@ -298,7 +318,7 @@ def test_accuracy_grouping_missing_field_is_unknown_or_unavailable():
     row = _decision("missing-supplier")
     row.pop("supplier_id")
     row["metadata"].pop("supplier_id")
-    result = NLQueryRouter().query("accuracy by supplier", [row])
+    result = NLQueryRouter().query("accuracy by supplier", [row], domain="dataops")
 
     assert result["intent"] == "accuracy"
     assert result["result"]["groups"][0]["group"] == "unknown"
@@ -306,7 +326,7 @@ def test_accuracy_grouping_missing_field_is_unknown_or_unavailable():
 
 
 def test_accuracy_time_bounded():
-    result = NLQueryRouter().query("accuracy last 7 days", _sample_decisions())
+    result = NLQueryRouter().query("accuracy last 7 days", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "accuracy"
     assert result["result"]["groups"][0]["total"] == 1
@@ -314,7 +334,7 @@ def test_accuracy_time_bounded():
 
 
 def test_accuracy_missing_correctness_fields_is_safe():
-    result = NLQueryRouter().query("accuracy overall", [_decision("unknown", is_correct=None)])
+    result = NLQueryRouter().query("accuracy overall", [_decision("unknown", is_correct=None)], domain="dataops")
 
     assert result["intent"] == "accuracy"
     assert result["result"]["groups"][0]["total"] == 0
@@ -322,7 +342,7 @@ def test_accuracy_missing_correctness_fields_is_safe():
 
 
 def test_router_dispatches_to_new_pattern_on_unknown_existing_intent():
-    result = NLQueryRouter().query("which suppliers are present", _sample_decisions())
+    result = NLQueryRouter().query("which suppliers are present", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "multi_entity"
 
@@ -332,7 +352,7 @@ def test_multi_entity_percentage_threshold_applies_to_rate_metric():
         _decision("a", supplier_id="SUP-A", amount=200.0),
         _decision("b", supplier_id="SUP-B", amount=50.0),
     ]
-    result = NLQueryRouter().query("list suppliers with exception rate > 10%", rows)
+    result = NLQueryRouter().query("list suppliers with exception rate > 10%", rows, domain="dataops")
 
     assert result["intent"] == "multi_entity"
     assert [row["entity"] for row in result["result"]["entities"]] == ["SUP-A"]
@@ -340,7 +360,7 @@ def test_multi_entity_percentage_threshold_applies_to_rate_metric():
 
 
 def test_multi_entity_percentage_threshold_not_applied_to_count():
-    result = NLQueryRouter().query("list suppliers > 10%", _sample_decisions())
+    result = NLQueryRouter().query("list suppliers > 10%", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "multi_entity"
     assert result["metadata"]["supported"] is False
@@ -349,7 +369,7 @@ def test_multi_entity_percentage_threshold_not_applied_to_count():
 
 
 def test_multi_entity_count_threshold_requires_plain_number():
-    result = NLQueryRouter().query("list suppliers > 1", _sample_decisions())
+    result = NLQueryRouter().query("list suppliers > 1", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "multi_entity"
     assert [row["entity"] for row in result["result"]["entities"]] == ["SUP-A", "SUP-B"]
@@ -358,7 +378,7 @@ def test_multi_entity_count_threshold_requires_plain_number():
 def test_multi_entity_rate_threshold_missing_metric_is_unavailable():
     row = _decision("missing-rate", amount=200.0)
     row["factors"].pop("exception_rate")
-    result = NLQueryRouter().query("list suppliers with exception rate > 10%", [row])
+    result = NLQueryRouter().query("list suppliers with exception rate > 10%", [row], domain="dataops")
 
     assert result["intent"] == "multi_entity"
     assert result["result"]["entities"] == []
@@ -366,42 +386,42 @@ def test_multi_entity_rate_threshold_missing_metric_is_unavailable():
 
 
 def test_existing_source_reliability_intent_preserved():
-    result = NLQueryRouter().query("is this source reliable", FakeGraphStore(_sample_decisions()))
+    result = NLQueryRouter().query("is this source reliable", _seed_store(_sample_decisions()), domain="dataops")
 
     assert result["intent"] == "source_reliability"
     assert result["query_template"].startswith("MATCH")
 
 
 def test_existing_freshness_intent_preserved():
-    result = NLQueryRouter().query("is the data fresh", FakeGraphStore(_sample_decisions()))
+    result = NLQueryRouter().query("is the data fresh", _seed_store(_sample_decisions()), domain="dataops")
 
     assert result["intent"] == "freshness"
     assert result["query_template"].startswith("MATCH")
 
 
 def test_existing_recurrence_intent_preserved():
-    result = NLQueryRouter().query("did this repeat again", FakeGraphStore(_sample_decisions()))
+    result = NLQueryRouter().query("did this repeat again", _seed_store(_sample_decisions()), domain="dataops")
 
     assert result["intent"] == "recurrence"
     assert result["query_template"].startswith("MATCH")
 
 
 def test_existing_impact_intent_preserved():
-    result = NLQueryRouter().query("what is affected downstream", FakeGraphStore(_sample_decisions()))
+    result = NLQueryRouter().query("what is affected downstream", _seed_store(_sample_decisions()), domain="dataops")
 
     assert result["intent"] == "impact"
     assert result["query_template"].startswith("MATCH")
 
 
 def test_existing_metric_intent_preserved():
-    result = NLQueryRouter().query("what was the metric", FakeGraphStore(_sample_decisions()))
+    result = NLQueryRouter().query("what was the metric", _seed_store(_sample_decisions()), domain="dataops")
 
     assert result["intent"] == "metric"
     assert result["query_template"].startswith("MATCH")
 
 
 def test_unknown_query_fallback_preserved():
-    result = NLQueryRouter().query("tell me a story", _sample_decisions())
+    result = NLQueryRouter().query("tell me a story", _sample_decisions(), domain="dataops")
 
     assert result == {
         "intent": "unknown",
@@ -411,7 +431,7 @@ def test_unknown_query_fallback_preserved():
 
 
 def test_empty_query_behavior_preserved():
-    result = NLQueryRouter().query("", _sample_decisions())
+    result = NLQueryRouter().query("", _sample_decisions(), domain="dataops")
 
     assert result == {
         "intent": "unknown",
@@ -435,13 +455,13 @@ def test_init_exports_preserve_existing_symbols():
 
 
 def test_patterns_are_case_insensitive():
-    result = NLQueryRouter().query("WHICH SUPPLIERS", _sample_decisions())
+    result = NLQueryRouter().query("WHICH SUPPLIERS", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "multi_entity"
 
 
 def test_patterns_do_not_require_graphstore_or_db():
-    result = NLQueryRouter().query("count decisions by category", _sample_decisions())
+    result = NLQueryRouter().query("count decisions by category", _sample_decisions(), domain="dataops")
 
     assert result["intent"] == "aggregation"
     assert result["metadata"]["count"] == 4
@@ -457,9 +477,12 @@ def test_no_external_api_or_llm_dependency():
 
 
 def test_no_raw_db_access_for_patterns():
-    store = StrictNoDbStore(_sample_decisions())
+    store = _seed_store(_sample_decisions())
 
-    result = NLQueryRouter().query("which suppliers are present", store)
+    store.get_verified_decisions = Mock(wraps=store.get_verified_decisions)
+    store.query_context = Mock(side_effect=AssertionError("raw graph access attempted"))
+    result = NLQueryRouter().query("which suppliers are present", store, domain="dataops")
 
     assert result["intent"] == "multi_entity"
-    assert store.calls == ["verified:dataops"]
+    store.get_verified_decisions.assert_called_once_with("dataops")
+    store.query_context.assert_not_called()

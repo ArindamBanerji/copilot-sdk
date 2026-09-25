@@ -18,7 +18,6 @@ def create_cohort_status_router(
     router = APIRouter(prefix="/api/trading", tags=["cohort-status"])
 
     @router.get("/cohort-status")
-    @cached_static("cohort-status")
     def get_cohort_status(request: Request) -> dict[str, Any]:
         store = graph_store_factory() if graph_store_factory is not None else None
         return CohortStatusService(

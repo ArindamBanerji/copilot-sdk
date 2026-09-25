@@ -1,0 +1,108 @@
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Killing all copilot port listeners...
+  Killed stale PID 79580 on :8001
+  Killed stale PID 65064 on :5173
+  Killed stale PID 103932 on :8010
+  Killed stale PID 90028 on :5174
+  Killed stale PID 90620 on :8020
+  Killed stale PID 98352 on :5175
+  Killed stale PID 103360 on :8030
+  Killed stale PID 93308 on :5176
+  Killed stale PID 86728 on :8002
+  Killed stale PID 102372 on :5177
+Done.
+
+╔══════════════════════════════════════════════════════╗
+║  Starting 5 copilot(s)...                        ║
+╚══════════════════════════════════════════════════════╝
+
+Checking AGE/PostgreSQL (host=172.22.74.149)...
+  ✓ AGE connection verified
+  ✓ WSL2 keepalive started (PID 88420)
+
+Starting backends...
+  SOC backend starting on :8001 (PID 104028)
+  Trading backend starting on :8010 (PID 50932)
+  Purchasing backend starting on :8020 (PID 83980)
+  DataOps backend starting on :8030 (PID 28764)
+  S2P backend starting on :8002 (PID 65644)
+
+Waiting for backends...
+  ✓ SOC: healthy 
+  ✓ Trading: ok trading
+  ✓ Purchasing: ok purchasing
+  ✓ DataOps: ok dataops
+  ✓ S2P: ok 
+Preseed SDK: running (log: C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\logs\preseed_sdk.log)
+Preseed SDK: PASS (exit 0)
+Preseed SOC: running (log: C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\logs\preseed_soc.log)
+Preseed SOC: FAIL (exit 1)
+Preseed S2P: running (log: C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\logs\preseed_s2p.log)
+Preseed S2P: PASS (exit 0)
+Restarting all copilots without preseed privileges...
+Killing all copilot port listeners...
+  Killed stale PID 53544 on :8001
+  Killed stale PID 68096 on :8010
+  Killed stale PID 72968 on :8020
+  Killed stale PID 105612 on :8030
+  Killed stale PID 103932 on :8002
+Done.
+
+╔══════════════════════════════════════════════════════╗
+║  Starting 5 copilot(s)...                        ║
+╚══════════════════════════════════════════════════════╝
+
+Checking AGE/PostgreSQL (host=172.22.74.149)...
+  ✓ AGE connection verified
+
+Starting backends...
+  SOC backend starting on :8001 (PID 106348)
+  Trading backend starting on :8010 (PID 37604)
+  Purchasing backend starting on :8020 (PID 97128)
+  DataOps backend starting on :8030 (PID 104536)
+  S2P backend starting on :8002 (PID 93696)
+
+Waiting for backends...
+  ✓ SOC: healthy 
+  ✓ Trading: ok trading
+  ✓ Purchasing: ok purchasing
+  ✓ DataOps: ok dataops
+  ✓ S2P: ok 
+
+Starting frontends...
+  SOC frontend starting on :5173
+  Trading frontend starting on :5174
+  Purchasing frontend starting on :5175
+  DataOps frontend starting on :5176
+  S2P frontend starting on :5177
+
+Waiting for frontends...
+  ✓ SOC frontend ready on :5173
+  ✓ Trading frontend ready on :5174
+  ✓ Purchasing frontend ready on :5175
+  ✓ DataOps frontend ready on :5176
+  ✓ S2P frontend ready on :5177
+
+╔══════════════════════════════════════════════════════╗
+║  Platform Ready                                      ║
+╚══════════════════════════════════════════════════════╝
+  AGE DSN:    host=172.22.74.149 port=5433 sslmode=disable
+  SOC           http://127.0.0.1:5173  (backend :8001) [AGE]  learning=enabled
+  Trading       http://127.0.0.1:5174  (backend :8010) [AGE]
+  Purchasing    http://127.0.0.1:5175  (backend :8020) [AGE]
+  DataOps       http://127.0.0.1:5176  (backend :8030) [AGE]
+  S2P           http://127.0.0.1:5177  (backend :8002) [AGE]
+
+  Stop:       python demo.py --stop
+  Status:     python demo.py --status
+  Playwright: python demo.py --playwright --no-browser
+
+  S2P Playwright (product, port 5177):
+    cd copilot-sdk/e2e
+    npx playwright test --config=s2p/playwright.config.ts s2p/ --reporter=list
+
+  SDK: PASS
+  SOC: FAIL
+  S2P: PASS
+NOT READY — preseed incomplete. See logs/preseed_*.log.

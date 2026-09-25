@@ -40,7 +40,6 @@ def create_execution_router(
         return records
 
     @router.get("/analysis")
-    @cached_static("execution")
     def analysis(request: Request) -> dict[str, Any]:
         return asdict(analyzer.analyze(_trades()))
 

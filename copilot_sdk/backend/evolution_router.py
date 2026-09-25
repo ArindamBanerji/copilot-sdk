@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -23,6 +24,8 @@ from copilot_sdk.backend.models import (
     EvolutionVariantsResponse,
 )
 from copilot_sdk.state.cached_static import cached_static
+
+logger = logging.getLogger(__name__)
 
 
 class EvolutionOutcomeRequest(BaseModel):
@@ -122,7 +125,6 @@ def create_evolution_router(
         }
 
     @router.get("/promoted", response_model=EvolutionPromotedResponse)
-    @cached_static("evolution-promoted", copilot=domain)
     def promoted(request: Request) -> dict[str, Any]:
         evolver = _get_evolver()
         if isinstance(evolver, PromptVariantEvolver):
@@ -153,8 +155,9 @@ def create_evolution_router(
         if provider is not None:
             try:
                 conservation_state = provider()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("conservation state provider unavailable: %s", exc)
+                conservation_state = {"status": "unavailable"}
         active = [item for item in prompt_summary["variants"] if item.get("status") == "active"]
         shadow = [item for item in prompt_summary["variants"] if item.get("status") == "shadow"]
         return {
@@ -221,8 +224,9 @@ def _provided_variants(provider: Callable[[], list[dict[str, Any]]] | None) -> l
         return []
     try:
         return list(provider() or [])
-    except Exception:
-        return []
+    except Exception as exc:
+        logger.warning("evolution variant provider unavailable: %s", exc)
+        raise RuntimeError("evolution variant provider unavailable") from exc
 
 
 def _prompt_summary(evolver: AgentEvolver | PromptVariantEvolver) -> dict[str, Any] | None:
@@ -270,7 +274,10 @@ def build_evolution_summary(evolver: Any, domain: str) -> dict[str, Any]:
             "schema_version": 1,
         }
 
-    variants = _evolver_variants(evolver)
+    variants = [
+        item for item in _evolver_variants(evolver)
+        if str(item.get("provenance", "")).lower() != "synthetic"
+    ]
     active = [item for item in variants if item.get("status") == "active"]
     shadow = [item for item in variants if item.get("status") == "shadow"]
     provider = getattr(getattr(evolver, "config", None), "conservation_state_provider", None)
@@ -321,6 +328,8 @@ def _evolver_variants(evolver: Any) -> list[dict[str, Any]]:
             item = vars(item)
         if not isinstance(item, dict):
             continue
+        if str(item.get("provenance", "")).lower() == "synthetic":
+            continue
         normalized.append(
             {
                 "id": item.get("id", item.get("variant_id")),
@@ -347,8 +356,9 @@ def _read_conservation_payload(provider: Any) -> dict[str, Any]:
         if isinstance(state, dict):
             return dict(state)
         return {"status": str(state or "UNKNOWN").upper()}
-    except Exception:
-        return {"status": "UNKNOWN"}
+    except Exception as exc:
+        logger.warning("conservation payload provider unavailable: %s", exc)
+        return {"status": "unavailable"}
 
 
 def _recent_evolution_events(evolver: Any) -> list[dict[str, Any]]:
@@ -359,8 +369,9 @@ def _recent_evolution_events(evolver: Any) -> list[dict[str, Any]]:
         events = history(limit=20)
     except TypeError:
         events = history()
-    except Exception:
-        return []
+    except Exception as exc:
+        logger.warning("evolution history provider unavailable: %s", exc)
+        raise RuntimeError("evolution history provider unavailable") from exc
     valid = {"generated", "shadow", "promoted", "rejected"}
     normalized: list[dict[str, Any]] = []
     for event in events or []:

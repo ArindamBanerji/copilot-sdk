@@ -410,7 +410,7 @@ class DualWriteStore(GraphStore):
         return cast(tuple[int, str], self._write("append_evidence_receipt", lambda: self.primary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), lambda: self.secondary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), (receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route), {"metadata": metadata}))
 
     # Reads are intentionally primary-only.
-    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_decision(decision_id, domain))
+    def get_decision(self, decision_id: str, domain: str, *, include_outcome: bool = False) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_decision(decision_id, domain, include_outcome=include_outcome))
     def get_evolution_events(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_evolution_events(domain, **kwargs))
     def prune_evolution_events(self, domain: str, keep_recent: int = 10_000) -> int: return cast(int, self._write("prune_evolution_events", lambda: getattr(cast(Any, self.primary), "prune_evolution_events", lambda *_args, **_kwargs: 0)(domain, keep_recent=keep_recent), lambda: getattr(cast(Any, self.secondary), "prune_evolution_events", lambda *_args, **_kwargs: 0)(domain, keep_recent=keep_recent), (domain, keep_recent), {}))
     def save_evolution(self, domain: str, variant_id: str, state: dict[str, Any]) -> None: self._write("save_evolution", lambda: self.primary.save_evolution(domain, variant_id, state), lambda: self.secondary.save_evolution(domain, variant_id, state), (domain, variant_id), {"state": state})
@@ -457,6 +457,21 @@ class DualWriteStore(GraphStore):
 
     def get_transfer_patterns(self, source_domain: str | None = None, target_domain: str | None = None) -> list[dict[str, Any]]:
         return cast(list[dict[str, Any]], self.primary.get_transfer_patterns(source_domain=source_domain, target_domain=target_domain))
+
+    def decision_movement(self, domain: str, decision_id: str) -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], self.primary.decision_movement(domain, decision_id))
+
+    def contextual_judgment(self, domain: str, entity_group: str, category: str) -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], self.primary.contextual_judgment(domain, entity_group, category))
+
+    def promotion_basis(self, domain: str, rule_id: str) -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], self.primary.promotion_basis(domain, rule_id))
+
+    def transfer_witness(self, source_domain: str, target_domain: str, pattern_id: str) -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], self.primary.transfer_witness(source_domain, target_domain, pattern_id))
+
+    def list_fingerprints(self, domain: str | None = None) -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], self.primary.list_fingerprints(domain))
 
     def get_latest_conservation_statuses(self, domains: list[str] | None = None) -> list[dict[str, Any]]:
         return cast(list[dict[str, Any]], self.primary.get_latest_conservation_statuses(domains=domains))

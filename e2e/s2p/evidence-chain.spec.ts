@@ -114,7 +114,7 @@ test("Receipt Chain shows statistics or empty receipt-chain state", async ({ pag
   await expect(receipts).toContainText(/Total receipts/i);
   await expect(receipts).toContainText(/Confirms/i);
   await expect(receipts).toContainText(/Overrides/i);
-  await expect(receipts).toContainText(/No outcome receipts have been recorded yet|S2P-INV/i);
+  await expect(receipts).toContainText(/No outcome receipts have been recorded yet|S2P-INV|STRESS-CONC-S2P|INV-/i);
 });
 
 test("Receipt Chain shows chain validity", async ({ page }) => {

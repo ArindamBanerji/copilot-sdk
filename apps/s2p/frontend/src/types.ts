@@ -43,6 +43,8 @@ export type S2PReasonCode = (typeof S2P_REASON_CODES)[number];
 export type FactorMap = Partial<Record<S2PFactor, number>> & Record<string, number | undefined>;
 
 export interface InvoiceException {
+  decision_id?: string;
+  decisionId?: string;
   invoice_id?: string;
   invoiceId?: string;
   event_id?: string;
@@ -434,6 +436,7 @@ export interface ScoreInvoiceRequest {
   payment_terms_impact?: number;
   commodity_index_correlation?: number;
   tax_regulatory_compliance?: number;
+  environmental_risk?: number;
 }
 
 export interface ScoreInvoiceResponse {

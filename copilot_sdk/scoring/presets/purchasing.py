@@ -81,6 +81,14 @@ class PurchasingPreset:
         return 400
 
     @property
+    def w_short(self) -> int:
+        return 20
+
+    @property
+    def m_rate(self) -> float:
+        return 0.85
+
+    @property
     def plateau_config(self) -> PlateauConfig:
         # C*A=20; window=round(10*sqrt((C*A)/20))=10; cooldown=5*window.
         return PlateauConfig(

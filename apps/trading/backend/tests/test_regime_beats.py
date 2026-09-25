@@ -46,6 +46,26 @@ def test_trd_s2_abstention_returns_json_safe_counts(client: TestClient) -> None:
         assert isinstance(value["verified_count"], int)
 
 
+def test_abstention_consistent(client: TestClient) -> None:
+    payload = client.get("/api/trading/regime/abstention").json()
+    current = payload["regime"]
+    assert payload["abstention_recommended"] == payload["per_regime_day_zero"][current]["abstention"]
+
+
+def test_unverified_triggers_abstention(client: TestClient, monkeypatch) -> None:
+    from app.routers import regime_beats
+
+    monkeypatch.setattr(
+        regime_beats,
+        "_read_decisions",
+        lambda _factory, _domain: [{"regime": "volatile", "verified": False}],
+    )
+    payload = client.get("/api/trading/regime/abstention").json()
+    assert payload["regime"] == "volatile"
+    assert payload["verified_count"] == 0
+    assert payload["abstention_recommended"] is True
+
+
 def test_trd_s3_throttle_has_authority_and_timeline(client: TestClient) -> None:
     response = client.get("/api/trading/regime/throttle")
     assert response.status_code == 200

@@ -139,3 +139,4 @@ test("earnings insight shows dominant style callout", async ({ page }) => {
   await expect(card).toContainText("directional: 50.0%");
   await expect(card).toContainText("Volatility: 100.0%");
 });
+

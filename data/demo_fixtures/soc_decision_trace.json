@@ -1,0 +1,16 @@
+{
+  "alert_id": "demo-fixed-alert",
+  "copilot": "soc",
+  "decision_trace": {
+    "confidence": 0.91,
+    "read_sequence": [
+      "severity",
+      "identity",
+      "origin"
+    ]
+  },
+  "fixture_id": "PL-MACH-1",
+  "injection_mode": "file_placement",
+  "planted": true,
+  "scenario": "MACH-01"
+}

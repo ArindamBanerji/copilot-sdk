@@ -1,5 +1,6 @@
 # Trading Copilot — FINAL Consolidated Addendum (merge-ready)
 **Base document:** `trading_copilot_product_definition_v1.md` (Drive design folder, id `1vRiGKEGkY8TyjFH2ysyYoiVKZHPZAKT0`).
+**Runtime supersession (2026-09-17):** the deployed Trading scorer and bootstrap are `(5,4,10)=200`; any `(5,3,6)` mention in this historical addendum refers to the prototype/migration baseline, not the live tensor.
 **Merge state:** no Trading addenda are merged yet. **This file folds ALL THREE pending addenda** — `trading_copilot_doc_additions_v1` (the change-map v3 operationalized, §A–§F), `_v2` (the body-verified correction pass, §TV2-0..5), and `_v3` (the innovation-note/outreach/scenario-prompt alignment, §RV3-1..5).
 **Two overriding constraints (both addenda):** (1) **NO regulatory exposure** — Trading is the public OSS copilot and it touches money, so §A (observation-only) is the dominant edit and counsel sign-off is a hard pre-ship gate; (2) **nothing is cut** — scenarios are *gated*, never deleted. Trading is deliberately the analytical **mirror**, not a bot: *"TensorTrade automates the trader; we make the trader see themselves."* Everything is observation on the trader's own past decisions — never a forward call, never execution.
 

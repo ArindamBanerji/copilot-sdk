@@ -13,6 +13,9 @@ export type { FactorItem, FingerprintCategory, FingerprintPanelProps } from "./F
 export { default as TrajectoryChart } from "./TrajectoryChart";
 export type { Annotation, TrajectoryChartProps, TrajectoryPoint } from "./TrajectoryChart";
 
+export { default as FrozenTwinComparisonPanel } from "./FrozenTwinComparisonPanel";
+export type { FrozenTwinComparisonPanelProps, FrozenTwinTrajectoryPoint } from "./FrozenTwinComparisonPanel";
+
 export { default as ScoreResultCard } from "./ScoreResultCard";
 export type { CentroidDelta, RewardLine, ScoreResult, ScoreResultCardProps } from "./ScoreResultCard";
 export { default as GovernedVsUngovernedPanel } from "./GovernedVsUngovernedPanel";
@@ -43,6 +46,11 @@ export type {
   GenericTrajectoryPoint,
   GenericTrajectoryResponse,
 } from "./ConservationProjection";
+
+export { default as SelfPausePanel } from "./SelfPausePanel";
+export type { SelfPausePanelProps, SelfPauseStatus } from "./SelfPausePanel";
+export { default as CrossCopilotSignalBanner } from "./CrossCopilotSignalBanner";
+export type { CrossCopilotSignal, CrossCopilotSignalBannerProps } from "./CrossCopilotSignalBanner";
 
 export { default as TransferBadge } from "./TransferBadge";
 export type { TransferBadgeProps } from "./TransferBadge";

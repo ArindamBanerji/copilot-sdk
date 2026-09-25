@@ -10,6 +10,8 @@ import re
 from fastapi import APIRouter, Request
 
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph
+from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.graph.production import GraphStoreWrapper, validate_production_store
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -77,43 +79,21 @@ _GRAPH_CONFIG_ENV_KEYS = (
 
 
 def _load_trading_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
-    """Load production config, or an isolated compatibility mapping for tests."""
+    """Resolve an explicit profile and mapping without process-environment mutation."""
+    profile = resolve_profile(domain=DOMAIN)
     if env is None:
-        # Production resolution is fail-closed against the TOML
-        # expected_backend contract; no implicit SQLite fallback.
-        return GraphConfig.load("trading")
-
-    previous = {key: os.environ.get(key) for key in _GRAPH_CONFIG_ENV_KEYS}
-    try:
-        for key in _GRAPH_CONFIG_ENV_KEYS:
-            os.environ.pop(key, None)
-        os.environ.update(env)
-        profile = "production"
-        if "TRADING_ACTIVE_GRAPH_BACKEND" not in env:
-            # Preserve the historical explicit-test default of SQLite while
-            # keeping the production loader fail-closed.
-            os.environ["TRADING_ACTIVE_GRAPH_BACKEND"] = "sqlite"
-            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
-            profile = "development"
-        if os.environ.get("TRADING_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
-            if not os.environ.get("TRADING_ACTIVE_AGE_DSN", "").strip():
-                raise GraphConfigError(
-                    "TRADING_ACTIVE_AGE_DSN is required when TRADING_ACTIVE_GRAPH_BACKEND=age"
-                )
-            if "TRADING_ACTIVE_AGE_GRAPH" not in env or not env.get("TRADING_ACTIVE_AGE_GRAPH", "").strip():
-                raise GraphConfigError(
-                    "TRADING_ACTIVE_AGE_GRAPH is required when TRADING_ACTIVE_GRAPH_BACKEND=age"
-                )
-            if "TRADING_ACTIVE_AGE_DOMAIN" in env and not env.get("TRADING_ACTIVE_AGE_DOMAIN", "").strip():
-                raise GraphConfigError("TRADING_ACTIVE_AGE_DOMAIN must not be blank")
-        return GraphConfig.load("trading", profile=profile)
-    finally:
-        for key in _GRAPH_CONFIG_ENV_KEYS:
-            os.environ.pop(key, None)
-        for key, value in previous.items():
-            if value is not None:
-                os.environ[key] = value
-
+        return GraphConfig.load(DOMAIN, profile=profile)
+    overrides: dict[str, Any] = {}
+    if profile != "production" and "TRADING_ACTIVE_GRAPH_BACKEND" not in env:
+        overrides["backend"] = "sqlite"
+    if env.get("TRADING_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
+        for field in ("DSN", "GRAPH"):
+            key = f"TRADING_ACTIVE_AGE_{field}"
+            if not str(env.get(key, "")).strip():
+                raise GraphConfigError(f"{key} is required when TRADING_ACTIVE_GRAPH_BACKEND=age")
+        if "TRADING_ACTIVE_AGE_DOMAIN" in env and not env["TRADING_ACTIVE_AGE_DOMAIN"].strip():
+            raise GraphConfigError("TRADING_ACTIVE_AGE_DOMAIN must not be blank")
+    return GraphConfig.load(DOMAIN, profile=profile, env=env, overrides=overrides)
 
 @dataclass(frozen=True)
 class TradingActiveGraphConfig:
@@ -221,7 +201,7 @@ class TradingActiveGraphConfig:
         }
 
 
-class TradingActiveAGEGraphStore:
+class TradingActiveAGEGraphStore(GraphStoreWrapper):
     """Active AGE adapter preserving governed Decision write semantics."""
 
     domain = DOMAIN
@@ -301,7 +281,7 @@ class TradingActiveAGEGraphStore:
             probabilities=[float(value) for value in probabilities],
             factor_vector=factor_vector,
             factor_names=factor_names,
-            source="trading_active_age_score",
+            source=str(decision_metadata.get("source") or "trading_active_age_score"),
             scorer_version=f"trading_active_age_{self.active_phase}",
             preset_version="trading",
             factor_schema_version="trading_factor_schema_v1",
@@ -338,7 +318,7 @@ def create_trading_active_graph_store(
             backend=config.requested_backend,
             graph=config.graph,
             domain=DOMAIN,
-            profile="test" if config.test_mode else "production",
+            profile=resolve_profile(domain=DOMAIN),
             test_mode=config.test_mode,
         )
     except GraphConfigError as exc:
@@ -367,15 +347,21 @@ def create_trading_active_graph_store(
         "graph_name": config.graph,
         "env": {},
         "test_mode": config.test_mode,
+        "profile": resolve_profile(domain=DOMAIN),
     }
     if shared_soc_graph:
         factory_args["shared_graph_authorization"] = config.shared_graph_authorization
+    if factory_args["profile"] == "production":
+        factory_args["config"] = GraphConfig.load(DOMAIN, profile="production")
     store = factory(**factory_args)
-    return TradingActiveAGEGraphStore(
+    wrapped = TradingActiveAGEGraphStore(
         store,
         active_phase="shared_graph" if shared_soc_graph else "test_mode",
         active_backend=config.requested_backend,
     )
+    if factory_args["profile"] == "production":
+        validate_production_store(wrapped, GraphConfig.load(DOMAIN))
+    return wrapped
 
 
 def build_trading_graph_status(app_state: Any) -> dict[str, Any]:

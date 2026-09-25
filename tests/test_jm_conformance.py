@@ -57,9 +57,12 @@ def store(request: pytest.FixtureRequest, tmp_path: Path) -> Any:
         yield instance
     finally:
         try:
-            connection.execute(f"SELECT drop_graph('{graph_name}', true)")
+            instance.close()
         finally:
-            connection.close()
+            try:
+                connection.execute(f"SELECT drop_graph('{graph_name}', true)")
+            finally:
+                connection.close()
 
 
 def _write_v2(store: Any, checkpoint_id: str = "checkpoint-v2") -> None:

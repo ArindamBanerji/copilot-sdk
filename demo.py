@@ -14,7 +14,7 @@ Usage:
     python demo.py --dataops        # DataOps only
     python demo.py --stop           # Stop all copilot processes
     python demo.py --status         # Show what's running
-    python demo.py --preseed        # Pre-seed after start
+    python demo.py --preseed        # Seed all five, then restart with gates enforced
     python demo.py --record-mode    # Pre-seed and freeze connectors
     python demo.py --record-reset   # Reset record state, pre-seed, freeze connectors
     python demo.py --verify         # Check platform state (IKS, conservation, pending items)
@@ -23,7 +23,7 @@ Usage:
     python demo.py --workers 2      # Experimental multi-process serving (see audit)
     python demo.py --kill-all       # Kill all known copilot ports
     python demo.py --no-reseed      # Start without bundle restore or fixture seeding
-    python demo.py --preseed-only   # Pre-seed without restarting backends
+    python demo.py --preseed-only   # Start and seed; retain seed mode for debugging
     python demo.py --health-timeout 180  # Custom backend health wait (S2P warm-up)
 """
 
@@ -41,9 +41,6 @@ from collections import deque
 from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
-
-from copilot_sdk.config import GraphConfig
-from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 
 for _stream in (sys.stdout, sys.stderr):
     _reconfigure = getattr(_stream, "reconfigure", None)
@@ -158,8 +155,9 @@ def _build_graph_env(domain: str, dsn: str) -> dict[str, str]:
     return env
 
 
-def _load_launcher_graph_config(domain: str, runtime_dsn: str) -> GraphConfig:
+def _load_launcher_graph_config(domain: str, runtime_dsn: str) -> Any:
     """Load typed launcher config while keeping DSNs resolved at runtime."""
+    from copilot_sdk.config import GraphConfig
     keys = {
         "GRAPH_BACKEND",
         "GRAPH_DSN",
@@ -189,8 +187,22 @@ def _load_launcher_graph_config(domain: str, runtime_dsn: str) -> GraphConfig:
                 os.environ[key] = value
 
 
-_SOC_GRAPH_CONFIG = _load_launcher_graph_config("soc", AGE_DSN_SOC)
-_DATAOPS_GRAPH_CONFIG = _load_launcher_graph_config("dataops", AGE_DSN_DATAOPS)
+_SOC_GRAPH_CONFIG: Any | None = None
+_DATAOPS_GRAPH_CONFIG: Any | None = None
+
+
+def _get_soc_graph_config() -> Any:
+    global _SOC_GRAPH_CONFIG
+    if _SOC_GRAPH_CONFIG is None:
+        _SOC_GRAPH_CONFIG = _load_launcher_graph_config("soc", AGE_DSN_SOC)
+    return _SOC_GRAPH_CONFIG
+
+
+def _get_dataops_graph_config() -> Any:
+    global _DATAOPS_GRAPH_CONFIG
+    if _DATAOPS_GRAPH_CONFIG is None:
+        _DATAOPS_GRAPH_CONFIG = _load_launcher_graph_config("dataops", AGE_DSN_DATAOPS)
+    return _DATAOPS_GRAPH_CONFIG
 
 SOC_REPO = Path(os.environ.get(
     "CLAUDE_SOC",
@@ -285,7 +297,7 @@ COPILOTS = [
 
 # Named groups for convenience flags
 SDK_NAMES = {"trading", "purchasing", "dataops"}
-PLAYWRIGHT_NAMES = {str(c["name"]).lower() for c in COPILOTS}
+PLAYWRIGHT_NAMES = {"soc", "s2p"}
 
 
 # --- Helpers ---
@@ -313,6 +325,9 @@ def check_health(port: int, path: str = "/health") -> dict | None:
         return None
 
 
+_AGE_READY_PORTS: set[int] = set()
+
+
 def verify_age(dsn: str) -> bool:
     """Verify AGE/PostgreSQL is reachable."""
     try:
@@ -326,6 +341,9 @@ def verify_age(dsn: str) -> bool:
 
 def _shared_graph_config_line() -> str:
     """Return the configuration-backed shared graph status line."""
+    from copilot_sdk.config import GraphConfig
+    from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
+
     try:
         configs = [
             GraphConfig.load(domain, profile="production")
@@ -334,7 +352,7 @@ def _shared_graph_config_line() -> str:
         graphs = {config.graph for config in configs}
         graph = next(iter(graphs)) if len(graphs) == 1 else ",".join(sorted(graphs))
     except Exception:
-        graph = _SOC_GRAPH_CONFIG.graph
+        graph = _get_soc_graph_config().graph
     return (
         f"  Shared judgment graph  {graph}  domains: {','.join(ALL_COPILOT_DOMAINS)}"
     )
@@ -580,10 +598,9 @@ def wait_for_health(name: str, port: int, timeout: int = 30) -> bool:
     for i in range(timeout):
         time.sleep(1)
         h = check_health(port)
-        if h and str(h.get("status", "ok")).lower() in {"ok", "healthy", "ready"}:
-            status = h.get("status", "ok")
-            domain = h.get("domain", "")
-            print(f"  ✓ {name}: {status} {domain}")
+        if h and h.get("ready") is True and h.get("graph_connected") is True and h.get("graph_name") == "soc_graph":
+            _AGE_READY_PORTS.add(port)
+            print(f"  ✓ {name}: AGE ready {h.get('graph_name')}")
             return True
     print(f"  ✗ {name}: not healthy after {timeout}s on :{port}")
     return False
@@ -786,7 +803,7 @@ def cmd_status(selected: list[dict]):
         try:
             decisions, domains, transfer_edges = _shared_graph_proof(
                 AGE_DSN_SOC,
-                _SOC_GRAPH_CONFIG.graph,
+                _get_soc_graph_config().graph,
             )
             print(
                 f"  Graph proof             LIVE ✓  decisions={decisions} "
@@ -808,7 +825,14 @@ def cmd_status(selected: list[dict]):
         fe_status = "UP ✓" if fe_up else ("N/A" if fe_port is None else "DOWN")
         fe_label = f":{fe_port}" if fe_port is not None else "N/A"
         domain = h.get("domain", "") if h else ""
-        age_flag = " [AGE]" if c.get("requires_age") else ""
+        age_ready = int(c["be_port"]) in _AGE_READY_PORTS or bool(
+            h and h.get("graph_connected") is True
+        )
+        age_flag = (
+            " [AGE]" if c.get("requires_age") and age_ready
+            else " [AGE?]" if c.get("requires_age")
+            else ""
+        )
         learning_flag = ""
         if c["name"].lower() == "soc" and be_up:
             try:
@@ -892,6 +916,96 @@ def cmd_verify(selected: list[dict]):
     print()
 
 
+PRESEED_ENV_KEYS = (
+    "COPILOT_PRESEED_MODE", "SOC_DEMO_RESEED_ENABLED", "S2P_DEMO_MODE",
+    "TRADING_DEMO_MODE", "SOC_PROFILE", "S2P_PROFILE", "DATAOPS_PROFILE",
+    "TRADING_PROFILE", "PURCHASING_PROFILE", "COPILOT_PROFILE", "DEMO_NO_RESEED",
+    "S2P_DEMO_READ_MODE", "SOC_DEMO_COMPARISON_ENABLED",
+)
+
+
+def preseed_environment(environment: dict[str, str], *, seeding: bool) -> dict[str, str]:
+    """Child-only configuration; never leave ambient preseed privileges enabled."""
+    result = {key: value for key, value in environment.items() if key not in PRESEED_ENV_KEYS}
+    result.update({f"{name}_PROFILE": "production" for name in
+                   ("SOC", "S2P", "DATAOPS", "TRADING", "PURCHASING")})
+    result["DEMO_NO_RESEED"] = "1"  # Explicit scripts own this run's writes.
+    # Presentation of labelled, persisted demo evidence is independent of the
+    # short-lived permission to mutate/re-freeze it. Production launch defaults
+    # outside this explicit preseed lifecycle remain unchanged.
+    result["S2P_DEMO_READ_MODE"] = "true"
+    result["SOC_DEMO_COMPARISON_ENABLED"] = "true"
+    if seeding:
+        result.update({"COPILOT_PRESEED_MODE": "true", "SOC_DEMO_RESEED_ENABLED": "true",
+                       "S2P_DEMO_MODE": "true", "SOC_PROFILE": "demo"})
+        # S2P/DataOps scorers accept production/test/development, not 'demo'.
+    return result
+
+
+def cmd_preseed(args: argparse.Namespace) -> None:
+    """One-command, checked seed lifecycle with an unconditional safe restart."""
+    selected: list[dict[str, Any]] = [dict(c) for c in COPILOTS]
+    s2p_repo = next(c["be_path"].parent for c in selected if c["name"] == "S2P")
+    jobs = [
+        ("SDK", SCRIPT_DIR, ["scripts/preseed_all_copilots.py", "--force", "--demo-fixtures",
+                            "--trading-only", "--purchasing-only", "--dataops-only"]),
+        ("SOC", SOC_REPO, ["scripts/preseed_demo_scenarios.py"]),
+        ("S2P", s2p_repo, ["scripts/preseed_s2p_demo.py"]),
+    ]
+    for _, repo, command in jobs:
+        if not (repo / command[0]).is_file():
+            raise SystemExit(f"Preseed script missing: {repo / command[0]}")
+    phase_args = argparse.Namespace(**vars(args))
+    phase_args.preseed = False
+    phase_args.preflight = False
+    phase_args.no_reseed = True
+    phase_args.no_browser = True
+    phase_args.workers = 1
+    phase_args.reload = False
+    phase_args.preseed_phase = "seed"
+    results: list[tuple[str, int]] = []
+    failure: str | None = None
+    try:
+        cmd_kill_all()
+        cmd_start(selected, phase_args)
+        env = preseed_environment(os.environ.copy(), seeding=True)
+        env.update({"GRAPH_BACKEND": "age", "GRAPH_DSN": AGE_DSN_SOC,
+                    "GRAPH_NAME": "soc_graph", "AGE_GRAPH_NAME": "soc_graph",
+                    "SOC_URL": _http_url(int(selected[0]["be_port"]))})
+        BACKEND_LOG_DIR.mkdir(parents=True, exist_ok=True)
+        for label, repo, command in jobs:
+            log_path = BACKEND_LOG_DIR / f"preseed_{label.lower()}.log"
+            print(f"Preseed {label}: running (log: {log_path})", flush=True)
+            try:
+                with log_path.open("w", encoding="utf-8") as log:
+                    result = subprocess.run([sys.executable, "-u", *command], cwd=str(repo),
+                                            env=env, stdout=log, stderr=subprocess.STDOUT,
+                                            timeout=1800, check=False)
+                code = result.returncode
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                code = 1
+                print(f"Preseed {label}: {exc}", flush=True)
+            results.append((label, code))
+            print(f"Preseed {label}: {'PASS' if code == 0 else 'FAIL'} (exit {code})", flush=True)
+    except Exception as exc:
+        failure = str(exc)
+    finally:
+        if not args.preseed_only:
+            print("Restarting all copilots without preseed privileges...", flush=True)
+            cmd_kill_all()
+            phase_args.preseed_phase = "normal"
+            cmd_start(selected, phase_args)
+    for label, code in results:
+        print(f"  {label}: {'PASS' if code == 0 else 'FAIL'}")
+    if failure or len(results) != len(jobs) or any(code != 0 for _, code in results):
+        print(f"NOT READY — preseed incomplete. {failure or 'See logs/preseed_*.log.'}", flush=True)
+        raise SystemExit(1)
+    if args.preseed_only:
+        print("PRESEEDED — debug seed mode remains enabled; run --preseed for a normal restart.")
+    else:
+        print("READY — all copilots preseeded and running", flush=True)
+
+
 def cmd_start(selected: list[dict], args):
     """Start selected copilots."""
     if args.diag_mode:
@@ -939,6 +1053,8 @@ def cmd_start(selected: list[dict], args):
         dsn = age_needed[0]["graph_dsn"] if age_needed else AGE_DSN_DATAOPS
         print(f"Checking AGE/PostgreSQL (host={_WSL2_IP})...")
         if not ensure_age_available(dsn):
+            if getattr(args, "preseed_phase", None):
+                raise RuntimeError("AGE unavailable; cannot complete the preseed lifecycle")
             print()
             print("Cannot start AGE-dependent copilots. Exiting.")
             # Start non-AGE copilots anyway
@@ -986,6 +1102,8 @@ def cmd_start(selected: list[dict], args):
         port = c["be_port"]
         kill_port(port, f"{c['name']} backend")
         if check_port(port):
+            if getattr(args, "preseed_phase", None):
+                raise RuntimeError(f"Cannot replace {c['name']} on :{port}; refusing to reuse unknown process flags")
             print(f"  {c['name']} backend already on :{port}")
             continue
 
@@ -998,6 +1116,8 @@ def cmd_start(selected: list[dict], args):
         env = os.environ.copy()
         if c.get("env"):
             env.update(c["env"])
+        if getattr(args, "preseed_phase", None):
+            env = preseed_environment(env, seeding=args.preseed_phase == "seed")
         env["COPILOT_WORKERS"] = str(args.workers)
         if args.workers > 1:
             # AGE has several client instances per copilot. Do not multiply
@@ -1061,6 +1181,8 @@ def cmd_start(selected: list[dict], args):
     if not all_healthy:
         print()
         print("Some backends failed. Captured startup diagnostics are shown above.")
+        if getattr(args, "preseed_phase", None):
+            raise RuntimeError("Not all five backends became healthy")
         # Continue anyway — some backends may be up
     elif args.diag_mode:
         write_soc_diag_contract(
@@ -1074,9 +1196,12 @@ def cmd_start(selected: list[dict], args):
             pool_available=diag_pool_available or "unknown",
         )
 
+    if getattr(args, "preseed_phase", None) == "seed":
+        return  # Start frontends only after the final normal-mode restart.
+
     # --- Pre-seed ---
-    if args.preseed and not args.no_reseed:
-        run_preseed(selected)
+    if args.preseed and not args.no_reseed and not getattr(args, "preseed_phase", None):
+        _seed_during_start(selected)
     if (args.preflight or args.preseed) and not args.diag_mode:
         run_preflight(selected)
     if getattr(args, "record_mode", False):
@@ -1193,7 +1318,7 @@ def cmd_start(selected: list[dict], args):
         print(f"  AGE DSN:    host={_WSL2_IP} port=5433 sslmode=disable")
     for c in selected:
         fe_port = c.get("fe_port")
-        age_flag = " [AGE]" if c.get("requires_age") else ""
+        age_flag = " [AGE]" if c.get("requires_age") and int(c["be_port"]) in _AGE_READY_PORTS else " [AGE?]" if c.get("requires_age") else ""
         learning_flag = ""
         if c["name"].lower() == "soc":
             learning_enabled = os.getenv("SOC_LEARNING_ENABLED", "true").strip().lower() in {
@@ -1249,17 +1374,17 @@ def setup_graph_mode():
     print()
 
 
-def run_preseed(selected: list[dict], *, fail_hard: bool = False):
+def _seed_during_start(selected: list[dict], *, fail_hard: bool = False):
     """Run pre-seeding script."""
     print()
     print("Pre-seeding copilots...")
-    preseed_result = run_deterministic_preseed(fail_hard=fail_hard)
+    preseed_result = _run_deterministic_seed(fail_hard=fail_hard)
     if preseed_result is not None:
         _append_baseline_reset_event(preseed_result)
     soc_selected = any(c["name"].lower() == "soc" for c in selected)
     soc_preseeded = False
     if soc_selected and any("be_port" in c for c in selected if c["name"].lower() == "soc"):
-        run_soc_preseed(
+        _seed_soc_alerts(
             next(c for c in selected if c["name"].lower() == "soc"),
             fail_hard=fail_hard,
         )
@@ -1352,7 +1477,7 @@ def cmd_diagnose(selected: list[dict]) -> None:
     print()
 
 
-def run_deterministic_preseed(*, fail_hard: bool = False):
+def _run_deterministic_seed(*, fail_hard: bool = False):
     """Run deterministic SDK preseed and print stable headline summary."""
     try:
         from copilot_sdk.demo.preseed import DemoPreseed, print_summary
@@ -1456,7 +1581,7 @@ def _first_list(payload: dict, keys: tuple[str, ...]) -> list:
     return []
 
 
-def run_soc_preseed(copilot: dict, *, fail_hard: bool = False) -> None:
+def _seed_soc_alerts(copilot: dict, *, fail_hard: bool = False) -> None:
     """Enable SOC learning and verify a short live learning preseed."""
     base_url = _http_url(int(copilot["be_port"]))
     print("  SOC: learning enabled for demo preseed")
@@ -1516,6 +1641,32 @@ def positive_worker_count(value: str) -> int:
     return workers
 
 
+def cmd_clean() -> None:
+    """Remove mutable demo state for a fresh start."""
+    import glob
+    import shutil
+
+    targets = [
+        SCRIPT_DIR / ".record_freeze",
+        SCRIPT_DIR / "data" / "baseline_events.jsonl",
+        SCRIPT_DIR / "data" / "shared_signals.db",
+    ]
+    for pattern in ("apps/*/backend/data/*.db",
+                    "apps/*/backend/data/*.db-wal",
+                    "apps/*/backend/data/*.db-shm"):
+        targets.extend(Path(path) for path in glob.glob(str(SCRIPT_DIR / pattern)))
+    removed = 0
+    for target in targets:
+        if target.exists():
+            if target.is_dir():
+                shutil.rmtree(target)
+            else:
+                target.unlink()
+            print(f"  Removed: {target.relative_to(SCRIPT_DIR)}")
+            removed += 1
+    print(f"Cleaned {removed} items." if removed else "Nothing to clean.")
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Build the launcher parser for both CLI execution and tests."""
     parser = argparse.ArgumentParser(
@@ -1545,12 +1696,14 @@ def create_parser() -> argparse.ArgumentParser:
 
     # Options
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
-    parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
+    parser.add_argument("--clean", action="store_true",
+                        help="Delete scorer databases, preseed state, and record freeze; then exit")
+    parser.add_argument("--preseed", action="store_true", help="Start all five, seed, then restart without seed privileges")
     parser.add_argument("--preflight", action="store_true", help="Run read-only demo truth checks after start")
     parser.add_argument("--soc-learning", action="store_true",
                         help="Deprecated compatibility flag; SOC learning is enabled by default")
     parser.add_argument("--preseed-only", action="store_true",
-                        help="Pre-seed without restarting (backends must already be running)")
+                        help="Start all five and seed; leave seed mode enabled for debugging")
     parser.add_argument("--record-mode", action="store_true", help="Pre-seed and freeze connectors for recording")
     parser.add_argument("--record-reset", action="store_true", help="Reset record state, pre-seed, and freeze connectors")
     parser.add_argument("--verify", action="store_true", help="Check platform state (IKS, conservation, pending items)")
@@ -1585,6 +1738,19 @@ def main():
         app_extra_args = raw_args[separator + 1:]
         raw_args = raw_args[:separator]
     args = parser.parse_args(raw_args)
+
+    if args.clean:
+        cmd_clean()
+        return
+
+    if args.preseed or args.preseed_only:
+        if any((args.no_reseed, args.diag_mode, args.record_mode, args.record_reset,
+                args.stop, args.status, args.kill_all, args.verify, args.dump, args.diagnose,
+                args.app, args.soc, args.s2p, args.trading, args.purchasing, args.dataops,
+                args.sdk, args.playwright, args.s2p_pw, args.graph)):
+            parser.error("--preseed/--preseed-only operate on all five copilots and cannot be combined with other modes")
+        cmd_preseed(args)
+        return
 
     if args.app:
         _discover_apps()
@@ -1674,7 +1840,7 @@ def main():
             return
         print()
         print("Pre-seeding (backends assumed running)...")
-        run_preseed(selected, fail_hard=True)
+        _seed_during_start(selected, fail_hard=True)
         run_preflight(selected, fail_hard=True)
         if getattr(args, "record_mode", False):
             run_connector_freeze()

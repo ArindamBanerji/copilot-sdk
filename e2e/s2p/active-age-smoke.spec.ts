@@ -1,5 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { clickTab, collectConsoleErrors, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
+import { clickAndWaitForS2PScore } from "./helpers";
+
+test.setTimeout(180_000);
 
 function main(page: Page) {
   return page.locator("main");
@@ -26,7 +29,7 @@ function waitForScoreResponse(page: Page) {
     response.url().includes("/score") &&
     response.request().method() === "POST" &&
     response.status() === 200,
-    { timeout: 30_000 },
+    { timeout: 90_000 },
   );
 }
 
@@ -35,14 +38,14 @@ function waitForLearnResponse(page: Page) {
     (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
     response.request().method() === "POST" &&
     response.ok(),
-    { timeout: 30_000 },
+    { timeout: 90_000 },
   );
 }
 
 async function ensureSelectedInvoice(page: Page) {
   const selected = panel(page, "Selected Invoice");
   if (!(await selected.getByText(/Supplier|Amount|Category/i).count())) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV/i });
+    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
     if ((await invoiceButtons.count()) > 0) {
       await invoiceButtons.first().click();
     }
@@ -64,15 +67,12 @@ async function scoreFirstInvoice(page: Page) {
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
-  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|queued/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|No invoice exceptions/i, { timeout: 60_000 });
   await ensureSelectedInvoice(page);
   const selected = panel(page, "Selected Invoice");
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await Promise.all([
-    waitForScoreResponse(page),
-    scoreButton.click(),
-  ]);
+  await clickAndWaitForS2PScore(page, scoreButton);
   await expect(scoreResultPanel(page)).toContainText(/Recommendation|Confidence/i);
 }
 

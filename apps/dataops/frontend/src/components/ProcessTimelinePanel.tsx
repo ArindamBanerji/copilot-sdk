@@ -55,7 +55,7 @@ export function ProcessTimelinePanel() {
   const bottleneck = activities.find((activity) => activity.isBottleneck);
 
   return (
-    <section className="copilot-card p-5">
+    <section data-testid="process-timeline" className="copilot-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--copilot-primary)" }}>
@@ -72,7 +72,10 @@ export function ProcessTimelinePanel() {
                 : "No active bottleneck flagged."}
           </p>
         </div>
-        <SlowdownBadge slowdown={slowdown} />
+        <div className="text-right">
+          <span className="text-xs dataops-muted">{data?.provenance === "sample" ? "Celonis · Cached demo scenario" : "Celonis"}</span>
+          <SlowdownBadge slowdown={slowdown} />
+        </div>
       </div>
 
       {error ? <p className="mt-4 text-sm" style={{ color: "var(--copilot-danger)" }}>{error}</p> : null}
@@ -200,6 +203,8 @@ function normalizeTimeline(raw: Record<string, unknown>): ProcessTimelineRespons
     : [];
 
   return {
+    source: stringOr(raw.source),
+    provenance: stringOr(raw.provenance),
     processModels: Array.isArray(raw.process_models) ? raw.process_models as Array<Record<string, unknown>> : [],
     activities,
     bottleneckId: stringOr(raw.bottleneck_id),

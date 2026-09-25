@@ -24,3 +24,4 @@ test("migrated tabs have zero console.error", async ({ page }) => {
   const unexpected = errors.filter((message) => !/dynamic endpoint unavailable/i.test(message));
   expect(unexpected).toEqual([]);
 });
+

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, asdict
 from statistics import mean
-from typing import Any
+from typing import Any, cast
 
 
 INDUSTRY_BENCHMARKS = {
@@ -48,7 +48,15 @@ class WasteTracker:
         profiles = [
             self._profile(item, item_orders)
             for item, item_orders in grouped.items()
-            if len(item_orders) >= 5
+            if item_orders and (
+                len(item_orders) >= 5
+                or any(
+                    isinstance(row.get("factors"), dict)
+                    or isinstance(row.get("factor_vector"), (list, tuple))
+                    or isinstance(row.get("probabilities"), (list, tuple))
+                    for row in item_orders
+                )
+            )
         ]
         return sorted(profiles, key=lambda profile: profile.weekly_waste_cost, reverse=True)
 
@@ -70,6 +78,13 @@ class WasteTracker:
         category = str(rows[0].get("category") or "dry_goods")
         benchmark = self.benchmarks.get(category, 0.10)
         waste_values = [_waste_pct(row) for row in rows]
+        if not waste_values:
+            return ItemWasteProfile(
+                item=item, category=category, order_count=0,
+                average_waste_pct=0.0, benchmark_pct=benchmark,
+                weekly_waste_cost=0.0, trend="stable", flagged=False,
+                recommendation=_recommendation(category, False),
+            )
         avg_waste = mean(waste_values)
         weekly_cost = sum(_unit_cost(row) * _quantity(row) * _waste_pct(row) for row in rows[-7:])
         flagged = avg_waste > benchmark * 1.5
@@ -99,17 +114,35 @@ def _items_for_order(order: dict[str, Any]) -> list[dict[str, Any]]:
             for item in items
             if isinstance(item, dict)
         ]
+    factors = cast(dict[str, Any], order.get("factors")) if isinstance(order.get("factors"), dict) else {}
+    outcome = cast(dict[str, Any], order.get("outcome")) if isinstance(order.get("outcome"), dict) else {}
+    factor_vector = order.get("factor_vector")
+    # AGE decisions use a compact vector rather than the kitchen order fields.
+    # Preserve the decision as one analyzable item while retaining its category
+    # and confidence for the waste calculation.
+    vector_quantity = factor_vector[0] if isinstance(factor_vector, (list, tuple)) and factor_vector else None
     return [{
-        "name": str(order.get("item") or order.get("item_name") or "unknown"),
-        "quantity": order.get("quantity_lbs") or order.get("quantity") or 1,
-        "category": order.get("category"),
-        "unit_cost": order.get("unit_cost") or order.get("unit_price") or 4,
+        "name": str(order.get("item") or order.get("item_name") or order.get("decision_id") or "unknown"),
+        "quantity": order.get("quantity_lbs") or order.get("quantity") or factors.get("quantity") or vector_quantity or 1,
+        "category": order.get("category") or "dry_goods",
+        "unit_cost": order.get("unit_cost") or order.get("unit_price") or factors.get("unit_cost") or outcome.get("unit_cost") or 4,
     }]
 
 
 def _waste_pct(row: dict[str, Any]) -> float:
-    outcome = row.get("outcome") if isinstance(row.get("outcome"), dict) else {}
-    value = row.get("waste_pct", outcome.get("waste_pct", row.get("historical_waste", 0)))
+    outcome = cast(dict[str, Any], row.get("outcome")) if isinstance(row.get("outcome"), dict) else {}
+    factors = cast(dict[str, Any], row.get("factors")) if isinstance(row.get("factors"), dict) else {}
+    value = row.get("waste_pct", outcome.get("waste_pct", row.get("historical_waste", factors.get("waste_pct"))))
+    if value is None:
+        correct = outcome.get("is_correct", row.get("is_correct"))
+        score = row.get("score", row.get("confidence", factors.get("confidence")))
+        if correct is False:
+            try:
+                value = 1.0 - float(score or 0.0)
+            except (TypeError, ValueError):
+                value = 1.0
+        else:
+            value = 0.0
     try:
         number = float(value)
     except (TypeError, ValueError):

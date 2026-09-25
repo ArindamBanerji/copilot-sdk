@@ -8,19 +8,8 @@ import pytest
 from copilot_sdk.graph.projection import AGEProjection, ProjectionRegistry
 
 
-class _ProjectionClient:
-    """Complete local client double for constructor and Cypher guard tests."""
-
-    def __init__(self) -> None:
-        self.queries: list[str] = []
-
-    async def run_query(self, cypher: str, _params: Any = None) -> list[dict[str, Any]]:
-        self.queries.append(cypher)
-        return []
-
-
 def _projection() -> AGEProjection:
-    return AGEProjection(client=_ProjectionClient(), graph_name="soc_graph", domain="soc")
+    return AGEProjection(client=object(), graph_name="soc_graph", domain="soc")
 
 
 def test_projection_uses_authorized_graph() -> None:
@@ -38,18 +27,22 @@ def test_projection_has_no_direct_age_client_import() -> None:
     assert "AGEClient(" not in text
 
 
-def test_projection_uses_injected_client() -> None:
-    client = _ProjectionClient()
-    projection = AGEProjection(client=client, graph_name="soc_graph", domain="soc")
-
-    assert projection._query("MATCH (d:Decision) RETURN d") == []
-    assert len(client.queries) == 1
+@pytest.mark.age
+def test_projection_uses_injected_client(disposable_age, monkeypatch) -> None:
+    # Authorization has its own constructor test; isolate the live query in a disposable graph.
+    monkeypatch.setattr("copilot_sdk.graph.projection.require_shared_graph", lambda *args, **kwargs: None)
+    projection = AGEProjection(client=disposable_age.client(), graph_name=disposable_age.graph, domain="soc")
+    store = disposable_age.store("soc")
+    decision_id = store.write_decision("soc", "risk", "review", 0.8, {"x": 0.5})
+    assert projection._query("MATCH (d:Decision) RETURN d.decision_id AS id") == [{"id": decision_id}]
+    store.write_decision("soc", "risk", "review", 0.7, {"x": 0.6})
+    assert len(projection._query("MATCH (d:Decision) RETURN d.decision_id AS id")) == 2
 
 
 def test_projection_rejects_unauthorized_graph() -> None:
     with pytest.raises(ValueError, match="soc_graph"):
         AGEProjection(
-            client=_ProjectionClient(),
+            client=object(),
             graph_name="other_graph",
             domain="soc",
         )
@@ -71,13 +64,17 @@ def test_projection_domain_predicate_preserved() -> None:
     assert "soc" in predicate
 
 
-def test_projection_count_correct_requires_verified_status() -> None:
-    client = _ProjectionClient()
-    projection = AGEProjection(client=client, graph_name="soc_graph", domain="soc")
-
-    projection.count_correct()
-
-    assert "d.status IN ['confirmed', 'overridden']" in client.queries[-1]
+@pytest.mark.age
+def test_projection_count_correct_requires_verified_status(disposable_age, monkeypatch) -> None:
+    monkeypatch.setattr("copilot_sdk.graph.projection.require_shared_graph", lambda *args, **kwargs: None)
+    projection = AGEProjection(client=disposable_age.client(), graph_name=disposable_age.graph, domain="soc")
+    store = disposable_age.store("soc")
+    for domain, correct in [("soc", True), ("soc", False), ("other", True), ("soc", None)]:
+        decision_id = store.write_decision(domain, "risk", "review", 0.8, {"x": 0.5})
+        if correct is not None:
+            store.write_outcome(decision_id, "review", correct, domain=domain)
+    assert projection.count_correct() == 1
+    assert projection.count_verified() == 2
 
 
 def test_render_count_verified_includes_status() -> None:

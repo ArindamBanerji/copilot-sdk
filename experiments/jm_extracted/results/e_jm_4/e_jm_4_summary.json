@@ -1,0 +1,39 @@
+{
+  "experiment": "E-JM-4: Conservation Law vs Unconstrained Learning",
+  "n_trials": 30,
+  "n_decisions_healthy": 500,
+  "n_decisions_degraded": 300,
+  "n_factors": 7,
+  "q_threshold": 0.65,
+  "false_positive_rate_pct": 100.0,
+  "results_by_degradation": {
+    "Personnel change": {
+      "detection_rate_pct": 100.0,
+      "constrained_post_accuracy": 0.2961111111111111,
+      "unconstrained_post_accuracy": 0.37500000000000006,
+      "conservation_advantage_pp": -7.8888888888888955,
+      "mean_pause_events": 1.4333333333333333
+    },
+    "Data corruption (30%)": {
+      "detection_rate_pct": 100.0,
+      "constrained_post_accuracy": 0.4584444444444444,
+      "unconstrained_post_accuracy": 0.5741111111111111,
+      "conservation_advantage_pp": -11.566666666666675,
+      "mean_pause_events": 2.0
+    },
+    "Gradual drift": {
+      "detection_rate_pct": 100.0,
+      "constrained_post_accuracy": 0.2658888888888889,
+      "unconstrained_post_accuracy": 0.33133333333333326,
+      "conservation_advantage_pp": -6.544444444444436,
+      "mean_pause_events": 1.5666666666666667
+    },
+    "Adversarial (10%)": {
+      "detection_rate_pct": 100.0,
+      "constrained_post_accuracy": 0.4114444444444445,
+      "unconstrained_post_accuracy": 0.5142222222222222,
+      "conservation_advantage_pp": -10.277777777777775,
+      "mean_pause_events": 1.8
+    }
+  }
+}

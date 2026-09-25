@@ -1,0 +1,644 @@
+{
+  "dataops": {
+    "default": {
+      "aggregate": {
+        "action_oracle_headroom_ge_10pp": true,
+        "action_oracle_mean": 1.0,
+        "action_oracle_std": 0.0,
+        "architecture_gap_mean": 0.0,
+        "ceiling_gap_mean": 0.8666666666666667,
+        "evidence_oracle_mean": 1.0,
+        "evidence_oracle_std": 0.0,
+        "fork_verdict": "READOUT-PROBLEM",
+        "metric": "action_accuracy",
+        "readout_gap_mean": 0.5561111111111111,
+        "readout_gap_seeds_ge_5pp": 3,
+        "single_pass_mean": 0.13333333333333333,
+        "single_pass_std": 0.0275378527364305,
+        "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+        "vld_b2_mean": 0.4438888888888889,
+        "vld_b2_std": 0.041910398250093975
+      },
+      "per_seed": {
+        "123": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.8383333333333334,
+          "copilot": "dataops",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.5083333333333333,
+          "scenario_seed": 123,
+          "single_pass": 0.16166666666666665,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.49166666666666664
+        },
+        "42": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.8933333333333333,
+          "copilot": "dataops",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.5866666666666667,
+          "scenario_seed": 42,
+          "single_pass": 0.10666666666666667,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.41333333333333333
+        },
+        "7": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.8683333333333334,
+          "copilot": "dataops",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.5733333333333333,
+          "scenario_seed": 7,
+          "single_pass": 0.13166666666666665,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.4266666666666667
+        }
+      }
+    }
+  },
+  "metadata": {
+    "action_oracle_definition": "Weighted nearest action centroid within the geometry-derived true category using the complete vector.",
+    "c8_harness_note": "C8 Strategy E is true-category plus one-pattern evidence. Its v_after_all_patterns()+score_best() can express full-pattern evidence, but the primary matched seeded ladder uses K-curve geometry scenarios and exact full-factor reveal.",
+    "determinism_per_cell": {
+      "dataops/default/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "e3f65b05045a4e9d580845323d17df26708b2fbaad9e715e22444ca8b8143af7"
+      },
+      "dataops/default/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "8c1be373ad0b75a203fd92771f497431205c62e0ff6eaefc358139d1003d71e4"
+      },
+      "dataops/default/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "f84b2e2242d213564249687f4f28b0006e971a3a610f7b613ce8d0eb405817bc"
+      },
+      "purchasing/default/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "fed78802ae4492485fdf972649d77cd50bd9b6ac46c782e6cefbaf9616de859f"
+      },
+      "purchasing/default/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "888784d0dacc0b969ac96b028752c66fca46d9c699412dfd76642c758ef1656f"
+      },
+      "purchasing/default/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "7d414115e358ee3e3c9ccab2719ca1813270b0d166b2b8fd3f623184c065b306"
+      },
+      "s2p/default/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "6a4ee7cee11969cc2517236617a509e7408a8e0ec5d461a6b384cd3b28431a20"
+      },
+      "s2p/default/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "375375d4c0f4df4d2cc60ff63c3675cdf45c3baf7d77f017adc0d5b2801a3cf6"
+      },
+      "s2p/default/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "9986f87adb4af5123640c6f4da4e17c1fbd26b859f942cfb2dd4e5eca55faad7"
+      },
+      "soc/bootstrapped/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "d8824b743a9bd5f676cb653fb4a5a40acf648837712ec67aedfc0815b6287300"
+      },
+      "soc/bootstrapped/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "8bb43fbf8d6dc1f45fe5e23c175e3922099b510e17006a06d02aa9a45ed08240"
+      },
+      "soc/bootstrapped/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "81da64dc66e01f9cf1b3a7e9eadd0939165e27726618d2c6b47aba3f960bcb5d"
+      },
+      "soc/default/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "dbc716dea25d4970e8591cbd8241bbbd476645e4d28cecf9e64e087cfe1ff3b5"
+      },
+      "soc/default/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "a5e7f42ff57e425745fba26e577d51c905009fafe1a943644aebd20ad0bcc0f2"
+      },
+      "soc/default/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "38ab00bac17065b91e6ede7e0c206542f9b4c7708ba68ff71c18f0408453ca22"
+      },
+      "soc/trained/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "84b207dba0d37e26254e74a66ab4cfd85840e2fb9adba462bf772f7da6f5b45c"
+      },
+      "soc/trained/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "4ec5e6a350031140633fe0ae70534383c278f69953b1bfcf23f84eb479d9e67e"
+      },
+      "soc/trained/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "cb1f6ed3ceb843bb5c15902b41f181d8c1d138369c995a354671f83ddbcfdf53"
+      },
+      "trading/default/123": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "442fc0b75607296b79187b7f3fed0080fea9e6aaa811d6132b7bc989f51f4894"
+      },
+      "trading/default/42": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "d0fa76747842fb1a8023973526914d395c840d57b8fd83f7db6052f0f4b99c9c"
+      },
+      "trading/default/7": {
+        "byte_identical": true,
+        "rebuilds": 2,
+        "sha256": "f66f7630f57279c3d2cc47992f4890b90fc54df756cad1918013d20898eeda93"
+      }
+    },
+    "evaluation_cases_per_seed": 600,
+    "evidence_oracle_definition": "Full generated factor vector, scored by global nearest-centroid readout; no correct-action label is used in prediction.",
+    "geometry_states_available": {
+      "dataops": [
+        "default"
+      ],
+      "purchasing": [
+        "default"
+      ],
+      "s2p": [
+        "default"
+      ],
+      "soc": [
+        "default",
+        "trained",
+        "bootstrapped"
+      ],
+      "trading": [
+        "default"
+      ]
+    },
+    "metric": "action_accuracy",
+    "pre_registered_rule": "READOUT-PROBLEM iff evidence_oracle - VLD >=5pp in >=2/3 seeds AND action_oracle - single_pass >=10pp; UPSTREAM-CEILING iff action_oracle - single_pass <5pp; otherwise MIXED",
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+    "units": "accuracy fractions [0,1]",
+    "vld_definition": "Route on obscured surface, apply K-curve Q top-B=2 reads using category-conditioned investigator, then global nearest-centroid action readout."
+  },
+  "purchasing": {
+    "default": {
+      "aggregate": {
+        "action_oracle_headroom_ge_10pp": true,
+        "action_oracle_mean": 1.0,
+        "action_oracle_std": 0.0,
+        "architecture_gap_mean": 0.012222222222222245,
+        "ceiling_gap_mean": 0.9027777777777778,
+        "evidence_oracle_mean": 0.9877777777777778,
+        "evidence_oracle_std": 0.004811252243246864,
+        "fork_verdict": "READOUT-PROBLEM",
+        "metric": "action_accuracy",
+        "readout_gap_mean": 0.6811111111111111,
+        "readout_gap_seeds_ge_5pp": 3,
+        "single_pass_mean": 0.09722222222222222,
+        "single_pass_std": 0.007876359377087682,
+        "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+        "vld_b2_mean": 0.30666666666666664,
+        "vld_b2_std": 0.008333333333333331
+      },
+      "per_seed": {
+        "123": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.015000000000000013,
+          "ceiling_gap": 0.8966666666666667,
+          "copilot": "purchasing",
+          "evidence_oracle": 0.985,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.6783333333333333,
+          "scenario_seed": 123,
+          "single_pass": 0.10333333333333333,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.30666666666666664
+        },
+        "42": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.015000000000000013,
+          "ceiling_gap": 0.9116666666666666,
+          "copilot": "purchasing",
+          "evidence_oracle": 0.985,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.6699999999999999,
+          "scenario_seed": 42,
+          "single_pass": 0.08833333333333333,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.315
+        },
+        "7": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.00666666666666671,
+          "ceiling_gap": 0.9,
+          "copilot": "purchasing",
+          "evidence_oracle": 0.9933333333333333,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.695,
+          "scenario_seed": 7,
+          "single_pass": 0.1,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.29833333333333334
+        }
+      }
+    }
+  },
+  "s2p": {
+    "default": {
+      "aggregate": {
+        "action_oracle_headroom_ge_10pp": true,
+        "action_oracle_mean": 1.0,
+        "action_oracle_std": 0.0,
+        "architecture_gap_mean": 0.0,
+        "ceiling_gap_mean": 0.8894444444444445,
+        "evidence_oracle_mean": 1.0,
+        "evidence_oracle_std": 0.0,
+        "fork_verdict": "READOUT-PROBLEM",
+        "metric": "action_accuracy",
+        "readout_gap_mean": 0.16222222222222218,
+        "readout_gap_seeds_ge_5pp": 3,
+        "single_pass_mean": 0.11055555555555556,
+        "single_pass_std": 0.021103799903580644,
+        "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+        "vld_b2_mean": 0.8377777777777778,
+        "vld_b2_std": 0.0058531409738071015
+      },
+      "per_seed": {
+        "123": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.8816666666666667,
+          "copilot": "s2p",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.15666666666666662,
+          "scenario_seed": 123,
+          "single_pass": 0.11833333333333333,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.8433333333333334
+        },
+        "42": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.9133333333333333,
+          "copilot": "s2p",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.16166666666666663,
+          "scenario_seed": 42,
+          "single_pass": 0.08666666666666667,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.8383333333333334
+        },
+        "7": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.8733333333333333,
+          "copilot": "s2p",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.16833333333333333,
+          "scenario_seed": 7,
+          "single_pass": 0.12666666666666668,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.8316666666666667
+        }
+      }
+    }
+  },
+  "soc": {
+    "bootstrapped": {
+      "aggregate": {
+        "action_oracle_headroom_ge_10pp": true,
+        "action_oracle_mean": 1.0,
+        "action_oracle_std": 0.0,
+        "architecture_gap_mean": 0.0022222222222222365,
+        "ceiling_gap_mean": 0.8511111111111112,
+        "evidence_oracle_mean": 0.9977777777777778,
+        "evidence_oracle_std": 0.0009622504486493344,
+        "fork_verdict": "READOUT-PROBLEM",
+        "metric": "action_accuracy",
+        "readout_gap_mean": 0.4677777777777778,
+        "readout_gap_seeds_ge_5pp": 3,
+        "single_pass_mean": 0.14888888888888888,
+        "single_pass_std": 0.022750661366048072,
+        "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+        "vld_b2_mean": 0.53,
+        "vld_b2_std": 0.010929064207170025
+      },
+      "per_seed": {
+        "123": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0016666666666667052,
+          "ceiling_gap": 0.8616666666666667,
+          "copilot": "soc",
+          "evidence_oracle": 0.9983333333333333,
+          "geometry": "bootstrapped",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.4666666666666667,
+          "scenario_seed": 123,
+          "single_pass": 0.13833333333333334,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.5316666666666666
+        },
+        "42": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0016666666666667052,
+          "ceiling_gap": 0.825,
+          "copilot": "soc",
+          "evidence_oracle": 0.9983333333333333,
+          "geometry": "bootstrapped",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.45833333333333326,
+          "scenario_seed": 42,
+          "single_pass": 0.175,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.54
+        },
+        "7": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0033333333333332993,
+          "ceiling_gap": 0.8666666666666667,
+          "copilot": "soc",
+          "evidence_oracle": 0.9966666666666667,
+          "geometry": "bootstrapped",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.4783333333333334,
+          "scenario_seed": 7,
+          "single_pass": 0.13333333333333333,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.5183333333333333
+        }
+      }
+    },
+    "default": {
+      "aggregate": {
+        "action_oracle_headroom_ge_10pp": true,
+        "action_oracle_mean": 1.0,
+        "action_oracle_std": 0.0,
+        "architecture_gap_mean": 0.0,
+        "ceiling_gap_mean": 0.7911111111111111,
+        "evidence_oracle_mean": 1.0,
+        "evidence_oracle_std": 0.0,
+        "fork_verdict": "READOUT-PROBLEM",
+        "metric": "action_accuracy",
+        "readout_gap_mean": 0.21,
+        "readout_gap_seeds_ge_5pp": 3,
+        "single_pass_mean": 0.2088888888888889,
+        "single_pass_std": 0.013977495139343472,
+        "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+        "vld_b2_mean": 0.79,
+        "vld_b2_std": 0.013017082793177738
+      },
+      "per_seed": {
+        "123": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.7983333333333333,
+          "copilot": "soc",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.20333333333333337,
+          "scenario_seed": 123,
+          "single_pass": 0.20166666666666666,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.7966666666666666
+        },
+        "42": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.775,
+          "copilot": "soc",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.20166666666666666,
+          "scenario_seed": 42,
+          "single_pass": 0.225,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.7983333333333333
+        },
+        "7": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 0.8,
+          "copilot": "soc",
+          "evidence_oracle": 1.0,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.22499999999999998,
+          "scenario_seed": 7,
+          "single_pass": 0.2,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.775
+        }
+      }
+    },
+    "trained": {
+      "aggregate": {
+        "action_oracle_headroom_ge_10pp": true,
+        "action_oracle_mean": 1.0,
+        "action_oracle_std": 0.0,
+        "architecture_gap_mean": 0.0,
+        "ceiling_gap_mean": 1.0,
+        "evidence_oracle_mean": 1.0,
+        "evidence_oracle_std": 0.0,
+        "fork_verdict": "MIXED",
+        "metric": "action_accuracy",
+        "readout_gap_mean": 0.0,
+        "readout_gap_seeds_ge_5pp": 0,
+        "single_pass_mean": 0.0,
+        "single_pass_std": 0.0,
+        "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+        "vld_b2_mean": 1.0,
+        "vld_b2_std": 0.0
+      },
+      "per_seed": {
+        "123": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 1.0,
+          "copilot": "soc",
+          "evidence_oracle": 1.0,
+          "geometry": "trained",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.0,
+          "scenario_seed": 123,
+          "single_pass": 0.0,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 1.0
+        },
+        "42": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 1.0,
+          "copilot": "soc",
+          "evidence_oracle": 1.0,
+          "geometry": "trained",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.0,
+          "scenario_seed": 42,
+          "single_pass": 0.0,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 1.0
+        },
+        "7": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0,
+          "ceiling_gap": 1.0,
+          "copilot": "soc",
+          "evidence_oracle": 1.0,
+          "geometry": "trained",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.0,
+          "scenario_seed": 7,
+          "single_pass": 0.0,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 1.0
+        }
+      }
+    }
+  },
+  "trading": {
+    "default": {
+      "aggregate": {
+        "action_oracle_headroom_ge_10pp": true,
+        "action_oracle_mean": 1.0,
+        "action_oracle_std": 0.0,
+        "architecture_gap_mean": 0.007777777777777772,
+        "ceiling_gap_mean": 0.7888888888888889,
+        "evidence_oracle_mean": 0.9922222222222222,
+        "evidence_oracle_std": 0.00769800358919506,
+        "fork_verdict": "READOUT-PROBLEM",
+        "metric": "action_accuracy",
+        "readout_gap_mean": 0.47333333333333333,
+        "readout_gap_seeds_ge_5pp": 3,
+        "single_pass_mean": 0.2111111111111111,
+        "single_pass_std": 0.01734721666221777,
+        "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+        "vld_b2_mean": 0.5188888888888888,
+        "vld_b2_std": 0.010844011831079548
+      },
+      "per_seed": {
+        "123": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.01666666666666672,
+          "ceiling_gap": 0.8083333333333333,
+          "copilot": "trading",
+          "evidence_oracle": 0.9833333333333333,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.475,
+          "scenario_seed": 123,
+          "single_pass": 0.19166666666666668,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.5083333333333333
+        },
+        "42": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0033333333333332993,
+          "ceiling_gap": 0.775,
+          "copilot": "trading",
+          "evidence_oracle": 0.9966666666666667,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.4666666666666667,
+          "scenario_seed": 42,
+          "single_pass": 0.225,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.53
+        },
+        "7": {
+          "action_oracle": 1.0,
+          "architecture_gap": 0.0033333333333332993,
+          "ceiling_gap": 0.7833333333333333,
+          "copilot": "trading",
+          "evidence_oracle": 0.9966666666666667,
+          "geometry": "default",
+          "metric": "action_accuracy",
+          "n_evaluated": 600,
+          "readout_gap": 0.4783333333333334,
+          "scenario_seed": 7,
+          "single_pass": 0.21666666666666667,
+          "target_definition": "full-vector nearest action centroid within true category",
+          "tier": "REAL_COMPONENT geometry + SIMULATED streams/actions",
+          "vld_b2": 0.5183333333333333
+        }
+      }
+    }
+  }
+}

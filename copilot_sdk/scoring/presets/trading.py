@@ -87,6 +87,14 @@ class TradingPreset:
         return 400
 
     @property
+    def w_short(self) -> int:
+        return 20
+
+    @property
+    def m_rate(self) -> float:
+        return 0.85
+
+    @property
     def regime_tightening_multiplier(self) -> float:
         return 1.3
 

@@ -32,7 +32,7 @@ def _scorer(mock_preset: Any, store: InMemoryGraphStore) -> CompoundingScorer:
         actions=list(mock_preset.shape.action_names),
         categories=list(mock_preset.shape.category_names),
     )
-    return CompoundingScorer(mock_preset, engine, graph_store=store)
+    return CompoundingScorer(mock_preset, engine, graph_store=store, profile="test")
 
 
 def _score_and_learn(
@@ -130,5 +130,26 @@ def test_warm_start_centroid_save_unaffected(mock_preset: Any) -> None:
         assert result["applied"] == 1
         assert len(store._centroid_checkpoints) == 1
         assert store._centroid_checkpoints[0]["metadata"]["source"] == "warm_start"
+    finally:
+        store.close()
+
+
+def test_production_warm_start_skips_demo_provenance(mock_preset: Any) -> None:
+    from types import SimpleNamespace
+
+    store = InMemoryGraphStore(domain="mock")
+    scorer = _scorer(mock_preset, store)
+    scorer._profile = "production"
+    pattern = SimpleNamespace(
+        category=mock_preset.shape.category_names[0],
+        action=mock_preset.shape.action_names[0],
+        centroid_delta=[1.0] * mock_preset.shape.n_factors,
+        confidence=0.9,
+        win_rate=0.9,
+        metadata={"provenance": "demo"},
+    )
+    try:
+        result = scorer.warm_start([pattern])
+        assert result["applied"] == 0
     finally:
         store.close()

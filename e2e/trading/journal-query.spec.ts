@@ -31,3 +31,4 @@ test("JournalQueryBar empty results message", async ({ page }) => {
 
   await expect(page.getByText("No trades match your query")).toBeVisible();
 });
+

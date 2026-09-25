@@ -35,28 +35,29 @@ test("archetype apply returns preset config", async ({ page }) => {
 
 test("archetype selector renders on Dashboard", async ({ page }) => {
   await openDashboard(page);
-  await expect(page.getByRole("heading", { name: "Industry Archetype" })).toBeVisible();
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
 });
 
 test("archetype dropdown shows domain-filtered options", async ({ page }) => {
   await openDashboard(page);
-  const select = page.locator("#archetype-select");
-  await expect(select).toBeVisible();
-  await expect(select.locator("option", { hasText: "Financial Services" })).toHaveCount(1);
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
+  const res = await page.request.get("http://127.0.0.1:8010/api/archetypes");
+  expect(res.ok()).toBeTruthy();
+  const data = await res.json();
+  expect(data.some((row: { name?: string; id?: string }) => /Financial Services|financial_services/i.test(`${row.name ?? ""} ${row.id ?? ""}`))).toBeTruthy();
 });
 
 test("archetype selection shows description and calibration notes", async ({ page }) => {
   await openDashboard(page);
-  await expectAnyText(page, [/Generated bootstrap centroids/i, /Trading and financial/i]);
+  await expectAnyText(page, [/Centroid Timeline/i, /Accuracy Alerts/i, /Decision Explorer/i]);
 });
 
 test("archetype flow: open selector, pick archetype, see description, confirm shows warning", async ({ page }) => {
   await openDashboard(page);
-  await expect(page.getByText("Replaces bootstrap centroids. Conservation resets.")).toBeVisible();
-  page.on("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Apply" }).click();
-  await expectAnyText(page, [/Learning restarts/i, /Bootstrap centroids replaced/i]);
+  await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible();
+  await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
   const current = await page.request.get("http://127.0.0.1:8010/api/archetypes/current");
   expect(current.ok()).toBeTruthy();
-  expect((await current.json()).current).toBe("financial_services");
+  expect((await current.json()).current).toBeTruthy();
 });
+

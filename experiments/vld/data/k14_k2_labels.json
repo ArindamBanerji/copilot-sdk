@@ -1,0 +1,2267 @@
+{
+  "metadata": {
+    "source": "anthropic_sonnet",
+    "model": "claude-sonnet-4-6",
+    "total_scenarios": 250
+  },
+  "soc": [
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "Multiple resolved branches confirm high-severity indicators\u2014revoked device certificate (device_trust dropping to 0.007), unauthorized privileged grants (privileged_identity_context rising to 0.995), access to the live recovery-key vault (asset_criticality rising to 0.905), and an out-of-window session with no change exception (time_anomaly rising to 0.891)\u2014making suppression clearly wrong; this alert warrants escalation.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 0,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.98,
+      "k2_reasoning": "The evidence chain reveals a compromised privileged account (SVC-BUILD with release-signing admin rights) performing an out-of-window replay on a device with a revoked certificate and mismatched image measurement, making suppression clearly wrong and escalation/investigation the appropriate action.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 1,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence across multiple resolved branches shows an unmanaged clone using a copied certificate (device_trust drops from 0.97 to 0.057), tenant-wide recovery admin grants active at alert time (privileged_identity_context rises to 0.934), authentication during a freeze with no authorized exception (time_anomaly rises to 0.934), and access to production directory recovery credentials (asset_criticality rises to 0.909), all strongly indicating a genuine compromise warranting escalation, not supp",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 2,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The resolved evidence collectively shows an identity with effective administrative privileges (privileged_identity_context 0.965), a nine-hour out-of-window login with no approved exception (time_anomaly 0.876), a compromised device with failed boot attestation and revoked enrollment (device_trust 0.003), and access to the production identity directory rather than a read-only alias (asset_criticality 0.894), all of which indicate an urgent suspected compromise that warrants escalation, not suppr",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 3,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence branches reveal a highly suspicious credential access event with cloned device identity, active production cluster admin grants, and authentication outside the authorized window\u2014all factors that shift the risk surface dramatically upward, making suppression incorrect when escalation/investigation is warranted.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 4,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "Multiple high-confidence branches reveal critical escalating factors\u2014confirmed campaign match (threat_intel 0.888), failed hardware attestation (device_trust dropping to 0.041), access to production identity recovery console (asset_criticality 0.766), and off-hours session anomaly (time_anomaly 0.763)\u2014that together strongly indicate active compromise requiring immediate escalation rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 5,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The high-confidence branches (b_8feeac6cb014d194, b_2fce3835bccb0506, b_9a085558de89b220, b_8fcfa777d5c8b701) collectively reveal a synthetic campaign match (threat_intel 0.967), cloned enrollment identity reducing device_trust to 0.249, high-criticality destination (asset_criticality 0.75), and out-of-window timing (time_anomaly 0.755), all of which strongly justify escalation/containment rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 6,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The evidence chain reveals a confirmed campaign match (threat_intel 0.922), revoked device certificate (device_trust 0.005), access to protected design archive (asset_criticality 0.775), and activity during a blackout period (time_anomaly 0.648), all strongly indicating active data exfiltration that warrants urgent escalation rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 7,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The available high-confidence branches (b_50c9fe3013bad089, b_9ff2f547f7c79f25, b_8c55d17b70ce0c7e, b_6a9cb961439e1cfe) collectively reveal campaign attribution, failed device attestation, access to the org-wide cloud authentication policy, and an out-of-schedule change\u2014all strongly indicating a malicious synthetic campaign session that warrants escalation or blocking, not mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 8,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The high-confidence branches (b_481e18aec5db03b0, b_f569649569beec08, b_ae7bd9d8c6e05281) reveal campaign attribution, failed device attestation with revoked enrollment, and direct access to a production signing-key service, which together strongly indicate an active threat warranting escalation or containment rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 9,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "Branch b_793f68f89d07fb46 reveals two device-bound interactive logins from Dublin and Sydney four minutes apart with a large positive surface delta (0.724) on time_anomaly, and branch b_f5f8d8573e953ccc invalidates the benign pattern_history match with a large negative delta (-0.677), together indicating active credential compromise that warrants escalation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 10,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The evidence reveals a temporally impossible overlapping session (Toronto badge login and Singapore device login within two minutes) and an expired travel exception, both strongly indicating credential compromise rather than benign activity, making suppression incorrect.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 11,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The high-confidence branch b_ddf6be4f8ef3b649 reveals impossible concurrent sessions (Paris and Tokyo within one minute) with a large positive surface delta of 0.793, and branch b_4ceb3399c0f2bbb9 shows the identity is a different immutable principal masquerading under a familiar display name, making suppression clearly wrong when investigation is warranted.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 12,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The high-routing-score branches (b_dc4415a488550b1a and b_d715771dc6182b16) reveal temporally incompatible concurrent sessions in geographically distant locations and a missing registered relay, both strongly indicating credential compromise, making suppression the wrong action.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 13,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The high-routing-score branches reveal a 30-second overlap between corroborated sessions in different continents with no interactive-use exception (time_anomaly rising to 0.983) and no benign precedent for this session type (pattern_history dropping to 0.253), making suppression incorrect when the evidence points to likely credential compromise.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 14,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The available high-confidence branches reveal unencrypted customer vault data on the host, a revoked certificate from an unmanaged device, and an exact match to threat campaign SYN-FJORD with broad inherited privileges\u2014collectively warranting escalation or containment, not merely 'monitor'.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 15,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The high-confidence resolved branches (b_3a22a68282ca3b9d, b_9e0523a6c4434a6a, b_27705caa7cf739b4, b_84c02b679a0817de) collectively reveal confirmed presence of production credential recovery exports, an exact threat intelligence campaign match (SYN-GROVE), broadly privileged identity access, and a failing device attestation policy\u2014together these factors strongly warrant escalation rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 16,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The available branches reveal high-confidence evidence of active malicious exfiltration\u2014confirmed campaign SYN-HARBOR artifact match, privileged identity with broad export rights over restricted design repository, cloned device with invalid hardware-bound identity, and staging of unreleased protected designs\u2014which collectively warrant escalation far beyond mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 17,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "Multiple high-confidence branches reveal critical escalating factors\u2014asset criticality jumping to 0.957 (confirmed live production signing service backup), device trust dropping to 0.104 (revoked enrollment certificate), privileged identity expanding to 0.943 (active production backup-administrator delegation), and threat intel confirming synthetic campaign SYN-IRIS match\u2014which together strongly warrant escalation rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 18,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "Multiple resolved branches reveal organization-wide identity recovery material being staged (asset_criticality\u21920.871), a privileged batch identity with inherited export grants (privileged_identity_context\u21920.822), an untrusted device failing signed image attestation (device_trust\u21920.143), and an exact flow/object match to malicious campaign SYN-JUNIPER (threat_intel_enrichment\u21920.958), collectively warranting escalation rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 19,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "Branch b_c7be61c67a86e53e reveals the executing digest differs from the approved utility and contains a credential-collection module, and branch b_ef7694f213834afe confirms an exact match to the SYN-KITE weaponized variant, making suppression clearly incorrect for what is confirmed active malware.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 20,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "Multiple high-confidence branches reveal critical evidence (revoked device certificate, unauthorized persistence module matching campaign SYN-LANTERN, live access to production recovery-key vault) that collectively indicate active malware warranting escalation, not suppression.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 21,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "Branch b_4bd4dba6c39204d5 reveals the loaded plugin is an unapproved credential-export variant (dropping pattern_history to 0.039), and branch b_30de38c3b1e58056 confirms an exact digest match to a known SYN-MESA malicious variant (raising threat_intel_enrichment to 0.879), making suppression clearly wrong and investigation mandatory.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 22,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.98,
+      "k2_reasoning": "The evidence collectively shows a weaponized unsigned variant (pattern_history drops to 0.064), exact digest match to synthetic campaign SYN-NIMBUS (threat_intel rises to 0.987), live access to a production recovery-key vault (asset_criticality rises to 0.985), and a revoked enrollment certificate with failed boot measurement (device_trust drops to 0.017), all of which strongly indicate active malware requiring escalation, not suppression.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 23,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The available branches reveal that the executing digest contains an unapproved credential-reading extension matching a weaponized SYN-OPAL package record, which are strong malware indicators that warrant escalation or investigation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 24,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The evidence reveals an unenrolled personal host masquerading as a managed device (device_trust drops to 0.001) combined with a stale nested grant enabling unauthorized cross-team finance exports, which together materially elevate insider threat risk and warrant escalation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 25,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "Two high-confidence branches (b_a74dccaa936d3457 and b_f54e9098ae171cc5) with routing scores of 0.62 reveal critical findings\u2014a revoked device certificate dropping device_trust to 0.011 and an out-of-scope access via an expired project grant raising privileged_identity_context to 0.829\u2014both meeting the minimum required absolute shift threshold, indicating this alert warrants escalation/investigation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 26,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "Branch b_ee4dc19177328406 reveals an unmanaged clone device with failed enrollment (device_trust drops to 0.013) and b_fb8c558d69d8c44c confirms out-of-scope privilege access with effective delta 0.604, together indicating a genuine high-risk insider threat scenario that warrants escalation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 27,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The available branches reveal critical evidence that device trust should drop from 0.835 to 0.032 (failed attestation on unapproved image) and privileged_identity_context should rise to 0.796 (policy violation via stale delegation), both exceeding the 0.3 minimum required shift threshold, which together substantially elevate insider threat risk and contradict a suppress recommendation.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 28,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "Branch b_72813cf882a4251d reveals a revoked certificate and unenrolled device (device_trust drops to 0.002), and branch b_71e88d93670185b8 shows an out-of-scope obsolete privilege grant enabling restricted access, together indicating active compromise or malicious activity that warrants escalation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 29,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system recommends 'monitor' but the evidence shows the session principal has an active tenant support grant (elevated privilege beyond cached profile) and the grant-specific schedule ended 40 minutes before login with no recorded extension, both factors shifting materially upward, which together warrant investigation/escalation rather than passive monitoring.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 30,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The system recommends 'investigate' but the two highest-impact branches (b_b252a387c67d55c1 and b_c715298d8f70e6d6) both have current_scope_resolved evidence that refutes the threat intel match and confirms pre-approved travel, yielding large negative surface deltas that would substantially reduce the alert score below a threshold warranting investigation.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 31,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.72,
+      "k2_reasoning": "With production privileges disproved (privileged_identity_context drops to 0.076) and device trust confirmed as an authorized hardware-bound test runner, the session aligns with a legitimate synthetic identity check, making 'monitor' a reasonable disposition rather than escalation.",
+      "anchor_label": false,
+      "anchor_action": "suppress",
+      "scenario_id": 32,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The evidence shows the helper account has a non-administrative role change and a minor timing deviation within the change window, both insufficient to indicate compromise, supporting suppression.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 33,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The two high-routing branches (b_70f565e9780e8a0a and b_6698915f6bd3dbf6) together reduce privileged identity context sharply (0.524\u21920.244) and confirm the session matches a pre-approved migration sequence, collectively lowering the overall risk surface well below investigation threshold, suggesting 'monitor' or 'close' rather than 'investigate' is the appropriate disposition.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 34,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "Multiple branches with current_scope_resolved status (b_45c1b2e75f556ba4, b_2e2375d625eeea3f, b_edf9c35fc1acc127) reveal materially elevated factors including asset_criticality rising to 0.789, threat_intel_enrichment to 0.791, and time_anomaly to 0.74, all exceeding the minimum required absolute shift of 0.15, collectively justifying investigation of this cloud misconfiguration alert.",
+      "anchor_label": false,
+      "anchor_action": "escalate",
+      "scenario_id": 35,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.72,
+      "k2_reasoning": "The alert involves unverified malware with moderate surface factors and unresolved branches requiring further investigation, making 'investigate' the appropriate disposition given the ambiguous evidence state.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 36,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The evidence shows two resolved branches (b_a2cc6769419682a2 reducing asset_criticality to 0.138, and b_43fe374d3fac6446 confirming an authorized test exception with pattern_history rising to 0.952) that together support suppression of this alert, not merely monitoring.",
+      "anchor_label": false,
+      "anchor_action": "suppress",
+      "scenario_id": 37,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The available evidence shows a weak but relevant threat intelligence association (branch b_c2bdef5ea3b1445e raises threat_intel_enrichment from 0.093 to 0.396) and stale device attestation after reimaging with unverified current posture (branch b_97bf37d374ec8534 lowers device_trust from 0.899 to 0.568), both of which introduce meaningful uncertainty that argues for investigation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 38,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.72,
+      "k2_reasoning": "The alert involves ambiguous insider threat signals with mid-range surface factors, and the available branches reveal both reduced asset criticality (b_7f6d37e42cb3a6c0, delta -0.285) and a recognized authorized handoff pattern (b_8662e687bfc5b87b, delta +0.331), leaving genuine uncertainty that warrants investigation rather than immediate escalation or dismissal.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 39,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.71,
+      "k2_reasoning": "The surface factors show low asset criticality (0.141), low threat intel enrichment (0.097), low time anomaly (0.087), and low privileged identity context (0.156), combined with high device trust (0.886) and high pattern history (0.895), supporting suppression of this alert as a known, benign health-check signature in an isolated test realm.",
+      "anchor_label": true,
+      "anchor_action": "suppress",
+      "scenario_id": 40,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "Low asset criticality, high device trust and pattern history, low threat intel enrichment and time anomaly all support a monitor disposition for an approved maintenance utility on a low-impact host.",
+      "anchor_label": true,
+      "anchor_action": "monitor",
+      "scenario_id": 41,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The alert is scoped to an isolated empty-lab environment with very low asset criticality (0.137), low threat intel enrichment (0.091), low time anomaly (0.09), and the context explicitly identifies it as a fixture alert with an active test-policy exception, making suppression the appropriate action.",
+      "anchor_label": true,
+      "anchor_action": "suppress",
+      "scenario_id": 42,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The surface factors show low threat intel enrichment (0.235), low time anomaly (0.216), low asset criticality (0.346), and moderate-to-good device trust (0.748) and pattern history (0.73), collectively supporting a routine, low-risk profile consistent with a 'monitor' rather than escalate or block recommendation.",
+      "anchor_label": true,
+      "anchor_action": "monitor",
+      "scenario_id": 43,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "Despite surface indicators suggesting a routine test, a lateral_movement category alert with low threat intel enrichment (0.081) and minimal privileged identity context should not be auto-suppressed without deeper investigation, as adversaries commonly disguise lateral movement as scheduled connectivity checks to exploit exactly this suppression logic.",
+      "anchor_label": true,
+      "anchor_action": "suppress",
+      "scenario_id": 44,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system recommends suppression, but two high-impact branches (b_85563a59de8932e8 and b_49f7fe7c475e569f) reveal that the live service principal holds an undisclosed support-administrator delegation (privileged_identity_context jumping to 0.985) and the session device is an unmanaged clone using a revoked enrollment identity (device_trust dropping to 0.072), both of which drastically increase attack surface and warrant escalation rather than suppression.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 45,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The evidence from branch b_e02c968212458bc9 refutes the threat intelligence match (digest belongs to an approved utility, not malicious), and branch b_12c124bbe49df8b6 confirms fresh device attestation with a valid hardware-bound key, together shifting risk factors significantly downward, suggesting the correct disposition is likely to close/dismiss rather than continue to investigate.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 46,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The evidence shows the identity has only isolated fixture-tenant permissions with no cross-tenant grants (privileged_identity_context drops to 0.021) and the device has valid hardware-bound attestation, indicating this is a pre-authorized lab fixture rather than a genuine threat, making 'monitor' the appropriate conservative action given the misconfiguration category.",
+      "anchor_label": false,
+      "anchor_action": "suppress",
+      "scenario_id": 47,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The highest-routing branch (b_5bf063ed1ba8d14d, score 0.62) explicitly warns that treating the surface profile as confirmed would be misleading, while branch b_9ae4776d45a5f5da reveals the payload has greater sensitivity than the surface label (asset_criticality jumping from 0.152 to 0.477), and branch b_e41fc66f8ee77153 shows device trust is unresolved after a rebuild\u2014collectively these unresolved and elevated-risk factors argue against suppression rather than for it.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 48,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The available branches reveal significant evidence of excess privilege (privileged_identity_context rising to 0.897) and an unenrolled personal device with a copied display name (device_trust dropping to 0.251), both representing substantial shifts exceeding the minimum required threshold, which together warrant escalation beyond mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "investigate",
+      "scenario_id": 49,
+      "k2_source": "anthropic_sonnet"
+    }
+  ],
+  "dataops": [
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The branch evidence collectively reveals a breaking schema change (material_code scalar\u2192versioned object, schema_stability 0.05), nine impacted downstream consumers including billing-critical systems (impact_scope 0.95), and failed input-contract replays requiring coordinated source and consumer ownership (transformation_health 0.05), all of which justify escalating to the owner rather than a routine retry.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 0,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The evidence chain (schema change breaking delete semantics \u2192 transformation rejecting events \u2192 ten downstream consumers blocked) clearly supports escalation to owner rather than a routine retry, making escalate_to_owner the appropriate resolution.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 1,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The evidence reveals a breaking semantic change (usage_quantity scale changed 1000x without field rename), failing transforms, and nine impacted consumers requiring the metering owner's involvement\u2014all pointing to escalate_to_owner as the correct resolution despite the surface-level appearance of a routine backward-compatible change.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 2,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The evidence chain (b01\u2192b02\u2192b05) reveals a breaking schema change (customer_key scope change), broad downstream impact across 10 consumers, and a critically degraded transform health (0.09), all pointing to a systemic contract failure rather than a transient warehouse lock, making escalation to the owner the appropriate resolution.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 3,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The evidence reveals a breaking semantic schema change (stock_adjustment changed from delta to absolute balance, stability 0.04), catastrophic transformation failure (health 0.07), and broad downstream impact (10 consumers, scope 0.98), making escalate_to_owner the correct action rather than the superficially similar automated retry procedure.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 4,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The current-run evidence (b02, b03) reveals the 429 is caused by a tenant-policy credential audience rejection\u2014not ordinary rate limiting\u2014requiring a manual fix of the audience mapping, which aligns with the described resolution of manual_fix over the surface assumption of automatic backoff.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 5,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The investigation branches reveal the latency spike is caused by a migrated bucket endpoint with a retired regional alias (source_reliability dropping to 0.11), not a cold-prefix delay, making manual_fix the correct resolution since an operator must verify and register the new binding.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 6,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The current-run evidence (b03, b02) reveals a tenant cursor codec truncation causing repeated first-page reads\u2014a distinct root cause from the historical eventual-consistency pattern\u2014which requires an operator to repair the codec, correctly classifying the resolution as manual_fix rather than an automatic retry.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 7,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The evidence trail (b01\u2192b04) clearly shows the alert is caused by a filename suffix mismatch (new business-date convention vs. old tenant pickup rule), not a routine late arrival, making pattern_familiarity drop to 0.44 and source_reliability to 0.48\u2014together indicating a manual fix is required rather than an automatic retry.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 8,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The alert initially resembles a known nightly gateway flush (high pattern_familiarity 0.98), but current-scoped evidence from b04 and b02 reveals a distinct root cause\u2014new firmware encoding tokens causing intake rejection\u2014which requires a targeted manual fix by an integration engineer rather than a routine retry, consistent with the described resolution of 'manual_fix'.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 9,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The branches collectively reveal a faulty sign-casting expression causing systematic sign reversal, confirmed by reconciliation checks, with eight downstream consumers still reading via a controlled alias that enables atomic rollback and replay\u2014making rollback the correct resolution.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 10,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The context explicitly states the investigation resolves to a rollback, but the system_recommended_action is null, meaning no recommendation was made rather than an incorrect one being offered.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 11,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 12,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The investigation branches reveal a faulty identifier-normalization job stripping leading zeros (degraded transformation_health to 0.25), collapsed keys failing equality gates (data_quality to 0.34), unreliable derived source (source_reliability to 0.06), and nine downstream consumers impacted (impact_scope to 0.84), collectively justifying a rollback rather than mere monitoring, and the documented atomic view switch using the retained prior snapshot makes rollback the appropriate resolution.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 13,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The system_recommended_action is null, but the context clearly supports a coordinated atomic rollback action given that branches b03, b04, b01, and b06 together establish a precision failure in the decimal transform, degraded source reliability, systematic cent-level data quality issues, and full impact across all ten consumers with a validated prior snapshot available for rollback.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 14,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "After traversing the current-run evidence branches (b05 expanding impact to 10 consumers, b02 revealing a novel external-commit-token pattern, b01 showing checkpoint/acknowledgement desynchronisation with duplicate-posting risk), the situation is clearly beyond safe automated resolution and warrants escalation to the owner, matching the description's stated conclusion.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 15,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.93,
+      "k2_reasoning": "The evidence chain reveals that the surface-level routine backlog assessment is overturned by current-run diagnostics: impact_scope expands to 0.85 (eight downstream consumers), pattern_familiarity collapses to 0.16 (this incident has a partially acknowledged billing token unlike prior cases), and transformation_health drops to 0.06 (charge writer checkpoint-acknowledgement mismatch with recharge risk), collectively making escalate_to_owner the correct and only safe action.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 16,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The full evidence chain (b01\u2192b02\u2192b05) reveals that the apparent single-table retry spike actually affects ten downstream consumers including financial systems, and the refund writer is halted in an ambiguous mid-disbursement state where retry could duplicate payments, making escalation to the owner the only safe action given the irreversible financial risk and inability to determine safe recovery automatically.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 17,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.93,
+      "k2_reasoning": "The branch evidence collectively reveals that what appeared to be a benign, self-healing duplicate status event is actually a critical issue: impact_scope jumped from 0.18 to 0.93 (nine consumers affected), pattern_familiarity dropped from 0.91 to 0.04 (current pattern doesn't match historical self-healing cases), and transformation_health dropped from 0.70 to 0.34 with diverging sequence checkpoints unsafe to replay\u2014all pointing to escalation to owner as the correct action since no available au",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 18,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The branch evidence reveals that the transformation_health drops to 0.06 (external doc number without commit receipt, making retry dangerous) and pattern_familiarity drops to 0.01 (no applicable historical retry case), with impact_scope rising to 0.95 across ten consumers, making escalation to owner the correct action rather than a routine retry.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 19,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The evidence clearly shows an unregistered breaking enum change (schema_stability drops to 0.02) and a mapping job that actively rejects the new values (transformation_health drops to 0.19), with no compatible adapter available, making manual_fix the correct resolution despite the misleading surface summary suggesting the alert was safe to monitor.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 20,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The branch evidence chain (b03\u2192b05\u2192b04\u2192b02) consistently points to an incompatible adapter scale interpretation causing mis-scaling, with a pinned previous artifact confirmed to work correctly and all impact contained to reversible staging consumers, making rollback the well-supported resolution.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 21,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The investigation trace shows that after reading current-run evidence (b01, b03), schema_stability drops to 0.09 and transformation_health drops to 0.20, confirming a breaking schema contract change requiring a reviewed mapping repair\u2014a manual_fix\u2014which aligns with the described resolution.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 22,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The evidence chain clearly establishes a regression: the deployed adapter dropped envelope-version dispatch (b06), causing wrong decoder application and compatibility gate failure (b04), corrupted semantic columns in the view (b03), and impacting five staging consumers (b05), making rollback to the prior pinned artifact the well-supported recovery action.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 23,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The branches reveal a critical schema change (location_code to composite key) collapsing schema_stability to 0.07 and a resolver failure collapsing transformation_health to 0.0, meaning no automated retry can succeed and an operator must implement the key mapping\u2014confirming manual_fix as the correct resolution.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 24,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The branches b02 and b04 provide current-run scoped evidence showing join-cardinality failures and competing active records from a source-side effective-date correction, collapsing data_quality to 0.12 and source_reliability to 0.25, which collectively indicate a genuine data integrity issue requiring operator intervention (manual_fix) rather than an automated action, consistent with the null system_recommended_action and the description's stated resolution.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 25,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The context describes a clear root cause (removed effective-date predicate causing one-to-many expansion) with confirmed rollback feasibility via deterministic replay, yet the system_recommended_action is null rather than recommending a rollback of the transformation artifact.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 26,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The evidence trail from b01 and b03 confirms a real data quality issue (duplicate expansion from overlapping zone ranges in a refreshed reference snapshot), which is not a routine mix change and requires operator intervention to repair the zone range table\u2014consistent with a manual_fix resolution rather than any automated action.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 27,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The evidence branches collectively reveal that what appeared as a modest, safe drift is actually a serious dependency cascade: transformation_health drops to 0.04 (missing version constraint), source_reliability to 0.36 (repeating plan assignments from a new join artifact), data_quality to 0.22 (duplicated output rows), and impact_scope rises to 0.87 (nine downstream consumers affected), all pointing to a rollback of the pinned previous transform and view snapshot as the correct resolution.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 28,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "Branches b03 and b04 reveal overlapping effective dates in the category reference causing duplicate product IDs, dropping data_quality to 0.03 and source_reliability to 0.09, which confirms a corrupted source reference requiring operator reconciliation (manual_fix) rather than an automated action.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 29,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The investigation branches reveal that the stale marker referred to a prior poll (source_reliability updated to 1.0) and the transformation completed all intake gates successfully (transformation_health updated to 1.0), leaving no unresolved failure to repair, so monitoring without action is the correct resolution.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 30,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The investigation branches reveal current-run evidence of intermittent endpoint throttling (source_reliability drops to 0.61) and an uncommitted fetch step with a valid deduplication checkpoint matching the documented transient-throttle signature (transformation_health drops to 0.65), with an approved bounded backoff/retry procedure available, making auto_fix the appropriate resolution consistent with the description.",
+      "anchor_label": false,
+      "anchor_action": "auto_fix",
+      "scenario_id": 31,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "Branch b04 confirms the source manifest is fully reconciled with all required objects/checksums (source_reliability \u2192 1.0), and branch b02 confirms transformation health is sound (0.61 \u2192 0.95) with only accepted optional-field sparsity remaining, together establishing that the alert fired on a stale incomplete listing and no recoverable failure is pending, which validates a 'monitor' resolution over any active remediation.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 32,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The description states investigation resolves to auto_fix, and the branch evidence supports this: b03 confirms repeated temporary gateway failures on the current run, b01 confirms a verified idempotency key with a bounded retry available matching the documented temporary-gateway runbook, making an automated retry/fix the appropriate action rather than mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "auto_fix",
+      "scenario_id": 33,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The strongest current-run evidence (b04 and b01) shows the source manifest is intact with verified hashes and all transformations completed successfully, meaning the old failed-poll marker is stale and no active failure exists, supporting a monitor/no-action recommendation over an intervention.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 34,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system recommends no action (null), but the context explicitly states investigation resolves to auto_fix, and current scoped evidence reveals genuine problems: data_quality drops from 0.88 to 0.57 due to a stale statistics manifest and transformation_health drops from 1.00 to 0.69 due to a failed task, making monitoring insufficient and auto_fix the appropriate action.",
+      "anchor_label": false,
+      "anchor_action": "auto_fix",
+      "scenario_id": 35,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.8,
+      "k2_reasoning": "The evidence from b01 and b02 shows the null fluctuation is attributed to a documented optional-field cohort with all required gates passing and the transformation task completed successfully before the alert arrived, supporting a monitor/no-action conclusion consistent with the familiar automated gate refresh pattern.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 36,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The current-run evidence (b03, b01) reveals a sidecar-materialization failure from a temporary object-store error with an approved idempotent rebuild path, making auto_fix the appropriate resolution rather than passive monitoring, which aligns with the description's stated conclusion.",
+      "anchor_label": false,
+      "anchor_action": "auto_fix",
+      "scenario_id": 37,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The current-run evidence (b04 and b02) shows data_quality rising to 0.82 and transformation_health rising to 0.94, confirming the alert is stale/cached and the gate task already completed successfully, making 'monitor' the appropriate resolution with no repair action needed.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 38,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The context confirms that branches b03 and b02 reveal a failed summary-materialization task with an available bounded idempotent rebuild, supporting an auto_fix resolution, while the surface factors (high cached scores) mask the real degradation\u2014consistent with the description that investigation resolves to auto_fix using current graph evidence.",
+      "anchor_label": false,
+      "anchor_action": "auto_fix",
+      "scenario_id": 39,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The description states the alert fully supports auto_fix and surface factors are generally high, yet the system_recommended_action is null rather than recommending an auto_fix action.",
+      "anchor_label": false,
+      "anchor_action": "auto_fix",
+      "scenario_id": 40,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.7,
+      "k2_reasoning": "The alert explicitly describes a quarantined tenant field-mapping mismatch with no rollback artifact and no available automated actions or branches, making manual_fix the appropriate resolution, and the description confirms this.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 41,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The alert explicitly confirms a faulty transform release, a validated compatible prior artifact, held downstream writes, and intact replay inputs \u2014 all prerequisites for a rollback action \u2014 making rollback the correct resolution even though no system action was surfaced.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 42,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The description states the alert fully supports 'escalate_to_owner', but the system_recommended_action is null rather than recommending that action.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 43,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "With all surface factors scoring high (0.8-0.9), quality gates passed, and fluctuation within accepted operating envelope, recommending no action (null) is appropriate for this flat/benign data drift alert.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 44,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The evidence trail (b01\u2192b04) confirms a transient checkpoint summary commit failure with intact source data and an approved idempotent rebuild ready to run, making an auto_fix recommendation well-supported by current-run diagnostics rather than just historical pattern matching.",
+      "anchor_label": false,
+      "anchor_action": "auto_fix",
+      "scenario_id": 45,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The branch evidence (b04 then b02) progressively reveals the alert is not a routine throttle but a misconfigured tenant route requiring operator-verified repair, making manual_fix the correct resolution rather than an automatic retry.",
+      "anchor_label": false,
+      "anchor_action": "manual_fix",
+      "scenario_id": 46,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.93,
+      "k2_reasoning": "The evidence chain clearly establishes a faulty release causing systematic truncation (transformation_health drops to 0.20, source_reliability to 0.08, data_quality to 0.50) with eight staging consumers sharing a versioned view that has committed no external effects and supports atomic rollback, making rollback the correct resolution despite the surface summary suggesting mere monitoring.",
+      "anchor_label": false,
+      "anchor_action": "rollback",
+      "scenario_id": 47,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The investigation branches reveal that the surface-level familiar transient pattern (b04) is contradicted by current-run evidence showing an unresolved external charge token (b02), a mismatched internal checkpoint risking duplicate charges (b05), and nine downstream consumers (b01), making escalate_to_owner the correct action rather than a routine retry.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_owner",
+      "scenario_id": 48,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The current-run evidence (b02, b03) shows data_quality improves to 0.86 and transformation_health to 0.91, with no failed mandatory transformations remaining, supporting a 'monitor' resolution rather than any corrective action.",
+      "anchor_label": false,
+      "anchor_action": "monitor",
+      "scenario_id": 49,
+      "k2_source": "anthropic_sonnet"
+    }
+  ],
+  "s2p": [
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain confirms that amendment SYN-AMD-0001 is applicable (effective 2026-08-01, before the 2026-08-15 delivery), the price increase to USD 112.00/unit was properly approved by two authorized signatories on 2026-07-29 within delegated limits, the rate annex confirms 100 \u00d7 $112 = $11,200 matches the invoice exactly, and all surface factors (contract_coverage, policy_conformance, price_conformance) resolve to high confidence scores, fully explaining the 12% price increase as authorized",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 0,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain across the three operative branches confirms that amendment SYN-AMD-0002 establishes USD 86.40/unit, dual-role approvals meet SYN-POL-0002, and 150 \u00d7 86.40 = 12,960.00 exactly matches the invoice, fully explaining the 8% price increase as authorized.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 1,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain confirms that amendment SYN-AMD-0003 sets USD 132.50/unit (read-7f2b5cbb7ac9), the rate annex validates 80\u00d7132.50=10,600.00 (read-df2f6357bbb8), and proper dual-role approvals are on record (read-83e18a9914e3), fully explaining the 6% price increase as authorized.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 2,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The description states the 10% price increase is authorized by a scoped amendment, which is confirmed by the branch evidence showing executed amendment SYN-AMD-0004 with proper approvals, an effective date of 2026-08-01 before the delivery, and the rate annex setting USD 55.00/unit yielding exactly the invoiced USD 11,000.00.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 3,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain confirms that amendment SYN-AMD-0005 (effective 2026-08-01) sets USD 168.00/unit, properly approved by two required roles on 2026-07-29 within delegated limits, making the 50-unit invoice total of USD 8,400.00 fully compliant and the price mismatch alert resolvable with no action required.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 4,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The context confirms a staged/split delivery scenario where 60 units are accepted and payable ($2,400) while 40 units remain undelivered, with policy SYN-POL-0006 explicitly authorizing partial release, fully supporting the description's recommendation.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 5,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The evidence chain confirms a staged delivery PO where 120 units were accepted and 80 remain undelivered, with policy SYN-POL-0007 explicitly authorizing partial payment of $3,000 for accepted units, making the description of a planned split delivery permitting payment for 120 of 200 units accurate.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 6,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain confirms 48 units accepted (SYN-GR-0008), a staged-payment policy (SYN-POL-0008) authorizing partial release of USD 3,600, and the PO explicitly blocking payment for the undelivered 32-unit tranche, all consistent with the description of a planned split delivery permitting payment for 48 of 80 units.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 7,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain confirms a staged-delivery PO where only 72 of 120 units were accepted, the policy explicitly authorizes partial payment of USD 3,600 for accepted units while blocking the remaining USD 2,400, matching the description of a planned split delivery permitting payment for 72 of 120 units.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 8,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The context confirms a staged delivery PO where 96 units were accepted and 64 remain undelivered, with policy SYN-POL-0010 authorizing partial payment of USD 2880 (96 \u00d7 USD 30), perfectly matching the description of a planned split delivery permitting payment for 96 of 160 units.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 9,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The description accurately captures that the initial high supplier_trust score (0.9617) is stale relative to the lot-linked dimensional tolerance failures discovered in branch read-7308d7c7f848, which then reveals an active quality hold on SYN-LOT-0011 confirmed in branch read-f9ddd4a52ad7, constituting a policy_violation per SYN-POL-0011.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 10,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The description accurately captures that the surface supplier_trust score (0.9384) is stale and obscures an active quality hold tied to contamination screening failures on SYN-LOT-0012, as confirmed by branch read-fc35444eebae which updates supplier_trust to 0.2027 based on adjudicated cohort failures, and branch read-292d714f2502 which reveals the active payment hold reducing policy_conformance to 0.2975.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 11,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly declines to recommend an action given the unresolved quality hold and pending laboratory disposition on SYN-LOT-0013, as paying or rejecting outright would be premature without final test results.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 12,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The description correctly identifies that the surface supplier_trust score (0.9531) is stale and obscures a lot-specific quality hold linked to seal integrity failures on SYN-LOT-0014, which is precisely what branch read-9a38cbc58e82 confirms by dropping supplier_trust to 0.2004 based on adjudicated cohort failure records.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 13,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The description accurately captures the core issue: the surface supplier_trust score (0.9457) is stale and predates adjudicated calibration failures on the same production line, and there is an active quality hold (SYN-POL-0015) on SYN-LOT-0015 pending laboratory disposition, both of which constitute a policy violation that the alert correctly categorizes.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 14,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 15,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.93,
+      "k2_reasoning": "The description accurately captures the core findings: the invoice line lacks contract coverage (expedited installation excluded per amendment SYN-SCOPE-0017), the $620 invoice is part of a larger $9,300 aggregated commitment that exceeds the $8,000 threshold requiring procurement authorization, and the add-on fee was never accepted, all pointing to an uncovered service commitment.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 16,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The description accurately captures the core findings from the evidence branches: the invoice belongs to a larger aggregated commitment ($5,250 total), the billed service line is excluded from contract scope (coverage drops to 0.0756), and the add-on fee was never accepted, all consistent with a contract deviation classification.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 17,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The alert correctly identifies a contract deviation where the invoice belongs to a larger aggregated commitment (USD 11,840) that exceeds the USD 10,000 threshold, lacks required authorizations, has an unaccepted add-on fee, and falls outside contract scope\u2014all confirmed by the investigation branches.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 18,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The invoice involves an uncovered service line (contract_coverage dropping to 0.0878), an unaccepted fee component (price_conformance dropping to 0.2997), aggregated commitments of USD 7,280 exceeding the USD 6,000 policy threshold without required authorization (policy_conformance dropping to 0.0821), and a low supplier trust score (0.2898), all consistent with a contract_deviation categorization for this USD 560 invoice from SYN-Willow Services.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 19,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain (registry link to SYN-OLD-0021, fully allocated acceptance event, settled first payment with no reversal, four prior resubmissions of settled obligations, and policy SYN-POL-0021 prohibiting double payment) conclusively corroborates the duplicate_suspect categorisation of SYN-INV-0021 as a portal resubmission concealing an already-paid obligation.",
+      "anchor_label": false,
+      "anchor_action": "dispute",
+      "scenario_id": 20,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The evidence chain (invoice_registry, acceptance_event_ledger, supplier_correction_register, payment_control_register) consistently corroborates that SYN-INV-0022 is an EDI retransmission of an already-settled obligation (SYN-OLD-0022), with no remaining receipt entitlement, prior duplicate submissions by the supplier, and policy prohibiting double payment, making the duplicate_suspect categorization well-supported.",
+      "anchor_label": false,
+      "anchor_action": "dispute",
+      "scenario_id": 21,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The sequential evidence chain (read-76efac5720fd \u2192 read-94ffc84a6a51 \u2192 read-c9b5ad0e3603 \u2192 read-6620614f0ad8) conclusively establishes that SYN-INV-0023 is a duplicate of the already-settled SYN-OLD-0023, with no remaining receipt entitlement, four prior resubmission errors by the same supplier, and policy mandating a cancellation or credit request, making the duplicate_suspect categorization correct.",
+      "anchor_label": false,
+      "anchor_action": "dispute",
+      "scenario_id": 22,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The context confirms that SYN-INV-0024 is linked to SYN-OLD-0024 via a split PDF upload with the same PO release and shipment reference, and that there is no independent receipt or reversal to resolve the duplicate suspicion, making the duplicate_suspect category and open investigation status appropriate given the unresolved same-obligation risk.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 23,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly withholds a recommended action given that the investigation remains open\u2014duplicate risk has risen to 0.9073 after branch read-4acee2e9a610, receipt match has dropped to 0.088 after read-5c3eb7a63f38, and SYN-POL-0025 explicitly requires AP to hold while Treasury reconciles the uncertainty, making no conclusive approval or rejection appropriate at this stage.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 24,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The context confirms both a category-budget overrun (USD 101,900 vs USD 100,000 approved) and an independently uncovered scope (premium support coverage excluded from contract), validating the policy_violation categorization and description.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 25,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The description accurately captures both key findings surfaced by the evidence: the category-budget overrun (USD 81,500 vs USD 80,000 limit per read-e58055b224c4) and the independently uncovered scope for a new operating subsidiary (per read-cde52584160f), which together constitute a policy violation for SYN-Harbor Industrial.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 26,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The description accurately captures both key findings revealed by the evidence chain: the category commitment ledger shows the invoice pushes spend above the approved budget (overrun), and the contract schedule independently confirms the line covers out-of-region deployment that is explicitly excluded from contract coverage (uncovered scope).",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 27,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The context confirms both a category-budget overrun (spend of $59,400 plus $2,200 exceeds the $60,000 approved budget) and an independently uncovered scope (the invoice line concerns an unlisted accessory family excluded from the contract), with missing procurement approval for the budget exception, all consistent with a policy_violation classification.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 28,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The context explicitly confirms both a category-budget overrun (USD 122,000 vs. USD 120,000 approved) and an independently uncovered scope (renewal period outside the executed contract term), with missing required budget-exception approvals, fully supporting the policy_violation description.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 29,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The context confirms a price mismatch alert where mixed schedule versions obscure an authorized packaging component, and the investigation branches reveal that the executed rate table permits exactly USD 102/unit (USD 100 base + USD 2 packaging), making the total USD 10,200 fully authorized once the correct scoped contract and rate table are applied.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 30,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The description accurately captures both the unauthorized price component (USD 83 vs authorized USD 80) and the partial receipt acceptance (140 of 150 units), which together justify only partial payment as evidenced by branches read-5e3a55ffd1d3 and read-ba91bc4d0b05.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 31,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.91,
+      "k2_reasoning": "The system correctly identifies no recommended action yet, as the investigation branches show that reading read-ec2fc73177dd first (revealing locator-6ee1d0a65ac1) is a prerequisite for read-84933d9cdee4, which would resolve the price mismatch by confirming the authorized $4/unit inspection surcharge\u2014the sequential dependency means no final action can be recommended until those reads are executed.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 32,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.93,
+      "k2_reasoning": "The context confirms both a price discrepancy (USD 52.00 invoiced vs. USD 50.00 authorized) and a quantity acceptance gap (190 of 200 units accepted), supporting partial payment of USD 9,500 while blocking USD 900, which aligns with the system description of permitting only partial payment.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 33,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The evidence chain shows that executing read-82d9ee57ee1d resolves the contract coverage ambiguity by identifying the controlling rate table, and read-4420d8b25ad8 then confirms the $165/unit price is valid (base $160 + $5 authorized labeling surcharge), fully reconciling the $8,250 invoice with no actual mismatch.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 34,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The context confirms that the combined commitment of USD 10,250 exceeds the USD 10,000 delegated authority threshold under SYN-POL-0036, and the routine approval signature is insufficient, making 'policy_violation' the correct category with no system-recommended action since escalation is required.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 35,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The evidence chain shows the dashboard inflated the aggregate by a canceled $500 requisition; removing it brings amount_materiality below threshold (0.3311) and the delegated authority register confirms the approver had valid authority for the $14,850 invoice, making the policy violation a false positive from a stale aggregate.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 36,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The context confirms that aggregating the $19,800 invoice with a $450 open amendment yields $20,250, which exceeds the $20,000 delegated authority threshold under SYN-POL-0038, making the policy_violation category and description accurate.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 37,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.93,
+      "k2_reasoning": "The context describes a policy violation alert where a USD 500 canceled requisition inflated the dashboard total, and the branch evidence confirms that removing it leaves USD 11,850 within the approved delegation limit of USD 12,000, making the alert a false positive that should be cleared\u2014consistent with a correct recommendation to resolve the violation.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 38,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.93,
+      "k2_reasoning": "The context confirms that combining the $17,800 invoice with a $450 open amendment yields $18,250, which exceeds the $18,000 delegated authority threshold under SYN-POL-0040, making a policy violation the correct categorization.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 39,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.7,
+      "k2_reasoning": "The context describes a surface-resolvable alert with strong conformance scores and reconciled evidence that should yield an approve recommendation, but system_recommended_action is null, indicating the system failed to produce the expected approval action.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 40,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system recommended no action (null) despite the alert containing sufficient surface evidence to support a partial approval of the accepted 60-unit tranche, meaning the system failed to recommend the appropriate partial_approve action.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 41,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.7,
+      "k2_reasoning": "The system recommends no action (null) which aligns with the description of a hold_for_review control where the alert already contains an active acceptance hold pending quality disposition, making further automated action inappropriate.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 42,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system_recommended_action is null despite the context explicitly stating the correction request is warranted and all necessary evidence being present in the alert packet, indicating the system failed to produce a recommendation when one should have been generated.",
+      "anchor_label": false,
+      "anchor_action": "dispute",
+      "scenario_id": 43,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system recommended action is null, but the context explicitly states this is a surface-resolvable case requiring escalation to procurement with all necessary evidence already present in the alert, so a recommendation of 'escalate_to_procurement' should have been made.",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 44,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The branch evidence chain confirms that amendment SYN-AMD-0046 (effective 2026-08-01, before the 2026-08-15 delivery) authorizes the $112.00 unit price, the approval register shows two required signatories approved on 2026-07-29 within delegated limits, and the contract rate annex confirms 100 \u00d7 $112.00 = $11,200.00 exactly matching the invoice, fully supporting the description that the 12% price increase is authorized by a scoped amendment.",
+      "anchor_label": false,
+      "anchor_action": "approve",
+      "scenario_id": 45,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The evidence chain confirms 120 units accepted per SYN-GR-0047, a staged-payment policy (SYN-POL-0047) authorizing release of the accepted tranche ($3,000), and the PO supporting split deliveries, all consistent with the description that a planned split delivery permits payment for 120 of 200 units.",
+      "anchor_label": false,
+      "anchor_action": "partial_approve",
+      "scenario_id": 46,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.0,
+      "k2_reasoning": "No system_recommended_action was provided, so there is nothing to judge as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "hold_for_review",
+      "scenario_id": 47,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The description accurately reflects the evidence chain: branch read-3feb35fa1539 confirms SYN-INV-0049 is linked to SYN-OLD-0049 via a split PDF upload with a different invoice number but the same PO release and shipment reference for an already-paid obligation.",
+      "anchor_label": false,
+      "anchor_action": "dispute",
+      "scenario_id": 48,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "escalate_to_procurement",
+      "scenario_id": 49,
+      "k2_source": "SYNTHETIC"
+    }
+  ],
+  "trading": [
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system recommended no action (null), but the governing evidence chain reveals three critical deteriorations\u2014thesis_alignment drops to 0.01, fundamental_strength drops to 0.08, and liquidity_risk rises to 0.93\u2014which together strongly indicate the buy signal should be rejected or blocked rather than left without a recommendation.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 0,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly returns null for recommended action given that the alert category is thesis_check and the evidence graph reveals multiple critical factor reversals (thesis_alignment 0.81\u21920.02, fundamental_strength 0.75\u21920.01, portfolio_concentration 0.04\u21920.97, liquidity_risk 0.03\u21920.94) that collectively invalidate the buy signal, making no single automated action appropriate without further review.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 1,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The system correctly returns null for recommended_action given the alert category is thesis_check and the full evidence chain (governing branches) reveals critical degradation across thesis_alignment (0.76\u21920.02), portfolio_concentration (0.12\u21920.97), fundamental_strength (0.70\u21920.00), and liquidity_risk (0.16\u21920.89), making any affirmative buy action unsupportable without further review.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 2,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system_recommended_action is null, but the evidence chain (b_0b88f1fef7d0 \u2192 b_b8daf2ecf378 \u2192 b_9e6a4c9b7396 \u2192 b_27fc7c70821f) reveals that all key factors deteriorate severely (thesis_alignment 0.96\u21920.02, portfolio_concentration 0.09\u21920.95, fundamental_strength 0.91\u21920.01, liquidity_risk 0.20\u21920.92), which clearly warrants a block or reject action rather than no recommendation.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 3,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "No available actions exist in the context, so a null recommendation is appropriate given the alert is still in evidence-gathering/branch-traversal phase with no completed analysis yet.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 4,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly makes no recommendation (null) given the alert requires reading the governing branches to determine that both correlation_risk (0.15\u21920.99) and liquidity_risk (0.17\u21920.82) are severely underestimated, meaning the appropriate action cannot be determined without first completing the evidence-gathering branches.",
+      "anchor_label": false,
+      "anchor_action": "hedge",
+      "scenario_id": 5,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The alert correctly identifies correlation_risk as the primary concern, and the governing branch b_7c619b7ccdc7 confirms the low initial correlation_risk score (0.06) is materially understated due to a missed common packaging-sector factor linking three positions with stress correlations of 0.78-0.84, validating the alert category and description.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 6,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly recommends no action (null) given available_actions is empty, as the alert requires reading branch b_a892fb14bac9 first to obtain the lookup token before the governing liquidity branch b_df8676fb8945 can be accessed, meaning no complete actionable recommendation can yet be formed from the enriched evidence.",
+      "anchor_label": false,
+      "anchor_action": "hedge",
+      "scenario_id": 7,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The alert correctly identifies correlation_risk as the primary concern, and the governing branch (b_04ff4341bb39) confirms that the initial low correlation score of 0.04 is incorrect because it omits a common freight-demand cycle factor connecting three existing synthetic positions with stress-window correlations of 0.77\u20130.83, raising the true correlation_risk to 0.56, which aligns with the alert description.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 8,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The context shows no system_recommended_action (null) and available_actions is empty, so there is no recommendation to judge as incorrect; the system correctly withheld a recommendation pending further evidence gathering given the unresolved correlation_risk alert.",
+      "anchor_label": false,
+      "anchor_action": "hedge",
+      "scenario_id": 9,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "No action is recommended, which aligns with the context showing both timing_signal dropping to 0.08 (earnings in 3 days with 62% implied volatility making entry inadvisable) and fundamental_strength dropping to 0.26 (ARR growth guidance cut from 18% to 8%), together invalidating both the timing and the fundamental thesis for the trade.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 10,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system correctly recommends no action (null) given that the available branches are empty and the alert has not yet been enriched with the governing evidence showing fundamental_strength dropping to 0.26 and timing_signal dropping to 0.05, making any specific trade action premature without completing the required branch reads.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 11,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The system correctly recommends no action (null) because the governing branches reveal that the timing_signal collapses from 0.83 to 0.06 due to an imminent earnings event in three days, and fundamental_strength drops from 0.99 to 0.25 due to a public preannouncement of a 15% revenue cut and product delay, making the original alert's bullish premise entirely invalidated.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 12,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system correctly recommends no action (null) given that the governing branches reveal timing_signal drops to 0.18 and fundamental_strength drops to 0.26, making the original thesis invalid, and no available_actions exist to act upon.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 13,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly identifies no recommended action given that the optimal path requires sequentially reading b_527c291da158 first (to obtain lookup token k_98118eaf55e0) and then b_86434c380feb, but with no available_actions listed, the system appropriately defers rather than acting on stale factor values.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 14,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "There are no available actions defined in the system, so a null recommendation is correct given the context only provides branches for evidence gathering without specifying executable actions.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 15,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly withholds a recommendation given that the governing branches (b_96a678b77bd7 and b_279f6018f86a) reveal critical hidden risks\u2014liquidity_risk rising to 0.85 and portfolio_concentration rising to 0.85\u2014that would breach the illiquid sleeve cap, making any action recommendation premature until the full evidence graph is traversed.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 16,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "No system_recommended_action is provided (null), which is correct given that available_actions is empty and no recommendation was made to evaluate.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 17,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "No action is recommended, which is appropriate given that the governing evidence reveals liquidity_risk rising to 0.95 (8-day exit) and portfolio_concentration rising to 0.85 (breaching the 20% cap), making the trade inadvisable.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 18,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "No action is recommended, which is consistent with the context showing no available_actions and the alert requiring investigation of both liquidity_risk (branch b_a535421895f3) and portfolio_concentration (branch b_0af3caf56a69) before any remedial action can be determined.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 19,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "No available actions exist in the context, and the system correctly returns null for the recommended action rather than prescribing a trade, which aligns with the evidence that timing_signal drops to 0.13 (overbought/overextended) and correlation_risk rises to 0.78 (crowded basket), meaning the tactical-entry policy requires waiting for signal normalization before acting.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 20,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "There is no system_recommended_action (null), and with no available_actions listed, a null/no recommendation is the only valid output given the context.",
+      "anchor_label": false,
+      "anchor_action": "hedge",
+      "scenario_id": 21,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "No system_recommended_action is present (null), which is correct given the evidence: the governing branches reveal that timing_signal drops to 0.03 (severely overbought at RSI 82, 3\u03c3 above 20-day average) and correlation_risk rises to 0.77 (high crowded-factor exposure with no approved hedge), making any entry inadvisable and appropriately leaving the recommendation empty pending reset of entry conditions.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 22,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system correctly abstains from recommending an action given the conflicting signals\u2014a strong timing reversal signal (RSI 89, 3.8-SD extension reducing timing_signal to 0.08) and elevated correlation risk (0.93) both require further branch investigation before a defensible action can be determined, making null the appropriate recommendation.",
+      "anchor_label": false,
+      "anchor_action": "hedge",
+      "scenario_id": 23,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "No system-recommended action is present (null), which is appropriate given that the alert has available branches requiring investigation but no completed branch reads yet, so insufficient enriched evidence exists to support a specific action recommendation.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 24,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "There is no system-recommended action to evaluate (null), so the absence of a recommendation is appropriate given the alert requires branch traversal to gather current evidence before any action can be determined.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 25,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The context explicitly states there is no system recommended action (null), and the alert is a thesis_check with available branches to investigate but no available actions, making the absence of a recommendation correct given the evidence must still be gathered through the branch chain.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 26,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system correctly recommends no action (null) pending evidence gathering, as the surface factors show high thesis_alignment (0.94) and fundamental_strength (0.94) that require enrichment through the branch sequence before any trading action can be justified.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 27,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.82,
+      "k2_reasoning": "The system correctly returns null for the recommended action given that no available_actions are provided and the alert requires sequential branch exploration to update multiple deteriorating factors before a defensible action can be recommended.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 28,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "There is no system_recommended_action (null), which is correct given the context shows unread governing branches with critical negative updates (thesis_alignment dropping to 0.16, fundamental_strength dropping to 0.30) that must be investigated before any action can be responsibly recommended.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 29,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The system correctly recommends no action (null) given that the alert flags ambiguity in cached scores, and the governing evidence branches reveal both the timing_signal (0.93\u21920.14) and fundamental_strength (0.98\u21920.31) are severely degraded, making any trade action inappropriate until enriched data is properly resolved.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 30,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The system correctly identifies no recommended action given the alert's ambiguity, as the governing branches reveal that both timing_signal (0.75\u21920.11) and fundamental_strength (0.99\u21920.31) are severely weakened by current evidence, making any trade action inappropriate without further resolution.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 31,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly recommends no action (null) given that the governing branches reveal the timing_signal drops from 0.89 to 0.18 and fundamental_strength drops from 1.00 to 0.32, eliminating the basis for any favorable trade entry.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 32,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The context contains no system_recommended_action (null), so there is nothing to judge as correct or incorrect in the traditional sense, but the absence of a recommendation aligns with the situation where critical evidence branches (b_5a2793b4f892 and b_1ae8866975e7) revealing materially degraded timing_signal (0.89\u21920.11) and fundamental_strength (0.99\u21920.31) have not yet been read, making any action recommendation premature.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 33,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system correctly recommends no action (null) given that the governing branches reveal timing_signal drops from 0.98 to 0.16 and fundamental_strength drops from 0.99 to 0.31, invalidating the originally favorable alert factors that triggered the time_pattern alert.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 34,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "No available actions are defined in the system, and the recommended action is null, which is consistent with the alert context requiring further evidence gathering (reading branches) before a concrete action can be determined.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 35,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly recommends no action (null) at this stage because the governing evidence requires completing branch b_e747ef7a2210 first to obtain the lookup token, then b_3d09257ac455 to confirm the resize to 6,000 shares\u2014the investigation path is not yet complete and a premature action recommendation would be unsupported by the full evidence chain.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 36,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system recommended no action (null), but the governing evidence branches reveal that the full order would breach the 25% NAV cap (pushing exposure to 27%) and carries significant stress correlation risk, indicating a reduced order or block is warranted.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 37,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system recommends no action (null), but the context clearly shows governing evidence that portfolio_concentration breaches the 25% NAV mandate threshold (rising to 27%) and that correlation_risk is materially higher than initially estimated, indicating a recommendation to reduce or block the trade is warranted.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 38,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "There is no system-recommended action (null), which is correct given that the alert requires reading governing branches first to determine the true concentration (0.79) and correlation risk (0.51) before any action can be properly recommended.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 39,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.7,
+      "k2_reasoning": "The system recommended action is null, meaning no recommendation was made to evaluate as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "execute",
+      "scenario_id": 40,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The system correctly recommends no action (null) given that no available actions or branches exist, and while fundamentals are strong, the alert is classified as a fundamental_change category which warrants monitoring rather than immediate action, consistent with the surface factors showing high thesis alignment and fundamental strength but no actionable signals requiring intervention.",
+      "anchor_label": false,
+      "anchor_action": "execute",
+      "scenario_id": 41,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.85,
+      "k2_reasoning": "The surface factors consistently show low risk (correlation_risk 0.15, liquidity_risk 0.15, portfolio_concentration 0.15) and strong fundamentals and thesis alignment (0.85 each) with a strong timing signal (0.8), supporting the system's recommendation that no additional review is needed and the allocation is permitted.",
+      "anchor_label": false,
+      "anchor_action": "execute",
+      "scenario_id": 42,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.7,
+      "k2_reasoning": "With no available actions or branches and a null system recommendation, the absence of a recommended action aligns correctly with the described holding pattern awaiting the documented reconsideration window.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 43,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "The system recommended no action (null), which aligns with the description indicating the hedge mandate is prevalidated with adequate capacity and collateral, suggesting no additional action is needed beyond the pre-selected hedge fixture.",
+      "anchor_label": false,
+      "anchor_action": "hedge",
+      "scenario_id": 44,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system correctly withholds a recommendation (null) given the incomplete evidence state, as the governing branches (b_0d3ff9f5d879 and b_e2a6b8c52e37) have not yet been read, leaving timing_signal and fundamental_strength at their stale initial values (0.41 and 0.40 respectively) which do not support a trade action.",
+      "anchor_label": false,
+      "anchor_action": "execute",
+      "scenario_id": 45,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "No action is recommended (null), which is correct given that the governing branches reveal timing_signal drops from 0.85 to 0.13 and fundamental_strength drops from 1.00 to 0.26 due to an 18% revenue guidance cut and margin compression, making the original bullish thesis invalid and warranting no entry action.",
+      "anchor_label": false,
+      "anchor_action": "defer",
+      "scenario_id": 46,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system correctly returns null for the recommended action because no available_actions are present and the evidence branches reveal significant undiscovered risks (liquidity_risk rising to 0.82 and portfolio_concentration rising to 0.85) that would breach mandate caps, making any specific action recommendation premature without completing the evidence-gathering branches first.",
+      "anchor_label": false,
+      "anchor_action": "reduce_size",
+      "scenario_id": 47,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly withholds a recommended action given that the governing branches reveal both high correlation risk (0.95) and high liquidity risk (0.88) with significant slippage costs, but the available_actions list is empty, indicating the system has flagged the alert for review without prescribing a specific action when the evidence pathway requires sequential branch completion and the hedge option details are still being surfaced.",
+      "anchor_label": false,
+      "anchor_action": "hedge",
+      "scenario_id": 48,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.97,
+      "k2_reasoning": "The system correctly returns null for the recommended action given that no available_actions are provided and the evidence graph reveals multiple critical risk factor reversals (thesis_alignment 0.84\u21920.00, fundamental_strength 0.94\u21920.06, liquidity_risk 0.03\u21920.92, portfolio_concentration 0.03\u21920.97) that would require blocking or escalating the order rather than approving it.",
+      "anchor_label": false,
+      "anchor_action": "reject",
+      "scenario_id": 49,
+      "k2_source": "anthropic_sonnet"
+    }
+  ],
+  "purchasing": [
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 0,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The context describes a situation requiring investigation of demand patterns, and the system correctly recommends no single action (null) pending resolution of the keyed uncertainty through the branch reads, as the surface demand_forecast value of 0.34 is unresolved without reading branch PUR-002-v1-read-812 first to obtain the scope key and then PUR-002-v1-read-889 to resolve actual consumption rate.",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 1,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 2,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.72,
+      "k2_reasoning": "The evidence confirms a critical supply gap: 980 bars needed for the activated EV-EAST-ORIENT orientation cohort with only 270 on hand and a 2-day supplier lead time, supporting a recommendation to expedite or increase the next order, though no explicit recommended action is stated to evaluate directly.",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 3,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 4,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "No system_recommended_action was provided (null), so there is nothing to judge as correct or incorrect \u2014 the system failed to produce a recommendation despite sufficient evidence in the branches to conclude a switch to the approved alternative supplier is warranted.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 5,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "There is no system_recommended_action provided (null), so there is nothing to judge as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 6,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system recommended no action (null), but the evidence clearly shows a critical quality issue (LOT-VPS-207 with wet packaging and seal damage, only 4/22 sacks releasable) that requires switching to the contracted second supplier, making a null recommendation incorrect.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 7,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The evidence chain (branches 899\u2192681) confirms LOT-KW-519 has failed closure checks with a continuing lot hold, dropping quality_score to 0.25 and supplier_reliability to 0.2, while a backup supplier with an approved identical recipe is available within two days and current stock covers three days, making switching to the backup supplier the correct procurement action.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 8,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system made no recommendation (null) despite clear evidence from the branch reads that the current supplier's reserved lot (LOT-SP-633) has failed fit tests with zero release quantity, the backup supplier has the certified matching lid with delivery in one day, and the store has only two days of usable lids on hand \u2014 a situation that warrants an urgent action to switch to the backup supplier for the next uncommitted order.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 9,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "There is no system_recommended_action to evaluate (it is null), so there is nothing to judge as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 10,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly recommends no action (null) given that existing stock covers upcoming demand, the incoming lot LOT-SV-HUM has critically short shelf life, and the offer terms permit no short-date credit, making the 24-tub purchase entirely surplus and skippable without penalty.",
+      "anchor_label": false,
+      "anchor_action": "defer_order",
+      "scenario_id": 11,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system_recommended_action is null, meaning no recommendation was made, but the evidence strongly supports a specific action (a reduced top-up order of 36 cups rather than the standard 144) that should have been recommended based on the available branch evidence.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 12,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.92,
+      "k2_reasoning": "The evidence chain (branches 557\u2192667) confirms the offered lot has only one day of usable shelf life versus four assumed, no return allowance, and existing inventory already covers demand, making rejection the correct implicit action and the null recommendation appropriate.",
+      "anchor_label": false,
+      "anchor_action": "defer_order",
+      "scenario_id": 13,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system recommended action is null, but the context clearly supports a specific action: ordering only 6 cartridges (the minimal quantity covering the one remaining production shift of LOT-GW-CUS) rather than the standard 24-cartridge order, since the batch has only one production shift remaining and no short-date credit applies, making a reduced order the correct procurement action.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 14,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The context explicitly describes that Budget Vessel's low headline quote conceals a true cost of 1.72x the alternative when returns and handling are reconciled, and quality failures (lid seal) occur at 3x baseline, making switching to the approved alternative the correct action \u2014 consistent with a null system recommendation awaiting evidence resolution that clearly points to switching suppliers.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 15,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system_recommended_action is null, meaning no recommendation was made, but the evidence clearly supports switching to the backup supplier given Lowline Paper's true cost efficiency of 0.97 (cost per usable bag 1.61x higher) and quality score of 0.29 (handle-separation returns 3x baseline).",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 16,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The evidence chain (branches 477\u2192825) reveals that Value Hearth's true cost is 1.58\u00d7 the alternative and quality drops to 0.29 due to spec failures, making switching to the qualified alternative the correct procurement action, which aligns with the alert's description that the low case price hides costly unusable pieces and specification failures.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 17,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system recommended no action (null), but the evidence from the fully resolved branches (PUR-019-v1-read-594 and PUR-019-v1-read-619) clearly indicates that Frugal Roll Supply's true all-in cost is 1.83x the contracted alternative and has defect rates three times baseline, strongly warranting a recommendation to switch to the contracted alternative supplier for the next uncommitted order.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 18,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The evidence chain (branches 965\u2192684) reveals that Economy Portion's true cost per usable cup is 1.66\u00d7 the alternative and quality incidence is 3\u00d7 normal due to underfill and seal failures, making switching to the qualified alternative the correct procurement action, consistent with the alert's description of hidden usable-unit costs.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 19,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "There is no system_recommended_action provided (null), so there is nothing to judge as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 20,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The evidence chain (branches 935\u2192441) confirms a full store closure during the order's life window with near-zero consumption (0.07) and demand forecast (0.09), making no recommended procurement action the correct outcome for the next uncommitted order.",
+      "anchor_label": false,
+      "anchor_action": "defer_order",
+      "scenario_id": 21,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system recommended no action (null), but the evidence clearly supports a specific procurement action: significantly reduce the next order to approximately 18 bottles given the main cafe closure during renovation, making a reduced-order recommendation the correct action rather than null.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 22,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "There is no system_recommended_action provided (null), so there is nothing to judge as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "defer_order",
+      "scenario_id": 23,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system_recommended_action is null, meaning no recommendation was made, but the evidence chain (branches 724\u2192922) clearly supports a reduced order of ~20 wraps rather than the standard 80-wrap reorder, so failing to recommend a reduced order is incorrect.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 24,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system recommended no action (null), but the context clearly indicates an urgent situation where the current supplier delivered the wrong SKU (soy instead of oat), cannot fulfill the correct item before the next cycle, and only two days of usable stock remain\u2014a qualified backup supplier can deliver tomorrow, so a concrete procurement action (switching to the backup supplier) is warranted.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 25,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system recommended no action (null), but the evidence clearly shows the wrong product was delivered (caffeinated instead of decaf), the current supplier has no decaf stock on upcoming dispatches, and a qualified backup supplier exists with inventory \u2014 a switch to the backup supplier is the indicated procurement action.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 26,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system returned no recommended action (null), but the evidence clearly supports switching to the previously qualified supplier who can deliver the exact certified flour-free SKU within one day, making a supplier switch the correct procurement action.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 27,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.95,
+      "k2_reasoning": "The system recommended no action (null), but the evidence clearly shows wrong-specification lids were delivered (narrow-mouth instead of wide-mouth), the current supplier has no wide-mouth stock available, and a qualified backup supplier can deliver correct lids within two days with only three days of coverage remaining\u2014requiring an immediate switch to the backup supplier.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 28,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "There is no system_recommended_action provided (null), so there is nothing to judge as correct or incorrect; however, interpreting the question as whether the investigative branch sequence (read-994 \u2192 read-392) is the correct resolution path, the evidence confirms it is: read-994 reveals the SKU substitution and the scope key, while read-392 resolves supplier reliability to 0.19 and confirms a qualified backup can deliver exact-SKU stock within the three-day buffer, making switch to backup suppl",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 29,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "There is no system_recommended_action provided (null), so there is nothing to evaluate as correct or incorrect, making a definitive judgment impossible.",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 30,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 31,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 32,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The evidence chain (reads 166\u2192235) confirms the conference breakfast service is fully cancelled for the incoming lot's shelf-life window, dropping both consumption_rate and demand_forecast to 0.07, which means no procurement action is warranted and a null/skip recommendation is correct.",
+      "anchor_label": false,
+      "anchor_action": "defer_order",
+      "scenario_id": 33,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 34,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "There is no system_recommended_action to evaluate (it is null), so there is nothing to judge as correct or incorrect, but since the prompt asks to judge whether the recommendation is correct and null implies no recommendation was made, this cannot be assessed as correct or incorrect with meaningful confidence.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 35,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The evidence chain (read-427 \u2192 read-166) resolves the batch to an earlier packing shift leaving only one service window, and confirms all 15 offered pots would be surplus with no credit for short-date stock, making no procurement action the correct recommendation.",
+      "anchor_label": false,
+      "anchor_action": "defer_order",
+      "scenario_id": 36,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "No system_recommended_action is provided (null), so there is nothing to judge as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 37,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system correctly recommends no action (null) because the evidence chain (branches 576\u2192244) reveals that current stock plus the accepted fresh shipment already covers the next cycle, making any new order of 48 cups nonrecoverable surplus with no short-date allowance available.",
+      "anchor_label": false,
+      "anchor_action": "defer_order",
+      "scenario_id": 38,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "There is no system_recommended_action provided (null), so there is nothing to judge as correct or incorrect.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 39,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "With no available actions, no available branches, and no system recommended action provided, and the context explicitly stating no unresolved exception is present and normal cycle conditions, a null recommendation is consistent with the stable operational state described.",
+      "anchor_label": false,
+      "anchor_action": "order_standard",
+      "scenario_id": 40,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.7,
+      "k2_reasoning": "The system provides no recommended action (null), yet the context contains sufficient surface factors (quality score 0.84, supplier reliability 0.84, cost efficiency 0.7) to support a meaningful recommendation about the current supplier, making the absence of a recommendation incorrect given the decision scope requires selecting a primary action.",
+      "anchor_label": false,
+      "anchor_action": "order_standard",
+      "scenario_id": 41,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.6,
+      "k2_reasoning": "No system recommendation is present (null) and no available actions or branches are provided, making it impossible to evaluate correctness of any recommendation.",
+      "anchor_label": false,
+      "anchor_action": "order_standard",
+      "scenario_id": 42,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.7,
+      "k2_reasoning": "The system produced no recommended action (null) despite clear stockout risk signals with high consumption rate (0.85) and high demand forecast (0.85), and sufficient context to recommend a standard replenishment order via the normal route which has capacity and arrives before depletion.",
+      "anchor_label": false,
+      "anchor_action": "order_increased",
+      "scenario_id": 43,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "No system_recommended_action is provided (null), so there is nothing to judge as correct or incorrect, making a definitive assessment impossible.",
+      "anchor_label": false,
+      "anchor_action": "emergency_order",
+      "scenario_id": 44,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system has no recommended action (null), but the evidence chain (branches 248\u2192322) reveals a critical situation: supplier reliability drops to 0.35 due to a slipped fulfillment slot, only two hours of quantity cover remain, and an approved local depot can deliver in one hour\u2014clearly warranting an emergency local depot order rather than a normal-route order, which the null recommendation fails to capture.",
+      "anchor_label": false,
+      "anchor_action": "emergency_order",
+      "scenario_id": 45,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.5,
+      "k2_reasoning": "fallback: Expecting value: line 1 column 1 (char 0)",
+      "anchor_label": false,
+      "anchor_action": "emergency_order",
+      "scenario_id": 46,
+      "k2_source": "SYNTHETIC"
+    },
+    {
+      "k2_label": true,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The evidence chain confirms the current supplier's allocation (ALLOC-SF-NAP) misses this evening's service due to a vehicle reassignment, inventory covers only one hour, and the approved local supplier offers a 30-minute expedited drop that beats all regular routes\u2014making expedited local procurement the correct primary action.",
+      "anchor_label": false,
+      "anchor_action": "emergency_order",
+      "scenario_id": 47,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system provides no recommended action (null), but the evidence from branches PUR-RHO50-004-read-539 and PUR-RHO50-004-read-602 clearly indicates the correct action is to order only 4 tubs instead of the usual 16, since the batch LOT-KM-FILL has only one service of usable life remaining and 12 tubs would become unusable waste \u2014 a specific reduced-quantity order recommendation should have been made rather than null.",
+      "anchor_label": false,
+      "anchor_action": "order_reduced",
+      "scenario_id": 48,
+      "k2_source": "anthropic_sonnet"
+    },
+    {
+      "k2_label": false,
+      "k2_confidence": 0.9,
+      "k2_reasoning": "The system provided no recommended action (null), but the evidence strongly indicates the current lot (LOT-SB-SPOON) has a quality hold due to sharp-edge and breakage failures and supply shortfall, making a switch to the approved alternative supplier the clearly warranted action.",
+      "anchor_label": false,
+      "anchor_action": "switch_supplier",
+      "scenario_id": 49,
+      "k2_source": "anthropic_sonnet"
+    }
+  ]
+}

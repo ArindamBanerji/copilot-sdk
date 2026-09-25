@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from math import erfc, sqrt
 from statistics import pstdev
 from typing import Any
 
@@ -13,13 +14,15 @@ class DefaultPromotionGate:
 
     def __init__(
         self,
-        superiority_threshold_pp: float = 5.0,
+        superiority_threshold_pp: float = 3.0,
         accuracy_floor: float = 0.70,
-        min_shadow_decisions: int = 10,
+        min_shadow_decisions: int = 1_000,
+        alpha: float = 0.05,
     ) -> None:
         self.superiority_threshold_pp = float(superiority_threshold_pp)
         self.accuracy_floor = float(accuracy_floor)
         self.min_shadow_decisions = int(min_shadow_decisions)
+        self.alpha = float(alpha)
 
     def evaluate(
         self,
@@ -29,7 +32,22 @@ class DefaultPromotionGate:
         total = int(shadow_results.get("total") or 0)
         accuracy = float(shadow_results.get("accuracy") or 0.0)
         baseline_accuracy = float(shadow_results.get("baseline_accuracy") or 0.0)
-        superiority_pp = round((accuracy - baseline_accuracy) * 100.0, 4)
+        baseline_total = int(shadow_results.get("baseline_total") or total)
+        correct = self._outcome_count(shadow_results, "correct", accuracy, total)
+        baseline_correct = self._outcome_count(
+            shadow_results,
+            "baseline_correct",
+            baseline_accuracy,
+            baseline_total,
+        )
+        superiority = accuracy - baseline_accuracy
+        superiority_pp = round(superiority * 100.0, 4)
+        z_statistic, p_value = self._one_sided_two_proportion_test(
+            correct,
+            total,
+            baseline_correct,
+            baseline_total,
+        )
         batches = [float(value) for value in shadow_results.get("batch_accuracies", [])]
         variance = pstdev(batches) if len(batches) > 1 else 0.0
 
@@ -41,8 +59,13 @@ class DefaultPromotionGate:
                 "batch_accuracies" not in shadow_results
                 or len(batches) >= MIN_BATCHES
             ),
-            "sufficient_data": bool(shadow_results.get("sufficient")) and total >= self.min_shadow_decisions,
-            "superiority": superiority_pp >= self.superiority_threshold_pp,
+            "sufficient_data": (
+                bool(shadow_results.get("sufficient"))
+                and total >= self.min_shadow_decisions
+                and baseline_total >= self.min_shadow_decisions
+            ),
+            "statistical_significance": p_value is not None and p_value < self.alpha,
+            "practical_significance": superiority_pp > self.superiority_threshold_pp,
             "accuracy_floor": accuracy >= self.accuracy_floor,
             "conservation": self._is_conservation_safe(conservation_state),
             "variance": variance <= 0.10,
@@ -61,8 +84,49 @@ class DefaultPromotionGate:
             "baseline_accuracy": round(baseline_accuracy, 4),
             "superiority_pp": superiority_pp,
             "total": total,
+            "baseline_total": baseline_total,
+            "correct": correct,
+            "baseline_correct": baseline_correct,
+            "z_statistic": None if z_statistic is None else round(z_statistic, 6),
+            "p_value": None if p_value is None else round(p_value, 8),
             "variance": round(variance, 4),
         }
+
+    @staticmethod
+    def _outcome_count(
+        shadow_results: dict[str, Any],
+        key: str,
+        rate: float,
+        total: int,
+    ) -> int:
+        """Return a bounded success count, deriving it for legacy providers."""
+        raw_count = shadow_results.get(key)
+        count = int(round(rate * total)) if raw_count is None else int(raw_count)
+        return min(max(count, 0), max(total, 0))
+
+    @staticmethod
+    def _one_sided_two_proportion_test(
+        correct: int,
+        total: int,
+        baseline_correct: int,
+        baseline_total: int,
+    ) -> tuple[float | None, float | None]:
+        """Test H0: shadow accuracy is no greater than baseline accuracy."""
+        if total <= 0 or baseline_total <= 0:
+            return None, None
+
+        shadow_rate = correct / total
+        baseline_rate = baseline_correct / baseline_total
+        pooled_rate = (correct + baseline_correct) / (total + baseline_total)
+        standard_error_squared = pooled_rate * (1.0 - pooled_rate) * (
+            1.0 / total + 1.0 / baseline_total
+        )
+        if standard_error_squared <= 0.0:
+            return 0.0, 0.5
+
+        z_statistic = (shadow_rate - baseline_rate) / sqrt(standard_error_squared)
+        p_value = 0.5 * erfc(z_statistic / sqrt(2.0))
+        return z_statistic, p_value
 
     def _reason(self, checks: dict[str, bool]) -> str:
         for name, passed in checks.items():

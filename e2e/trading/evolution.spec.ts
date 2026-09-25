@@ -7,7 +7,7 @@ async function openPerformanceTab(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expectAnyText(page, [/Performance Summary/i, /Trajectory/i, /IKS/i]);
+  await expectAnyText(page, [/Centroid Timeline/i, /Accuracy Alerts/i, /Decision Explorer/i]);
 }
 
 test("evolution log endpoint returns array", async ({ page }) => {
@@ -35,3 +35,4 @@ test("evolution log shows table or empty state", async ({ page }) => {
   await logHeading.scrollIntoViewIfNeeded();
   await expect(logHeading).toBeVisible();
 });
+

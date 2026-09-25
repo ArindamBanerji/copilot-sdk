@@ -138,7 +138,8 @@ def test_config_returns_factor_mapping_and_default_category(client):
     assert_json_safe(payload)
 
 
-def test_webhook_test_endpoint_exercises_same_path(client):
+def test_webhook_test_endpoint_exercises_same_path(client, monkeypatch):
+    monkeypatch.setenv("TRADING_DEMO_MODE", "1")
     response = client.post("/api/trading/webhook/test", json={})
     payload = response.json()
 
@@ -147,6 +148,38 @@ def test_webhook_test_endpoint_exercises_same_path(client):
     assert payload["event_id"].startswith("tv-")
     assert set(payload["mapped_factors"]) == VALID_FACTORS
     assert_json_safe(payload)
+
+
+def test_test_webhook_has_synthetic_source(client, monkeypatch):
+    monkeypatch.setenv("TRADING_DEMO_MODE", "1")
+    response = client.post("/api/trading/webhook/test", json={})
+    assert response.status_code == 200
+    event = client.get("/api/trading/webhook/history").json()[0]
+    assert event["source"] == "test_webhook"
+    assert event["origin"] == "synthetic"
+    assert event["synthetic"] is True
+
+
+def test_test_webhook_decision_has_synthetic(client, monkeypatch):
+    monkeypatch.setenv("TRADING_DEMO_MODE", "1")
+    response = client.post(
+        "/api/trading/webhook/test",
+        json={"auto_score": True},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["scored"] is True
+    assert payload["synthetic"] is True
+    assert payload["decision_id"]
+    event = client.get("/api/trading/webhook/history").json()[0]
+    assert event["synthetic"] is True
+
+
+def test_test_webhook_disabled_outside_demo(client, monkeypatch):
+    monkeypatch.delenv("TRADING_DEMO_MODE", raising=False)
+    response = client.post("/api/trading/webhook/test", json={})
+    assert response.status_code == 403
+    assert "disabled outside demo mode" in response.json()["detail"]
 
 
 def test_auto_score_returns_execution_quality_recommendation(client):

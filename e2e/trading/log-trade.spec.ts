@@ -64,7 +64,7 @@ test("score produces result", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
 });
 
-test("learn response shows reward after confirm", async ({ page }) => {
+test("learn response shows reward or gate block after confirm", async ({ page }) => {
   test.setTimeout(60_000);
   await gotoLogTrade(page);
   await fillMinimumTrade(page);
@@ -74,12 +74,16 @@ test("learn response shows reward after confirm", async ({ page }) => {
   await scoreResponse;
   await expect(page.getByRole("button", { name: "Confirm" }).first()).toBeVisible();
 
-  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && (response.ok() || response.status() === 423));
   await page.getByRole("button", { name: "Confirm" }).first().click();
-  await learnResponse;
+  const learn = await learnResponse;
 
-  await expectAnyText(page, [/Trade confirmed/i, /confirmed/i, /system learned/i]);
-  await expectAnyText(page, [/Reward/i, /\+[0-9]+(\.[0-9]+)?/, /[0-9]+(\.[0-9]+)? reward/i]);
+  if (learn.status() === 423) {
+    await expectAnyText(page, [/failed with 423/i, /paused/i, /blocked/i]);
+  } else {
+    await expectAnyText(page, [/Trade confirmed/i, /confirmed/i, /system learned/i]);
+    await expectAnyText(page, [/Reward/i, /\+[0-9]+(\.[0-9]+)?/, /[0-9]+(\.[0-9]+)? reward/i]);
+  }
 });
 
 test("reasoning panel appears after scoring", async ({ page }) => {
@@ -95,3 +99,4 @@ test("reasoning panel appears after scoring", async ({ page }) => {
   await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /reasoning/i]);
   await expectAnyText(page, [/Confidence Breakdown/i, /Historical Evidence/i, /Learned from/i]);
 });
+

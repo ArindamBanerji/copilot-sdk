@@ -1,113 +1,40 @@
 from __future__ import annotations
 
 import pytest
+from unittest.mock import AsyncMock, Mock
+from ci_platform.graph.age_client import AGEClient
 from fastapi import HTTPException
 
 from app.graph_queries import DataOpsGraphClient, FALLBACK_DIR, READ_ONLY_FORBIDDEN
 
 
-class FakeAGEClient:
-    serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
-
-    def __init__(self, rows_by_key):
-        self.rows_by_key = rows_by_key
-        self.queries = []
-
-    async def run_query(self, query, parameters=None):
-        self.queries.append((query, parameters))
-        if "downstream_count" in query:
-            return [{"downstream_count": 4}]
-        if "min_sla" in query:
-            return [{"min_sla": 15}]
-        if "prior_count" in query:
-            return [{"prior_count": 6}]
-        return self.rows_by_key.get("default", [])
-
-
-class GraphModeAGEClient:
-    serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
-
-    def __init__(self):
-        self.queries = []
-
-    async def run_query(self, query, parameters=None):
-        self.queries.append((query, parameters))
-        if "RETURN alert, system" in query:
-            return [
-                {
-                    "alert": {
-                        "alert_id": "DQ-015",
-                        "category": "freshness_violation",
-                        "factors": {
-                            "source_reliability": 0.51,
-                            "data_freshness": 0.12,
-                            "business_criticality": 0.93,
-                        },
-                    },
-                    "system": {
-                        "name": "graph_root",
-                        "source_reliability": 0.51,
-                        "business_criticality": 0.93,
-                        "sla_minutes": 20,
-                    },
-                }
-            ]
-        if "collect(DISTINCT {parent:" in query:
-            return [
-                {
-                    "system": {"name": "graph_root", "sla_minutes": 20, "business_criticality": 0.93},
-                    "edges": [
-                        {
-                            "parent": "graph_root",
-                            "child": "graph_child_a",
-                            "child_sla": 15,
-                            "child_criticality": 0.88,
-                        },
-                        {
-                            "parent": "graph_child_a",
-                            "child": "graph_child_b",
-                            "child_sla": 30,
-                            "child_criticality": 0.72,
-                        },
-                    ],
-                }
-            ]
-        if "downstream_count" in query:
-            return [{"downstream_count": 5}]
-        if "min_sla" in query:
-            return [{"min_sla": 15}]
-        if "prior_count" in query:
-            return [{"prior_count": 2}]
-        return []
-
-
-class GraphMissAGEClient:
-    serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
-
-    def __init__(self):
-        self.queries = []
-
-    async def run_query(self, query, parameters=None):
-        self.queries.append((query, parameters))
-        if "RETURN alert, system" in query:
-            return []
-        if "downstream_count" in query:
-            return [{"downstream_count": 8}]
-        if "min_sla" in query:
-            return [{"min_sla": 10}]
-        if "prior_count" in query:
-            return [{"prior_count": 1}]
-        return []
+def _graph_client(disposable_age, *, empty=False):
+    age = disposable_age.client()
+    if not empty:
+        store = disposable_age.store("dataops")._store
+        for name, count in (("warehouse_etl", 4), ("billing_api", 1), ("crm_sync", 0)):
+            store._run_query(f"CREATE (n:PipelineSystem {{domain: 'dataops', name: '{name}', sla_minutes: 120}})")
+            for index in range(count):
+                store._run_query(f"MATCH (p:PipelineSystem {{name: '{name}'}}) CREATE (p)-[:FEEDS]->"
+                    f"(:PipelineSystem {{domain: 'dataops', name: '{name}_{index}', sla_minutes: 15}})")
+        for index in range(6):
+            store._run_query("MATCH (p:PipelineSystem {name: 'crm_sync'}) CREATE "
+                f"(:DataQualityAlert {{domain: 'dataops', alert_id: 'prior-{index}', category: 'pipeline_failure'}})-[:AFFECTS]->(p)")
+        store._run_query("""CREATE (root:PipelineSystem {domain:'dataops', name:'graph_root', sla_minutes:20,
+            source_reliability:0.51, business_criticality:0.93})-[:FEEDS]->
+            (a:PipelineSystem {domain:'dataops', name:'graph_child_a', sla_minutes:15, business_criticality:0.88})-[:FEEDS]->
+            (b:PipelineSystem {domain:'dataops', name:'graph_child_b', sla_minutes:30, business_criticality:0.72})""")
+        for alert_id in ("DQ-015", "prior-root"):
+            store._run_query("MATCH (p:PipelineSystem {name:'graph_root'}) CREATE "
+                f"(:DataQualityAlert {{domain:'dataops', alert_id:'{alert_id}', category:'freshness_violation', "
+                "factors:{source_reliability:0.51, data_freshness:0.12, business_criticality:0.93}})-[:AFFECTS]->(p)")
+    age.run_query = AsyncMock(wraps=age.run_query)
+    return age
 
 
 def test_age_client_constructor_receives_graph_name(monkeypatch, no_graph):
-    calls = []
 
-    class CapturingAGEClient:
-        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
-
-        def __init__(self, **kwargs):
-            calls.append(kwargs)
+    factory = Mock(wraps=AGEClient)
 
     monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "age")
     monkeypatch.setenv("DATAOPS_ACTIVE_AGE_DSN", "host=active port=5433 dbname=dataops")
@@ -115,44 +42,35 @@ def test_age_client_constructor_receives_graph_name(monkeypatch, no_graph):
 
     client = DataOpsGraphClient(
         fallback_dir=FALLBACK_DIR,
-        age_client_cls=CapturingAGEClient,
+        age_client_cls=factory,
     )
 
     assert client.is_graph_connected is True
-    assert calls == [
+    assert [call.kwargs for call in factory.call_args_list] == [
         {
-            "dsn": "host=active port=5433 dbname=dataops sslmode=disable",
+            "dsn": "host=active port=5433 dbname=dataops",
             "graph_name": "dataops_graph",
         }
     ]
 
 
 def test_dataops_graph_client_uses_active_config(monkeypatch, no_graph):
-    calls = []
 
-    class CapturingAGEClient:
-        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
+    factory = Mock(wraps=AGEClient)
 
-        def __init__(self, **kwargs):
-            calls.append(kwargs)
-
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "age")
     monkeypatch.setenv("DATAOPS_ACTIVE_AGE_DSN", "host=active port=5433 dbname=dataops")
     monkeypatch.setenv("DATAOPS_ACTIVE_AGE_GRAPH", "governed_copilot_graph")
     monkeypatch.setenv("GRAPH_DSN", "host=generic port=5433 dbname=generic")
 
-    DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client_cls=CapturingAGEClient)
+    DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client_cls=factory)
 
-    assert calls == [{"dsn": "host=active port=5433 dbname=dataops sslmode=disable", "graph_name": "governed_copilot_graph"}]
+    assert [call.kwargs for call in factory.call_args_list] == [{"dsn": "host=active port=5433 dbname=dataops", "graph_name": "governed_copilot_graph"}]
 
 
 def test_dataops_graph_client_uses_generic_age_config(monkeypatch, no_graph):
-    calls = []
 
-    class CapturingAGEClient:
-        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
-
-        def __init__(self, **kwargs):
-            calls.append(kwargs)
+    factory = Mock(wraps=AGEClient)
 
     monkeypatch.delenv("DATAOPS_ACTIVE_GRAPH_BACKEND", raising=False)
     monkeypatch.delenv("DATAOPS_ACTIVE_AGE_DSN", raising=False)
@@ -163,27 +81,29 @@ def test_dataops_graph_client_uses_generic_age_config(monkeypatch, no_graph):
 
     client = DataOpsGraphClient(
         fallback_dir=FALLBACK_DIR,
-        age_client_cls=CapturingAGEClient,
+        age_client_cls=factory,
     )
 
     assert client.is_graph_connected is True
-    assert calls == [
+    assert [call.kwargs for call in factory.call_args_list] == [
         {
-            "dsn": "host=generic port=5433 dbname=shared sslmode=disable",
+            "dsn": "host=generic port=5433 dbname=shared",
             "graph_name": "soc_graph",
         }
     ]
 
 
-def test_dataops_graph_client_rejects_missing_dataops_config(monkeypatch, no_graph):
+def test_dataops_graph_client_preserves_generic_aliases(monkeypatch, no_graph):
     monkeypatch.delenv("DATAOPS_ACTIVE_AGE_DSN", raising=False)
     monkeypatch.delenv("DATAOPS_ACTIVE_AGE_GRAPH", raising=False)
     monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "age")
     monkeypatch.setenv("GRAPH_DSN", "host=generic port=5433 dbname=generic")
     monkeypatch.setenv("AGE_GRAPH_NAME", "generic_graph")
 
-    with pytest.raises(ValueError, match="missing AGE DSN"):
-        DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
+    assert client.graph_config.dsn == "host=generic port=5433 dbname=generic"
+    assert dict(client.graph_config.source_keys)["dsn"] == "GRAPH_DSN"
+    assert client.graph_config.graph == "generic_graph"
 
 
 @pytest.mark.asyncio
@@ -218,20 +138,22 @@ async def test_get_alerts_fixture(no_graph):
 
 
 @pytest.mark.asyncio
-async def test_impact_scope_computation_with_mocked_client():
-    fake = FakeAGEClient({})
+@pytest.mark.age
+async def test_impact_scope_computation_with_seeded_graph(disposable_age):
+    fake = _graph_client(disposable_age)
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
     payload = await client.compute_impact_scope("warehouse_etl")
 
     assert payload["source"] == "graph"
     assert payload["downstream_count"] == 4
     assert payload["value"] == 0.5
-    assert "$" not in fake.queries[-1][0]
+    assert "$" not in fake.run_query.call_args_list[-1].args[0]
 
 
 @pytest.mark.asyncio
-async def test_downstream_urgency_computation_with_mocked_client():
-    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=FakeAGEClient({}))
+@pytest.mark.age
+async def test_downstream_urgency_computation_with_seeded_graph(disposable_age):
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=_graph_client(disposable_age))
     payload = await client.compute_downstream_urgency("billing_api")
 
     assert payload["source"] == "graph"
@@ -240,8 +162,9 @@ async def test_downstream_urgency_computation_with_mocked_client():
 
 
 @pytest.mark.asyncio
-async def test_recurrence_computation_with_mocked_client():
-    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=FakeAGEClient({}))
+@pytest.mark.age
+async def test_recurrence_computation_with_seeded_graph(disposable_age):
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=_graph_client(disposable_age))
     payload = await client.compute_recurrence("crm_sync", "pipeline_failure")
 
     assert payload["source"] == "graph"
@@ -250,8 +173,9 @@ async def test_recurrence_computation_with_mocked_client():
 
 
 @pytest.mark.asyncio
-async def test_graph_connected_recurrence_prefers_graph_for_fixture_alert_id():
-    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=GraphModeAGEClient())
+@pytest.mark.age
+async def test_graph_connected_recurrence_prefers_graph_for_fixture_alert_id(disposable_age):
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=_graph_client(disposable_age))
     payload = await client.get_recurrence("DQ-015")
 
     assert payload["source"] == "graph"
@@ -261,8 +185,9 @@ async def test_graph_connected_recurrence_prefers_graph_for_fixture_alert_id():
 
 
 @pytest.mark.asyncio
-async def test_graph_connected_factors_use_graph_values_for_fixture_alert_id():
-    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=GraphModeAGEClient())
+@pytest.mark.age
+async def test_graph_connected_factors_use_graph_values_for_fixture_alert_id(disposable_age):
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=_graph_client(disposable_age))
     payload = await client.get_factors("DQ-015")
 
     assert payload["source"] == "graph"
@@ -274,8 +199,9 @@ async def test_graph_connected_factors_use_graph_values_for_fixture_alert_id():
 
 
 @pytest.mark.asyncio
-async def test_graph_connected_blast_radius_returns_nested_tree():
-    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=GraphModeAGEClient())
+@pytest.mark.age
+async def test_graph_connected_blast_radius_returns_nested_tree(disposable_age):
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=_graph_client(disposable_age))
     payload = await client.get_blast_radius("DQ-015")
 
     assert payload["source"] == "graph"
@@ -289,15 +215,16 @@ async def test_graph_connected_blast_radius_returns_nested_tree():
 
 
 @pytest.mark.asyncio
-async def test_graph_miss_recurrence_age_required_raises_503():
-    fake = GraphMissAGEClient()
+@pytest.mark.age
+async def test_graph_miss_recurrence_age_required_raises_503(disposable_age):
+    fake = _graph_client(disposable_age, empty=True)
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
 
     with pytest.raises(HTTPException) as exc_info:
         await client.get_recurrence("ALERT-TIRE-015")
 
     assert exc_info.value.status_code == 503
-    assert not any("prior_count" in query for query, _params in fake.queries)
+    assert not any("prior_count" in query for query in [call.args[0] for call in fake.run_query.call_args_list])
 
 
 @pytest.mark.asyncio
@@ -312,17 +239,18 @@ async def test_graph_miss_recurrence_falls_back_pure_fixture(no_graph):
 
 
 @pytest.mark.asyncio
-async def test_graph_miss_factors_age_required_raises_503():
-    fake = GraphMissAGEClient()
+@pytest.mark.age
+async def test_graph_miss_factors_age_required_raises_503(disposable_age):
+    fake = _graph_client(disposable_age, empty=True)
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
 
     with pytest.raises(HTTPException) as exc_info:
         await client.get_factors("ALERT-TIRE-015")
 
     assert exc_info.value.status_code == 503
-    assert not any("downstream_count" in query for query, _params in fake.queries)
-    assert not any("min_sla" in query for query, _params in fake.queries)
-    assert not any("prior_count" in query for query, _params in fake.queries)
+    assert not any("downstream_count" in query for query in [call.args[0] for call in fake.run_query.call_args_list])
+    assert not any("min_sla" in query for query in [call.args[0] for call in fake.run_query.call_args_list])
+    assert not any("prior_count" in query for query in [call.args[0] for call in fake.run_query.call_args_list])
 
 
 @pytest.mark.asyncio

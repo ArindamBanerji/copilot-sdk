@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from typing import Any
 
 import pytest
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -189,49 +190,6 @@ def test_all_factors_bounded():
             assert_bounded(value), name
 
 
-class CapturingAGEStore:
-    def __init__(self) -> None:
-        self.decision: dict | None = None
-
-    def generate_decision_id(self, domain: str) -> str:
-        assert domain == "purchasing"
-        return uuid.uuid4().hex[:12]
-
-    def write_governed_decision(
-        self,
-        decision_id: str,
-        domain: str,
-        category: str,
-        category_index: int,
-        recommended_action: str,
-        recommended_index: int,
-        confidence: float,
-        probabilities: list[float],
-        factor_vector: list[float],
-        factor_names: list[str],
-        source: str = "score",
-        scorer_version: str = "",
-        preset_version: str = "",
-        factor_schema_version: str = "",
-        metadata: dict[str, Any] | None = None,
-    ) -> None:
-        self.decision = {
-            "decision_id": decision_id,
-            "domain": domain,
-            "category": category,
-            "category_index": category_index,
-            "recommended_action": recommended_action,
-            "recommended_index": recommended_index,
-            "confidence": confidence,
-            "probabilities": probabilities,
-            "factor_vector": factor_vector,
-            "factor_names": factor_names,
-            "source": source,
-            "scorer_version": scorer_version,
-            "preset_version": preset_version,
-            "factor_schema_version": factor_schema_version,
-            "metadata": metadata,
-        }
 
 
 class FixedQueueScore:
@@ -289,10 +247,16 @@ def queue_client(monkeypatch: pytest.MonkeyPatch, orders: list[dict], scorer: Fi
     return TestClient(app)
 
 
-def _write_graph_status_decision(metadata: dict, factors: dict | None = None) -> dict[str, float]:
-    store = CapturingAGEStore()
+@pytest.fixture(params=["memory", pytest.param("age", marks=pytest.mark.age)])
+def factor_store(request):
+    if request.param == "age":
+        return request.getfixturevalue("disposable_age").store("purchasing")
+    return InMemoryGraphStore(domain="purchasing")
+
+
+def _write_graph_status_decision(store, metadata: dict, factors: dict | None = None) -> dict[str, float]:
     adapter = PurchasingActiveAGEGraphStore(store)
-    adapter.write_decision(
+    decision_id = adapter.write_decision(
         "purchasing",
         "protein",
         "order_as_planned",
@@ -300,19 +264,21 @@ def _write_graph_status_decision(metadata: dict, factors: dict | None = None) ->
         factors or {},
         metadata={"decision_id": "PUR-WIRE-1", **metadata},
     )
-    assert store.decision is not None
-    return dict(zip(store.decision["factor_names"], store.decision["factor_vector"]))
+    decision = store.get_decision(decision_id, domain="purchasing")
+    assert decision is not None
+    names = decision.get("factor_names") or decision["metadata"]["factor_names"]
+    return dict(zip(names, decision["factor_vector"]))
 
 
-def test_graph_status_uses_computed_factors():
-    values = _write_graph_status_decision({"waste_pct": 0.15, "lead_time_days": 2})
+def test_graph_status_uses_computed_factors(factor_store):
+    values = _write_graph_status_decision(factor_store, {"waste_pct": 0.15, "lead_time_days": 2})
 
     assert values["historical_waste"] == pytest.approx(0.75)
     assert values["supplier_lead_time"] == pytest.approx(1 - (2 / 7))
 
 
-def test_graph_status_request_factors_override_computed():
-    values = _write_graph_status_decision(
+def test_graph_status_request_factors_override_computed(factor_store):
+    values = _write_graph_status_decision(factor_store, 
         {"waste_pct": 0.15},
         factors={"historical_waste": 0.9},
     )
@@ -320,15 +286,15 @@ def test_graph_status_request_factors_override_computed():
     assert values["historical_waste"] == pytest.approx(0.9)
 
 
-def test_graph_status_empty_order_defaults():
-    values = _write_graph_status_decision({})
+def test_graph_status_empty_order_defaults(factor_store):
+    values = _write_graph_status_decision(factor_store, {})
 
     assert set(values) == set(ALL_FACTOR_NAMES)
     assert all(value == 0.5 for value in values.values())
 
 
-def test_graph_status_all_7_wired():
-    values = _write_graph_status_decision(
+def test_graph_status_all_7_wired(factor_store):
+    values = _write_graph_status_decision(factor_store, 
         {
             "forecast_demand": 80,
             "par_level": 100,

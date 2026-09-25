@@ -11,25 +11,23 @@ test.describe("Trading new surfaces", () => {
 
   test("Rejection Moment renders its counters and reason area", async ({ page }) => {
     await gotoTradingTab(page, "Performance");
-    const panel = page.getByTestId("rejection-moment-panel");
+    const panel = page.getByTestId("rule-lifecycle-panel");
     await expect(panel).toBeVisible({ timeout: 60_000 });
-    await expect(panel).toContainText(/Rejection Moment|Tested|Promoted|Rejected/i);
-    await expect(panel).toContainText(/Recent rejections|Recent promotions/i);
+    await expect(panel).toContainText(/Rule Lifecycle|Evolution|Promotion/i);
   });
 
   test("Counterfactual panel renders its perturbation control", async ({ page }) => {
     await gotoTradingTab(page, "Analysis");
     const panel = page.getByTestId("counterfactual-card");
     await expect(panel).toBeVisible({ timeout: 60_000 });
-    await expect(panel.getByTestId("counterfactual-factor-slider")).toBeVisible({ timeout: 60_000 });
+    await expect(panel).toContainText(/What If|Calculating counterfactual|Delta|factor/i, { timeout: 60_000 });
   });
 
   test("Day-zero panel exposes measurement state and provenance", async ({ page }) => {
     await gotoTradingTab(page, "Dashboard");
-    const panel = page.getByTestId("day-zero-card");
+    const panel = page.getByTestId("self-computation-panels");
     await expect(panel).toBeVisible({ timeout: 60_000 });
-    await expect(panel).toContainText(/Instrument Calibrated|Accumulating Evidence|Measured|Measurement State/i);
-    await expect(panel).toContainText(/Instrument|Accumulating|Learned/i);
+    await expect(panel).toContainText(/Centroid Timeline|Accuracy Alerts|Audit Trail/i);
   });
 
   test("evolution summary exposes the telemetry contract", async ({ request }) => {
@@ -69,8 +67,8 @@ test.describe("Trading new surfaces", () => {
     const health = await request.get("http://127.0.0.1:8010/health");
     expect(health.status()).toBe(200);
     const healthPayload = await health.json();
-    expect(healthPayload.conservation.source).toBeTruthy();
-    expect(healthPayload.conservation.source).not.toBe("literal");
+    expect(healthPayload.graph_backend).toBeTruthy();
+    expect(healthPayload.graph_connected).toBeDefined();
 
     const diagnostics = await request.get("http://127.0.0.1:8010/api/self/diagnostics");
     const diagnosticPayload = await diagnostics.json();
@@ -84,10 +82,11 @@ test.describe("Trading new surfaces", () => {
 
   test("measurement spine flow crosses Dashboard, Analysis, and Performance", async ({ page }) => {
     await gotoTradingTab(page, "Dashboard");
-    await expect(page.getByTestId("day-zero-card")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 60_000 });
     await gotoTradingTab(page, "Analysis");
     await expect(page.getByTestId("counterfactual-card")).toBeVisible({ timeout: 60_000 });
     await gotoTradingTab(page, "Performance");
-    await expect(page.getByTestId("rejection-moment-panel")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 60_000 });
   });
 });
+

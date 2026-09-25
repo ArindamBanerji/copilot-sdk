@@ -1,25 +1,25 @@
 from __future__ import annotations
 
 from pathlib import Path
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 from copilot_sdk.di import DataOpsEnterpriseProvider, DIQueryService
 
 
-class GraphStore:
-    def get_verified_decisions(self, domain: str) -> list[dict[str, object]]:
-        assert domain == "dataops"
-        return [
-            {
-                "decision_id": "DOPS-1",
-                "metadata": {"invoice_id": "510990003"},
-            }
-        ]
+
+
+def _seed_store():
+    store = InMemoryGraphStore(domain="dataops")
+    decision_id = store.write_decision("dataops", "pipeline_failure", "investigate", 0.8,
+        {"impact_scope": 0.5}, metadata={"decision_id": "DOPS-1", "invoice_id": "510990003"})
+    store.write_outcome(decision_id, "investigate", True, domain="dataops")
+    return store
 
 
 def _service(*, cache_ttl_seconds: float = 300.0) -> DIQueryService:
     backend_root = Path(__file__).resolve().parents[1]
     provider = DataOpsEnterpriseProvider(
-        GraphStore(),
+        _seed_store(),
         invoice_path=backend_root / "data" / "sap_supplier_invoices.json",
         source_profiles={
             "sap_s4hana": {"source_name": "SAP S/4HANA", "trust": 0.99, "freshness_hours": 2.0},

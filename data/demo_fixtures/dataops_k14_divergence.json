@@ -1,0 +1,11 @@
+{
+  "copilot": "dataops",
+  "evidence": "Source freshness and lineage checks contradict the surface summary.",
+  "fixture_id": "PL-DO-5",
+  "injection_mode": "file_placement",
+  "investigation_assessment": "REJECT",
+  "k14_note": "Surface labels and investigation labels diverge; judgment requires evidence.",
+  "planted": true,
+  "scenario": "DO-05",
+  "surface_assessment": "APPROVE"
+}

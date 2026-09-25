@@ -57,6 +57,7 @@ def _build_scorer(tmp_path, graph_store=None) -> CompoundingScorer:
         preset,
         scorer,
         graph_store=graph_store or InMemoryGraphStore(),
+        profile="test",
     )
 
 

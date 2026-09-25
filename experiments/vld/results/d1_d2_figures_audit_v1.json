@@ -1,0 +1,353 @@
+{
+  "random_state": 42,
+  "latency_tier": "ILLUSTRATIVE",
+  "figure_tier": "REAL_COMPONENT geometry + SIMULATED verification",
+  "source_sha256": {
+    "experiments/vld/k_learning_curve_cross_copilot_summary.json": "8c47fa4cd75b55f0b955fcceeb884de122701024c2af64aa95de65b0c0b89fed",
+    "experiments/vld/k_learning_curve_soc.json": "8404919da9c556123161287bf06f2802c24be57134073b36cbde9578d4139691",
+    "experiments/vld/k_learning_curve_trading.json": "16d4936ff2f8e45b62b35f70db074c638b143aed671cccab78a6a799aecb2872",
+    "experiments/vld/k_learning_curve_purchasing.json": "5990c5297f6de547fa9882e8d908cc1abb1a5c59ea51df54c482c6c42948f23c",
+    "experiments/vld/k_learning_curve_results.json": "a36b76d6f3d4080869e6257638987ce16911759d4860c73f5335298e8895c52e",
+    "experiments/vld/k_learning_curve_s2p.json": "5b1d0151c98fc45f574499e207b88fa89f2dd3ffc5ed535e42d221dc3d716300",
+    "experiments/vld/results/delayed_entrant_catchup.json": "8e101c170e49010a5436624dd2dc32176e6f1c6adb1f9d9a04d157c44d406312",
+    "experiments/vld/results/gap2_abstention_heldout_v1.json": "ad364b507a8205f9913fbc16036c023a7bb400fb64c8d3769f2189ceb728a458",
+    "experiments/vld/gap2_abstention_curve.json": "24efe59776b9231dfa8ec19648a3e4915f5c6a7eca7f67d8060cbd8b5f4b095e",
+    "experiments/vld/k_learning_curve_dataops_extended.json": "6acc6b4dbe1028c9c3650419054fac8ee2cc9402d8d12f10fe7447eee742f705"
+  },
+  "latency": [
+    {
+      "copilot": "soc",
+      "decisions_to_divergence": 50,
+      "assumed_decisions_per_week": 1200,
+      "weeks_to_divergence": 0.041666666666666664,
+      "weeks_to_plateau": 0.4166666666666667,
+      "tier": "ILLUSTRATIVE",
+      "assumption_source": "MAP VLD Addendum v20 verified-outcome latency table ($7B manufacturer); divergence=first KE-1 checkpoint >1pp routing_quality gap; plateau=assumed N500 planning horizon, not a measured five-domain plateau"
+    },
+    {
+      "copilot": "trading",
+      "decisions_to_divergence": 50,
+      "assumed_decisions_per_week": 19,
+      "weeks_to_divergence": 2.6315789473684212,
+      "weeks_to_plateau": 26.31578947368421,
+      "tier": "ILLUSTRATIVE",
+      "assumption_source": "MAP VLD Addendum v20 verified-outcome latency table ($7B manufacturer); divergence=first KE-1 checkpoint >1pp routing_quality gap; plateau=assumed N500 planning horizon, not a measured five-domain plateau"
+    },
+    {
+      "copilot": "purchasing",
+      "decisions_to_divergence": 50,
+      "assumed_decisions_per_week": 231,
+      "weeks_to_divergence": 0.21645021645021645,
+      "weeks_to_plateau": 2.1645021645021645,
+      "tier": "ILLUSTRATIVE",
+      "assumption_source": "MAP VLD Addendum v20 verified-outcome latency table ($7B manufacturer); divergence=first KE-1 checkpoint >1pp routing_quality gap; plateau=assumed N500 planning horizon, not a measured five-domain plateau"
+    },
+    {
+      "copilot": "dataops",
+      "decisions_to_divergence": 50,
+      "assumed_decisions_per_week": 106,
+      "weeks_to_divergence": 0.4716981132075472,
+      "weeks_to_plateau": 4.716981132075472,
+      "tier": "ILLUSTRATIVE",
+      "assumption_source": "MAP VLD Addendum v20 verified-outcome latency table ($7B manufacturer); divergence=first KE-1 checkpoint >1pp routing_quality gap; plateau=assumed N500 planning horizon, not a measured five-domain plateau"
+    },
+    {
+      "copilot": "s2p",
+      "decisions_to_divergence": 150,
+      "assumed_decisions_per_week": 486,
+      "weeks_to_divergence": 0.30864197530864196,
+      "weeks_to_plateau": 1.02880658436214,
+      "tier": "ILLUSTRATIVE",
+      "assumption_source": "MAP VLD Addendum v20 verified-outcome latency table ($7B manufacturer); divergence=first KE-1 checkpoint >1pp routing_quality gap; plateau=assumed N500 planning horizon, not a measured five-domain plateau"
+    }
+  ],
+  "fig1": {
+    "soc": {
+      "tier": "REAL_COMPONENT geometry + SIMULATED verification",
+      "endpoint_routing_delta_pp": 12.00000000000001,
+      "frozen_baseline_moves": true,
+      "seed": 20261237,
+      "negative_gaps": [],
+      "hurts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "trading": {
+      "tier": "REAL_COMPONENT geometry + SIMULATED verification",
+      "endpoint_routing_delta_pp": 12.0,
+      "frozen_baseline_moves": true,
+      "seed": 20261657,
+      "negative_gaps": [],
+      "hurts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "purchasing": {
+      "tier": "REAL_COMPONENT geometry + SIMULATED verification",
+      "endpoint_routing_delta_pp": 20.999999999999996,
+      "frozen_baseline_moves": true,
+      "seed": 20261988,
+      "negative_gaps": [],
+      "hurts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "dataops": {
+      "tier": "REAL_COMPONENT geometry + SIMULATED verification",
+      "endpoint_routing_delta_pp": 19.0,
+      "frozen_baseline_moves": true,
+      "seed": 20260912,
+      "negative_gaps": [],
+      "hurts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "s2p": {
+      "tier": "REAL_COMPONENT geometry + SIMULATED verification",
+      "endpoint_routing_delta_pp": 3.0000000000000027,
+      "frozen_baseline_moves": true,
+      "seed": 20261189,
+      "negative_gaps": [
+        {
+          "N": 100,
+          "gap_pp": -1.9999999999999907
+        },
+        {
+          "N": 250,
+          "gap_pp": -3.0000000000000027
+        }
+      ],
+      "hurts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "fig2": {
+    "soc": {
+      "tier": "REAL_COMPONENT geometry + SIMULATED verification",
+      "joint_parity_since_entry": 525,
+      "joint_parity_global_N": 775,
+      "routing_only_parity_since_entry": 475,
+      "parity_lost_later": false,
+      "final_incumbent_routing_quality": 0.786,
+      "replay_migration_exact_incumbent_match_after_entry": true
+    },
+    "dataops": {
+      "tier": "REAL_COMPONENT geometry + SIMULATED verification",
+      "joint_parity_since_entry": 575,
+      "joint_parity_global_N": 825,
+      "routing_only_parity_since_entry": 200,
+      "parity_lost_later": true,
+      "final_incumbent_routing_quality": 0.5875,
+      "replay_migration_exact_incumbent_match_after_entry": true
+    }
+  },
+  "fig3": {
+    "dataops": {
+      "target_coverage": 0.75,
+      "coverage": 0.7404,
+      "action_accuracy": 0.8774195211499286,
+      "action_accuracy_sd": 0.007366717045643059,
+      "action_accuracy_95_ci": [
+        0.8714228532410351,
+        0.8830185986628818
+      ],
+      "coverage_95_ci": [
+        0.7183999999999999,
+        0.7587999999999999
+      ],
+      "action_accuracy_lift": 0.10981952114992866,
+      "lift_95_ci": [
+        0.0973956846651121,
+        0.1217260123750075
+      ],
+      "n_accepted": 1851,
+      "n_evaluated": 2500,
+      "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+    },
+    "purchasing": {
+      "target_coverage": 0.75,
+      "coverage": 0.7455999999999999,
+      "action_accuracy": 0.881245488668478,
+      "action_accuracy_sd": 0.021947528066485266,
+      "action_accuracy_95_ci": [
+        0.8624702016263786,
+        0.8971992820727145
+      ],
+      "coverage_95_ci": [
+        0.7263999999999999,
+        0.76
+      ],
+      "action_accuracy_lift": 0.13364548866847803,
+      "lift_95_ci": [
+        0.12240637183914446,
+        0.14622332166164514
+      ],
+      "n_accepted": 1864,
+      "n_evaluated": 2500,
+      "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+    },
+    "soc": {
+      "target_coverage": 0.75,
+      "coverage": 0.7363999999999999,
+      "action_accuracy": 1.0,
+      "action_accuracy_sd": 0.0,
+      "action_accuracy_95_ci": [
+        1.0,
+        1.0
+      ],
+      "coverage_95_ci": [
+        0.7212,
+        0.7544
+      ],
+      "action_accuracy_lift": 0.08919999999999999,
+      "lift_95_ci": [
+        0.07080000000000002,
+        0.11279999999999998
+      ],
+      "n_accepted": 1841,
+      "n_evaluated": 2500,
+      "tier": "REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification"
+    }
+  },
+  "original_exploratory_gap2_at_75": {
+    "dataops": {
+      "coverage": 0.75,
+      "accuracy_on_acted": 0.8741333333333333,
+      "risk": 0.12586666666666668,
+      "baseline_accuracy_all": 0.7792,
+      "accuracy_lift_vs_baseline": 0.09493333333333331,
+      "n_acted": 1875,
+      "n_abstained": 625,
+      "n_correct_acted": 1639,
+      "accuracy_seed_sd": 0.032243517867075924,
+      "accuracy_bootstrap_95_ci": [
+        0.84852,
+        0.8981333333333333
+      ],
+      "lift_bootstrap_95_ci": [
+        0.08373333333333335,
+        0.1049333333333333
+      ],
+      "thresholds_by_seed": [
+        0.29971035935946183,
+        0.31486504389778547,
+        0.28490849538186425,
+        0.2824839950793836,
+        0.3030444543995701
+      ]
+    },
+    "purchasing": {
+      "coverage": 0.75,
+      "accuracy_on_acted": 0.9216,
+      "risk": 0.07840000000000003,
+      "baseline_accuracy_all": 0.7696000000000001,
+      "accuracy_lift_vs_baseline": 0.152,
+      "n_acted": 1875,
+      "n_abstained": 625,
+      "n_correct_acted": 1728,
+      "accuracy_seed_sd": 0.043434753110588524,
+      "accuracy_bootstrap_95_ci": [
+        0.8874666666666666,
+        0.9557333333333332
+      ],
+      "lift_bootstrap_95_ci": [
+        0.14173333333333335,
+        0.1617333333333333
+      ],
+      "thresholds_by_seed": [
+        0.10472192345287326,
+        0.12539043943395048,
+        0.13212525821383034,
+        0.09946239386990119,
+        0.102616620762924
+      ]
+    },
+    "soc": {
+      "coverage": 0.75,
+      "accuracy_on_acted": 1.0,
+      "risk": 0.0,
+      "baseline_accuracy_all": 0.9152000000000001,
+      "accuracy_lift_vs_baseline": 0.08479999999999999,
+      "n_acted": 1875,
+      "n_abstained": 625,
+      "n_correct_acted": 1875,
+      "accuracy_seed_sd": 0.0,
+      "accuracy_bootstrap_95_ci": [
+        1.0,
+        1.0
+      ],
+      "lift_bootstrap_95_ci": [
+        0.07120000000000004,
+        0.09759999999999998
+      ],
+      "thresholds_by_seed": [
+        0.01365947117654201,
+        0.012542339996847821,
+        0.018834423551684416,
+        0.01978642415129444,
+        0.01742186091542504
+      ]
+    }
+  },
+  "extended_dataops": [
+    {
+      "N": 500,
+      "routing_quality": 0.63
+    },
+    {
+      "N": 1000,
+      "routing_quality": 0.64
+    },
+    {
+      "N": 2000,
+      "routing_quality": 0.63
+    }
+  ],
+  "plateau_note": "N500 is the MAP planning assumption, not a measured plateau for every domain"
+}

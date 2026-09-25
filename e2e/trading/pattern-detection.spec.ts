@@ -64,3 +64,4 @@ test("Panel has no SOC vocabulary", async ({ page }) => {
 
   await expect(panel).not.toContainText(/\bSOC\b|\bSC-\d+\b/i);
 });
+

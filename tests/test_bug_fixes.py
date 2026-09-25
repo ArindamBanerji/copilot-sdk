@@ -17,7 +17,9 @@ def _preseed_mode_for_direct_scorer_tests(monkeypatch) -> None:
 def _shadow(**overrides: object) -> dict[str, object]:
     data: dict[str, object] = {
         "sufficient": True,
-        "total": 30,
+        "total": 2_000,
+        "correct": 1_800,
+        "baseline_correct": 1_500,
         "accuracy": 0.90,
         "baseline_accuracy": 0.75,
         "batch_accuracies": [0.90, 0.90, 0.90],

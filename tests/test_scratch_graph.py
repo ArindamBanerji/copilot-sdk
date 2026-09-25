@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import ast
 import json
+import pytest
+from uuid import uuid4
 
 from copilot_sdk.migrate.sqlite_to_age import _S, _compare_json
 from copilot_sdk.migrate.scratch_graph import (
@@ -12,121 +14,49 @@ from copilot_sdk.migrate.scratch_graph import (
 )
 
 
-class FakeCursor:
-    def __init__(self, row=None, rows=None):
-        self.row = row
-        self.rows = rows or []
-
-    def fetchone(self):
-        return self.row
-
-    def fetchall(self):
-        return self.rows
-
-
-class FakeConn:
-    def __init__(self):
-        self.queries: list[str] = []
-        self.commit_count = 0
-        self.rollback_count = 0
-        self.scratch_rows = []
-        self.live_existing = False
-        self.clean_count = 0
-
-    def execute(self, query):
-        self.queries.append(query)
-        if "count(d) AS cnt" in query:
-            return FakeCursor((self.clean_count,))
-        if "ORDER BY d.created_at ASC" in query:
-            return FakeCursor(rows=self.scratch_rows)
-        if "MATCH (d:Decision" in query and "RETURN d" in query:
-            return FakeCursor(("node",) if self.live_existing else None)
-        return FakeCursor(None)
-
-    def commit(self):
-        self.commit_count += 1
-
-    def rollback(self):
-        self.rollback_count += 1
-
-    def close(self):
-        self.closed = True
-
-
 def _can_roundtrip(payload: str, serialized: str) -> bool:
     restored = ast.literal_eval(serialized)
     return _compare_json(payload, restored)
 
 
-def test_create_scratch_graph_uses_safe_timestamped_name(monkeypatch):
-    conn = FakeConn()
-    connect_calls = []
-
-    def fake_connect(*args, **kwargs):
-        connect_calls.append((args, kwargs))
-        return conn
-
-    monkeypatch.setattr("copilot_sdk.migrate.scratch_graph.psycopg.connect", fake_connect)
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.scratch_graph.datetime",
-        type(
-            "FixedDateTime",
-            (),
-            {
-                "now": staticmethod(lambda tz=None: __import__("datetime").datetime(2026, 6, 11, 12, 30, 45)),
-            },
-        ),
-    )
-
-    graph_name = create_scratch_graph("dsn", "Trading Ops!")
-
-    assert graph_name.startswith("scratch_migration_trading_ops_20260611_123045")
-    assert connect_calls == [(("dsn sslmode=disable",), {"autocommit": True, "connect_timeout": 10})]
-    assert conn.queries[:2] == ["LOAD 'age'", "SET search_path = ag_catalog, '$user', public"]
-    assert any(query.startswith("SELECT drop_graph('scratch_migration_trading_ops_20260611_123045") for query in conn.queries)
-    assert any(query.startswith("SELECT create_graph('scratch_migration_trading_ops_20260611_123045") for query in conn.queries)
+@pytest.mark.age
+def test_create_scratch_graph_uses_safe_timestamped_name(disposable_age):
+    domain = "Trading Ops " + uuid4().hex[:8]
+    graph = create_scratch_graph(disposable_age.dsn, domain)
+    try:
+        assert graph.startswith("scratch_migration_trading_ops_")
+        with disposable_age.connect() as conn:
+            assert conn.execute("SELECT count(*) FROM ag_catalog.ag_graph WHERE name = %s", (graph,)).fetchone()[0] == 1
+    finally:
+        drop_scratch_graph(disposable_age.dsn, graph)
+    with disposable_age.connect() as conn:
+        assert conn.execute("SELECT count(*) FROM ag_catalog.ag_graph WHERE name = %s", (graph,)).fetchone()[0] == 0
 
 
-def test_drop_scratch_graph_ignores_missing_graph_errors(monkeypatch):
-    class FailingConn(FakeConn):
-        def execute(self, query):
-            self.queries.append(query)
-            if query.startswith("SELECT drop_graph"):
-                raise RuntimeError("graph does not exist")
-            return FakeCursor(None)
-
-    conn = FailingConn()
-    connect_calls = []
-
-    def fake_connect(*args, **kwargs):
-        connect_calls.append((args, kwargs))
-        return conn
-
-    monkeypatch.setattr("copilot_sdk.migrate.scratch_graph.psycopg.connect", fake_connect)
-
-    drop_scratch_graph("dsn", "scratch_migration_test_20260611_123045")
-
-    assert connect_calls == [(("dsn sslmode=disable",), {"autocommit": True, "connect_timeout": 10})]
-    assert conn.rollback_count == 0
-    assert conn.closed is True
+@pytest.mark.age
+def test_drop_scratch_graph_ignores_missing_graph_errors(disposable_age):
+    graph = "scratch_migration_missing_" + uuid4().hex[:12]
+    drop_scratch_graph(disposable_age.dsn, graph)
+    with disposable_age.connect() as conn:
+        assert conn.execute("SELECT count(*) FROM ag_catalog.ag_graph WHERE name = %s", (graph,)).fetchone()[0] == 0
 
 
-def test_verify_scratch_clean_true_when_no_decisions():
-    conn = FakeConn()
-    conn.clean_count = 0
-
-    assert verify_scratch_clean(conn, "scratch_migration_test_20260611_123045") is True
-
-
-def test_verify_scratch_clean_false_when_decisions_exist():
-    conn = FakeConn()
-    conn.clean_count = 1
-
-    assert verify_scratch_clean(conn, "scratch_migration_test_20260611_123045") is False
+@pytest.mark.age
+def test_verify_scratch_clean_true_when_no_decisions(migration_probe):
+    conn = migration_probe()
+    assert verify_scratch_clean(conn, conn.graph) is True
 
 
-def test_copy_to_live_uses_match_then_create_for_missing_decision():
-    conn = FakeConn()
+@pytest.mark.age
+def test_verify_scratch_clean_false_when_decisions_exist(migration_probe):
+    conn = migration_probe()
+    conn.seed_node("Decision", {"decision_id": "d1", "domain": "trading"})
+    assert verify_scratch_clean(conn, conn.graph) is False
+
+
+@pytest.mark.age
+def test_copy_to_live_uses_match_then_create_for_missing_decision(migration_probe):
+    conn = migration_probe()
     transformed = [
         {
             "decision_id": "d1",
@@ -139,7 +69,7 @@ def test_copy_to_live_uses_match_then_create_for_missing_decision():
     result = copy_to_live(
         conn,
         transformed,
-        "soc_graph",
+        conn.graph,
         "trading",
     )
 
@@ -148,17 +78,19 @@ def test_copy_to_live_uses_match_then_create_for_missing_decision():
     assert any("CREATE (d:Decision" in query for query in conn.queries)
     assert not any("MERGE" in query for query in conn.queries)
     assert conn.commit_count == 1
+    assert conn.read("MATCH (d:Decision {domain: 'trading'}) RETURN d.decision_id AS decision_id") == [{"decision_id": "d1"}]
 
 
-def test_copy_to_live_same_domain_skipped():
-    conn = FakeConn()
-    conn.live_existing = True
+@pytest.mark.age
+def test_copy_to_live_same_domain_skipped(migration_probe):
+    conn = migration_probe()
+    conn.seed_node("Decision", {"decision_id": "d1", "domain": "trading"})
     transformed = [{"decision_id": "d1", "domain": "trading", "category": "cat"}]
 
     result = copy_to_live(
         conn,
         transformed,
-        "soc_graph",
+        conn.graph,
         "trading",
     )
 
@@ -166,21 +98,16 @@ def test_copy_to_live_same_domain_skipped():
     assert not any("CREATE (d:Decision" in query for query in conn.queries)
 
 
-def test_copy_to_live_different_domain_not_skipped():
-    class DomainAwareConn(FakeConn):
-        def execute(self, query):
-            self.queries.append(query)
-            if "MATCH (d:Decision" in query and "RETURN d" in query:
-                return FakeCursor(("node",) if "domain: 'trading'" in query else None)
-            return FakeCursor(None)
-
-    conn = DomainAwareConn()
+@pytest.mark.age
+def test_copy_to_live_different_domain_not_skipped(migration_probe):
+    conn = migration_probe()
+    conn.seed_node("Decision", {"decision_id": "d1", "domain": "trading"})
     transformed = [{"decision_id": "d1", "domain": "purchasing", "category": "cat"}]
 
     result = copy_to_live(
         conn,
         transformed,
-        "soc_graph",
+        conn.graph,
         "purchasing",
     )
 
@@ -188,8 +115,9 @@ def test_copy_to_live_different_domain_not_skipped():
     assert any("CREATE (d:Decision" in query for query in conn.queries)
 
 
-def test_copy_to_live_uses_original_transforms(monkeypatch):
-    conn = FakeConn()
+@pytest.mark.age
+def test_copy_to_live_uses_original_transforms(monkeypatch, migration_probe):
+    conn = migration_probe()
     transformed = [{"decision_id": "d1", "domain": "trading", "factors_json": '{"x": "raw"}'}]
     calls = []
 
@@ -199,10 +127,10 @@ def test_copy_to_live_uses_original_transforms(monkeypatch):
 
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._write_batch", fake_write_batch)
 
-    result = copy_to_live(conn, transformed, "soc_graph", "trading")
+    result = copy_to_live(conn, transformed, conn.graph, "trading")
 
     assert result == {"copied": 1, "skipped": 0, "errors": 0}
-    assert calls == [(conn, transformed, "soc_graph")]
+    assert calls == [(conn, transformed, conn.graph)]
     assert conn.queries == []
 
 

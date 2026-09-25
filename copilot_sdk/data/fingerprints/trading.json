@@ -1,81 +1,80 @@
 {
   "domain": "trading",
-  "exported_at": "2026-08-15T23:34:38Z",
+  "exported_at": "2026-09-21T03:14:39Z",
   "fingerprint": {
-    "decisions_analyzed": 318,
+    "decisions_analyzed": 455,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
     },
     "factors": [
       {
-        "interpretation": "noisy",
+        "interpretation": "moderate",
         "name": "signal_alignment",
-        "sigma": 0.288,
-        "weight": 0.903
+        "sigma": 0.185,
+        "weight": 0.003
       },
       {
         "interpretation": "noisy",
         "name": "market_regime",
-        "sigma": 0.355,
-        "weight": 0.594
+        "sigma": 0.238,
+        "weight": 0.002
       },
       {
-        "interpretation": "noisy",
+        "interpretation": "moderate",
         "name": "position_sizing",
-        "sigma": 0.34,
-        "weight": 0.644
+        "sigma": 0.118,
+        "weight": 0.007
       },
       {
-        "interpretation": "noisy",
+        "interpretation": "clean",
         "name": "timing_quality",
-        "sigma": 0.383,
-        "weight": 0.51
+        "sigma": 0.046,
+        "weight": 0.047
       },
       {
-        "interpretation": "noisy",
+        "interpretation": "moderate",
         "name": "risk_reward_actual",
-        "sigma": 0.303,
-        "weight": 0.813
+        "sigma": 0.189,
+        "weight": 0.003
       },
       {
-        "interpretation": "noisy",
+        "interpretation": "moderate",
         "name": "emotional_indicator",
-        "sigma": 0.324,
-        "weight": 0.711
+        "sigma": 0.139,
+        "weight": 0.005
       },
       {
-        "interpretation": "noisy",
+        "interpretation": "clean",
         "name": "signal_confidence",
-        "sigma": 0.291,
-        "weight": 0.883
-      },
-      {
-        "interpretation": "noisy",
-        "name": "options_delta_exposure",
-        "sigma": 0.273,
+        "sigma": 0.01,
         "weight": 1.0
       },
       {
-        "interpretation": "noisy",
-        "name": "options_iv_percentile",
-        "sigma": 0.288,
-        "weight": 0.901
+        "interpretation": "clean",
+        "name": "options_delta_exposure",
+        "sigma": 0.01,
+        "weight": 1.0
       },
       {
-        "interpretation": "noisy",
+        "interpretation": "clean",
+        "name": "options_iv_percentile",
+        "sigma": 0.01,
+        "weight": 1.0
+      },
+      {
+        "interpretation": "clean",
         "name": "options_gamma_risk",
-        "sigma": 0.297,
-        "weight": 0.844
+        "sigma": 0.01,
+        "weight": 1.0
       }
     ],
-    "overall_win_rate": 0.997,
+    "overall_win_rate": 0.752,
     "per_category_precision": {
-      "event_driven": 1.0,
-      "income_strategy": 1.0,
-      "mean_reversion": 0.952,
-      "scalp_intraday": 1.0,
-      "trend_following": 1.0
+      "event_driven": 0.848,
+      "income_strategy": 0.773,
+      "scalp_intraday": 0.818,
+      "trend_following": 0.71
     },
     "skipped_decisions": 0
   },

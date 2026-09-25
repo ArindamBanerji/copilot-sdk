@@ -14,7 +14,9 @@ MIN_DECISIONS_PER_CLUSTER = 10
 EPS = 1e-12
 
 
-def compute_clustering_adjusted_sharpe(decisions: list[dict[str, Any]]) -> dict[str, Any]:
+def compute_clustering_adjusted_sharpe(
+    decisions: list[dict[str, Any]], *, n_boot: int = 50
+) -> dict[str, Any]:
     """Compute raw and bootstrap-adjusted quality ratios from decision outcomes."""
     quality = [_quality_value(decision) for decision in decisions]
     q = [value for value in quality if value is not None]
@@ -39,7 +41,7 @@ def compute_clustering_adjusted_sharpe(decisions: list[dict[str, Any]]) -> dict[
 
     sigma = stdev(q)
     naive = mean(q) / sigma if sigma > EPS else 0.0
-    diagnostic = block_bootstrap_mean_se(q, block=20, n_boot=300, seed=0)
+    diagnostic = block_bootstrap_mean_se(q, block=20, n_boot=n_boot, seed=0)
     iid_se = diagnostic.iid_se if math.isfinite(diagnostic.iid_se) else 0.0
     block_se = diagnostic.block_se if math.isfinite(diagnostic.block_se) else iid_se
     scale = iid_se / max(block_se, EPS) if iid_se > 0 else 1.0

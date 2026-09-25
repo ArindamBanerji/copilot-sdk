@@ -3,33 +3,26 @@ from __future__ import annotations
 import sys
 import os
 import uuid
+from importlib import import_module
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 from copilot_sdk.graph import SQLiteGraphStore
 from copilot_sdk.config import GraphConfig
-from copilot_sdk.testing import age_available
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
-os.environ.setdefault("PURCHASING_PROFILE", "test")
-os.environ.setdefault("PURCHASING_SAMPLE_DATA", "1")
-
 for path in (BACKEND_ROOT, REPO_ROOT):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from app import context_router  # noqa: E402
-from app.data_helpers import write_purchasing_fixture  # noqa: E402
-from app.main import create_app  # noqa: E402
-
-
 @pytest.fixture
 def purchasing_live_age_graph():
     """Run live AGE tests against an isolated disposable graph."""
+    from copilot_sdk.testing import age_available
     if not age_available():
         yield
         return
@@ -70,7 +63,10 @@ def purchasing_live_age_graph():
 
 
 @pytest.fixture
-def temp_data_dir(tmp_path, monkeypatch) -> Path:
+def temp_data_dir(tmp_path: Path, monkeypatch) -> Path:
+    context_router = import_module("app.context_router")
+    write_purchasing_fixture = import_module("app.data_helpers").write_purchasing_fixture
+
     source_data = BACKEND_ROOT / "data"
     temp_data = tmp_path / "data"
     temp_data.mkdir()
@@ -88,7 +84,7 @@ def temp_data_dir(tmp_path, monkeypatch) -> Path:
     write_purchasing_fixture(temp_data / "order_metadata.json", {})
 
     monkeypatch.setattr(context_router, "_DATA_DIR", temp_data)
-    import app.main as main_module
+    main_module = import_module("app.main")
 
     monkeypatch.setattr(main_module, "DATA_DIR", temp_data)
     return temp_data
@@ -96,6 +92,8 @@ def temp_data_dir(tmp_path, monkeypatch) -> Path:
 
 @pytest.fixture
 def client(tmp_path, temp_data_dir) -> TestClient:
+    create_app = import_module("app.main").create_app
+
     db_path = tmp_path / "purchasing_test.db"
     store = SQLiteGraphStore(str(db_path), domain="purchasing", decision_id_prefix="PUR-")
     _seed_ae_events(store)

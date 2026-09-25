@@ -5,6 +5,7 @@ import os
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 from gae.profile_scorer import ProfileScorer
 from fastapi import FastAPI
@@ -40,119 +41,37 @@ def _scorer(mock_preset, store: InMemoryGraphStore) -> CompoundingScorer:
         actions=list(mock_preset.shape.action_names),
         categories=list(mock_preset.shape.category_names),
     )
-    return CompoundingScorer(mock_preset, engine, graph_store=store)
+    return CompoundingScorer(mock_preset, engine, graph_store=store, profile="test")
 
 
-class FailingV2Store(InMemoryGraphStore):
-    def write_conservation_status(self, *args: Any, **kwargs: Any) -> None:
-        raise RuntimeError("conservation persistence failed")
-
-    def write_fingerprint(self, *args: Any, **kwargs: Any) -> None:
-        raise RuntimeError("fingerprint persistence failed")
-
-    def write_centroid_checkpoint(self, *args: Any, **kwargs: Any) -> None:
-        raise RuntimeError("checkpoint persistence failed")
-
-    def append_evidence_receipt(self, *args: Any, **kwargs: Any) -> tuple[int, str]:
-        raise RuntimeError("evidence persistence failed")
-
-    def save_centroids(self, *args: Any, **kwargs: Any) -> None:
-        raise RuntimeError("legacy checkpoint persistence failed")
 
 
-class L5InMemoryStore(InMemoryGraphStore):
-    def count_categories_with_n(self, domain: str, n: int = 1) -> int:
-        counts: dict[str, int] = {}
-        for decision in self.get_verified_decisions(domain):
-            category = str(decision.get("category", ""))
-            counts[category] = counts.get(category, 0) + 1
-        return sum(count >= n for count in counts.values())
 
 
-class SingleFailureStore(L5InMemoryStore):
-    def __init__(self, *args: Any, failure: str, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.failure = failure
-        self.calls: list[str] = []
-
-    def _check(self, name: str) -> None:
-        self.calls.append(name)
-        if self.failure == name:
-            raise RuntimeError(f"{name} failed")
-
-    def write_conservation_status(self, *args: Any, **kwargs: Any) -> None:
-        self._check("conservation")
-        return super().write_conservation_status(*args, **kwargs)
-
-    def write_fingerprint(self, *args: Any, **kwargs: Any) -> None:
-        self._check("fingerprint")
-        return super().write_fingerprint(*args, **kwargs)
-
-    def append_evidence_receipt(self, *args: Any, **kwargs: Any) -> tuple[int, str]:
-        self._check("evidence")
-        return super().append_evidence_receipt(*args, **kwargs)
-
-    def write_centroid_checkpoint(self, *args: Any, **kwargs: Any) -> None:
-        self._check("checkpoint")
-        return super().write_centroid_checkpoint(*args, **kwargs)
 
 
-class CoexistenceStore(L5InMemoryStore):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.l5_calls: list[dict[str, Any]] = []
 
-    def update_conservation_state(
-        self,
-        domain: str,
-        status: str,
-        alpha: float,
-        q: float,
-        V: int,
-        theta_min: float,
-        product: float,
-        categories_total: int,
-        categories_with_data: int,
-        baseline_product: float,
-        relative_threshold: float,
-        complacency_flag: str,
-        caused_by_decision_id: str | None = None,
-        old_status: str | None = None,
-    ) -> str:
-        self.l5_calls.append(
-            {
-                "domain": domain,
-                "status": status,
-                "alpha": alpha,
-                "q": q,
-                "V": V,
-                "theta_min": theta_min,
-                "product": product,
-                "categories_total": categories_total,
-                "categories_with_data": categories_with_data,
-                "baseline_product": baseline_product,
-                "relative_threshold": relative_threshold,
-                "complacency_flag": complacency_flag,
-                "caused_by_decision_id": caused_by_decision_id,
-                "old_status": old_status,
-            }
-        )
-        return super().update_conservation_state(
-            domain,
-            status,
-            alpha,
-            q,
-            V,
-            theta_min,
-            product,
-            categories_total,
-            categories_with_data,
-            baseline_product,
-            relative_threshold,
-            complacency_flag,
-            caused_by_decision_id,
-            old_status,
-        )
+
+def _failing_v2_store(domain):
+    store = InMemoryGraphStore(domain=domain)
+    for method, message in {
+        "write_conservation_status": "conservation persistence failed",
+        "write_fingerprint": "fingerprint persistence failed",
+        "write_centroid_checkpoint": "checkpoint persistence failed",
+        "append_evidence_receipt": "evidence persistence failed",
+        "save_centroids": "legacy checkpoint persistence failed",
+    }.items():
+        setattr(store, method, Mock(side_effect=RuntimeError(message)))
+    return store
+
+
+def _single_failure_store(domain, failure):
+    store = InMemoryGraphStore(domain=domain)
+    methods = {"conservation": "write_conservation_status", "fingerprint": "write_fingerprint",
+               "evidence": "append_evidence_receipt", "checkpoint": "write_centroid_checkpoint"}
+    method = methods[failure]
+    setattr(store, method, Mock(side_effect=RuntimeError(f"{failure} failed")))
+    return store
 
 
 def _verified_scorer(mock_preset, store: InMemoryGraphStore):
@@ -207,7 +126,7 @@ def _seed_capture_decisions(
 
 
 def test_capture_existing_state_writes_three_artifacts(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     _seed_capture_decisions(store, mock_preset, 5)
     scorer = _scorer(mock_preset, store)
 
@@ -227,7 +146,7 @@ def test_capture_existing_state_writes_three_artifacts(mock_preset):
 
 
 def test_capture_existing_state_idempotent(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     _seed_capture_decisions(store, mock_preset, 5)
     scorer = _scorer(mock_preset, store)
 
@@ -243,7 +162,7 @@ def test_capture_existing_state_idempotent(mock_preset):
 
 
 def test_capture_existing_state_no_receipt(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     _seed_capture_decisions(store, mock_preset, 5)
     scorer = _scorer(mock_preset, store)
 
@@ -255,7 +174,7 @@ def test_capture_existing_state_no_receipt(mock_preset):
 
 
 def test_capture_existing_state_insufficient_factors(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     _seed_capture_decisions(store, mock_preset, 3, empty_vectors=True)
     scorer = _scorer(mock_preset, store)
 
@@ -273,7 +192,7 @@ def test_capture_existing_state_insufficient_factors(mock_preset):
 
 
 def test_pause_path_writes_fingerprint(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     _seed_capture_decisions(store, mock_preset, 10, correct=False)
     scorer = _scorer(mock_preset, store)
     score_result = scorer.score(
@@ -294,7 +213,7 @@ def test_pause_path_writes_fingerprint(mock_preset):
 
 
 def test_startup_restore_calls_capture(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     _seed_capture_decisions(store, mock_preset, 5)
     scorer = _scorer(mock_preset, store)
 
@@ -313,7 +232,7 @@ def test_startup_restore_calls_capture(mock_preset):
         assert store._protocol_centroid_checkpoints
         assert not store._evidence_receipts
 
-        failing_store = FailingV2Store(domain="mock")
+        failing_store = _failing_v2_store(domain="mock")
         failing_scorer = _scorer(mock_preset, failing_store)
         failure_status = restore_l5_runtime_state(
             domain="mock",
@@ -326,7 +245,7 @@ def test_startup_restore_calls_capture(mock_preset):
 
 
 def test_scorer_persists_v2_evidence_fingerprint_and_checkpoint(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     scorer = _scorer(mock_preset, store)
 
     try:
@@ -357,8 +276,8 @@ def test_scorer_persists_v2_evidence_fingerprint_and_checkpoint(mock_preset):
         store.close()
 
 
-def test_persistence_failures_do_not_block_learning_or_fingerprint(mock_preset):
-    store = FailingV2Store(domain="mock")
+def test_conservation_persistence_failure_is_not_reported_as_success(mock_preset):
+    store = _failing_v2_store(domain="mock")
     scorer = _scorer(mock_preset, store)
 
     try:
@@ -366,19 +285,15 @@ def test_persistence_failures_do_not_block_learning_or_fingerprint(mock_preset):
             {"amount": 0.25, "risk": 0.35, "history": 0.45},
             mock_preset.shape.category_names[0],
         )
-        learned = scorer.learn(result.decision_id, result.action)
-        fingerprint = scorer.fingerprint()
-        _persist_conservation_state_l5(domain="mock", scorer=scorer)
-
-        assert learned.decision_id == result.decision_id
-        assert fingerprint.decisions_analyzed == 1
+        with pytest.raises(RuntimeError, match="conservation persistence failed"):
+            scorer.learn(result.decision_id, result.action)
         assert store.count_verified("mock") == 1
     finally:
         store.close()
 
 
 def test_learn_route_persists_conservation_snapshot(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     scorer = _scorer(mock_preset, store)
     app = FastAPI()
     app.include_router(
@@ -413,7 +328,7 @@ def test_learn_route_persists_conservation_snapshot(mock_preset):
 
 
 def test_persist_learning_artifacts_writes_all_four(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     scorer, result, alternate = _verified_scorer(mock_preset, store)
 
     try:
@@ -440,7 +355,7 @@ def test_persist_learning_artifacts_writes_all_four(mock_preset):
 
 
 def test_persist_learning_artifacts_propagates_regime_tag(mock_preset):
-    store = L5InMemoryStore(domain="trading")
+    store = InMemoryGraphStore(domain="trading")
     scorer = _scorer(mock_preset, store)
     result = scorer.score(
         {"amount": 0.25, "risk": 0.35, "history": 0.45},
@@ -466,7 +381,7 @@ def test_persist_learning_artifacts_propagates_regime_tag(mock_preset):
 
 
 def test_persist_learning_artifacts_without_regime_tag_remains_null(mock_preset):
-    store = L5InMemoryStore(domain="purchasing")
+    store = InMemoryGraphStore(domain="purchasing")
     scorer = _scorer(mock_preset, store)
     result = scorer.score(
         {"amount": 0.25, "risk": 0.35, "history": 0.45},
@@ -488,7 +403,7 @@ def test_persist_learning_artifacts_without_regime_tag_remains_null(mock_preset)
 
 
 def test_persist_learning_artifacts_skips_cold_start(mock_preset, caplog):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     scorer = _scorer(mock_preset, store)
     result = scorer.score(
         {"amount": 0.25, "risk": 0.35, "history": 0.45},
@@ -515,26 +430,38 @@ def test_persist_learning_artifacts_skips_cold_start(mock_preset, caplog):
 
 @pytest.mark.parametrize("failure", ["conservation", "fingerprint", "evidence", "checkpoint"])
 def test_persist_learning_artifacts_individual_failures(mock_preset, failure):
-    store = SingleFailureStore(domain="mock", failure=failure)
+    store = _single_failure_store(domain="mock", failure=failure)
     scorer, result, alternate = _verified_scorer(mock_preset, store)
 
     try:
-        scorer._persist_learning_artifacts(
-            result.decision_id,
-            actual_action=alternate,
-            is_correct=False,
-            outcome="overridden",
-            metadata={"source": "j6-failure"},
-        )
+        if failure == "conservation":
+            with pytest.raises(RuntimeError, match="conservation failed"):
+                scorer._persist_learning_artifacts(
+                    result.decision_id,
+                    actual_action=alternate,
+                    is_correct=False,
+                    outcome="overridden",
+                    metadata={"source": "j6-failure"},
+                )
+        else:
+            scorer._persist_learning_artifacts(
+                result.decision_id,
+                actual_action=alternate,
+                is_correct=False,
+                outcome="overridden",
+                metadata={"source": "j6-failure"},
+            )
 
-        assert failure in store.calls
-        if failure != "conservation":
+        method = {"conservation": "write_conservation_status", "fingerprint": "write_fingerprint",
+                  "evidence": "append_evidence_receipt", "checkpoint": "write_centroid_checkpoint"}[failure]
+        assert getattr(store, method).called
+        if failure not in {"conservation", "fingerprint"}:
             assert store._conservation_snapshots
-        if failure != "fingerprint":
+        if failure not in {"conservation", "fingerprint"}:
             assert store._fingerprints
-        if failure != "evidence":
+        if failure not in {"conservation", "evidence"}:
             assert store._evidence_receipts
-        if failure != "checkpoint":
+        if failure not in {"conservation", "checkpoint"}:
             assert store._protocol_centroid_checkpoints
     finally:
         store.close()
@@ -561,7 +488,7 @@ def test_s2p_receipt_type_distinction(mock_preset):
                     payload_types.append(literal)
 
     assert "pre_outcome_context" in payload_types
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     scorer = _scorer(mock_preset, store)
     result = scorer.score(
         {"amount": 0.25, "risk": 0.35, "history": 0.45},
@@ -577,7 +504,8 @@ def test_s2p_receipt_type_distinction(mock_preset):
 
 
 def test_l5_v2_conservation_coexistence(mock_preset):
-    store = CoexistenceStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
+    store.update_conservation_state = Mock(wraps=store.update_conservation_state)
     scorer = _scorer(mock_preset, store)
     app = FastAPI()
     app.include_router(
@@ -603,8 +531,8 @@ def test_l5_v2_conservation_coexistence(mock_preset):
 
         assert response.status_code == 200
         assert store._conservation_snapshots
-        assert store.l5_calls
-        assert store._conservation_snapshots is not store.l5_calls
+        assert store.get_conservation_state("mock") is not None
+        assert store.update_conservation_state.call_count > 0
     finally:
         store.close()
 
@@ -613,6 +541,7 @@ def _age_query(store, query: str) -> list[dict[str, Any]]:
     return list(store._store._run_query(query))
 
 
+@pytest.mark.age
 def test_conservation_creates_summarizes_domain_edge(age_graph_store):
     store = age_graph_store("trading")
     store.write_conservation_status(
@@ -640,6 +569,7 @@ def test_conservation_creates_summarizes_domain_edge(age_graph_store):
     assert rows and int(rows[0]["edge_count"]) == 1
 
 
+@pytest.mark.age
 def test_fingerprint_creates_summarizes_domain_edge(age_graph_store):
     store = age_graph_store("trading")
     store.write_fingerprint(
@@ -663,6 +593,7 @@ def test_fingerprint_creates_summarizes_domain_edge(age_graph_store):
     assert rows and int(rows[0]["edge_count"]) == 1
 
 
+@pytest.mark.age
 def test_checkpoint_creates_snapshot_and_derived_edges(age_graph_store):
     store = age_graph_store("trading")
     decision_id = store.write_decision(
@@ -710,7 +641,7 @@ def test_checkpoint_creates_snapshot_and_derived_edges(age_graph_store):
 
 
 def test_conservation_status_id_deterministic(mock_preset):
-    store = L5InMemoryStore(domain="mock")
+    store = InMemoryGraphStore(domain="mock")
     scorer, result, alternate = _verified_scorer(mock_preset, store)
     kwargs = {
         "actual_action": alternate,
@@ -731,18 +662,19 @@ def test_conservation_status_id_deterministic(mock_preset):
 
 
 def test_persistence_failure_structured_warning(mock_preset, caplog):
-    store = SingleFailureStore(domain="mock", failure="conservation")
+    store = _single_failure_store(domain="mock", failure="conservation")
     scorer, result, alternate = _verified_scorer(mock_preset, store)
     caplog.set_level("WARNING", logger="copilot_sdk.scoring.scorer")
 
     try:
-        scorer._persist_learning_artifacts(
-            result.decision_id,
-            actual_action=alternate,
-            is_correct=False,
-            outcome="overridden",
-            metadata={"source": "j6-warning"},
-        )
+        with pytest.raises(RuntimeError, match="conservation failed"):
+            scorer._persist_learning_artifacts(
+                result.decision_id,
+                actual_action=alternate,
+                is_correct=False,
+                outcome="overridden",
+                metadata={"source": "j6-warning"},
+            )
         message = caplog.text
         assert "domain=mock" in message
         assert f"decision={result.decision_id}" in message

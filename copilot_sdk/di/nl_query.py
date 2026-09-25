@@ -3,9 +3,18 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+import re
+from typing import Any, cast
 
 from copilot_sdk.di.query_patterns import QueryPattern, default_patterns
+
+_SAFE_DOMAIN_RE = re.compile(r"^[a-zA-Z0-9_-]{1,200}$")
+
+
+def _require_domain(domain: str | None) -> str:
+    if not isinstance(domain, str) or not _SAFE_DOMAIN_RE.fullmatch(domain):
+        raise ValueError("a valid domain is required for NL graph queries")
+    return domain
 
 
 class NLQueryRouter:
@@ -21,6 +30,7 @@ class NLQueryRouter:
     def query(
         self, question: str, graph_store: Any, domain: str | None = None
     ) -> dict[str, Any]:
+        domain = _require_domain(domain)
         normalized = str(question or "").strip()
         if not normalized:
             return {
@@ -54,7 +64,7 @@ class NLQueryRouter:
             decisions = _decisions(graph_store, domain=domain)
             for pattern in self._patterns:
                 if pattern.matches(question):
-                    return pattern.execute(question, decisions).to_response()
+                    return cast(dict[str, Any], pattern.execute(question, decisions).to_response())
             return _unknown_response(intent)
 
         decisions = _decisions(graph_store, domain=domain)
@@ -69,12 +79,13 @@ class NLQueryRouter:
 
 
 def _decisions(graph_store: Any, *, domain: str | None = None) -> list[dict[str, Any]]:
+    domain = _require_domain(domain)
     if isinstance(graph_store, (list, tuple)):
-        return [row for row in graph_store if isinstance(row, dict)]
+        return [row for row in graph_store if isinstance(row, dict) and row.get("domain") == domain]
     if graph_store is None:
         return []
-    rows = graph_store.get_verified_decisions(domain or "dataops")
-    return [row for row in rows if isinstance(row, dict)]
+    rows = graph_store.get_verified_decisions(domain)
+    return [row for row in rows if isinstance(row, dict) and row.get("domain") == domain]
 
 
 def _unknown_response(intent: str = "unknown") -> dict[str, Any]:
@@ -136,10 +147,10 @@ def _query_template(intent: str, *, domain: str | None = None) -> str:
         "metric": "MATCH (d:Decision) RETURN d",
     }
     template = templates[intent]
-    if domain is None or "Decision" not in template:
-        return template
-    safe_domain = str(domain).replace("\\", "\\\\").replace("'", "\\'")
-    predicate = f"d.domain = '{safe_domain}'"
+    domain = _require_domain(domain)
+    if "Decision" not in template:
+        raise ValueError(f"query template is not domain scoped: {intent}")
+    predicate = f"d.domain = '{domain}'"
     if " WHERE " in template:
         return template.replace(" WHERE ", f" WHERE {predicate} AND ", 1)
     if " RETURN " in template:

@@ -1,0 +1,17 @@
+{
+  "provenance": "ADAPTED snapshot reproduction of archived E-JM-6 algorithm",
+  "seed": 42,
+  "snapshots": [
+    250,
+    1500,
+    3000
+  ],
+  "pca_basis": "fit on late snapshot and applied unchanged to all snapshots",
+  "cluster_labels": "action index across six categories",
+  "silhouette_scores": {
+    "250": -0.10197517415184659,
+    "1500": -0.14200366814212478,
+    "3000": -0.15360690800155063
+  },
+  "centroids_differentiate": false
+}

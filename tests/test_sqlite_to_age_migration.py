@@ -156,88 +156,10 @@ def _archive_row(
     )
 
 
-class FakeCursor:
-    def __init__(self, row=None):
-        self.row = row
-
-    def fetchone(self):
-        return self.row
 
 
-class FakeConn:
-    def __init__(self, *, existing=False, summary=None):
-        self.existing = existing
-        self.summary = summary
-        self.queries: list[str] = []
-        self.commit_count = 0
-        self.rollback_count = 0
-        self.closed = False
-
-    def execute(self, query):
-        self.queries.append(query)
-        if "RETURN d" in query and "MATCH" in query:
-            return FakeCursor(("node",) if self.existing else None)
-        if "count(d)" in query:
-            return FakeCursor(self.summary)
-        return FakeCursor(None)
-
-    def commit(self):
-        self.commit_count += 1
-
-    def rollback(self):
-        self.rollback_count += 1
-
-    def close(self):
-        self.closed = True
 
 
-class TopologyConn(FakeConn):
-    """Small in-memory AGE boundary double that records created topology."""
-
-    def __init__(self):
-        super().__init__()
-        self.nodes: list[dict] = []
-        self.edges: list[dict] = []
-
-    @staticmethod
-    def _literal(query: str, name: str) -> str | None:
-        match = re.search(rf"{name}: '([^']*)'", query)
-        return match.group(1) if match else None
-
-    def execute(self, query):
-        self.queries.append(query)
-        if "MATCH (d:Decision" in query and "RETURN d" in query:
-            return FakeCursor(None)
-        labels = {
-            "CREATE (d:Decision": "Decision",
-            "CREATE (o:Outcome": "Outcome",
-            "CREATE (c:CentroidCheckpoint": "CentroidCheckpoint",
-            "CREATE (r:EvidenceReceipt": "EvidenceReceipt",
-        }
-        for marker, label in labels.items():
-            if marker in query:
-                self.nodes.append(
-                    {
-                        "label": label,
-                        "decision_id": self._literal(query, "decision_id"),
-                        "checkpoint_id": self._literal(query, "checkpoint_id"),
-                        "receipt_intent_id": self._literal(query, "receipt_intent_id"),
-                        "is_correct": "is_correct: false" not in query,
-                        "has_rowid": "_migration_rowid:" in query,
-                    }
-                )
-                return FakeCursor(None)
-        for edge in ("HAS_OUTCOME", "HAS_CENTROID_CHECKPOINT", "EMITTED_RECEIPT"):
-            if edge in query:
-                self.edges.append(
-                    {
-                        "label": edge,
-                        "checkpoint_id": self._literal(query, "checkpoint_id"),
-                        "receipt_intent_id": self._literal(query, "receipt_intent_id"),
-                    }
-                )
-                return FakeCursor(None)
-        return FakeCursor(None)
 
 
 def test_read_verified_only(tmp_path):
@@ -323,57 +245,64 @@ def test_dry_run_no_writes(tmp_path, monkeypatch):
     assert result["verified_count"] == 4
 
 
-def test_idempotency():
-    conn = FakeConn(existing=True)
-    result = _write_batch(conn, [{"decision_id": "d1", "domain": "trading"}], "graph")
+@pytest.mark.age
+def test_idempotency(migration_probe):
+    conn = migration_probe()
+    conn.seed_node("Decision", {"domain": "trading", "decision_id": "d1"})
+    result = _write_batch(conn, [{"decision_id": "d1", "domain": "trading"}], conn.graph)
     assert result == {"written": 0, "skipped": 1, "errors": 0}
     assert not any("CREATE (d:Decision" in query for query in conn.queries)
 
 
-def test_batch_commit():
-    conn = FakeConn(existing=False)
-    result = _write_batch(conn, [{"decision_id": "d1", "domain": "trading"}], "graph")
+@pytest.mark.age
+def test_batch_commit(migration_probe):
+    conn = migration_probe()
+    result = _write_batch(conn, [{"decision_id": "d1", "domain": "trading"}], conn.graph)
     assert result["written"] == 1
     assert conn.commit_count == 1
 
 
-def test_write_errors_fail_migration(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_write_errors_fail_migration(tmp_path, monkeypatch, migration_probe):
     db_path = _make_db(tmp_path)
-    conn = FakeConn()
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn)
+    conn = migration_probe()
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._write_batch",
         lambda *args: {"written": 0, "skipped": 0, "errors": 1},
     )
 
-    result = run_migration("trading", str(db_path), "dsn", "graph", verify=True)
+    result = run_migration("trading", str(db_path), "dsn", conn.graph, verify=True)
 
     assert result["status"] == "FAIL"
     assert result["fail_reason"] == "1 write errors"
     assert conn.closed is True
 
 
-def test_verify_level1_pass(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_verify_level1_pass(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.sqlite_to_age._age_level1_summary",
-        lambda conn, graph, domain: {"count": 4, "first_created_at": 1.0, "last_created_at": 5.0},
-    )
-    assert _verify_level1(str(db_path), FakeConn(), "graph", "trading")["passed"] is True
+    conn = migration_probe()
+    records = _read_migration_records(str(db_path), "trading")
+    assert _write_batch(conn, records, conn.graph)["written"] == 4
+    assert _verify_level1(str(db_path), conn, conn.graph, "trading")["passed"] is True
 
 
-def test_verify_level1_fail_count(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_verify_level1_fail_count(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.sqlite_to_age._age_level1_summary",
-        lambda conn, graph, domain: {"count": 3, "first_created_at": 1.0, "last_created_at": 5.0},
-    )
-    assert _verify_level1(str(db_path), FakeConn(), "graph", "trading")["passed"] is False
+    conn = migration_probe()
+    records = _read_migration_records(str(db_path), "trading")
+    assert _write_batch(conn, records, conn.graph)["written"] == 4
+    conn.read("MATCH (d:Decision {decision_id: 'd1'}) DETACH DELETE d")
+    assert _verify_level1(str(db_path), conn, conn.graph, "trading")["passed"] is False
 
 
-def test_l1_failure_fails_migration_and_skips_l2(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_l1_failure_fails_migration_and_skips_l2(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
     db_path = _make_db(tmp_path)
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._write_batch",
         lambda *args: {"written": 4, "skipped": 0, "errors": 0},
@@ -388,83 +317,46 @@ def test_l1_failure_fails_migration_and_skips_l2(tmp_path, monkeypatch):
 
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._verify_level2", fail_l2)
 
-    result = run_migration("trading", str(db_path), "dsn", "graph", verify=True)
+    result = run_migration("trading", str(db_path), "dsn", conn.graph, verify=True)
 
     assert result["status"] == "FAIL"
     assert result["fail_reason"].startswith("Level 1 verification failed:")
     assert "level2" not in result["verification"]
 
 
-def test_verify_level2_pass(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_verify_level2_pass(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
-
-    def age_decision(conn, graph, decision_id, domain):
-        row = next(row for row in _read_verified_decisions(str(db_path), domain) if row["decision_id"] == decision_id)
-        return {
-            "category": row["category"],
-            "recommended_action": row["recommended_action"],
-            "confidence": row["confidence"],
-            "factors_json": row["factors_json"],
-        }
-
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._age_decision_by_id", age_decision)
-    assert _verify_level2(str(db_path), FakeConn(), "graph", "trading")["passed"] is True
+    conn = migration_probe()
+    records = _read_migration_records(str(db_path), "trading")
+    assert _write_batch(conn, records, conn.graph)["written"] == 4
+    assert _verify_level2(str(db_path), conn, conn.graph, "trading")["passed"] is True
 
 
-def test_l2_handles_agtype_encoded_values(monkeypatch):
-    decision = {
-        "decision_id": "d1",
-        "domain": "trading",
-        "category": "trend_following",
-        "category_index": 0,
-        "factors_json": '{"signal_alignment": 0.69}',
-        "factor_vector_json": "[0.69]",
-        "recommended_action": "strong_execution",
-        "recommended_index": 0,
-        "confidence": 0.75,
-        "probabilities_json": "[0.75, 0.25]",
-        "status": "confirmed",
-        "created_at": 1.0,
-    }
-
-    class EncodedConn:
-        def execute(self, query):
-            return FakeCursor(
-                (
-                    '"trend_following"',
-                    '"strong_execution"',
-                    0.75,
-                    '"{\\"signal_alignment\\": 0.69}"',
-                )
-            )
-
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.sqlite_to_age._read_verified_decisions",
-        lambda db_path, domain=None: [decision],
-    )
-
-    result = _verify_level2("source.db", EncodedConn(), "graph", "trading")
-
-    assert result["passed"] is True
-
-
-def test_verify_level2_fail_json(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_l2_handles_agtype_encoded_values(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
-    monkeypatch.setattr(
-        "copilot_sdk.migrate.sqlite_to_age._age_decision_by_id",
-        lambda conn, graph, decision_id, domain: {
-            "category": "cat_a",
-            "recommended_action": "buy",
-            "confidence": 0.9,
-            "factors_json": '{"different": true}',
-        },
-    )
-    assert _verify_level2(str(db_path), FakeConn(), "graph", "trading")["passed"] is False
+    conn = migration_probe()
+    assert _write_batch(conn, _read_migration_records(str(db_path), "trading"), conn.graph)["written"] == 4
+    # The real psycopg AGE result contains agtype-encoded strings and JSON.
+    assert _verify_level2(str(db_path), conn, conn.graph, "trading")["passed"] is True
 
 
-def test_l2_failure_fails_migration(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_verify_level2_fail_json(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    conn = migration_probe()
+    records = _read_migration_records(str(db_path), "trading")
+    assert _write_batch(conn, records, conn.graph)["written"] == 4
+    conn.read("MATCH (d:Decision {decision_id: 'd1'}) SET d.factors_json = '{}' RETURN d")
+    assert _verify_level2(str(db_path), conn, conn.graph, "trading")["passed"] is False
+
+
+@pytest.mark.age
+def test_l2_failure_fails_migration(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
+    db_path = _make_db(tmp_path)
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._write_batch",
         lambda *args: {"written": 4, "skipped": 0, "errors": 0},
@@ -482,7 +374,7 @@ def test_l2_failure_fails_migration(tmp_path, monkeypatch):
         lambda *args: {"passed": False, "details": {"mismatches": [{"decision_id": "d1"}]}},
     )
 
-    result = run_migration("trading", str(db_path), "dsn", "graph", verify=True)
+    result = run_migration("trading", str(db_path), "dsn", conn.graph, verify=True)
 
     assert result["status"] == "FAIL"
     assert result["fail_reason"].startswith("Level 2 verification failed:")
@@ -490,11 +382,12 @@ def test_l2_failure_fails_migration(tmp_path, monkeypatch):
     assert result["verification"]["level2"]["passed"] is False
 
 
-def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch, migration_probe):
     db_path = _make_db(tmp_path)
-    conn = FakeConn()
+    conn = migration_probe()
     calls: list[tuple] = []
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn)
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
         lambda dsn, domain: calls.append(("create_scratch", dsn, domain)) or "scratch_migration_trading_20260611_123045",
@@ -544,10 +437,12 @@ def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch):
     assert ("drop", "dsn", scratch) in calls
 
 
-def test_scratch_migration_drops_scratch_and_skips_copy_on_l1_failure(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_scratch_migration_drops_scratch_and_skips_copy_on_l1_failure(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
     db_path = _make_db(tmp_path)
     calls: list[tuple] = []
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
         lambda dsn, domain: "scratch_migration_trading_20260611_123045",
@@ -577,10 +472,12 @@ def test_scratch_migration_drops_scratch_and_skips_copy_on_l1_failure(tmp_path, 
     assert calls == [("drop", "dsn", "scratch_migration_trading_20260611_123045")]
 
 
-def test_scratch_migration_fails_when_scratch_not_clean(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_scratch_migration_fails_when_scratch_not_clean(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
     db_path = _make_db(tmp_path)
     calls: list[tuple] = []
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
         lambda dsn, domain: "scratch_migration_trading_20260611_123045",
@@ -602,10 +499,12 @@ def test_scratch_migration_fails_when_scratch_not_clean(tmp_path, monkeypatch):
     assert calls == [("drop", "dsn", "scratch_migration_trading_20260611_123045")]
 
 
-def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
     db_path = _make_db(tmp_path)
     calls: list[tuple] = []
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
         lambda dsn, domain: "scratch_migration_trading_20260611_123045",
@@ -645,10 +544,12 @@ def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch):
     assert calls == []
 
 
-def test_scratch_retained_on_copy_write_errors(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_scratch_retained_on_copy_write_errors(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
     db_path = _make_db(tmp_path)
     calls: list[tuple] = []
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
         lambda dsn, domain: "scratch_migration_trading_20260611_123045",
@@ -688,10 +589,12 @@ def test_scratch_retained_on_copy_write_errors(tmp_path, monkeypatch):
     assert calls == []
 
 
-def test_scratch_dropped_on_copy_success(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_scratch_dropped_on_copy_success(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
     db_path = _make_db(tmp_path)
     calls: list[tuple] = []
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
         lambda dsn, domain: "scratch_migration_trading_20260611_123045",
@@ -821,10 +724,11 @@ def _records_with_topology(tmp_path: Path) -> list[dict]:
     return _read_migration_records(str(db_path), "trading", all_decisions=True)
 
 
-def test_verified_record_writes_governed_decision_outcome_and_edge(tmp_path):
+@pytest.mark.age
+def test_verified_record_writes_governed_decision_outcome_and_edge(tmp_path, migration_probe):
     records = _records_with_topology(tmp_path)
-    conn = FakeConn()
-    result = _write_batch(conn, [next(record for record in records if record["decision"]["decision_id"] == "d1")], "graph")
+    conn = migration_probe()
+    result = _write_batch(conn, [next(record for record in records if record["decision"]["decision_id"] == "d1")], conn.graph)
     queries = "\n".join(conn.queries)
     assert result == {"written": 1, "skipped": 0, "errors": 0}
     assert "status: 'confirmed'" in queries
@@ -834,41 +738,45 @@ def test_verified_record_writes_governed_decision_outcome_and_edge(tmp_path):
     assert "migration_source: 'sqlite'" in queries
 
 
-def test_overridden_record_preserves_final_status_and_false_outcome(tmp_path):
+@pytest.mark.age
+def test_overridden_record_preserves_final_status_and_false_outcome(tmp_path, migration_probe):
     records = _records_with_topology(tmp_path)
-    conn = FakeConn()
-    _write_batch(conn, [next(record for record in records if record["decision"]["decision_id"] == "d2")], "graph")
+    conn = migration_probe()
+    _write_batch(conn, [next(record for record in records if record["decision"]["decision_id"] == "d2")], conn.graph)
     queries = "\n".join(conn.queries)
     assert "status: 'overridden'" in queries
     assert "CREATE (o:Outcome" in queries
     assert "is_correct: false" in queries
 
 
-def test_pending_records_require_all_decisions_and_have_no_outcome(tmp_path):
+@pytest.mark.age
+def test_pending_records_require_all_decisions_and_have_no_outcome(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
     assert all(record["decision"]["status"] != "pending" for record in _read_migration_records(str(db_path), "trading"))
     pending = next(record for record in _read_migration_records(str(db_path), "trading", all_decisions=True) if record["decision"]["decision_id"] == "d3")
-    conn = FakeConn()
-    _write_batch(conn, [pending], "graph")
+    conn = migration_probe()
+    _write_batch(conn, [pending], conn.graph)
     queries = "\n".join(conn.queries)
     assert "status: 'pending'" in queries
     assert "CREATE (o:Outcome" not in queries
     assert "HAS_OUTCOME" not in queries
 
 
-def test_factor_vector_is_embedded_not_a_node(tmp_path):
+@pytest.mark.age
+def test_factor_vector_is_embedded_not_a_node(tmp_path, migration_probe):
     record = next(record for record in _records_with_topology(tmp_path) if record["decision"]["decision_id"] == "d1")
-    conn = FakeConn()
-    _write_batch(conn, [record], "graph")
+    conn = migration_probe()
+    _write_batch(conn, [record], conn.graph)
     queries = "\n".join(conn.queries)
     assert "factor_vector: '[1.0]'" in queries
     assert ":FactorVector" not in queries
 
 
-def test_topology_checkpoint_and_receipt_queries(tmp_path):
+@pytest.mark.age
+def test_topology_checkpoint_and_receipt_queries(tmp_path, migration_probe):
     record = next(record for record in _records_with_topology(tmp_path) if record["decision"]["decision_id"] == "d1")
-    conn = FakeConn()
-    _write_batch(conn, [record], "graph")
+    conn = migration_probe()
+    _write_batch(conn, [record], conn.graph)
     queries = "\n".join(conn.queries)
     assert "CREATE (c:CentroidCheckpoint" in queries
     assert "HAS_CENTROID_CHECKPOINT" in queries
@@ -876,7 +784,8 @@ def test_topology_checkpoint_and_receipt_queries(tmp_path):
     assert "EMITTED_RECEIPT" in queries
 
 
-def test_schema_adaptive_missing_optional_outcome_column(tmp_path):
+@pytest.mark.age
+def test_schema_adaptive_missing_optional_outcome_column(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
     conn = sqlite3.connect(db_path)
     conn.execute("DROP TABLE outcomes")
@@ -885,21 +794,22 @@ def test_schema_adaptive_missing_optional_outcome_column(tmp_path):
     conn.commit()
     conn.close()
     record = next(record for record in _read_migration_records(str(db_path), "trading") if record["decision"]["decision_id"] == "d1")
-    fake = FakeConn()
-    _write_batch(fake, [record], "graph")
+    fake = migration_probe()
+    _write_batch(fake, [record], fake.graph)
     outcome_query = next(query for query in fake.queries if "CREATE (o:Outcome" in query)
     assert "actual_action: 'buy'" in outcome_query
     assert "actual_index:" not in outcome_query
 
 
-def test_compound_key_and_query_safety(tmp_path):
+@pytest.mark.age
+def test_compound_key_and_query_safety(tmp_path, migration_probe):
     record = next(
         record
         for record in _records_with_topology(tmp_path)
         if record["decision"]["decision_id"] == "d1"
     )
-    conn = FakeConn()
-    _write_batch(conn, [record], "graph")
+    conn = migration_probe()
+    _write_batch(conn, [record], conn.graph)
     queries = "\n".join(conn.queries)
     assert "domain: 'trading', decision_id: 'd1'" in queries
     assert "$params" not in queries
@@ -913,31 +823,35 @@ def test_domain_isolation_and_deferred_entity_edges(tmp_path, caplog):
     assert all("entity" not in record for record in records)
 
 
-def test_second_write_skips_existing_decision_without_topology_duplication(tmp_path):
+@pytest.mark.age
+def test_second_write_skips_existing_decision_without_topology_duplication(tmp_path, migration_probe):
     record = next(record for record in _records_with_topology(tmp_path) if record["decision"]["decision_id"] == "d1")
-    conn = FakeConn(existing=True)
-    result = _write_batch(conn, [record], "graph")
+    conn = migration_probe()
+    conn.seed_node("Decision", {"domain": "trading", "decision_id": "d1"})
+    result = _write_batch(conn, [record], conn.graph)
     assert result == {"written": 0, "skipped": 1, "errors": 0}
     assert not any("CREATE (o:Outcome" in query for query in conn.queries)
 
 
-def test_verified_decision_missing_outcome_fails_without_creating_that_decision(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_verified_decision_missing_outcome_fails_without_creating_that_decision(tmp_path, monkeypatch, migration_probe):
     db_path = _make_db(tmp_path)
     conn = sqlite3.connect(db_path)
     conn.execute("DELETE FROM outcomes WHERE decision_id = 'd4'")
     conn.commit()
     conn.close()
-    age = TopologyConn()
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age)
+    age = migration_probe()
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age.open())
 
-    result = run_migration("trading", str(db_path), "dsn", "graph", verify=False)
+    result = run_migration("trading", str(db_path), "dsn", age.graph, verify=False)
 
     assert result["status"] == "FAIL"
     assert result["fail_reason"] == "1 write errors"
     assert "d4" not in {node["decision_id"] for node in age.nodes if node["label"] == "Decision"}
 
 
-def test_multiple_checkpoints_create_one_edge_per_unique_checkpoint(tmp_path):
+@pytest.mark.age
+def test_multiple_checkpoints_create_one_edge_per_unique_checkpoint(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
     conn = sqlite3.connect(db_path)
     conn.execute(CHECKPOINTS_SCHEMA)
@@ -951,9 +865,9 @@ def test_multiple_checkpoints_create_one_edge_per_unique_checkpoint(tmp_path):
     conn.commit()
     conn.close()
     record = next(record for record in _read_migration_records(str(db_path), "trading") if record["decision"]["decision_id"] == "d1")
-    age = TopologyConn()
+    age = migration_probe()
 
-    _write_batch(age, [record], "graph")
+    _write_batch(age, [record], age.graph)
 
     checkpoints = [node for node in age.nodes if node["label"] == "CentroidCheckpoint"]
     edges = [edge for edge in age.edges if edge["label"] == "HAS_CENTROID_CHECKPOINT"]
@@ -962,7 +876,8 @@ def test_multiple_checkpoints_create_one_edge_per_unique_checkpoint(tmp_path):
     assert len(edges) == 2
 
 
-def test_multiple_receipts_create_one_edge_per_unique_receipt(tmp_path):
+@pytest.mark.age
+def test_multiple_receipts_create_one_edge_per_unique_receipt(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
     conn = sqlite3.connect(db_path)
     conn.execute(RECEIPTS_SCHEMA)
@@ -976,9 +891,9 @@ def test_multiple_receipts_create_one_edge_per_unique_receipt(tmp_path):
     conn.commit()
     conn.close()
     record = next(record for record in _read_migration_records(str(db_path), "trading") if record["decision"]["decision_id"] == "d1")
-    age = TopologyConn()
+    age = migration_probe()
 
-    _write_batch(age, [record], "graph")
+    _write_batch(age, [record], age.graph)
 
     receipts = [node for node in age.nodes if node["label"] == "EvidenceReceipt"]
     edges = [edge for edge in age.edges if edge["label"] == "EMITTED_RECEIPT"]
@@ -987,7 +902,8 @@ def test_multiple_receipts_create_one_edge_per_unique_receipt(tmp_path):
     assert len(edges) == 2
 
 
-def test_level2_is_scoped_to_domain_for_duplicate_ids(tmp_path):
+@pytest.mark.age
+def test_level2_is_scoped_to_domain_for_duplicate_ids(tmp_path, migration_probe):
     db_path = tmp_path / "compound.db"
     conn = sqlite3.connect(db_path)
     compound_schema = DECISIONS_SCHEMA.replace("decision_id TEXT PRIMARY KEY", "decision_id TEXT")
@@ -1003,42 +919,40 @@ def test_level2_is_scoped_to_domain_for_duplicate_ids(tmp_path):
     conn.commit()
     conn.close()
 
-    class DomainConn:
-        def __init__(self):
-            self.query = ""
-
-        def execute(self, query):
-            self.query = query
-            return FakeCursor(("trading_cat", "buy", 0.9, "{}"))
-
-    age = DomainConn()
-    result = _verify_level2(str(db_path), age, "graph", "trading")
+    age = migration_probe()
+    for domain, category, action in [("trading", "trading_cat", "buy"), ("purchasing", "purchasing_cat", "reject")]:
+        age.seed_node("Decision", {"decision_id": "same", "domain": domain, "category": category,
+                                  "recommended_action": action, "confidence": 0.9, "factors_json": "{}"})
+    result = _verify_level2(str(db_path), age, age.graph, "trading")
     assert result["passed"] is True
-    assert "domain: 'trading', decision_id: 'same'" in age.query
-    assert "purchasing" not in age.query
+    assert "domain: 'trading', decision_id: 'same'" in age.queries[-1]
+    assert "purchasing" not in age.queries[-1]
+
 
 
 @pytest.mark.parametrize("value", [0, "0"])
-def test_outcome_false_values_normalize_to_false(tmp_path, value):
+@pytest.mark.age
+def test_outcome_false_values_normalize_to_false(tmp_path, value, migration_probe):
     records = _records_with_topology(tmp_path)
     record = next(record for record in records if record["decision"]["decision_id"] == "d1")
     record["outcome"]["is_correct"] = value
-    age = TopologyConn()
-    _write_batch(age, [record], "graph")
+    age = migration_probe()
+    _write_batch(age, [record], age.graph)
     outcome = next(node for node in age.nodes if node["label"] == "Outcome")
     assert outcome["is_correct"] is False
 
 
-def test_behavioral_topology_and_governed_property_shape(tmp_path):
+@pytest.mark.age
+def test_behavioral_topology_and_governed_property_shape(tmp_path, migration_probe):
     """Migration differs only by SQLite raw fields and migration provenance."""
     record = next(record for record in _records_with_topology(tmp_path) if record["decision"]["decision_id"] == "d1")
-    age = TopologyConn()
-    _write_batch(age, [record], "graph")
+    age = migration_probe()
+    _write_batch(age, [record], age.graph)
     assert [node["label"] for node in age.nodes].count("Decision") == 1
     assert [node["label"] for node in age.nodes].count("Outcome") == 1
     assert [edge["label"] for edge in age.edges].count("HAS_OUTCOME") == 1
     decision = next(node for node in age.nodes if node["label"] == "Decision")
-    assert decision["has_rowid"] is False
+    assert "_migration_rowid" not in decision
     props = record["decision"]
     governed_fields = {
         "decision_id", "domain", "category", "category_index", "recommended_action",
@@ -1050,46 +964,26 @@ def test_behavioral_topology_and_governed_property_shape(tmp_path):
     assert props["migration_source"] == "sqlite"  # Migration-only provenance.
 
 
-class TopologyVerificationConn:
-    """AGE count boundary for topology-verification behavior."""
-
-    def __init__(self, counts: dict[str, int]) -> None:
-        self.counts = counts
-
-    def execute(self, query):
-        if "count(DISTINCT o) AS outcomes" in query:
-            return FakeCursor((1, 1))
-        for label in ("HAS_OUTCOME", "CentroidCheckpoint", "EvidenceReceipt", "Outcome", "Decision"):
-            if label in query:
-                return FakeCursor((self.counts.get(label, 0),))
-        raise AssertionError(f"unexpected topology query: {query}")
 
 
-def test_topology_verification_passes_for_decision_outcome_edge_parity(tmp_path):
+@pytest.mark.age
+def test_topology_verification_passes_for_decision_outcome_edge_parity(tmp_path, migration_probe):
     records = _read_migration_records(str(_make_db(tmp_path)), "trading", all_decisions=True)
-    result = _verify_topology(
-        records,
-        TopologyVerificationConn(
-            {"Decision": 6, "Outcome": 4, "HAS_OUTCOME": 4, "CentroidCheckpoint": 0, "EvidenceReceipt": 0}
-        ),
-        "graph",
-        "trading",
-    )
+    age = migration_probe()
+    assert _write_batch(age, records, age.graph)["errors"] == 0
+    result = _verify_topology(records, age, age.graph, "trading")
 
     assert result["passed"] is True
     assert result["actual"] == result["expected"]
 
 
-def test_topology_verification_rejects_decisions_without_outcomes(tmp_path):
+@pytest.mark.age
+def test_topology_verification_rejects_decisions_without_outcomes(tmp_path, migration_probe):
     records = _read_migration_records(str(_make_db(tmp_path)), "trading", all_decisions=True)
-    result = _verify_topology(
-        records,
-        TopologyVerificationConn(
-            {"Decision": 6, "Outcome": 0, "HAS_OUTCOME": 0, "CentroidCheckpoint": 0, "EvidenceReceipt": 0}
-        ),
-        "graph",
-        "trading",
-    )
+    age = migration_probe()
+    assert _write_batch(age, records, age.graph)["errors"] == 0
+    age.read("MATCH (o:Outcome) DETACH DELETE o")
+    result = _verify_topology(records, age, age.graph, "trading")
 
     assert result["passed"] is False
     assert {item["element"] for item in result["mismatches"]} == {"Outcome", "HAS_OUTCOME"}
@@ -1097,7 +991,8 @@ def test_topology_verification_rejects_decisions_without_outcomes(tmp_path):
     assert result["mismatches"][0]["actual"] == 0
 
 
-def test_topology_verification_includes_active_and_archived_records(tmp_path):
+@pytest.mark.age
+def test_topology_verification_includes_active_and_archived_records(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
     _add_archive_rows(
         db_path,
@@ -1111,20 +1006,16 @@ def test_topology_verification_includes_active_and_archived_records(tmp_path):
     with sqlite3.connect(db_path) as source:
         archive_records = _read_archive_migration_records(source, "trading")
 
-    result = _verify_topology(
-        active_records + archive_records,
-        TopologyVerificationConn(
-            {"Decision": 9, "Outcome": 6, "HAS_OUTCOME": 6, "CentroidCheckpoint": 0, "EvidenceReceipt": 0}
-        ),
-        "graph",
-        "trading",
-    )
+    age = migration_probe()
+    assert _write_batch(age, active_records + archive_records, age.graph)["errors"] == 0
+    result = _verify_topology(active_records + archive_records, age, age.graph, "trading")
 
     assert result["passed"] is True
     assert result["expected"] == result["actual"]
 
 
-def test_include_archived_writes_final_archived_decisions_and_outcomes(tmp_path):
+@pytest.mark.age
+def test_include_archived_writes_final_archived_decisions_and_outcomes(tmp_path, migration_probe):
     db_path = _make_db(tmp_path)
     _add_archive_rows(
         db_path,
@@ -1136,8 +1027,8 @@ def test_include_archived_writes_final_archived_decisions_and_outcomes(tmp_path)
     )
     with sqlite3.connect(db_path) as source:
         records = _read_archive_migration_records(source, "trading")
-    age = TopologyConn()
-    result = _write_batch(age, records, "graph")
+    age = migration_probe()
+    result = _write_batch(age, records, age.graph)
     queries = "\n".join(age.queries)
 
     assert result == {"written": 3, "skipped": 0, "errors": 0}
@@ -1180,13 +1071,14 @@ def test_archive_status_is_derived_from_inline_outcome(tmp_path):
     assert all(record["decision"].get("archived") is True for record in records)
 
 
-def test_malformed_archive_outcome_fails_before_writing(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_malformed_archive_outcome_fails_before_writing(tmp_path, monkeypatch, migration_probe):
     db_path = _make_db(tmp_path)
     _add_archive_rows(db_path, [_archive_row(1, "broken", actual_action="buy", is_correct=None)])
-    age = TopologyConn()
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age)
+    age = migration_probe()
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age.open())
 
-    result = run_migration("trading", str(db_path), "dsn", "graph", include_archived=True, verify=False)
+    result = run_migration("trading", str(db_path), "dsn", age.graph, include_archived=True, verify=False)
 
     assert result["status"] == "FAIL"
     assert result["fail_reason"] == "1 write errors"
@@ -1207,10 +1099,11 @@ def test_active_archive_id_overlap_fails_before_connecting(tmp_path, monkeypatch
     assert "d1" in result["fail_reason"]
 
 
-def test_archive_phase_resume_starts_after_completed_active_phase(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_archive_phase_resume_starts_after_completed_active_phase(tmp_path, monkeypatch, migration_probe):
     db_path = _make_db(tmp_path)
     _add_archive_rows(db_path, [_archive_row(1, "a1")])
-    age = FakeConn()
+    age = migration_probe()
     calls: list[str] = []
 
     def interrupt_archive(_conn, batch, _graph):
@@ -1220,10 +1113,10 @@ def test_archive_phase_resume_starts_after_completed_active_phase(tmp_path, monk
             raise RuntimeError("interrupt archive")
         return {"written": len(batch), "skipped": 0, "errors": 0}
 
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age)
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age.open())
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._write_batch", interrupt_archive)
     first = run_migration(
-        "trading", str(db_path), "dsn", "graph", all_decisions=True,
+        "trading", str(db_path), "dsn", age.graph, all_decisions=True,
         include_archived=True, verify=False, batch_size=100,
     )
     checkpoint = json.loads((tmp_path / "trading_migration_checkpoint.json").read_text(encoding="utf-8"))
@@ -1232,20 +1125,22 @@ def test_archive_phase_resume_starts_after_completed_active_phase(tmp_path, monk
     assert checkpoint["active_last_rowid"] > 0
 
     second = run_migration(
-        "trading", str(db_path), "dsn", "graph", all_decisions=True,
+        "trading", str(db_path), "dsn", age.graph, all_decisions=True,
         include_archived=True, verify=False, batch_size=100, resume=True,
     )
     assert second["status"] == "PASS"
     assert calls == ["active", "archive", "archive"]
 
 
-def test_full_history_resume_reports_already_complete(tmp_path, monkeypatch):
+@pytest.mark.age
+def test_full_history_resume_reports_already_complete(tmp_path, monkeypatch, migration_probe):
+    conn = migration_probe()
     db_path = _make_db(tmp_path)
     _add_archive_rows(db_path, [_archive_row(1, "a1")])
-    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn.open())
 
-    first = run_migration("trading", str(db_path), "dsn", "graph", all_decisions=True, include_archived=True, verify=False)
-    second = run_migration("trading", str(db_path), "dsn", "graph", all_decisions=True, include_archived=True, verify=False, resume=True)
+    first = run_migration("trading", str(db_path), "dsn", conn.graph, all_decisions=True, include_archived=True, verify=False)
+    second = run_migration("trading", str(db_path), "dsn", conn.graph, all_decisions=True, include_archived=True, verify=False, resume=True)
 
     assert first["status"] == "PASS"
     assert second["status"] == "PASS"

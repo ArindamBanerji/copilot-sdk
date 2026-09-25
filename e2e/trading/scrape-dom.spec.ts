@@ -231,3 +231,4 @@ test("scrape all copilot tabs DOM", async ({ page }) => {
     `${"TOTAL".padEnd(12)} ${"".padEnd(20)} ${String(totalHeadings).padStart(8)} ${String(totalTestIds).padStart(8)} ${String(totalButtons).padStart(8)}`
   );
 });
+

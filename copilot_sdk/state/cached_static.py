@@ -37,7 +37,6 @@ def cached_static(key: str, *, copilot: CopilotRef = "trading", url: str | None 
 
     Decorator order matters:
         @router.get("/api/trajectory")
-        @cached_static("trajectory")
         def get_trajectory(): ...
 
     FastAPI must register the outer route decorator; this wrapper only

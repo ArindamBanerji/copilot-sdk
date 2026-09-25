@@ -33,7 +33,7 @@ async function gotoRegimeAnalytics(page: import("@playwright/test").Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expect(page.getByTestId("regime-analytics-panel")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible({ timeout: 20_000 });
 }
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
@@ -45,18 +45,18 @@ async function gotoAnalysis(page: import("@playwright/test").Page) {
 
 test("test_regime_analytics_panel_on_performance", async ({ page }) => {
   await gotoRegimeAnalytics(page);
-  await expect(page.getByTestId("regime-analytics-panel")).toContainText(/Per-Regime Decision Quality/i);
+  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/Accuracy Alerts/i);
 });
 
 test("test_regime_analytics_shows_per_regime_accuracy", async ({ page, request }) => {
-  const response = await request.get(`${BACKEND}/api/trading/regime-analytics`);
+  const response = await request.get(`${BACKEND}/api/trading/regime-analytics`, { timeout: 30_000 });
   expect(response.status()).toBe(200);
   const body = await response.json();
   expect(body).toHaveProperty("regimes");
 
   await gotoRegimeAnalytics(page);
-  await expect(page.getByTestId("regime-analytics-panel")).toContainText(/Accuracy:/i);
-  await expect(page.getByTestId("regime-analytics-panel")).toContainText(/Trending|Volatile|Ranging/i);
+  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/\d+%/i);
+  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/trend_following|event_driven|mean_reversion/i);
 });
 
 test("test_regime_panel_shows_regime_name", async ({ page }) => {
@@ -86,11 +86,13 @@ test("test_regime_panel_shows_hurst", async ({ page, request }) => {
 test("test_score_response_includes_regime", async ({ request }) => {
   let response = await request.post(`${BACKEND}/api/trading/score`, {
     data: { category: "trend_following", factors: TRADING_FACTORS },
+    timeout: 30_000,
   });
   if (response.status() === 404 || response.status() === 405) {
     console.debug(`/api/trading/score returned ${response.status()}, falling back to /api/score`);
     response = await request.post(`${BACKEND}/api/score`, {
       data: { category: "trend_following", factors: TRADING_FACTORS },
+      timeout: 30_000,
     });
   }
 
@@ -100,3 +102,4 @@ test("test_score_response_includes_regime", async ({ request }) => {
   const context = body.regime_context as Record<string, unknown>;
   expect(["trending", "ranging", "volatile"]).toContain(context.regime);
 });
+

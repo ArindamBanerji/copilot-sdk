@@ -1,0 +1,107 @@
+{
+  "a0_trajectory_match": {
+    "all_match": true,
+    "per_checkpoint": {
+      "100": {
+        "match": true,
+        "optB": 0.76,
+        "optC": 0.76
+      },
+      "1000": {
+        "match": true,
+        "optB": 0.8,
+        "optC": 0.8
+      },
+      "1500": {
+        "match": true,
+        "optB": 0.75,
+        "optC": 0.75
+      },
+      "2000": {
+        "match": true,
+        "optB": 0.7,
+        "optC": 0.7
+      },
+      "250": {
+        "match": true,
+        "optB": 0.79,
+        "optC": 0.79
+      },
+      "50": {
+        "match": true,
+        "optB": 0.74,
+        "optC": 0.74
+      },
+      "500": {
+        "match": true,
+        "optB": 0.79,
+        "optC": 0.79
+      },
+      "750": {
+        "match": true,
+        "optB": 0.82,
+        "optC": 0.82
+      }
+    }
+  },
+  "controlled_comparison": {
+    "canonical_a2_source": "optC",
+    "discrepancy_source": "fqi_training_definition",
+    "on_fork_B": {
+      "curve": {
+        "1000": 0.8,
+        "2000": 0.7,
+        "250": 0.79,
+        "500": 0.79
+      },
+      "final_quality": 0.7
+    },
+    "on_patch_C": {
+      "curve": {
+        "1000": 0.8,
+        "2000": 0.7,
+        "250": 0.79,
+        "500": 0.79
+      },
+      "final_quality": 0.7
+    },
+    "results_match": true
+  },
+  "diff_table": {
+    "action_application": {
+      "match": false,
+      "optB": "controller.get_lr() before super().update_weights(); lr_pos/lr_neg = default*scale",
+      "optC": "monkey-patched update_weights; controller.begin(trace,correct) before original call; alpha applied to both rates"
+    },
+    "action_space": {
+      "match": false,
+      "optB": "binary scale {0.5,1.0} on lr_pos/lr_neg",
+      "optC": "alpha {0.25,0.5,0.75,1.0}"
+    },
+    "fqi_hyperparams": {
+      "match": false,
+      "optB": "No ExtraTrees/FQI; np.linalg.lstsq",
+      "optC": "No ExtraTrees/FQI; tabular incremental action means"
+    },
+    "reward_function": {
+      "match": false,
+      "optB": "least-squares prediction of correct; scale 0.5 when predicted <0.75",
+      "optC": "incremental reward=(correct?-1:1) minus 0.5 under pressure, per (correct,flipped) action state"
+    },
+    "state_features": {
+      "match": false,
+      "optB": "(bias, margin, 1-correct); normalized only by raw values",
+      "optC": "(correct, flipped); no normalization"
+    },
+    "training_data": {
+      "match": false,
+      "optB": "per-update rows of correct and margin; fit once from supplied training rows",
+      "optC": "online state/action reward counts during evaluation trajectory"
+    }
+  },
+  "resolution": {
+    "rationale": "The two prior A2 definitions differ in state, action, reward, fitting, and timing. The canonical identity-policy comparison matched exactly across the fork and patch paths, so the 7pp discrepancy is attributable to the controller/training definitions, not K-update ordering. Prior 0.727/0.797 values are not interchangeable; neither is adjudicated as a canonical A2 result.",
+    "thesis_update": "Trajectory-control evidence remains unresolved; do not promote either A2 result.",
+    "which_a2_result_is_valid": "neither (code path issue)"
+  }
+}

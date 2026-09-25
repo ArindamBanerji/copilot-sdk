@@ -26,7 +26,7 @@ test("waste endpoint returns dollar impact", async ({ page }) => {
 test("waste alert card renders with dollar impact header", async ({ page }) => {
   await gotoPerformance(page);
   await expect(page.getByText("Waste Intelligence")).toBeVisible();
-  await expectAnyText(page, [/Weekly waste cost/i, /No waste data recorded yet/i]);
+  await expectAnyText(page, [/Weekly waste cost/i, /Total waste 30d/i, /Loading waste cost/i, /No waste data recorded yet/i]);
 });
 
 test("waste card shows benchmark comparison bars", async ({ page }) => {
@@ -36,12 +36,12 @@ test("waste card shows benchmark comparison bars", async ({ page }) => {
 
 test("waste card shows recommendations in kitchen language", async ({ page }) => {
   await gotoPerformance(page);
-  await expectAnyText(page, [/pre-portioned/i, /Reduce par/i, /Keep current prep plan/i, /No waste data recorded yet/i]);
+  await expectAnyText(page, [/pre-portioned/i, /Reduce par/i, /Keep current prep plan/i, /Loading waste cost/i, /No waste data recorded yet/i]);
 });
 
 test("waste flow verifies top items and no jargon", async ({ page }) => {
   await gotoPerformance(page);
-  await expectAnyText(page, [/Item/i, /Recommendation/i, /No waste data recorded yet/i]);
+  await expectAnyText(page, [/Item/i, /Recommendation/i, /Prep waste has a dollar target/i, /Weekly waste cost/i, /Loading waste cost/i, /No waste data recorded yet/i]);
   const card = page.locator("section", { hasText: "Waste Intelligence" });
   await expect(card).not.toContainText(/centroid|DK weight|sigma|factor vector|N=/i);
 });

@@ -15,6 +15,33 @@ class ProviderUnavailableError(RuntimeError):
     """Raised when governed data cannot be read without substitution."""
 
 
+class GraphEvidenceProvider:
+    """Production evidence adapter backed by one scoped graph traversal."""
+
+    def __init__(self, graph_store: Any, *, domain: str, entity_group: str = "") -> None:
+        self.graph_store = graph_store
+        self.domain = str(domain)
+        self.entity_group = str(entity_group)
+
+    def read_evidence(self, decision_id: str, dimension: int, factor_name: str) -> dict[str, Any] | None:
+        reader = getattr(self.graph_store, "decision_movement", None)
+        if not callable(reader):
+            raise ProviderUnavailableError("GraphStore lacks decision_movement traversal")
+        rows = reader(self.domain, str(decision_id))
+        if not rows:
+            return None
+        evidence = {
+            "decision_id": str(decision_id),
+            "dimension": int(dimension),
+            "factor_name": str(factor_name),
+            "source": "AGE GraphStore",
+            "provenance": "graph_traversal",
+            "trace_link": f"decision:{decision_id}:movement",
+            "graph_path": rows[0],
+        }
+        return evidence
+
+
 class DataProvider(Protocol):
     def execute(self, plan: QueryPlan) -> RawQueryResult:
         ...

@@ -38,6 +38,7 @@ KNOWN_DRIFT = {
     "shadow_mode.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
     "similar_cases_base.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
     "checkpoint.py": "SDK includes rollback and checkpoint lineage extensions; SOC copy predates these SDK changes.",
+    "intervention_controls.py": "SOC copy propagates decision-history graph read failures after Tier 1 silent-substitution fixes; SDK drift pending backport.",
 }
 
 # ---------------------------------------------------------------------------

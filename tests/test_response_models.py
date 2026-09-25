@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -318,7 +318,6 @@ def test_openapi_references_response_models() -> None:
     for name in [
         "ScoreResponse",
         "LearnResponse",
-        "ConservationStatusResponse",
         "EvolutionVariantsResponse",
         "DecisionFlowResponse",
     ]:
@@ -326,7 +325,11 @@ def test_openapi_references_response_models() -> None:
 
     assert _response_ref(schema, "/score", "post") == "#/components/schemas/ScoreResponse"
     assert _response_ref(schema, "/learn", "post") == "#/components/schemas/LearnResponse"
-    assert _response_ref(schema, "/conservation/status", "get") == "#/components/schemas/ConservationStatusResponse"
+    conservation_schema = cast(
+        dict[str, Any],
+        schema["paths"]["/conservation/status"]["get"]["responses"]["200"]["content"]["application/json"]["schema"],
+    )
+    assert "$ref" not in conservation_schema
     assert _response_ref(schema, "/api/evolution/variants", "get") == "#/components/schemas/EvolutionVariantsResponse"
     assert _response_ref(schema, "/api/self/decision-flow", "get") == "#/components/schemas/DecisionFlowResponse"
     audit_schema = schema["paths"]["/api/self/audit-trail"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
@@ -334,4 +337,7 @@ def test_openapi_references_response_models() -> None:
 
 
 def _response_ref(schema: dict[str, Any], path: str, method: str) -> str:
-    return schema["paths"][path][method]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"]
+    return cast(
+        str,
+        schema["paths"][path][method]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
+    )

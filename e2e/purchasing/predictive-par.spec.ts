@@ -33,20 +33,20 @@ test("par card shows two-tier table or empty state", async ({ page }) => {
   await gotoInventory(page);
   const card = page.locator("section", { hasText: "Smart Par Levels" });
   await card.scrollIntoViewIfNeeded();
-  await expectAnyText(page, [/Tue-Thu par/i, /Connect POS/i]);
+  await expectAnyText(page, [/Monday needs/i, /Friday needs/i, /Checking the week ahead/i, /Connect POS/i]);
 });
 
 test("par card shows dollar impact", async ({ page }) => {
   await gotoInventory(page);
   const card = page.locator("section", { hasText: "Smart Par Levels" });
   await card.scrollIntoViewIfNeeded();
-  await expectAnyText(page, [/\$180\/week/i, /Weekly waste reduction/i]);
+  await expectAnyText(page, [/\$180\/week/i, /saves about \$180\/week/i, /Checking the week ahead/i]);
 });
 
 test("par flow verifies kitchen language", async ({ page }) => {
   await gotoInventory(page);
   const card = page.locator("section", { hasText: "Smart Par Levels" });
   await card.scrollIntoViewIfNeeded();
-  await expectAnyText(page, [/Friday needs/i, /Slow days/i]);
+  await expectAnyText(page, [/Friday needs/i, /slow day/i, /Checking the week ahead/i]);
   await expect(card).not.toContainText(/centroid|DK weight|sigma|factor vector/i);
 });

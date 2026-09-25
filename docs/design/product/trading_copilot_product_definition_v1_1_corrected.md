@@ -10,7 +10,8 @@ The buyer IS the user. No enterprise sales cycle. No IT approval.
 (structure) + open-source trading ecosystem research (May 2026).
 **Post-review fixes:** η_override 0.02→0.01 (calibration pending).
 q_window 200→400 (theorem-validated). skip_recommended hypothetical
-verification added. Existing codebase (5,3,6) migration path documented.
+verification added. The historical `(5,3,6)` migration path is documented
+for compatibility; the current live runtime is `(5,4,10)=200`.
 Pricing raised (Pro $150-300, Prop $2K-5K). Community governance fully
 automated. Regime classifier AgentEvolver note. MAP items reference
 existing screens/tests.

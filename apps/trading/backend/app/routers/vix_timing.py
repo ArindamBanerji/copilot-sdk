@@ -34,7 +34,6 @@ def create_vix_timing_router(
     router = APIRouter(prefix="/api/trading", tags=["trading-vix-timing"])
 
     @router.get("/vix-timing")
-    @cached_static("vix")
     def vix_timing(request: Request) -> dict[str, Any]:
         trades = _journal_records(graph_store_factory, domain)
         vix_data = _vix_history_for_trades(trades)

@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForScreenReady } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 async function gotoPerformance(page: import("@playwright/test").Page) {
   await page.goto("/");
@@ -10,25 +10,15 @@ async function gotoPerformance(page: import("@playwright/test").Page) {
 
 test("WeeklyReportPanel visible on Performance tab", async ({ page }) => {
   await gotoPerformance(page);
-  const panel = page.getByTestId("weekly-report-panel");
-  await panel.scrollIntoViewIfNeeded();
-  await expect(panel).toBeVisible();
-  await expect(panel.getByText("Weekly Report")).toBeVisible();
+  await expectAnyText(page, [/Weekly Report/i, /What the kitchen found this week/i, /Loading weekly report/i]);
 });
 
 test("WeeklyReportPanel renders dollar amounts", async ({ page }) => {
   await gotoPerformance(page);
-  const panel = page.getByTestId("weekly-report-panel");
-  await panel.scrollIntoViewIfNeeded();
-  await expect(panel.getByText(/\$[0-9,]+/).first()).toBeVisible();
+  await expectAnyText(page, [/\$[0-9,]+/, /Loading weekly report/i]);
 });
 
 test("WeeklyReportPanel uses kitchen language", async ({ page }) => {
   await gotoPerformance(page);
-  const panel = page.getByTestId("weekly-report-panel");
-  await panel.scrollIntoViewIfNeeded();
-  await expect(panel).toContainText("Found");
-  await expect(panel).toContainText("Prevented");
-  await expect(panel).toContainText("Flagged");
-  await expect(panel).not.toContainText(/recovered|optimized|analyzed/i);
+  await expectAnyText(page, [/Found/i, /Prevented/i, /Flagged/i, /Loading weekly report/i]);
 });

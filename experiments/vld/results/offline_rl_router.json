@@ -1,0 +1,364 @@
+{
+  "dataops": {
+    "q_closed": {
+      "aggregate": {
+        "action_mean": 0.8211111111111111,
+        "action_std": 0.00684934889218773,
+        "routing_mean": 0.5844444444444444,
+        "routing_std": 0.009262962222518396
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.8133333333333334,
+          "routing_quality": 0.5933333333333334
+        },
+        "42": {
+          "action_accuracy": 0.82,
+          "routing_quality": 0.5716666666666667
+        },
+        "7": {
+          "action_accuracy": 0.83,
+          "routing_quality": 0.5883333333333334
+        }
+      }
+    },
+    "q_learned_linear": {
+      "reference_only": {
+        "available_for_this_matched_protocol": false,
+        "rv8_delta_vs_closed_pp": 1.4,
+        "rv8_scope": "DataOps only"
+      }
+    },
+    "rl_offline": {
+      "aggregate": {
+        "action_mean": 0.9588888888888889,
+        "action_std": 0.015475986974649001,
+        "routing_mean": 0.7616666666666666,
+        "routing_std": 0.01433720877840439
+      },
+      "beats_5pp_in_seeds": 3,
+      "delta_vs_closed": {
+        "routing_mean": 17.722222222222218,
+        "routing_std": 2.1702249982916277
+      },
+      "leakage_check_passed": true,
+      "method": "FQI with ExtraTreesRegressor",
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9433333333333334,
+          "routing_quality": 0.7633333333333333
+        },
+        "42": {
+          "action_accuracy": 0.98,
+          "routing_quality": 0.7783333333333333
+        },
+        "7": {
+          "action_accuracy": 0.9533333333333334,
+          "routing_quality": 0.7433333333333333
+        }
+      },
+      "training_transitions": 4800,
+      "training_transitions_per_seed": {
+        "123": 1600,
+        "42": 1600,
+        "7": 1600
+      }
+    }
+  },
+  "metadata": {
+    "behavior_policy": "50% closed-form Q, 50% uniform random remaining dimension",
+    "budget": 2,
+    "evaluation_decisions_per_seed": 300,
+    "fqi_iterations": 5,
+    "gamma": 0.9,
+    "method": "FQI with ExtraTreesRegressor",
+    "payload_sha256": "b8a9cf49de40554d24d513161700256245311a68d6a5111f611e40158d088274",
+    "pre_registered_rule": ">=5pp in >=2/3 seeds for >=1 copilot",
+    "primary_metric": "routing_quality = informative reads / actual reads",
+    "rv8_reference": "+1.4pp DataOps learned-linear-Q versus closed form under RV-8",
+    "secondary_metric": "action_accuracy = final action matches geometry-derived verified action",
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "tier": "REAL_COMPONENT geometry + GEOMETRY-DERIVED labels",
+    "training_decisions_per_seed": 800,
+    "two_rebuild_byte_identical": true
+  },
+  "purchasing": {
+    "q_closed": {
+      "aggregate": {
+        "action_mean": 0.77,
+        "action_std": 0.00942809041582059,
+        "routing_mean": 0.6838888888888889,
+        "routing_std": 0.011412576991207828
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.7766666666666666,
+          "routing_quality": 0.7
+        },
+        "42": {
+          "action_accuracy": 0.7566666666666667,
+          "routing_quality": 0.675
+        },
+        "7": {
+          "action_accuracy": 0.7766666666666666,
+          "routing_quality": 0.6766666666666666
+        }
+      }
+    },
+    "q_learned_linear": {
+      "reference_only": {
+        "available_for_this_matched_protocol": false,
+        "rv8_delta_vs_closed_pp": null,
+        "rv8_scope": "DataOps only"
+      }
+    },
+    "rl_offline": {
+      "aggregate": {
+        "action_mean": 0.9766666666666667,
+        "action_std": 0.021256807188565537,
+        "routing_mean": 0.87,
+        "routing_std": 0.011626916409142414
+      },
+      "beats_5pp_in_seeds": 3,
+      "delta_vs_closed": {
+        "routing_mean": 18.61111111111111,
+        "routing_std": 0.4157397096415482
+      },
+      "leakage_check_passed": true,
+      "method": "FQI with ExtraTreesRegressor",
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9933333333333333,
+          "routing_quality": 0.885
+        },
+        "42": {
+          "action_accuracy": 0.9466666666666667,
+          "routing_quality": 0.8566666666666667
+        },
+        "7": {
+          "action_accuracy": 0.99,
+          "routing_quality": 0.8683333333333333
+        }
+      },
+      "training_transitions": 4800,
+      "training_transitions_per_seed": {
+        "123": 1600,
+        "42": 1600,
+        "7": 1600
+      }
+    }
+  },
+  "s2p": {
+    "q_closed": {
+      "aggregate": {
+        "action_mean": 0.8322222222222222,
+        "action_std": 0.0062853936105470775,
+        "routing_mean": 0.6522222222222223,
+        "routing_std": 0.018274315781553894
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.8366666666666667,
+          "routing_quality": 0.6616666666666666
+        },
+        "42": {
+          "action_accuracy": 0.8366666666666667,
+          "routing_quality": 0.6683333333333333
+        },
+        "7": {
+          "action_accuracy": 0.8233333333333334,
+          "routing_quality": 0.6266666666666667
+        }
+      }
+    },
+    "q_learned_linear": {
+      "reference_only": {
+        "available_for_this_matched_protocol": false,
+        "rv8_delta_vs_closed_pp": null,
+        "rv8_scope": "DataOps only"
+      }
+    },
+    "rl_offline": {
+      "aggregate": {
+        "action_mean": 1.0,
+        "action_std": 0.0,
+        "routing_mean": 0.8588888888888889,
+        "routing_std": 0.0068493488921877715
+      },
+      "beats_5pp_in_seeds": 3,
+      "delta_vs_closed": {
+        "routing_mean": 20.666666666666668,
+        "routing_std": 2.3609477067639753
+      },
+      "leakage_check_passed": true,
+      "method": "FQI with ExtraTreesRegressor",
+      "per_seed": {
+        "123": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.85
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.86
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8666666666666667
+        }
+      },
+      "training_transitions": 4800,
+      "training_transitions_per_seed": {
+        "123": 1600,
+        "42": 1600,
+        "7": 1600
+      }
+    }
+  },
+  "soc": {
+    "q_closed": {
+      "aggregate": {
+        "action_mean": 0.9133333333333333,
+        "action_std": 0.008164965809277268,
+        "routing_mean": 0.7849999999999999,
+        "routing_std": 0.015456030825826186
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9233333333333333,
+          "routing_quality": 0.7766666666666666
+        },
+        "42": {
+          "action_accuracy": 0.9033333333333333,
+          "routing_quality": 0.7716666666666666
+        },
+        "7": {
+          "action_accuracy": 0.9133333333333333,
+          "routing_quality": 0.8066666666666666
+        }
+      }
+    },
+    "q_learned_linear": {
+      "reference_only": {
+        "available_for_this_matched_protocol": false,
+        "rv8_delta_vs_closed_pp": null,
+        "rv8_scope": "DataOps only"
+      }
+    },
+    "rl_offline": {
+      "aggregate": {
+        "action_mean": 0.9988888888888889,
+        "action_std": 0.0015713484026367562,
+        "routing_mean": 0.8872222222222222,
+        "routing_std": 0.00671280331866362
+      },
+      "beats_5pp_in_seeds": 3,
+      "delta_vs_closed": {
+        "routing_mean": 10.222222222222232,
+        "routing_std": 0.8748897637790951
+      },
+      "leakage_check_passed": true,
+      "method": "FQI with ExtraTreesRegressor",
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9966666666666667,
+          "routing_quality": 0.8833333333333333
+        },
+        "42": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8816666666666667
+        },
+        "7": {
+          "action_accuracy": 1.0,
+          "routing_quality": 0.8966666666666666
+        }
+      },
+      "training_transitions": 4800,
+      "training_transitions_per_seed": {
+        "123": 1600,
+        "42": 1600,
+        "7": 1600
+      }
+    }
+  },
+  "trading": {
+    "q_closed": {
+      "aggregate": {
+        "action_mean": 0.9311111111111111,
+        "action_std": 0.007856742013183834,
+        "routing_mean": 0.7227777777777777,
+        "routing_std": 0.01623515466244717
+      },
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9366666666666666,
+          "routing_quality": 0.745
+        },
+        "42": {
+          "action_accuracy": 0.9366666666666666,
+          "routing_quality": 0.7066666666666667
+        },
+        "7": {
+          "action_accuracy": 0.92,
+          "routing_quality": 0.7166666666666667
+        }
+      }
+    },
+    "q_learned_linear": {
+      "reference_only": {
+        "available_for_this_matched_protocol": false,
+        "rv8_delta_vs_closed_pp": null,
+        "rv8_scope": "DataOps only"
+      }
+    },
+    "rl_offline": {
+      "aggregate": {
+        "action_mean": 0.9733333333333334,
+        "action_std": 0.01414213562373091,
+        "routing_mean": 0.8216666666666667,
+        "routing_std": 0.026770630673681708
+      },
+      "beats_5pp_in_seeds": 3,
+      "delta_vs_closed": {
+        "routing_mean": 9.888888888888891,
+        "routing_std": 1.3425606637327316
+      },
+      "leakage_check_passed": true,
+      "method": "FQI with ExtraTreesRegressor",
+      "per_seed": {
+        "123": {
+          "action_accuracy": 0.9933333333333333,
+          "routing_quality": 0.8516666666666667
+        },
+        "42": {
+          "action_accuracy": 0.9633333333333334,
+          "routing_quality": 0.7866666666666666
+        },
+        "7": {
+          "action_accuracy": 0.9633333333333334,
+          "routing_quality": 0.8266666666666667
+        }
+      },
+      "training_transitions": 4800,
+      "training_transitions_per_seed": {
+        "123": 1600,
+        "42": 1600,
+        "7": 1600
+      }
+    }
+  },
+  "verdict": {
+    "copilots_meeting_rule": [
+      "soc",
+      "dataops",
+      "trading",
+      "purchasing",
+      "s2p"
+    ],
+    "materially_better": true,
+    "rule": ">=5pp routing_quality in >=2/3 seeds for >=1 copilot"
+  }
+}

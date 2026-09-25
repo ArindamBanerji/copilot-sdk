@@ -6,7 +6,9 @@ from copilot_sdk.evolution import DefaultPromotionGate
 def _shadow(**overrides):
     data = {
         "sufficient": True,
-        "total": 20,
+        "total": 2_000,
+        "correct": 1_640,
+        "baseline_correct": 1_400,
         "accuracy": 0.82,
         "baseline_accuracy": 0.70,
         "batch_accuracies": [0.82, 0.82, 0.82],
@@ -40,7 +42,7 @@ def test_gate_rejects_low_superiority():
     )
 
     assert result["promoted"] is False
-    assert result["reason"] == "superiority"
+    assert result["reason"] == "practical_significance"
 
 
 def test_gate_rejects_below_accuracy_floor():
@@ -84,7 +86,8 @@ def test_gate_reports_metrics():
     assert result["accuracy"] == 0.82
     assert result["baseline_accuracy"] == 0.7
     assert result["superiority_pp"] == 12.0
-    assert result["total"] == 20
+    assert result["total"] == 2_000
+    assert result["p_value"] is not None
 
 
 def test_gate_custom_thresholds():
@@ -93,7 +96,7 @@ def test_gate_custom_thresholds():
     result = gate.evaluate(_shadow(), conservation_state={"status": "GREEN"})
 
     assert result["promoted"] is False
-    assert result["reason"] == "superiority"
+    assert result["reason"] == "practical_significance"
 
 
 def test_gate_reports_all_failed_checks():
@@ -111,8 +114,26 @@ def test_gate_reports_all_failed_checks():
     assert result["promoted"] is False
     assert result["failed_checks"] == [
         "sufficient_data",
-        "superiority",
+        "statistical_significance",
+        "practical_significance",
         "accuracy_floor",
         "conservation",
         "variance",
     ]
+
+
+def test_gate_rejects_practically_large_but_statistically_weak_result():
+    result = DefaultPromotionGate(min_shadow_decisions=10).evaluate(
+        _shadow(
+            total=10,
+            correct=8,
+            baseline_correct=7,
+            accuracy=0.80,
+            baseline_accuracy=0.70,
+        ),
+        conservation_state={"status": "GREEN"},
+    )
+
+    assert result["promoted"] is False
+    assert result["checks"]["practical_significance"] is True
+    assert result["checks"]["statistical_significance"] is False

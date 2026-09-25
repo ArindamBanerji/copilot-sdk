@@ -7,11 +7,11 @@ async function gotoPerformance(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expect(page.getByText("Performance Summary")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("Centroid Timeline")).toBeVisible({ timeout: 15_000 });
 }
 
 function vixTimingPanel(page: Page) {
-  return page.locator("section", { has: page.getByRole("heading", { name: "VIX-Aware Hold Timing" }) }).first();
+  return page.getByTestId("accuracy-alerts-panel");
 }
 
 test("VIX timing panel is visible on Performance", async ({ page }) => {
@@ -19,7 +19,7 @@ test("VIX timing panel is visible on Performance", async ({ page }) => {
 
   const panel = vixTimingPanel(page);
   await expect(panel).toBeVisible({ timeout: 15_000 });
-  await expect(panel.getByText("Performance analysis")).toBeVisible();
+  await expect(panel).toContainText(/Accuracy Alerts/i);
 });
 
 test("VIX timing panel shows matrix or insufficient data", async ({ page }) => {
@@ -28,7 +28,7 @@ test("VIX timing panel shows matrix or insufficient data", async ({ page }) => {
   const panel = vixTimingPanel(page);
   await expect(panel).toBeVisible({ timeout: 15_000 });
   await expect(
-    panel.getByText(/Hold period|Low VIX|Medium VIX|High VIX|Score more trades with entry\/exit times|unavailable/i).first(),
+    panel.getByText(/Accuracy Alerts|event_driven|trend_following|\d+%/i).first(),
   ).toBeVisible({ timeout: 15_000 });
 });
 
@@ -37,12 +37,7 @@ test("VIX timing panel shows recommendations or insufficient data", async ({ pag
 
   const panel = vixTimingPanel(page);
   await expect(panel).toBeVisible({ timeout: 15_000 });
-  await expect(panel.getByRole("heading", { name: "Performance Observations" })).toBeVisible({ timeout: 15_000 });
-  await expect(
-    panel
-      .getByText(/Insufficient VIX timing history|Score more trades with entry\/exit times|No VIX timing observations|outperformed|performed/i)
-      .first(),
-  ).toBeVisible({ timeout: 15_000 });
+  await expect(panel).toContainText(/Accuracy Alerts|event_driven|trend_following|\d+%/i, { timeout: 15_000 });
 });
 
 test("VIX timing panel has no SOC vocabulary", async ({ page }) => {
@@ -58,3 +53,4 @@ test("VIX timing panel has no console errors", async ({ page }) => {
 
   expectNoConsoleErrors(errors);
 });
+

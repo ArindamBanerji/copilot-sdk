@@ -107,3 +107,4 @@ test("no console errors on regime panel", async ({ page }) => {
 
   expect(unexpected).toEqual([]);
 });
+

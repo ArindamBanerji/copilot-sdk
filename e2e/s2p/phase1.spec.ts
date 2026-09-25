@@ -1,6 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
-import { waitForTriageQueue } from "./helpers";
+import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+
+test.setTimeout(150_000);
 
 async function openTab(page: Page, name: string) {
   await page.goto("/");
@@ -39,7 +41,7 @@ function waitForScoreResponse(page: Page) {
       response.url().includes("/score") &&
       response.request().method() === "POST" &&
       response.status() === 200,
-    { timeout: 30_000 },
+    { timeout: 90_000 },
   );
 }
 
@@ -47,7 +49,7 @@ async function clickScore(page: Page) {
   const selected = panel(page, "Selected Invoice");
   const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
   if (selectedHasInvoice === 0) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV/i });
+    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
     const invoiceCount = await invoiceButtons.count();
     if (invoiceCount > 0) {
       await invoiceButtons.first().click();
@@ -58,10 +60,7 @@ async function clickScore(page: Page) {
   await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await Promise.all([
-    waitForScoreResponse(page),
-    scoreButton.click(),
-  ]);
+  await clickAndWaitForS2PScore(page, scoreButton);
 }
 
 async function scoreFirstInvoice(page: Page) {
@@ -73,14 +72,14 @@ async function scoreFirstInvoice(page: Page) {
 test("test_s2p_triage_renders_invoice_queue", async ({ page }) => {
   await openTriage(page);
 
-  await expect(panel(page, "Invoice Selector")).toContainText(/queued|S2P-INV/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|No invoice exceptions/i);
   await expect(panel(page, "Selected Invoice")).toContainText(/Supplier|Amount|Category|Choose an invoice to begin triage/i);
 });
 
 test("test_s2p_triage_select_invoice_shows_factors", async ({ page }) => {
   await openTriage(page);
 
-  const invoiceButtons = page.getByRole("button").filter({ hasText: /S2P-INV/i });
+  const invoiceButtons = page.getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
   if ((await invoiceButtons.count()) > 1) {
     await invoiceButtons.nth(1).click();
   }

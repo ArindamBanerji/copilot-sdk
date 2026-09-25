@@ -90,7 +90,7 @@ def test_current_public_constants_define_expected_copilots() -> None:
 
     assert names == {"soc", "trading", "purchasing", "dataops", "s2p"}
     assert demo.SDK_NAMES == {"trading", "purchasing", "dataops"}
-    assert demo.PLAYWRIGHT_NAMES == {"soc", "trading", "purchasing", "dataops", "s2p"}
+    assert demo.PLAYWRIGHT_NAMES == {"soc", "s2p"}
 
 
 def test_all_copilots_have_explicit_age_graph_env() -> None:
@@ -249,11 +249,18 @@ def test_main_dispatches_status_stop_and_kill_all(monkeypatch: pytest.MonkeyPatc
 
 
 def test_cmd_status_reports_age_and_selected_copilot(monkeypatch: pytest.MonkeyPatch) -> None:
+    soc = next(copilot for copilot in demo.COPILOTS if copilot["name"] == "SOC")
+    backend_port = int(soc["be_port"])
     monkeypatch.setattr(demo, "verify_age", lambda dsn: True)
     monkeypatch.setattr(demo, "verify_wsl2_running", lambda: True)
-    monkeypatch.setattr(demo, "check_port", lambda port: port == 8010)
-    monkeypatch.setattr(demo, "check_health", lambda port: {"domain": "soc"} if port == 8010 else None)
-    soc = next(copilot for copilot in demo.COPILOTS if copilot["name"] == "SOC")
+    monkeypatch.setattr(demo, "check_port", lambda port: port == backend_port)
+    monkeypatch.setattr(
+        demo,
+        "check_health",
+        lambda port: {"domain": "soc", "graph_connected": True}
+        if port == backend_port
+        else None,
+    )
 
     buf = io.StringIO()
     with redirect_stdout(buf):
@@ -353,9 +360,10 @@ def test_run_preseed_skips_soc_live_preseed_when_no_soc_selected(
 ) -> None:
     calls: list[str] = []
     dataops = [c for c in COPILOTS if c["name"] == "DataOps"]
-    monkeypatch.setattr(demo, "run_deterministic_preseed", lambda fail_hard=True: calls.append("deterministic"))
-    monkeypatch.setattr(demo, "run_soc_preseed", lambda copilot: calls.append(f"soc:{copilot['name']}"))
+    monkeypatch.setattr(demo, "_run_deterministic_seed", lambda fail_hard=True: calls.append("deterministic"))
+    monkeypatch.setattr(demo, "_seed_soc_alerts", lambda copilot, fail_hard=True: calls.append(f"soc:{copilot['name']}"))
+    monkeypatch.setattr(demo.subprocess, "run", lambda *args, **kwargs: None)
 
-    demo.run_preseed(dataops)
+    demo._seed_during_start(dataops)
 
     assert calls == ["deterministic"]

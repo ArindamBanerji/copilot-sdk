@@ -168,7 +168,7 @@ def _build_scorer(tmp_path, graph_store=None) -> CompoundingScorer:
         actions=list(preset.shape.action_names),
         categories=list(preset.shape.category_names),
     )
-    return CompoundingScorer(preset, gae_scorer, graph_store=graph_store or InMemoryGraphStore())
+    return CompoundingScorer(preset, gae_scorer, graph_store=graph_store or InMemoryGraphStore(), profile="test")
 
 
 def _score(scorer: CompoundingScorer):

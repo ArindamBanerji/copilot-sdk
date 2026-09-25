@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import numpy as np
 from fastapi.testclient import TestClient
 import sys
@@ -165,7 +166,9 @@ def test_validate_shape_match_passes():
 def test_demo_grids_match_purchasing_preset():
     create_app = _purchasing_create_app()
     try:
-        from app.routers.chain_router import create_demo_chain_stores
+        create_demo_chain_stores = importlib.import_module(
+            "app.routers.chain_router"
+        ).create_demo_chain_stores
 
         preset = PurchasingPreset()
         expected = (preset.shape.n_categories, preset.shape.n_actions, preset.shape.n_factors)
@@ -176,8 +179,8 @@ def test_demo_grids_match_purchasing_preset():
         _clear_app_modules()
 
 
-def test_router_validate():
-    create_app = _purchasing_create_app()
+def test_router_validate(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         client = TestClient(create_app(db_path=":memory:", demo_bundle_path=False))
         response = client.post("/api/purchasing/chain/validate", json={"source": "chicago", "target": "miami"})
@@ -187,8 +190,8 @@ def test_router_validate():
         _clear_app_modules()
 
 
-def test_router_uses_request_payload():
-    create_app = _purchasing_create_app()
+def test_router_uses_request_payload(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         client = TestClient(create_app(db_path=":memory:", demo_bundle_path=False))
         response = client.post("/api/purchasing/chain/validate", json={"source": "miami", "target": "chicago"})
@@ -201,8 +204,8 @@ def test_router_uses_request_payload():
         _clear_app_modules()
 
 
-def test_router_rejects_unknown_location():
-    create_app = _purchasing_create_app()
+def test_router_rejects_unknown_location(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         client = TestClient(create_app(db_path=":memory:", demo_bundle_path=False))
         response = client.post("/api/purchasing/chain/validate", json={"source": "nonexistent", "target": "miami"})
@@ -211,8 +214,8 @@ def test_router_rejects_unknown_location():
         _clear_app_modules()
 
 
-def test_router_validate_returns_location_names():
-    create_app = _purchasing_create_app()
+def test_router_validate_returns_location_names(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         client = TestClient(create_app(db_path=":memory:", demo_bundle_path=False))
         response = client.post("/api/purchasing/chain/validate", json={"source": "chicago", "target": "miami"})
@@ -223,8 +226,8 @@ def test_router_validate_returns_location_names():
         _clear_app_modules()
 
 
-def test_router_transfer_dry_run():
-    create_app = _purchasing_create_app()
+def test_router_transfer_dry_run(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         client = TestClient(create_app(db_path=":memory:", demo_bundle_path=False))
         response = client.post("/api/purchasing/chain/transfer", json={"source": "chicago", "target": "miami", "dry_run": True})
@@ -234,8 +237,8 @@ def test_router_transfer_dry_run():
         _clear_app_modules()
 
 
-def test_chain_state_resets():
-    create_app = _purchasing_create_app()
+def test_chain_state_resets(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as client:
             response = client.post("/api/purchasing/chain/transfer", json={"source": "chicago", "target": "miami", "dry_run": False})
@@ -248,8 +251,8 @@ def test_chain_state_resets():
         _clear_app_modules()
 
 
-def test_chain_status_empty_after_reset():
-    create_app = _purchasing_create_app()
+def test_chain_status_empty_after_reset(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as client:
             client.post("/api/purchasing/chain/transfer", json={"source": "chicago", "target": "miami", "dry_run": False})
@@ -270,8 +273,8 @@ def test_double_transfer_idempotent():
     assert np.allclose(target.pattern_grid, first)
 
 
-def test_transfer_history_cleared_on_reset():
-    create_app = _purchasing_create_app()
+def test_transfer_history_cleared_on_reset(monkeypatch):
+    create_app = _purchasing_create_app(monkeypatch)
     try:
         with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as client:
             client.post("/api/purchasing/chain/transfer", json={"source": "chicago", "target": "miami", "dry_run": False})
@@ -282,13 +285,13 @@ def test_transfer_history_cleared_on_reset():
         _clear_app_modules()
 
 
-def _purchasing_create_app():
+def _purchasing_create_app(monkeypatch=None):
+    if monkeypatch is not None:
+        monkeypatch.setenv("DEMO_MODE", "1")
     _clear_app_modules()
     if str(PURCHASING_BACKEND) not in sys.path:
         sys.path.insert(0, str(PURCHASING_BACKEND))
-    from app.main import create_app
-
-    return create_app
+    return importlib.import_module("app.main").create_app
 
 
 def _clear_app_modules() -> None:

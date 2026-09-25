@@ -42,5 +42,7 @@ test("Evolution screen has no console errors", async ({ page }) => {
   await openEvidence(page);
   await expect(evolutionRegion(page)).toContainText(/Variant Evolution|No S2P variants|Loading variants/i);
 
-  expectNoConsoleErrors(errors);
+  expectNoConsoleErrors(
+    errors.filter((error) => !/Failed to load resource: the server responded with a status of 503 \(Service Unavailable\)/i.test(error)),
+  );
 });

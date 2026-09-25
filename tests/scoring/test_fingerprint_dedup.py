@@ -16,6 +16,7 @@ def _make_scorer(mock_preset) -> tuple[CompoundingScorer, InMemoryGraphStore]:
             categories=list(mock_preset.shape.category_names),
         ),
         graph_store=store,
+        profile="test",
     )
     return scorer, store
 

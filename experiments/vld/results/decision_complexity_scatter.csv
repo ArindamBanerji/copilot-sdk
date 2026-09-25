@@ -1,0 +1,151 @@
+copilot_or_config,point_type,complexity_measure,complexity_value,capability_result,capability_value,tier,metric
+dataops,single-domain geometry,intrinsic_dimensionality,4.866104716332952,k_curve_gain,32.00000000000001,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,intrinsic_dimensionality,4.866104716332952,mu_widening,-1.7888888888888907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,intrinsic_dimensionality,4.866104716332952,budget_frontier_efficiency,0.844,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,intrinsic_dimensionality,4.866104716332952,conservation_false_pause,0.24666666666666665,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,intrinsic_dimensionality,4.866104716332952,readout_gap,55.611111111111114,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,m_conditional,0.40694444444444444,k_curve_gain,32.00000000000001,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,m_conditional,0.40694444444444444,mu_widening,-1.7888888888888907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,m_conditional,0.40694444444444444,budget_frontier_efficiency,0.844,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,m_conditional,0.40694444444444444,conservation_false_pause,0.24666666666666665,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,m_conditional,0.40694444444444444,readout_gap,55.611111111111114,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,action_separability,0.9376307401297265,k_curve_gain,32.00000000000001,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,action_separability,0.9376307401297265,mu_widening,-1.7888888888888907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,action_separability,0.9376307401297265,budget_frontier_efficiency,0.844,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,action_separability,0.9376307401297265,conservation_false_pause,0.24666666666666665,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,action_separability,0.9376307401297265,readout_gap,55.611111111111114,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,evidence_chain_length,2.0,k_curve_gain,32.00000000000001,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,evidence_chain_length,2.0,mu_widening,-1.7888888888888907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,evidence_chain_length,2.0,budget_frontier_efficiency,0.844,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,evidence_chain_length,2.0,conservation_false_pause,0.24666666666666665,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,evidence_chain_length,2.0,readout_gap,55.611111111111114,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,outcome_entropy,0.032821082970149934,k_curve_gain,32.00000000000001,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,outcome_entropy,0.032821082970149934,mu_widening,-1.7888888888888907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,outcome_entropy,0.032821082970149934,budget_frontier_efficiency,0.844,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,outcome_entropy,0.032821082970149934,conservation_false_pause,0.24666666666666665,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+dataops,single-domain geometry,outcome_entropy,0.032821082970149934,readout_gap,55.611111111111114,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,intrinsic_dimensionality,2.7123965893592574,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,intrinsic_dimensionality,2.7123965893592574,mu_widening,-1.4611111111111197,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,intrinsic_dimensionality,2.7123965893592574,budget_frontier_efficiency,0.907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,intrinsic_dimensionality,2.7123965893592574,conservation_false_pause,0.013333333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,intrinsic_dimensionality,2.7123965893592574,readout_gap,47.333333333333336,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,m_conditional,0.5027777777777778,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,m_conditional,0.5027777777777778,mu_widening,-1.4611111111111197,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,m_conditional,0.5027777777777778,budget_frontier_efficiency,0.907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,m_conditional,0.5027777777777778,conservation_false_pause,0.013333333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,m_conditional,0.5027777777777778,readout_gap,47.333333333333336,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,action_separability,0.5752898599203137,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,action_separability,0.5752898599203137,mu_widening,-1.4611111111111197,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,action_separability,0.5752898599203137,budget_frontier_efficiency,0.907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,action_separability,0.5752898599203137,conservation_false_pause,0.013333333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,action_separability,0.5752898599203137,readout_gap,47.333333333333336,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,evidence_chain_length,1.0,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,evidence_chain_length,1.0,mu_widening,-1.4611111111111197,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,evidence_chain_length,1.0,budget_frontier_efficiency,0.907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,evidence_chain_length,1.0,conservation_false_pause,0.013333333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,evidence_chain_length,1.0,readout_gap,47.333333333333336,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,outcome_entropy,0.045454545454545456,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,outcome_entropy,0.045454545454545456,mu_widening,-1.4611111111111197,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,outcome_entropy,0.045454545454545456,budget_frontier_efficiency,0.907,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,outcome_entropy,0.045454545454545456,conservation_false_pause,0.013333333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+trading,single-domain geometry,outcome_entropy,0.045454545454545456,readout_gap,47.333333333333336,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,intrinsic_dimensionality,3.886653528327941,k_curve_gain,29.999999999999993,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,intrinsic_dimensionality,3.886653528327941,mu_widening,1.2722222222222235,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,intrinsic_dimensionality,3.886653528327941,budget_frontier_efficiency,0.798,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,intrinsic_dimensionality,3.886653528327941,conservation_false_pause,0.4613333333333333,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,intrinsic_dimensionality,3.886653528327941,readout_gap,68.11111111111111,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,m_conditional,0.27361111111111114,k_curve_gain,29.999999999999993,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,m_conditional,0.27361111111111114,mu_widening,1.2722222222222235,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,m_conditional,0.27361111111111114,budget_frontier_efficiency,0.798,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,m_conditional,0.27361111111111114,conservation_false_pause,0.4613333333333333,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,m_conditional,0.27361111111111114,readout_gap,68.11111111111111,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,action_separability,0.6248692169667104,k_curve_gain,29.999999999999993,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,action_separability,0.6248692169667104,mu_widening,1.2722222222222235,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,action_separability,0.6248692169667104,budget_frontier_efficiency,0.798,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,action_separability,0.6248692169667104,conservation_false_pause,0.4613333333333333,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,action_separability,0.6248692169667104,readout_gap,68.11111111111111,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,evidence_chain_length,2.0,k_curve_gain,29.999999999999993,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,evidence_chain_length,2.0,mu_widening,1.2722222222222235,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,evidence_chain_length,2.0,budget_frontier_efficiency,0.798,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,evidence_chain_length,2.0,conservation_false_pause,0.4613333333333333,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,evidence_chain_length,2.0,readout_gap,68.11111111111111,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,outcome_entropy,0.16497786892523097,k_curve_gain,29.999999999999993,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,outcome_entropy,0.16497786892523097,mu_widening,1.2722222222222235,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,outcome_entropy,0.16497786892523097,budget_frontier_efficiency,0.798,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,outcome_entropy,0.16497786892523097,conservation_false_pause,0.4613333333333333,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+purchasing,single-domain geometry,outcome_entropy,0.16497786892523097,readout_gap,68.11111111111111,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,intrinsic_dimensionality,1.1586948049133359,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,intrinsic_dimensionality,1.1586948049133359,mu_widening,15.12222222222222,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,intrinsic_dimensionality,1.1586948049133359,budget_frontier_efficiency,0.917,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,intrinsic_dimensionality,1.1586948049133359,conservation_false_pause,0.006666666666666667,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,intrinsic_dimensionality,1.1586948049133359,readout_gap,0.0,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,m_conditional,0.1375,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,m_conditional,0.1375,mu_widening,15.12222222222222,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,m_conditional,0.1375,budget_frontier_efficiency,0.917,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,m_conditional,0.1375,conservation_false_pause,0.006666666666666667,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,m_conditional,0.1375,readout_gap,0.0,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,action_separability,0.8239802486189748,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,action_separability,0.8239802486189748,mu_widening,15.12222222222222,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,action_separability,0.8239802486189748,budget_frontier_efficiency,0.917,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,action_separability,0.8239802486189748,conservation_false_pause,0.006666666666666667,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,action_separability,0.8239802486189748,readout_gap,0.0,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,evidence_chain_length,1.0,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,evidence_chain_length,1.0,mu_widening,15.12222222222222,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,evidence_chain_length,1.0,budget_frontier_efficiency,0.917,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,evidence_chain_length,1.0,conservation_false_pause,0.006666666666666667,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,evidence_chain_length,1.0,readout_gap,0.0,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,outcome_entropy,0.019984874266755822,k_curve_gain,14.000000000000002,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,outcome_entropy,0.019984874266755822,mu_widening,15.12222222222222,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,outcome_entropy,0.019984874266755822,budget_frontier_efficiency,0.917,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,outcome_entropy,0.019984874266755822,conservation_false_pause,0.006666666666666667,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+soc,single-domain geometry,outcome_entropy,0.019984874266755822,readout_gap,0.0,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,intrinsic_dimensionality,1.9110474222651315,k_curve_gain,5.999999999999995,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,intrinsic_dimensionality,1.9110474222651315,mu_widening,-5.33333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,intrinsic_dimensionality,1.9110474222651315,budget_frontier_efficiency,0.841,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,intrinsic_dimensionality,1.9110474222651315,conservation_false_pause,0.016,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,intrinsic_dimensionality,1.9110474222651315,readout_gap,16.222222222222218,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,m_conditional,0.2125,k_curve_gain,5.999999999999995,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,m_conditional,0.2125,mu_widening,-5.33333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,m_conditional,0.2125,budget_frontier_efficiency,0.841,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,m_conditional,0.2125,conservation_false_pause,0.016,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,m_conditional,0.2125,readout_gap,16.222222222222218,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,action_separability,0.6660088742314216,k_curve_gain,5.999999999999995,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,action_separability,0.6660088742314216,mu_widening,-5.33333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,action_separability,0.6660088742314216,budget_frontier_efficiency,0.841,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,action_separability,0.6660088742314216,conservation_false_pause,0.016,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,action_separability,0.6660088742314216,readout_gap,16.222222222222218,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,evidence_chain_length,1.0,k_curve_gain,5.999999999999995,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,evidence_chain_length,1.0,mu_widening,-5.33333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,evidence_chain_length,1.0,budget_frontier_efficiency,0.841,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,evidence_chain_length,1.0,conservation_false_pause,0.016,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,evidence_chain_length,1.0,readout_gap,16.222222222222218,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,outcome_entropy,0.0,k_curve_gain,5.999999999999995,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,outcome_entropy,0.0,mu_widening,-5.33333333333334,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,outcome_entropy,0.0,budget_frontier_efficiency,0.841,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,outcome_entropy,0.0,conservation_false_pause,0.016,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p,single-domain geometry,outcome_entropy,0.0,readout_gap,16.222222222222218,REAL_COMPONENT geometry + SIMULATED decisions/evidence/verification,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),intrinsic_dimensionality,2.740561097452011,k_curve_gain,16.444444444444443,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),intrinsic_dimensionality,2.740561097452011,mu_widening,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),intrinsic_dimensionality,2.740561097452011,budget_frontier_efficiency,0.8388888888888889,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),intrinsic_dimensionality,2.740561097452011,conservation_false_pause,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),intrinsic_dimensionality,2.740561097452011,readout_gap,16.11111111111111,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),m_conditional,0.27870370370370373,k_curve_gain,16.444444444444443,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),m_conditional,0.27870370370370373,mu_widening,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),m_conditional,0.27870370370370373,budget_frontier_efficiency,0.8388888888888889,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),m_conditional,0.27870370370370373,conservation_false_pause,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),m_conditional,0.27870370370370373,readout_gap,16.11111111111111,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),action_separability,0.5519588740275408,k_curve_gain,16.444444444444443,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),action_separability,0.5519588740275408,mu_widening,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),action_separability,0.5519588740275408,budget_frontier_efficiency,0.8388888888888889,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),action_separability,0.5519588740275408,conservation_false_pause,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),action_separability,0.5519588740275408,readout_gap,16.11111111111111,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),evidence_chain_length,2.0,k_curve_gain,16.444444444444443,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),evidence_chain_length,2.0,mu_widening,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),evidence_chain_length,2.0,budget_frontier_efficiency,0.8388888888888889,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),evidence_chain_length,2.0,conservation_false_pause,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),evidence_chain_length,2.0,readout_gap,16.11111111111111,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),outcome_entropy,0.0,k_curve_gain,16.444444444444443,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),outcome_entropy,0.0,mu_widening,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),outcome_entropy,0.0,budget_frontier_efficiency,0.8388888888888889,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),outcome_entropy,0.0,conservation_false_pause,,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy
+s2p_multi_enterprise,multi-enterprise S2P (constructed),outcome_entropy,0.0,readout_gap,16.11111111111111,CONSTRUCTED multi-enterprise S2P + SIMULATED streams,action_accuracy

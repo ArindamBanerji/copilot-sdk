@@ -1,0 +1,108 @@
+VLD 8.2  reviews
+
+The Drive read truncated at ~62KB. Let me get the rest (§10, appendices, the K14 section integration):I've read the full paper through §9. Here's the review:
+
+**What v8.2 gets right — significant improvements over v7.8:**
+
+§9.1 (K14 integration) is the biggest upgrade. The "two choices the standard stack makes" framing — implementation (shared weights vs explicit geometry) forces validation (LLM-judged vs geometry-checkable) — is the strongest competitive argument in the paper. "The blind spot and the value are the same set" is the sentence a buyer remembers. The K14 data is properly scoped ("designed to be surface-wrong, so the figures isolate...under adversarial surface conditions — not a natural-prevalence accuracy"), which preempts the obvious objection.
+
+§6.2a scopes the 100% poisoning claim properly now ("sustained injection at 20%+ rates, on the floor-preserving gate configurations, 3-seed runs, synthetic verification"). This was a P1 from v7.8 — fixed.
+
+Duan and EVOMAL now have arxiv IDs and context in §7.1. Fixed.
+
+The §5.4 stated-bound section is properly placed after §5.2/5.3. The RL-CTRL parametrization language is clear.
+
+**P1 issues (must fix before publication):**
+
+**1. Four charts still say "TO RENDER."** pub_rgi_static_arch (§1), pub_rgi_compounding_loop (§1), pub_confidence_frontier (§3.3 Readout 4), pub_confidence_ablation (§3.5), pub_moat_catchup (§4.2), pub_rgi_landscape (§9). That's six, not four — two more than v7.8 flagged. A paper with six "[TO RENDER]" placeholders is not submittable.
+
+**2. K14 Part 2 data is missing from §9.1.** The section presents Part 1 (label agreement: 0.08–0.86) but omits the compounding-under-noise result: learning degrades 5–10pp at 88–92% noise, reverses at 92%, unaffected below 60%. This is the Q2 finding — "you cannot compound what you cannot measure" is stated but the quantitative evidence (the crossover between 60% and 88%) that makes it concrete is absent. Add one sentence with the crossover numbers.
+
+**3. SOC baseline still absent from §5.2 RL table.** The table shows S2P and SOC controlled results but no SOC baseline row for context. The SOC baseline (0.765) is stated inline — fine, but the table structure implies both copilots have both rows.
+
+**P2 issues (improve but not blocking):**
+
+**4. Abstract is still ~280 words.** Target ~200 for arxiv. The evidence-convention block ("Results are tagged by grounding...") could move to a footnote or §2 where it's first used.
+
+**5. §9.1 doesn't cite K14 Part 2 (compounding under noise).** The section says "you cannot compound what you cannot measure" but doesn't give the measured evidence: at the K2 noise rates on S2P/Trading/DataOps (88–92%), learning degrades by 5–10pp and reverses, confirming that noisy labels don't just misreport learning — they actively prevent it. This is the causal link between "the judge is blind" (Part 1) and "so the competitor can't learn" (the claim). One paragraph.
+
+**6. K14 sample-size caveat needs stating.** 50 scenarios per copilot, 240/250 real LLM judgments. The per-copilot competence correlations (r=0.60 SOC, r=0.45 Purchasing) are on n=50 — state this. The effect sizes are large enough that n=50 is fine, but not stating the n is the kind of thing a reviewer flags.
+
+**7. §4.2 moat numbers don't carry their tier tag on second appearance.** "19.6 ± 5.4 points (SOC)" appears in §4.2 without "(real-component geometry + simulated competitor stream)" which is stated later in the same paragraph — but a reader who scans the numbers first might miss the scope. Move the tier tag to immediately after the numbers.
+
+**P3 issues (cosmetic):**
+
+**8. §0 adversarial question ("Six-to-ten-dimensional geometry...") is at the end of §2.** Still deserves promotion — it's the first objection a builder raises and should be answered before the math, not after it.
+
+**9. Two +1.4 figures are still ambiguous.** §3.1 "within 1.4 points" (zero-label vs budget-matched RF) and §7.2 "within 1.4 points" (same claim, repeated). These are the same number referring to the same result, so it's not the v7.8 problem (where two *different* +1.4 figures were conflated). But state "the same comparison as §3.1" or cross-reference to avoid a reviewer thinking they're different measurements.
+
+**Overall assessment:** v8.2 is substantially improved over v7.8. The K14 integration in §9.1 is the right placement and the right framing. The three remaining P1s are: render the charts, add Part 2 numbers to §9.1, and verify the SOC baseline in §5.2. Once those are addressed, the content is publication-ready — the structural and argumentative quality is high. The Read/Route/Reshape taxonomy in §0, four-readouts-of-one-process in §3, honest envelope in §8, and K14 competitive diagnostic in §9.1 are all publishable-strength contributions.
+
+
+
+
+This is a substantial revision. v8.2 is a different paper from v7.8 in structure, not just content. Let me give you the full review.
+
+---
+
+## What v8.2 gets right that v7.8 didn't
+
+**§1 ("The machine") is the single biggest structural improvement across all versions.** Before the reader hits a single equation, they now see the whole architecture — static (the eight building blocks, each named with a one-line role and a domain example) and dynamic (fast loop within a decision, slow loop across decisions). The slow-loop framing — "a read system has the fast loop at most and never the slow one; its ten-thousandth decision is its first" — is the clearest single sentence in the entire paper for explaining what RGI does that the standard stack doesn't. v7.8 dropped the reader into the math at §1 and expected them to assemble the machine in their heads; v8.2 shows the machine first and lets the math explain how it works. This is the right order for every audience.
+
+**§9.1 (K14) transforms the competitive section from positioning into proof.** This is not the K1-K4 taxonomy I proposed extracting from the synthetic data analysis — it's something better. You ran the experiment: 240 real LLM judgments (Claude Sonnet, temperature 0) against planted ground truth, agreement collapsing from 0.86 on surface-resolvable decisions (SOC) to 0.08-0.12 on investigation-dependent decisions (S2P, Trading, DataOps). The "blind spot and the value are the same set" insight is the paper's competitive knockout: a shared-weights competitor's "it learns" claim is unfalsifiable precisely on the decisions RGI monetizes, because the only scalable validation method (LLM judgment) returns near-random signal there. And "you cannot compound what you cannot measure" is the structural reason the moat is uncatchable, not merely "we learn faster." This is measured, not asserted — which is what makes it devastating.
+
+**The competitive table restructured into table-stakes (rows 1-3) vs compounding layer (rows 4-6).** This is better than v7.8's flat six-axis table. The reader sees immediately that every serious system does rows 1-3; the separation is rows 4-6. The scoped footnotes ("✓ within stated bounds" vs "✗") are exactly right.
+
+**The "where we are in the machine" signpost at §6.** Small but effective — it reconnects the reader to the §1 map after several dense sections.
+
+---
+
+## Content issues to address
+
+**1. Cross-reference errors from the renumbering.** The section restructuring (§0→§1→§2...) introduced some stale cross-references. §8 (operating envelope) references "§5.2–4.4" — that should be "§5.2–5.4". Check every §-reference against the new numbering; a single wrong one breaks trust with a careful reviewer.
+
+**2. The budget-matched comparison table in §3.1 needs a "Budget" column.** The table shows VLD at 37.8% vs full-feature RF at 72.0%. A reader scanning the table without reading the paragraph below it will conclude VLD is half as accurate as RF. The comparison that matters — VLD 37.8% vs budget-2 RF 39.2%, both at matched two-read budget, VLD with zero labels — is explained in prose but the table doesn't enforce the matched-budget reading visually. Add a "Budget" column (RF full-feature: "all features"; RF budget-2: "2 reads"; VLD: "2 reads") so the matched constraint is visible in the table itself.
+
+**3. §4.2 moat — the competitor description sentence is overloaded.** "In this designed experiment the simulated competitor is an identical learner trained on a different firm's decision stream (a distribution-shifted profile) and evaluated on the incumbent's held-out decisions — so it starts from the same cold geometry but never sees the incumbent's verified outcomes." This is 48 words carrying four pieces of information. Break it:
+
+> The simulated competitor is an identical learner — same engine, same cold-start geometry — trained on a *different* firm's decision stream and evaluated on the incumbent's held-out decisions. It never sees the incumbent's verified outcomes.
+
+Same content, one breath per clause.
+
+**4. §9.1 — "confidently wrong on the hard cases" needs tighter support.** The sentence "it is confidently wrong on the hard cases, scoring its own surface-competence rather than the system's decision" is the strongest claim in the section. The supporting data is the confidence-correctness correlation (r = 0.60 SOC, 0.45 Purchasing) — but these are the *higher*-agreement copilots. The "confidently wrong" inference for S2P/Trading/DataOps (the low-agreement ones where it matters) depends on the "where measurable" qualifier, which suggests the correlation couldn't be computed there. If the judge is near-random on those copilots (0.08-0.12 agreement), confidence-correctness correlation is ill-defined. The claim is structurally right — near-random agreement means the judge has no signal regardless of its own confidence — but the sentence reads as if you measured high-confidence wrong answers on S2P/Trading/DataOps specifically. Tighten to: "where measurable, the judge's correctness tracks its own confidence (r = 0.60 SOC, 0.45 Purchasing) — it rates its own surface-competence, not the system's decision; on the investigation-dependent copilots, agreement is near-random regardless."
+
+**5. Appendices A and B from v7.8 are gone.** The chart-to-claim map and equation/tier/evidence index were useful reference tables for a reviewer who wants to trace any claim back to its evidence tier and figure. If they were dropped for length, consider restoring them — they're exactly the kind of back-matter that builds reviewer confidence ("this author tracks every claim to its grounding").
+
+**6. §6.2a — the scoping change is good but check consistency.** v7.8 said "sustained poisoning (20%+ injection) is detected 100% across all five copilots." v8.2 says "sustained poisoning is detected in 100% of tested cases across all five copilots." The v8.2 version is more honest (scoped to tested cases). But make sure the injection-rate detail (20%+) is stated somewhere nearby — otherwise "tested cases" is unauditable. It appears in the conservation stance doc but should be in the paper too.
+
+---
+
+## Presentation observations
+
+**1. Seven charts are TO RENDER.** pub_rgi_static_arch, pub_rgi_compounding_loop, pub_confidence_frontier, pub_confidence_ablation, pub_moat_catchup, pub_rgi_landscape, pub_rgi_hero. Two of these (static arch and compounding loop) are §1's visual anchors — the map that the reader carries through the rest of the paper. Without them, §1 is prose describing a machine the reader has to imagine. These two should be rendered first because they're what makes §1 work.
+
+**2. The "where we are in the machine" signpost appears only at §6.** It works so well there that its absence at §3, §4, §5, and §7 is felt. A one-line italic signpost at the top of each section — "Where we are in the machine (§1): this is the investigation loop — routing and enrichment composed" — would give the reader a navigational anchor at each section entry. Costs nothing, helps a lot on a paper this long.
+
+**3. §0 as section number.** Starting at §0 is unconventional and some reviewers may find it odd. The content is right (the category definition belongs before the machine description), but if this goes to a venue with numbered-section conventions, you may need to relabel it as "Introduction" or §1 and shift everything down. For arxiv, §0 is fine.
+
+**4. Paper length.** At ~63KB of markdown, this is a long paper — likely 25-30 pages formatted. For arxiv, that's within bounds for a systems paper. For outreach, the paper needs a companion 2-page brief (the impact core or a derivative) that carries the abstract, the §1 machine description, the headline numbers, the K14 finding, and the competitive table. The paper itself is the reference for the reader who wants to verify; the brief is for the reader who decides whether to read the paper.
+
+---
+
+## Net assessment
+
+v8.2 is submission-quality in structure and argument. The §0→§1→§2-6→§7→§8→§9 arc — define the class, show the machine, characterize each part, name the whole, state what it doesn't claim, position it — is the right structure for this paper. The K14 integration in §9.1 is the competitive finding that was missing in every prior version. The machine section (§1) solves the readability problem that plagued every version from v4 through v7.8.
+
+**Remaining work before submission:**
+
+| Item | Effort | Priority |
+|---|---|---|
+| Render 7 TO-RENDER charts (§1 arch diagrams first) | 2-3d | Blocking |
+| Fix cross-reference numbering (§8 cites "§5.2–4.4") | 0.5h | Blocking |
+| Add "Budget" column to §3.1 comparison table | 5min | High |
+| Tighten §4.2 competitor sentence, §9.1 "confidently wrong" | 15min | High |
+| Add signpost lines to §§3-5, 7 matching §6's pattern | 15min | Medium |
+| Restore Appendix A/B (chart-to-claim + equation/tier index) | 1h | Medium |
+| Add injection-rate detail to §6.2a | 5min | Medium |
+
+None of these are research items. They're editing. The paper's content is done; the argument is complete. What remains is production.

@@ -187,12 +187,19 @@ export function TriageScreen() {
     setSituation(null);
     setSituationLoading(false);
     try {
+      const selectedFactors = factorMap(null, activeInvoice);
+      const factorPayload = S2P_FACTORS.reduce<Partial<Record<(typeof S2P_FACTORS)[number], number>>>((acc, name) => {
+        const value = selectedFactors[name];
+        if (typeof value === "number") acc[name] = value;
+        return acc;
+      }, {});
       const result = await scoreInvoice({
         event_id: invoiceId(activeInvoice),
         category: String(activeInvoice.category ?? "price_variance"),
         amount: Number(activeInvoice.amount ?? 0),
         supplier_id: supplierId(activeInvoice),
         supplier_name: supplierName(activeInvoice),
+        ...factorPayload,
       });
       if (!result) {
         setScoreError("Scoring failed");
@@ -276,12 +283,12 @@ export function TriageScreen() {
             <p className="mt-4 text-sm text-slate-500">No invoice exceptions available.</p>
           ) : (
             <div className="mt-4 space-y-2">
-              {invoices.slice(0, 10).map((invoice) => {
+              {invoices.slice(0, 10).map((invoice, index) => {
                 const id = invoiceId(invoice);
                 const selectedRow = id === invoiceId(selected);
                 return (
                   <button
-                    key={id}
+                    key={`${id || "invoice"}-${invoice.decision_id ?? index}-${index}`}
                     type="button"
                     onClick={() => {
                       selectedRef.current = invoice;

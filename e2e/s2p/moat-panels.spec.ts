@@ -56,9 +56,9 @@ test("SM-08 twin panel distinguishes pilot target from measured evidence", async
 test("SM-09 readiness panel shows provenance and trust dimensions", async ({ page }) => {
   await openS2PTab(page, "Dashboard");
   const panel = page.getByTestId("day-zero-readiness-panel");
-  await expect(panel).toContainText(/Source coverage/i);
-  await expect(panel).toContainText(/Provenance/i);
-  await expect(panel).toContainText(/Trust tier/i);
+  await expect(panel).toContainText(/Source coverage/i, { timeout: 30_000 });
+  await expect(panel).toContainText(/Provenance/i, { timeout: 30_000 });
+  await expect(panel).toContainText(/Trust tier/i, { timeout: 30_000 });
 });
 
 test("SM-10 moat panels are reachable across the S2P flow", async ({ page }) => {

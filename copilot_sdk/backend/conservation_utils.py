@@ -145,15 +145,65 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
 
 
 def _baseline_q(state: Any, current_q: float) -> float:
-    """Resolve a supplied quality baseline, falling back to current quality."""
+    """Resolve an independent quality baseline for G-REL.
+
+    A current-window accuracy is never used as its own baseline.  When at
+    least 200 verified outcomes are available, the first 200 outcomes in the
+    rolling 400-outcome window provide the comparison baseline.  During
+    bootstrap, an explicit configured baseline is preferred and 0.5 is the
+    labeled default.
+    """
+
+    del current_q  # The current value must not become a self-comparison.
+
+    outcomes: list[Any] = []
+    if isinstance(state, dict):
+        for key in ("verified_outcomes", "recent_outcomes", "outcomes"):
+            candidate = state.get(key)
+            if isinstance(candidate, (list, tuple)):
+                outcomes = list(candidate)
+                break
+    else:
+        store = getattr(state, "graph_store", None) or getattr(state, "_graph_store", None)
+        try:
+            getter = store.get_verified_decisions if store is not None else None
+        except AttributeError:
+            getter = None
+        if callable(getter):
+            domain = str(getattr(state, "domain", "") or getattr(store, "domain", ""))
+            try:
+                outcomes = list(getter(domain))
+            except TypeError:
+                outcomes = list(getter())
+
+    if len(outcomes) >= 200:
+        window = outcomes[-400:]
+        baseline_window = window[:200]
+        correct = 0
+        for outcome in baseline_window:
+            if isinstance(outcome, dict):
+                value = outcome.get("is_correct", outcome.get("correct"))
+            else:
+                value = outcome
+            correct += int(bool(value))
+        return float(correct / len(baseline_window))
 
     candidates: list[Any] = []
     if isinstance(state, dict):
-        candidates.extend([state.get("baseline_q"), state.get("baseline")])
+        candidates.extend(
+            [
+                state.get("baseline_q"),
+                state.get("baseline"),
+                state.get("baseline_accuracy"),
+                state.get("domain_baseline"),
+            ]
+        )
     else:
         candidates.extend([
             getattr(state, "baseline_q", None),
             getattr(state, "baseline", None),
+            getattr(state, "baseline_accuracy", None),
+            getattr(getattr(state, "_preset", None), "baseline_accuracy", None),
         ])
     for candidate in candidates:
         try:
@@ -162,7 +212,7 @@ def _baseline_q(state: Any, current_q: float) -> float:
             continue
         if 0.0 <= value <= 1.0:
             return value
-    return float(max(0.0, min(1.0, current_q)))
+    return 0.5
 
 
 def _conservation_reason(

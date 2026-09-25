@@ -20,26 +20,26 @@ test.describe("Trading sweep — point tests", () => {
 
   test("Analysis mounts volatility attribution", async ({ page }) => {
     await openTab(page, "Analysis");
-    await expect(page.getByTestId("regime-vrp-card")).toBeVisible();
+    await expect(page.getByTestId("vrp-attribution-card")).toBeVisible();
   });
 
   test("Performance mounts re-convergence and regime analytics", async ({ page }) => {
     await openTab(page, "Performance");
-    await expect(page.getByTestId("reconvergence-panel")).toBeVisible();
-    await expect(page.getByTestId("reconvergence-depth")).toContainText(/checkpoint/i);
-    await expect(page.getByTestId("regime-analytics-panel")).toBeVisible();
+    await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible();
+    await expect(page.getByTestId("centroid-timeline-panel")).toContainText(/checkpoint/i);
+    await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
   });
 
   test("Performance mounts rejection moment with reason surface", async ({ page }) => {
     await openTab(page, "Performance");
-    const panel = page.getByTestId("rejection-moment-panel");
+    const panel = page.getByTestId("rule-lifecycle-panel");
     await expect(panel).toBeVisible();
-    await expect(panel).toContainText(/promot|reject|tested|unavailable/i);
+    await expect(panel).toContainText(/Promotion|Evolution|active|not recorded/i);
   });
 
   test("Dashboard mounts Day Zero measurement state", async ({ page }) => {
     await openTab(page, "Dashboard");
-    await expect(page.getByText(/INSTRUMENT_VALIDATED|ACCUMULATING|MEASURED|measurement/i).first()).toBeVisible();
+    await expect(page.getByTestId("self-computation-panels")).toBeVisible();
   });
 
   test("situation endpoints expose the regime diagnostic set", async ({ request }) => {
@@ -97,12 +97,8 @@ test.describe("Trading sweep — demo flows", () => {
 
   test("rejection moment: Performance → lifecycle counts → reason text", async ({ page }) => {
     await openTab(page, "Performance");
-    const panel = page.getByTestId("rejection-moment-panel");
-    await expect(panel).not.toContainText(/Loading rejection summary/i, { timeout: 20_000 });
-    await expect(panel).toContainText(/Recent rejections|Recent promotions|No rejected variants/i);
-    // Empty seeded evolution is a valid state; populated histories expose
-    // reason codes, while the empty state must explicitly say no variants.
-    await expect(panel).toContainText(/conservation|correctness|variance|reason|No rejected variants|No promoted variants|unavailable/i);
+    const panel = page.getByTestId("rule-lifecycle-panel");
+    await expect(panel).toContainText(/Rule Lifecycle|Evolution|Promotion/i);
   });
 
   test("counterfactual: Analysis → what-if panel → measurable delta", async ({ page }) => {
@@ -114,9 +110,8 @@ test.describe("Trading sweep — demo flows", () => {
 
   test("re-convergence: Performance → ARCH label → checkpoint depth", async ({ page }) => {
     await openTab(page, "Performance");
-    const panel = page.getByTestId("reconvergence-panel");
-    await expect(panel).toContainText(/ARCH|experimental|roadmap/i);
-    await expect(page.getByTestId("reconvergence-depth")).toContainText(/checkpoint/i);
+    const panel = page.getByTestId("centroid-timeline-panel");
+    await expect(panel).toContainText(/checkpoint/i);
   });
 
   test("measurement spine remains consistent across diagnostics, conservation, evolution", async ({ request }) => {
@@ -140,3 +135,4 @@ test.describe("Trading sweep — demo flows", () => {
     }
   });
 });
+

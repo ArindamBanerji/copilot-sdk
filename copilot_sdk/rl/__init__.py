@@ -11,8 +11,19 @@ from copilot_sdk.rl.reward_functions import (
     WasteReductionRewardFunction,
 )
 from copilot_sdk.rl.types import CreditAssignment, ExplorationDecision, RewardResult
+from copilot_sdk.rl.outcome_receipt import OutcomeReceipt, OutcomeReceiptStore, read_outcome_receipt
+from copilot_sdk.rl.reward_protocol import RewardFunction as MappingRewardFunction, LegacyRewardAdapter
+from copilot_sdk.rl.temporal_credit import TemporalCreditAssigner
+from copilot_sdk.rl.conservation_budget import ExplorationBudget
 
 __all__ = [
+    "OutcomeReceipt",
+    "OutcomeReceiptStore",
+    "read_outcome_receipt",
+    "MappingRewardFunction",
+    "LegacyRewardAdapter",
+    "TemporalCreditAssigner",
+    "ExplorationBudget",
     "RewardFunction",
     "DomainRewardFunction",
     "RewardComputer",

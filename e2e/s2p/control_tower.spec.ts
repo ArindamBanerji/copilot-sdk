@@ -25,7 +25,7 @@ test("dashboard shows Control Tower intent queue", async ({ page }) => {
 test("Control Tower exposes queue or empty state", async ({ page }) => {
   await page.goto("/");
 
-  await expect(panel(page, "Control Tower")).toContainText(/Top priority invoices|No prioritized invoices available|S2P-INV/i);
+  await expect(panel(page, "Control Tower")).toContainText(/Top priority invoices|No prioritized invoices available|S2P-INV|STRESS-CONC-S2P|INV-/i);
 });
 
 test("Control Tower dashboard copy has no SOC vocabulary", async ({ page }) => {

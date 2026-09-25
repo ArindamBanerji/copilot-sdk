@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
+from unittest.mock import Mock
 
 import pytest
 import numpy as np
@@ -77,70 +78,21 @@ class FakeTrajectoryResult:
     days_active: float
 
 
-class FakeStore:  # MOCK-OK: scoring router contract fixture, no production conservation path
-    def __init__(self) -> None:
-        self.domain = "dataops"
-        self.decisions: dict[str, dict] = {}
 
-    def save(self, decision: dict) -> None:
-        self.decisions[decision["decision_id"]] = decision
 
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict:
-        if decision_id not in self.decisions:
-            raise KeyError(decision_id)
-        return self.decisions[decision_id]
-
-    def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict]:
-        decisions = [
-            decision
-            for decision in self.decisions.values()
-            if category is None or decision.get("category") == category
-        ]
-        return decisions[:limit]
-
-    def get_all_decisions(self, domain: str) -> list[dict]:
-        return list(self.decisions.values())
-
-    def write_decision(
-        self,
-        domain: str,
-        *,
-        category: str,
-        action: str,
-        confidence: float,
-        factors: dict[str, float],
-        metadata: dict[str, object] | None = None,
-    ) -> str:
-        decision_id = str((metadata or {}).get("decision_id") or uuid4())
-        self.save({
-            "decision_id": decision_id,
-            "domain": domain,
-            "category": category,
-            "recommended_action": action,
-            "confidence": confidence,
-            "factors": factors,
-            **dict(metadata or {}),
-        })
-        return decision_id
-
-    def write_outcome(
-        self,
-        decision_id: str,
-        actual_action: str,
-        is_correct: bool,
-        metadata: dict[str, object] | None = None,
-        domain: str | None = None,
-    ) -> str:
-        del metadata, domain
-        decision = self.get_decision(decision_id)
-        decision["actual_action"] = actual_action
-        decision["is_correct"] = is_correct
-        return str(uuid4())
+def _seed_decision(store, row):
+    return store.write_decision(
+        store.domain, row.get("category", "pipeline_failure"),
+        row["recommended_action"], row.get("confidence", 0.72),
+        row.get("factors", {"signal": value for value in row.get("factor_vector", [0.5])}),
+        metadata={key: value for key, value in row.items()
+                  if key not in {"category", "recommended_action", "confidence", "factors"}},
+    )
 
 
 class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests cover scorer behavior
     def __init__(self) -> None:
-        self.graph_store = FakeStore()
+        self.graph_store = InMemoryGraphStore(domain="dataops")
         self.learn_contexts: list[dict[str, object] | None] = []
 
     def score(
@@ -160,7 +112,7 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
             category=category,
             factors=factors,
         )
-        self.graph_store.save(
+        _seed_decision(self.graph_store, 
             {
                 "decision_id": result.decision_id,
                 "category": category,
@@ -425,55 +377,36 @@ class SQLiteL5Scorer(FakeScorer):
         )
 
 
-class RecordingLearningStore:
-    def __init__(self, old_state: dict[str, object] | None = None) -> None:
-        self.old_state = old_state
-        self.updates: list[dict[str, object]] = []
-
-    def get_conservation_state(self, domain: str) -> dict[str, object] | None:
-        assert domain == "test"
-        return self.old_state
-
-    def update_conservation_state(self, **kwargs: object) -> str:
-        self.updates.append(kwargs)
-        return "l5-row"
 
 
-class FailingReadLearningStore(RecordingLearningStore):
-    def get_conservation_state(self, domain: str) -> dict[str, object] | None:
-        raise RuntimeError("read failed")
 
 
-class FailingWriteLearningStore(RecordingLearningStore):
-    def update_conservation_state(self, **kwargs: object) -> str:
-        raise RuntimeError("write failed")
 
 
-class RecordingDKLearningStore:
-    def __init__(self, fail: bool = False) -> None:
-        self.fail = fail
-        self.dk_updates: list[dict[str, object]] = []
-
-    def update_dk_weights(self, **kwargs: object) -> None:
-        if self.fail:
-            raise RuntimeError("dk write failed")
-        self.dk_updates.append(kwargs)
 
 
-class RecordingCentroidLearningStore:
-    def __init__(self, fail: bool = False) -> None:
-        self.fail = fail
-        self.centroid_updates: list[dict[str, object]] = []
 
-    def update_centroid(self, **kwargs: object) -> None:
-        if self.fail:
-            raise RuntimeError("centroid write failed")
-        self.centroid_updates.append(kwargs)
+
+def _learning_store(status=None, fail_method=None):
+    store = InMemoryGraphStore(domain="test")
+    if status is not None:
+        store.update_conservation_state("test", status, 0.0, 0.0, 0, 0.5, 0.0,
+                                        3, 0, 0.0, 0.0, "false")
+    for method in ("update_conservation_state", "update_dk_weights", "update_centroid"):
+        setattr(store, method, Mock(wraps=getattr(store, method)))
+    if fail_method:
+        setattr(store, fail_method, Mock(side_effect=RuntimeError("persistence failed")))
+    return store
+
+
+def _updates(store, method):
+    return [call.kwargs for call in getattr(store, method).call_args_list]
 
 
 class DKRuntimeScorer(FakeScorer):
     def __init__(self, weights: list[list[float]] | None = None) -> None:
         super().__init__()
+        self.graph_store = InMemoryGraphStore(domain="test")
         self.weights = weights
         self.reestimate_calls = 0
         self.get_weight_calls = 0
@@ -495,7 +428,7 @@ class DKRuntimeScorer(FakeScorer):
             category=category,
             factors=factors,
         )
-        self.graph_store.save(
+        _seed_decision(self.graph_store, 
             {
                 "decision_id": result.decision_id,
                 "category": category,
@@ -569,7 +502,7 @@ class CentroidRuntimeScorer(DKRuntimeScorer):
 class BlockingDKRuntimeScorer(DKRuntimeScorer):
     def __init__(self) -> None:
         super().__init__(weights=[[0.2]])
-        self.graph_store.save(
+        _seed_decision(self.graph_store, 
             {
                 "decision_id": "dk-block-1",
                 "category": "pipeline_failure",
@@ -577,7 +510,7 @@ class BlockingDKRuntimeScorer(DKRuntimeScorer):
                 "recommended_action": "auto_approve",
             }
         )
-        self.graph_store.save(
+        _seed_decision(self.graph_store, 
             {
                 "decision_id": "dk-block-2",
                 "category": "pipeline_failure",
@@ -604,44 +537,20 @@ class BlockingDKRuntimeScorer(DKRuntimeScorer):
         return True
 
 
-class ConcurrentGraphStore:
-    domain = "test"
-
-    def __init__(self) -> None:
-        self.decisions = {
-            "dec-1": {
-                "decision_id": "dec-1",
-                "recommended_action": "auto_approve",
-                "factors": {"business_criticality": 0.8},
-                "confidence": 0.72,
-            },
-            "dec-2": {
-                "decision_id": "dec-2",
-                "recommended_action": "auto_approve",
-                "factors": {"business_criticality": 0.8},
-                "confidence": 0.72,
-            },
-        }
-
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, object] | None:
-        return self.decisions.get(decision_id)
-
-    def count_verified(self, domain: str) -> int:
-        return 2
-
-    def count_correct(self, domain: str) -> int:
-        return 2
-
-    def count_verified_decisions(self, domain: str) -> int:
-        return 2
-
-    def count_categories_with_n(self, domain: str, n: int) -> int:
-        return 1
 
 
 class ConcurrentScorer:
     def __init__(self) -> None:
-        self.graph_store = ConcurrentGraphStore()
+        self.graph_store = InMemoryGraphStore(domain="test")
+        for decision_id in ("dec-1", "dec-2"):
+            _seed_decision(self.graph_store, {
+                "decision_id": decision_id, "category": "pipeline_failure",
+                "recommended_action": "auto_approve", "factors": {"business_criticality": 0.8},
+            })
+        for index in range(2):
+            history_id = self.graph_store.write_decision("test", "pipeline_failure", "auto_approve", 0.72,
+                                                        {"business_criticality": 0.8})
+            self.graph_store.write_outcome(history_id, "auto_approve", True, domain="test")
         self._preset = SimpleNamespace(
             shape=SimpleNamespace(n_categories=3),
             penalty_ratio=1.0,
@@ -669,41 +578,24 @@ class ConcurrentScorer:
         )
 
 
-class DomainAwareCountStore:
-    def __init__(
-        self,
-        *,
-        verified: dict[str, int],
-        correct: dict[str, int],
-        total: dict[str, int],
-        categories: dict[str, int],
-    ) -> None:
-        self.verified = verified
-        self.correct = correct
-        self.total = total
-        self.categories = categories
-        self.calls: list[tuple[str, str]] = []
 
-    def count_verified(self, domain: str) -> int:
-        self.calls.append(("count_verified", domain))
-        return self.verified.get(domain, 0)
 
-    def count_correct(self, domain: str) -> int:
-        self.calls.append(("count_correct", domain))
-        return self.correct.get(domain, 0)
-
-    def count_verified_decisions(self, domain: str) -> int:
-        self.calls.append(("count_verified_decisions", domain))
-        return self.total.get(domain, 0)
-
-    def count_categories_with_n(self, domain: str, n: int) -> int:
-        self.calls.append(("count_categories_with_n", domain))
-        assert n == 1
-        return self.categories.get(domain, 0)
+def _count_store(*, verified, correct, total, categories):
+    store = InMemoryGraphStore(domain="test")
+    for domain, count in total.items():
+        for index in range(count):
+            decision_id = store.write_decision(domain, f"category-{index % categories[domain]}",
+                "approve", 0.8, {"signal": 0.5}, metadata={"decision_id": f"{domain}-{index}"})
+            if index < verified[domain]:
+                store.write_outcome(decision_id, "approve" if index < correct[domain] else "review",
+                                    index < correct[domain], domain=domain)
+    for method in ("count_verified", "count_correct", "count_verified_decisions", "count_categories_with_n"):
+        setattr(store, method, Mock(wraps=getattr(store, method)))
+    return store
 
 
 class DomainAwareMetricScorer:
-    def __init__(self, graph_store: DomainAwareCountStore) -> None:
+    def __init__(self, graph_store: InMemoryGraphStore) -> None:
         self.graph_store = graph_store
         self._preset = SimpleNamespace(
             shape=SimpleNamespace(n_categories=3),
@@ -711,29 +603,28 @@ class DomainAwareMetricScorer:
         )
 
 
-class BlockingLearningStore:
-    def __init__(self) -> None:
-        self.first_get_entered = threading.Event()
-        self.second_get_entered = threading.Event()
-        self.release_first_get = threading.Event()
-        self._lock = threading.Lock()
-        self.get_entries = 0
-        self.updates: list[dict[str, object]] = []
+def _blocking_learning_store():
+    store = _learning_store(status="AMBER")
+    store.first_get_entered = threading.Event()
+    store.second_get_entered = threading.Event()
+    store.release_first_get = threading.Event()
+    store.get_entries = 0
+    lock = threading.Lock()
+    original = store.get_conservation_state
 
-    def get_conservation_state(self, domain: str) -> dict[str, object] | None:
-        with self._lock:
-            self.get_entries += 1
-            entry = self.get_entries
+    def read(domain):
+        with lock:
+            store.get_entries += 1
+            entry = store.get_entries
         if entry == 1:
-            self.first_get_entered.set()
-            assert self.release_first_get.wait(5)
-            return {"status": "RED"}
-        self.second_get_entered.set()
-        return {"status": "GREEN"}
+            store.first_get_entered.set()
+            assert store.release_first_get.wait(5)
+        else:
+            store.second_get_entered.set()
+        return original(domain)
 
-    def update_conservation_state(self, **kwargs: object) -> str:
-        self.updates.append(kwargs)
-        return "l5-row"
+    store.get_conservation_state = Mock(side_effect=read)
+    return store
 
 
 def build_client(
@@ -919,7 +810,7 @@ def test_learn_blocked_skips_evolution_outcome_and_success_side_effects(
 ):
     recorded: list[tuple[dict[str, Any], bool]] = []
     invalidations = 0
-    learning_store = RecordingCentroidLearningStore()
+    learning_store = _learning_store()
 
     def outcome_recorder(payload: dict[str, Any], success: bool) -> None:
         recorded.append((payload, success))
@@ -958,7 +849,7 @@ def test_learn_blocked_skips_evolution_outcome_and_success_side_effects(
     assert payload["pause_reason"] == expected_reason
     assert recorded == []
     assert invalidations == 0
-    assert learning_store.centroid_updates == []
+    assert _updates(learning_store, "update_centroid") == []
 
 
 @pytest.mark.parametrize(
@@ -1100,7 +991,7 @@ def test_conservation_metrics_use_real_category_coverage(tmp_path):
 
 
 def test_conservation_metrics_use_explicit_domain_for_all_counts():
-    store = DomainAwareCountStore(
+    store = _count_store(
         verified={"dataops": 12},
         correct={"dataops": 9},
         total={"dataops": 16},
@@ -1120,11 +1011,11 @@ def test_conservation_metrics_use_explicit_domain_for_all_counts():
         ("count_correct", "dataops"),
         ("count_verified_decisions", "dataops"),
         ("count_categories_with_n", "dataops"),
-    }.issubset(set(store.calls))
+    }.issubset({(method, call.args[0]) for method in ("count_verified", "count_correct", "count_verified_decisions", "count_categories_with_n") for call in getattr(store, method).call_args_list})
 
 
 def test_conservation_metrics_do_not_bleed_between_live_domains():
-    store = DomainAwareCountStore(
+    store = _count_store(
         verified={"trading": 4, "purchasing": 20},
         correct={"trading": 2, "purchasing": 18},
         total={"trading": 4, "purchasing": 25},
@@ -1138,7 +1029,7 @@ def test_conservation_metrics_do_not_bleed_between_live_domains():
     assert metrics["alpha"] == 1.0
     assert metrics["q"] == 18 / 20
     assert metrics["categories_with_data"] == 3
-    assert ("count_verified", "trading") not in store.calls
+    assert all(call.args[0] == "purchasing" for call in store.count_verified.call_args_list)
     assert math.isfinite(float(metrics["theta_min"]))
 
 
@@ -1169,7 +1060,7 @@ def test_learn_persists_l5_conservation_state_with_graph_store(tmp_path):
 
 def test_learn_persists_old_status_from_l5_store(tmp_path):
     scorer = SQLiteL5Scorer(tmp_path / "old-status.sqlite")
-    learning_store = RecordingLearningStore(old_state={"status": "RED"})
+    learning_store = _learning_store(status="RED")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1182,8 +1073,8 @@ def test_learn_persists_old_status_from_l5_store(tmp_path):
     )
 
     assert response.status_code == 200
-    assert len(learning_store.updates) == 1
-    update = learning_store.updates[0]
+    assert len(_updates(learning_store, "update_conservation_state")) == 1
+    update = _updates(learning_store, "update_conservation_state")[0]
     assert update["old_status"] == "RED"
     assert update["caused_by_decision_id"] == decision_id
     assert update["categories_with_data"] == 1
@@ -1208,7 +1099,7 @@ def test_learn_without_l5_store_remains_silent_noop():
 
 def test_learn_l5_get_failure_is_non_fatal(tmp_path):
     scorer = SQLiteL5Scorer(tmp_path / "get-failure.sqlite")
-    learning_store = FailingReadLearningStore()
+    learning_store = _learning_store(fail_method="get_conservation_state")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1222,12 +1113,12 @@ def test_learn_l5_get_failure_is_non_fatal(tmp_path):
 
     assert response.status_code == 200
     LearnResponse.model_validate(response.json())
-    assert learning_store.updates == []
+    assert _updates(learning_store, "update_conservation_state") == []
 
 
 def test_learn_l5_update_failure_is_non_fatal(tmp_path):
     scorer = SQLiteL5Scorer(tmp_path / "update-failure.sqlite")
-    learning_store = FailingWriteLearningStore()
+    learning_store = _learning_store(fail_method="update_conservation_state")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1245,7 +1136,7 @@ def test_learn_l5_update_failure_is_non_fatal(tmp_path):
 
 def test_learn_persists_dk_weights_to_l5_after_phase_transition():
     scorer = DKRuntimeScorer(weights=[[0.2, 0.8]])
-    learning_store = RecordingDKLearningStore()
+    learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1260,8 +1151,8 @@ def test_learn_persists_dk_weights_to_l5_after_phase_transition():
     assert response.status_code == 200
     LearnResponse.model_validate(response.json())
     assert scorer.reestimate_calls == 1
-    assert len(learning_store.dk_updates) == 1
-    update = learning_store.dk_updates[0]
+    assert len(_updates(learning_store, "update_dk_weights")) == 1
+    update = _updates(learning_store, "update_dk_weights")[0]
     assert update["domain"] == "test"
     assert update["weight_tensor"] == [[0.2, 0.8]]
     assert update["n_decisions_used"] == 1
@@ -1272,7 +1163,7 @@ def test_learn_persists_dk_weights_to_l5_after_phase_transition():
 
 def test_learn_dk_includes_welford_state_and_confirmed_overridden_split():
     scorer = DKRuntimeScorer(weights=[[0.2, 0.8]])
-    learning_store = RecordingDKLearningStore()
+    learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     first = client.post(
         "/score",
@@ -1286,7 +1177,7 @@ def test_learn_dk_includes_welford_state_and_confirmed_overridden_split():
     assert client.post("/learn", json={"decision_id": first, "actual_action": "auto_approve"}).status_code == 200
     assert client.post("/learn", json={"decision_id": second, "actual_action": "investigate"}).status_code == 200
 
-    update = learning_store.dk_updates[-1]
+    update = _updates(learning_store, "update_dk_weights")[-1]
     state = update["welford_state"]
     assert isinstance(state, dict)
     assert set(state) == {
@@ -1323,7 +1214,7 @@ def test_learn_dk_no_store_still_reestimates_runtime_dk():
 
 def test_learn_dk_persist_failure_is_non_fatal():
     scorer = DKRuntimeScorer(weights=[[0.2, 0.8]])
-    learning_store = RecordingDKLearningStore(fail=True)
+    learning_store = _learning_store(fail_method="update_dk_weights")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1341,7 +1232,7 @@ def test_learn_dk_persist_failure_is_non_fatal():
 
 def test_learn_dk_response_shape_unchanged():
     scorer = DKRuntimeScorer(weights=[[0.2, 0.8]])
-    learning_store = RecordingDKLearningStore()
+    learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1360,7 +1251,7 @@ def test_learn_dk_response_shape_unchanged():
 
 def test_learn_dk_not_written_before_variance_phase():
     scorer = DKRuntimeScorer(weights=None)
-    learning_store = RecordingDKLearningStore()
+    learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1374,12 +1265,12 @@ def test_learn_dk_not_written_before_variance_phase():
 
     assert response.status_code == 200
     assert scorer.reestimate_calls == 1
-    assert learning_store.dk_updates == []
+    assert _updates(learning_store, "update_dk_weights") == []
 
 
 def test_learn_persists_centroid_to_l5_in_mean_convergence():
     scorer = CentroidRuntimeScorer()
-    learning_store = RecordingCentroidLearningStore()
+    learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1393,8 +1284,8 @@ def test_learn_persists_centroid_to_l5_in_mean_convergence():
 
     assert response.status_code == 200
     LearnResponse.model_validate(response.json())
-    assert len(learning_store.centroid_updates) == 1
-    update = learning_store.centroid_updates[0]
+    assert len(_updates(learning_store, "update_centroid")) == 1
+    update = _updates(learning_store, "update_centroid")[0]
     assert update["domain"] == "test"
     assert update["category"] == "pipeline_failure"
     assert update["action"] == "auto_approve"
@@ -1405,7 +1296,7 @@ def test_learn_persists_centroid_to_l5_in_mean_convergence():
 
 def test_centroid_l5_nonfatal():
     scorer = CentroidRuntimeScorer()
-    learning_store = RecordingCentroidLearningStore(fail=True)
+    learning_store = _learning_store(fail_method="update_centroid")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1424,7 +1315,7 @@ def test_centroid_l5_nonfatal():
 
 def test_centroid_l5_coexists_with_checkpoint():
     scorer = CentroidRuntimeScorer()
-    learning_store = RecordingCentroidLearningStore()
+    learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
         "/score",
@@ -1438,13 +1329,13 @@ def test_centroid_l5_coexists_with_checkpoint():
 
     assert response.status_code == 200
     assert scorer.save_centroids_calls == 1
-    assert len(learning_store.centroid_updates) == 1
+    assert len(_updates(learning_store, "update_centroid")) == 1
 
 
 def test_centroid_l5_skipped_in_variance_learning():
     scorer = CentroidRuntimeScorer(phase="VARIANCE_LEARNING")
     scorer.weights = [[0.2, 0.8]]
-    learning_store = RecordingCentroidLearningStore()
+    learning_store = _learning_store()
     learning_store.update_dk_weights = lambda **kwargs: setattr(learning_store, "dk_update", kwargs)
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
@@ -1458,7 +1349,7 @@ def test_centroid_l5_skipped_in_variance_learning():
     )
 
     assert response.status_code == 200
-    assert learning_store.centroid_updates == []
+    assert _updates(learning_store, "update_centroid") == []
     assert hasattr(learning_store, "dk_update")
 
 
@@ -1480,7 +1371,8 @@ def test_get_centroid_copy_safe_and_phase_accessor():
     scorer = CompoundingScorer(
         preset=preset,
         scorer=gae_scorer,
-        graph_store=FakeStore(),
+        graph_store=InMemoryGraphStore(domain="dataops"),
+        profile="test",
     )
 
     centroid = scorer.get_centroid("pipeline_failure", "auto_approve")
@@ -1493,7 +1385,7 @@ def test_get_centroid_copy_safe_and_phase_accessor():
 
 def test_l5_dk_persistence_serializes_tracker_reestimate_and_write():
     scorer = BlockingDKRuntimeScorer()
-    learning_store = RecordingDKLearningStore()
+    learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     responses: dict[str, int] = {}
 
@@ -1511,7 +1403,7 @@ def test_l5_dk_persistence_serializes_tracker_reestimate_and_write():
     assert scorer.first_reestimate_entered.wait(5)
     second.start()
     assert not scorer.second_reestimate_entered.wait(0.25)
-    assert learning_store.dk_updates == []
+    assert _updates(learning_store, "update_dk_weights") == []
 
     scorer.release_first_reestimate.set()
     first.join(5)
@@ -1519,12 +1411,12 @@ def test_l5_dk_persistence_serializes_tracker_reestimate_and_write():
 
     assert responses == {"dk-block-1": 200, "dk-block-2": 200}
     assert scorer.reestimate_calls == 2
-    assert len(learning_store.dk_updates) == 2
+    assert len(_updates(learning_store, "update_dk_weights")) == 2
 
 
 def test_l5_conservation_persistence_serializes_old_status_read_and_update():
     scorer = ConcurrentScorer()
-    learning_store = BlockingLearningStore()
+    learning_store = _blocking_learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     responses: dict[str, int] = {}
 
@@ -1542,7 +1434,7 @@ def test_l5_conservation_persistence_serializes_old_status_read_and_update():
     assert learning_store.first_get_entered.wait(5)
     second.start()
     assert not learning_store.second_get_entered.wait(0.25)
-    assert learning_store.updates == []
+    assert _updates(learning_store, "update_conservation_state") == []
 
     learning_store.release_first_get.set()
     first.join(5)
@@ -1550,11 +1442,11 @@ def test_l5_conservation_persistence_serializes_old_status_read_and_update():
 
     assert responses == {"dec-1": 200, "dec-2": 200}
     assert learning_store.get_entries == 2
-    assert [update["old_status"] for update in learning_store.updates] == [
+    assert [update["old_status"] for update in _updates(learning_store, "update_conservation_state")] == [
+        "AMBER",
         "RED",
-        "GREEN",
     ]
-    assert [update["caused_by_decision_id"] for update in learning_store.updates] == [
+    assert [update["caused_by_decision_id"] for update in _updates(learning_store, "update_conservation_state")] == [
         "dec-1",
         "dec-2",
     ]

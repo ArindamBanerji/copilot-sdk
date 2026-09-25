@@ -42,6 +42,8 @@ def create_query_router(
                 return response
             except InvalidQueryError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
-        return cast(dict[str, Any], query_router.query(question, graph_store_factory()))
+        return cast(dict[str, Any], query_router.query(
+            question, graph_store_factory(), domain="dataops",
+        ))
 
     return router

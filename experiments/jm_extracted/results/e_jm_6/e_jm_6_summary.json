@@ -1,0 +1,28 @@
+{
+  "experiment": "E-JM-6 v2: Compounding Intelligence Trajectory",
+  "mechanism": "multiplicative_dk_centroid",
+  "n_decisions": 3000,
+  "n_trials": 15,
+  "accuracy_fit": {
+    "no_learning": {
+      "linear_r2": 0.010837541858493371,
+      "power_r2": 0.023065059731649074,
+      "power_exp": 0.10000000000000075
+    },
+    "linear": {
+      "linear_r2": 0.00013820664579824296,
+      "power_r2": 0.001117007352754995,
+      "power_exp": 2.5933437438879503
+    },
+    "compounding": {
+      "linear_r2": 0.04216565844424294,
+      "power_r2": 0.047419103082034675,
+      "power_exp": 0.10000014090040843
+    }
+  },
+  "combined_metric_fit": {
+    "linear_r2": 0.0,
+    "power_r2": 0.9999999997321454,
+    "power_exp": 1.1386506740044107
+  }
+}

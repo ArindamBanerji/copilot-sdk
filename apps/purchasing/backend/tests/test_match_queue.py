@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
@@ -21,35 +22,6 @@ FACTORS = {
 }
 
 
-class RecordingStore:
-    def __init__(self) -> None:
-        self.decisions: list[dict[str, Any]] = []
-
-    def write_decision(
-        self,
-        domain: str,
-        category: str,
-        action: str,
-        confidence: float,
-        factors: dict[str, Any],
-        metadata: dict[str, Any] | None = None,
-    ) -> str:
-        decision = {
-            "domain": domain,
-            "category": category,
-            "action": action,
-            "confidence": confidence,
-            "factors": dict(factors),
-            "metadata": dict(metadata or {}),
-        }
-        self.decisions.append(decision)
-        return str(decision["metadata"].get("decision_id") or "RECORDED")
-
-    def count_verified(self, domain: str) -> int:
-        return 4
-
-    def count_correct(self, domain: str) -> int:
-        return 3
 
 
 def _match_payload(
@@ -89,10 +61,11 @@ def _match_payload(
     }
 
 
-def _client(store: RecordingStore | None = None) -> TestClient:
+def _client(store: InMemoryGraphStore | None = None) -> TestClient:
     app = FastAPI()
-    app.include_router(create_match_router(lambda: store if store is not None else RecordingStore()))
-    app.include_router(create_queue_router(lambda: store if store is not None else RecordingStore()))
+    store = store if store is not None else InMemoryGraphStore(domain="purchasing")
+    app.include_router(create_match_router(lambda: store if store is not None else InMemoryGraphStore(domain="purchasing")))
+    app.include_router(create_queue_router(lambda: store if store is not None else InMemoryGraphStore(domain="purchasing")))
     return TestClient(app)
 
 
@@ -155,20 +128,20 @@ def test_match_queue_returns_pending_exceptions():
 def test_match_writes_decision_equivalent_to_graph_store():
     PENDING_EXCEPTIONS.clear()
     MATCH_RESULTS.clear()
-    store = RecordingStore()
+    store = InMemoryGraphStore(domain="purchasing")
     response = _client(store).post("/api/purchasing/match", json=_match_payload(order_id="ORD-WRITE"))
 
     assert response.status_code == 200
     assert response.json()["decision_write"]["status"] == "written"
-    assert len(store.decisions) == 1
-    assert store.decisions[0]["domain"] == "purchasing"
-    assert store.decisions[0]["metadata"]["decision_type"] == "delivery_match"
+    assert len(store.get_all_decisions("purchasing")) == 1
+    assert store.get_all_decisions("purchasing")[0]["domain"] == "purchasing"
+    assert store.get_all_decisions("purchasing")[0]["metadata"]["decision_type"] == "delivery_match"
 
 
 def test_match_score_is_wired_into_graph_write_context():
     PENDING_EXCEPTIONS.clear()
     MATCH_RESULTS.clear()
-    store = RecordingStore()
+    store = InMemoryGraphStore(domain="purchasing")
     response = _client(store).post(
         "/api/purchasing/match",
         json=_match_payload(order_id="ORD-MATCH-SCORE", delivered_qty=92.0, invoice_price=12.5),
@@ -177,10 +150,10 @@ def test_match_score_is_wired_into_graph_write_context():
     assert response.status_code == 200
     match_score = response.json()["match_score"]
     assert match_score == 0.1
-    assert len(store.decisions) == 1
-    assert store.decisions[0]["factors"]["coverage_depth"] == pytest.approx(match_score)
-    assert store.decisions[0]["metadata"]["match_score"] == pytest.approx(match_score)
-    assert store.decisions[0]["metadata"]["coverage_depth"] == pytest.approx(match_score)
+    assert len(store.get_all_decisions("purchasing")) == 1
+    assert store.get_all_decisions("purchasing")[0]["factors"]["coverage_depth"] == pytest.approx(match_score)
+    assert store.get_all_decisions("purchasing")[0]["metadata"]["match_score"] == pytest.approx(match_score)
+    assert store.get_all_decisions("purchasing")[0]["metadata"]["coverage_depth"] == pytest.approx(match_score)
 
 
 def test_queue_returns_items_sorted_by_priority_score_descending(client):
@@ -207,7 +180,10 @@ def test_queue_empty_context_returns_empty_queue_without_crashing(monkeypatch):
 
 
 def test_queue_includes_conservation_status():
-    store = RecordingStore()
+    store = InMemoryGraphStore(domain="purchasing")
+    for index in range(4):
+        decision_id = store.write_decision("purchasing", "protein", "order_as_planned", 0.8, FACTORS)
+        store.write_outcome(decision_id, "order_as_planned" if index < 3 else "order_more", index < 3, domain="purchasing")
     response = _client(store).get("/api/purchasing/queue")
 
     assert response.status_code == 200

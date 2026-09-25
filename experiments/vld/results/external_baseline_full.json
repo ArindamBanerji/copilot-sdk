@@ -1,0 +1,7244 @@
+[
+  {
+    "name": "majority",
+    "category_accuracy": 0.32167832167832167,
+    "action_accuracy": 0.23776223776223776,
+    "category_correct": 46,
+    "action_correct": 34,
+    "teacher_action_agreement": 0.2097902097902098,
+    "labels_required": 400,
+    "budget": 0,
+    "tier": "SIMULATED",
+    "N_train": 400,
+    "N_test": 143,
+    "seed": 42,
+    "split": "original ordered 400/143; no shuffle",
+    "fixture": "gen-ai-roi-demo-v4-v50\\backend\\support\\setup\\zero_day_decisions_v5.json",
+    "feature_names": [],
+    "feature_selection_labels_required": 0,
+    "budget_unit": "unique scalar surface features; no additional evidence",
+    "protocol": "strict two-scalar sensitivity; classifier pair from full-fixture banked VLD frequencies; FI train-selected; VLD adaptive; RF(full) exempt reference",
+    "category_metric_definition": "predicted category == fixture true category",
+    "action_metric_definition": "predicted final action == correct-decision fixture action vote",
+    "label_source": "synthetic 543-alert fixture; not operationally verified outcomes",
+    "action_training_target": "category-conditioned centroid pseudo-labels, unchanged from original harness; evaluation uses fixture votes",
+    "original_policy_reproduced": true,
+    "caveat": "",
+    "predictions": [
+      {
+        "alert_id": "SYN-CA-D401-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D402-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D403-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D404-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D405-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D406-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D407-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D408-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D409-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D410-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D411-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D412-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D413-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D414-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D415-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D416-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D417-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D418-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D419-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D420-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D421-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D422-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D423-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D424-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D425-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D426-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D427-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D428-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D429-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D430-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D431-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D432-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D433-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D434-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D435-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D436-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D437-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D438-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D439-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D440-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D441-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D442-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D443-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D444-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D445-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D446-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D447-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D448-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D449-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D450-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D451-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D452-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D453-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D454-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D455-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D456-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D457-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D458-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D459-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D460-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D461-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D462-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D463-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D464-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D465-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D466-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D467-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D468-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D469-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D470-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D471-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D472-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D473-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D474-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D475-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D476-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D477-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D478-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D479-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D480-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D481-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D482-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D483-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D484-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D485-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D486-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D487-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D488-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D489-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D490-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D491-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D492-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D493-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D494-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D495-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D496-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D497-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D498-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D499-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D500-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D501-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D502-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D503-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D504-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D505-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D506-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D507-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D508-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D509-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D510-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D511-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D512-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D513-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D514-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D515-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D516-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D517-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D518-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D519-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D520-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D521-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D522-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D523-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D524-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D525-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D526-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D527-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D528-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D529-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D530-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D531-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D532-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D533-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D534-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D535-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D536-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D537-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D538-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D539-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D540-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D541-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D542-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D543-001",
+        "category": "credential_access",
+        "action": "suppress"
+      }
+    ],
+    "training_features_available": 0,
+    "feature_access": "fixed feature subset"
+  },
+  {
+    "name": "linucb",
+    "category_accuracy": 0.26573426573426573,
+    "action_accuracy": 0.3146853146853147,
+    "category_correct": 38,
+    "action_correct": 45,
+    "teacher_action_agreement": 0.4965034965034965,
+    "labels_required": 400,
+    "budget": 2,
+    "tier": "SIMULATED",
+    "N_train": 400,
+    "N_test": 143,
+    "seed": 42,
+    "split": "original ordered 400/143; no shuffle",
+    "fixture": "gen-ai-roi-demo-v4-v50\\backend\\support\\setup\\zero_day_decisions_v5.json",
+    "feature_names": [
+      "privileged_identity_context",
+      "pattern_history"
+    ],
+    "feature_selection_labels_required": 0,
+    "budget_unit": "unique scalar surface features; no additional evidence",
+    "protocol": "strict two-scalar sensitivity; classifier pair from full-fixture banked VLD frequencies; FI train-selected; VLD adaptive; RF(full) exempt reference",
+    "category_metric_definition": "predicted category == fixture true category",
+    "action_metric_definition": "predicted final action == correct-decision fixture action vote",
+    "label_source": "synthetic 543-alert fixture; not operationally verified outcomes",
+    "action_training_target": "category-conditioned centroid pseudo-labels, unchanged from original harness; evaluation uses fixture votes",
+    "original_policy_reproduced": false,
+    "caveat": "",
+    "predictions": [
+      {
+        "alert_id": "SYN-CA-D401-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D402-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D403-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D404-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D405-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D406-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D407-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D408-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D409-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D410-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D411-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D412-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D413-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D414-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D415-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D416-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D417-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D418-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D419-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D420-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D421-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D422-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D423-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D424-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D425-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D426-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D427-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D428-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D429-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D430-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D431-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D432-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D433-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D434-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D435-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D436-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D437-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D438-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D439-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D440-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D441-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D442-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D443-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D444-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D445-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D446-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D447-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D448-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D449-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D450-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D451-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D452-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D453-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D454-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D455-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D456-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D457-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D458-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D459-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D460-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D461-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D462-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D463-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D464-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D465-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D466-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D467-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D468-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D469-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D470-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D471-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D472-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D473-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D474-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D475-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D476-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D477-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D478-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D479-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D480-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D481-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D482-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D483-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D484-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D485-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D486-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D487-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D488-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D489-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D490-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D491-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D492-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D493-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D494-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D495-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D496-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D497-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D498-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D499-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D500-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D501-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D502-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D503-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D504-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D505-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D506-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D507-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D508-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D509-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D510-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D511-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D512-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D513-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D514-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D515-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D516-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D517-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D518-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D519-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D520-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D521-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D522-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D523-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D524-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D525-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D526-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D527-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D528-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D529-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D530-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D531-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D532-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D533-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D534-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D535-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D536-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D537-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D538-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D539-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D540-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D541-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D542-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D543-001",
+        "category": "credential_access",
+        "action": "escalate"
+      }
+    ],
+    "training_features_available": 2,
+    "feature_access": "fixed feature subset"
+  },
+  {
+    "name": "rf_budget2",
+    "category_accuracy": 0.3916083916083916,
+    "action_accuracy": 0.45454545454545453,
+    "category_correct": 56,
+    "action_correct": 65,
+    "teacher_action_agreement": 0.9790209790209791,
+    "labels_required": 400,
+    "budget": 2,
+    "tier": "SIMULATED",
+    "N_train": 400,
+    "N_test": 143,
+    "seed": 42,
+    "split": "original ordered 400/143; no shuffle",
+    "fixture": "gen-ai-roi-demo-v4-v50\\backend\\support\\setup\\zero_day_decisions_v5.json",
+    "feature_names": [
+      "privileged_identity_context",
+      "pattern_history"
+    ],
+    "feature_selection_labels_required": 0,
+    "budget_unit": "unique scalar surface features; no additional evidence",
+    "protocol": "strict two-scalar sensitivity; classifier pair from full-fixture banked VLD frequencies; FI train-selected; VLD adaptive; RF(full) exempt reference",
+    "category_metric_definition": "predicted category == fixture true category",
+    "action_metric_definition": "predicted final action == correct-decision fixture action vote",
+    "label_source": "synthetic 543-alert fixture; not operationally verified outcomes",
+    "action_training_target": "category-conditioned centroid pseudo-labels, unchanged from original harness; evaluation uses fixture votes",
+    "original_policy_reproduced": false,
+    "caveat": "",
+    "predictions": [
+      {
+        "alert_id": "SYN-CA-D401-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D402-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D403-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D404-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D405-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D406-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D407-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D408-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D409-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D410-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D411-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D412-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D413-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D414-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D415-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D416-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D417-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D418-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D419-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D420-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D421-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D422-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D423-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D424-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D425-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D426-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D427-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D428-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D429-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D430-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D431-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D432-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D433-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D434-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D435-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D436-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D437-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D438-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D439-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D440-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D441-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D442-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D443-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D444-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D445-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D446-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D447-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D448-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D449-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D450-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D451-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D452-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D453-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D454-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D455-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D456-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D457-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D458-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D459-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D460-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D461-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D462-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D463-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D464-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D465-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D466-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D467-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D468-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D469-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D470-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D471-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D472-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D473-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D474-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D475-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D476-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D477-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D478-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D479-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D480-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D481-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D482-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D483-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D484-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D485-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D486-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D487-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D488-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D489-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D490-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D491-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D492-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D493-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D494-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D495-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D496-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D497-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D498-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D499-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D500-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D501-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D502-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D503-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D504-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D505-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D506-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D507-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D508-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D509-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D510-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D511-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D512-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D513-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D514-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D515-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D516-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D517-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D518-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D519-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D520-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D521-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D522-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D523-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D524-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D525-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D526-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D527-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D528-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D529-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D530-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D531-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D532-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D533-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D534-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D535-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D536-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D537-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D538-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D539-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D540-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D541-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D542-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D543-001",
+        "category": "credential_access",
+        "action": "investigate"
+      }
+    ],
+    "training_features_available": 2,
+    "feature_access": "fixed feature subset"
+  },
+  {
+    "name": "svm",
+    "category_accuracy": 0.40559440559440557,
+    "action_accuracy": 0.44755244755244755,
+    "category_correct": 58,
+    "action_correct": 64,
+    "teacher_action_agreement": 0.9090909090909091,
+    "labels_required": 400,
+    "budget": 2,
+    "tier": "SIMULATED",
+    "N_train": 400,
+    "N_test": 143,
+    "seed": 42,
+    "split": "original ordered 400/143; no shuffle",
+    "fixture": "gen-ai-roi-demo-v4-v50\\backend\\support\\setup\\zero_day_decisions_v5.json",
+    "feature_names": [
+      "privileged_identity_context",
+      "pattern_history"
+    ],
+    "feature_selection_labels_required": 0,
+    "budget_unit": "unique scalar surface features; no additional evidence",
+    "protocol": "strict two-scalar sensitivity; classifier pair from full-fixture banked VLD frequencies; FI train-selected; VLD adaptive; RF(full) exempt reference",
+    "category_metric_definition": "predicted category == fixture true category",
+    "action_metric_definition": "predicted final action == correct-decision fixture action vote",
+    "label_source": "synthetic 543-alert fixture; not operationally verified outcomes",
+    "action_training_target": "category-conditioned centroid pseudo-labels, unchanged from original harness; evaluation uses fixture votes",
+    "original_policy_reproduced": false,
+    "caveat": "",
+    "predictions": [
+      {
+        "alert_id": "SYN-CA-D401-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D402-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D403-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D404-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D405-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D406-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D407-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D408-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D409-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D410-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D411-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D412-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D413-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D414-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D415-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D416-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D417-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D418-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D419-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D420-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D421-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D422-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D423-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D424-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D425-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D426-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D427-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D428-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D429-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D430-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D431-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D432-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D433-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D434-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D435-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D436-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D437-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D438-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D439-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D440-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D441-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D442-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D443-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D444-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D445-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D446-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D447-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D448-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D449-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D450-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D451-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D452-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D453-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D454-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D455-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D456-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D457-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D458-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D459-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D460-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D461-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D462-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D463-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D464-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D465-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D466-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D467-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D468-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D469-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D470-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D471-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D472-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D473-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D474-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D475-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D476-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D477-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D478-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D479-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D480-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D481-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D482-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D483-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D484-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D485-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D486-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D487-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D488-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D489-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D490-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D491-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D492-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D493-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D494-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D495-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D496-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D497-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D498-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D499-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D500-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D501-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D502-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D503-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D504-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D505-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D506-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D507-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D508-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D509-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D510-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D511-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D512-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D513-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D514-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D515-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D516-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D517-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D518-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D519-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D520-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D521-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D522-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D523-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D524-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D525-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D526-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D527-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D528-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D529-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D530-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D531-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D532-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D533-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D534-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D535-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D536-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D537-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D538-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D539-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D540-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D541-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D542-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D543-001",
+        "category": "credential_access",
+        "action": "escalate"
+      }
+    ],
+    "training_features_available": 2,
+    "feature_access": "fixed feature subset"
+  },
+  {
+    "name": "feature_importance_routing",
+    "category_accuracy": 0.3146853146853147,
+    "action_accuracy": 0.4755244755244755,
+    "category_correct": 45,
+    "action_correct": 68,
+    "teacher_action_agreement": 0.993006993006993,
+    "labels_required": 400,
+    "budget": 2,
+    "tier": "SIMULATED",
+    "N_train": 400,
+    "N_test": 143,
+    "seed": 42,
+    "split": "original ordered 400/143; no shuffle",
+    "fixture": "gen-ai-roi-demo-v4-v50\\backend\\support\\setup\\zero_day_decisions_v5.json",
+    "feature_names": [
+      "device_trust",
+      "asset_criticality"
+    ],
+    "feature_selection_labels_required": 400,
+    "budget_unit": "unique scalar surface features; no additional evidence",
+    "protocol": "strict two-scalar sensitivity; classifier pair from full-fixture banked VLD frequencies; FI train-selected; VLD adaptive; RF(full) exempt reference",
+    "category_metric_definition": "predicted category == fixture true category",
+    "action_metric_definition": "predicted final action == correct-decision fixture action vote",
+    "label_source": "synthetic 543-alert fixture; not operationally verified outcomes",
+    "action_training_target": "category-conditioned centroid pseudo-labels, unchanged from original harness; evaluation uses fixture votes",
+    "original_policy_reproduced": false,
+    "caveat": "original training RF importance ranking; restricted two-coordinate readout without pattern enrichment",
+    "predictions": [
+      {
+        "alert_id": "SYN-CA-D401-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D402-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D403-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D404-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D405-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D406-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D407-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D408-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D409-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D410-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D411-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D412-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D413-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D414-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D415-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D416-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D417-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D418-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D419-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D420-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D421-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D422-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D423-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D424-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D425-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D426-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D427-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D428-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D429-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D430-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D431-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D432-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D433-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D434-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D435-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D436-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D437-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D438-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D439-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D440-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D441-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D442-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D443-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D444-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D445-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D446-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D447-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D448-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D449-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D450-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D451-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D452-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D453-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D454-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D455-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D456-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D457-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D458-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D459-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D460-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D461-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D462-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D463-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D464-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D465-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D466-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D467-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D468-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D469-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D470-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D471-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D472-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D473-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D474-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D475-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D476-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D477-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D478-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D479-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D480-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D481-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D482-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D483-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D484-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D485-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D486-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D487-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D488-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D489-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D490-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D491-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D492-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D493-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D494-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D495-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D496-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D497-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D498-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D499-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D500-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D501-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D502-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D503-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D504-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D505-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D506-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D507-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D508-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D509-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D510-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D511-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D512-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D513-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D514-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D515-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D516-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D517-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D518-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D519-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D520-001",
+        "category": "cloud_infrastructure",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D521-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D522-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D523-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D524-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D525-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D526-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D527-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D528-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D529-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D530-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D531-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D532-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D533-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D534-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D535-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D536-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D537-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D538-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D539-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D540-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D541-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D542-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D543-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      }
+    ],
+    "training_features_available": 6,
+    "feature_access": "fixed feature subset"
+  },
+  {
+    "name": "vld",
+    "category_accuracy": 0.3776223776223776,
+    "action_accuracy": 0.4755244755244755,
+    "category_correct": 54,
+    "action_correct": 68,
+    "teacher_action_agreement": 0.958041958041958,
+    "labels_required": 0,
+    "budget": 2,
+    "tier": "REAL_COMPONENT",
+    "N_train": 0,
+    "N_test": 143,
+    "seed": 42,
+    "split": "original ordered 400/143; no shuffle",
+    "fixture": "gen-ai-roi-demo-v4-v50\\backend\\support\\setup\\zero_day_decisions_v5.json",
+    "feature_names": [
+      "asset_criticality",
+      "privileged_identity_context",
+      "time_anomaly"
+    ],
+    "feature_selection_labels_required": 0,
+    "budget_unit": "unique scalar surface features; no additional evidence",
+    "protocol": "strict two-scalar sensitivity; classifier pair from full-fixture banked VLD frequencies; FI train-selected; VLD adaptive; RF(full) exempt reference",
+    "category_metric_definition": "predicted category == fixture true category",
+    "action_metric_definition": "predicted final action == correct-decision fixture action vote",
+    "label_source": "synthetic 543-alert fixture; not operationally verified outcomes",
+    "action_training_target": "category-conditioned centroid pseudo-labels, unchanged from original harness; evaluation uses fixture votes",
+    "original_policy_reproduced": false,
+    "caveat": "original category router with new one-scalar-per-pattern adapter; not the full banked investigation loop",
+    "predictions": [
+      {
+        "alert_id": "SYN-CA-D401-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D402-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D403-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D404-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D405-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D406-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D407-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D408-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D409-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D410-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D411-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D412-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D413-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D414-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D415-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D416-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D417-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D418-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D419-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D420-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D421-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D422-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D423-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D424-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D425-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D426-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D427-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D428-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D429-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D430-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D431-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D432-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D433-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D434-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D435-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D436-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D437-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D438-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D439-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D440-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D441-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D442-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D443-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D444-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D445-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D446-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D447-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D448-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D449-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D450-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D451-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D452-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D453-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D454-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D455-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D456-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D457-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D458-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D459-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D460-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D461-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D462-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D463-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D464-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D465-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D466-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D467-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D468-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D469-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D470-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D471-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D472-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D473-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D474-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D475-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D476-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D477-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D478-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D479-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D480-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D481-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D482-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D483-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D484-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D485-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D486-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D487-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D488-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D489-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D490-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D491-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D492-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D493-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D494-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D495-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D496-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D497-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D498-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D499-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D500-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D501-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D502-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D503-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D504-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D505-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D506-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D507-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D508-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D509-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D510-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D511-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D512-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D513-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D514-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D515-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D516-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D517-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D518-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D519-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D520-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D521-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D522-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D523-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D524-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D525-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D526-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D527-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D528-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D529-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D530-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D531-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D532-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D533-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D534-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D535-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D536-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D537-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D538-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D539-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D540-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D541-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D542-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D543-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      }
+    ],
+    "acquisition_traces": [
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.79
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.916
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.193
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.316
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.742
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.774
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.298
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.271
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.812
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.799
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.657
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.649
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.63
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.561
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.595
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.595
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.818
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.866
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.156
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.271
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.246
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.282
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.197
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.286
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.712
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.855
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.227
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.284
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.715
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.949
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.154
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.319
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.13
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.353
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.371
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.292
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.357
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.286
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.584
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.541
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.202
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.322
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.347
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.178
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.589
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.593
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.242
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.384
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.321
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.261
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.251
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.197
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.603
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.757
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.55
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.632
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.537
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.668
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.656
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.593
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.25
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.237
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.815
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.777
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.777
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.816
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.675
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.527
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.24
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.2
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.214
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.343
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.829
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.858
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.669
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.62
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.523
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.746
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.279
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.175
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.746
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.767
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.327
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.238
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.595
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.8
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.261
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.402
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.299
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.219
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.787
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.873
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.54
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.792
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.213
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.384
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.548
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.605
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.264
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.353
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.286
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.207
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.24
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.314
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.672
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.669
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.276
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.361
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.366
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.236
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.193
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.361
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.366
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.217
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.617
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.53
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.571
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.741
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.272
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.208
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.125
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.317
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.628
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.546
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.291
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.146
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.282
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.266
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.621
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.584
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.295
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.161
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.667
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.556
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.826
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.849
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.779
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.734
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.135
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.382
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.785
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.789
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.818
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.844
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.55
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.508
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.569
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.606
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.146
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.336
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.266
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.341
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.813
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.827
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.339
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.294
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.258
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.31
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.346
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.262
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.689
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.839
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.815
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.912
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.736
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.775
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.254
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.409
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.259
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.272
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.625
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.526
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.74
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.794
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.689
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.868
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.784
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.705
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.664
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.589
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.722
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.854
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.802
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.771
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.814
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.738
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.521
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.555
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.776
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.853
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.277
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.292
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.58
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.514
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.678
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.635
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.717
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.929
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.139
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.287
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.63
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.571
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.203
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.365
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.645
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.737
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.202
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.384
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.272
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.153
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.358
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.199
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.796
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.768
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.814
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.78
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.792
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.732
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.293
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.148
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.29
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.291
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.25
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.28
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.691
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.826
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.256
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.282
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.695
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.97
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.789
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.794
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.738
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.845
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.332
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.214
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.546
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.82
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.674
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.92
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.777
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.728
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.571
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.613
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.694
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.866
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.134
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.318
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.262
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.327
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.204
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.384
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.133
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.401
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.163
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.401
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.551
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.589
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.548
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.528
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.272
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.384
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.132
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.322
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.747
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.788
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.601
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.52
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.811
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.745
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.206
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.292
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.192
+        },
+        {
+          "pattern": "insider_threat",
+          "dimension": "time_anomaly",
+          "dimension_index": 4,
+          "value": 0.418
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.634
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.565
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.774
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.873
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.58
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.561
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.354
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.257
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.348
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.307
+        }
+      ],
+      [
+        {
+          "pattern": "credential_access",
+          "dimension": "privileged_identity_context",
+          "dimension_index": 0,
+          "value": 0.666
+        },
+        {
+          "pattern": "cloud_infrastructure",
+          "dimension": "asset_criticality",
+          "dimension_index": 1,
+          "value": 0.562
+        }
+      ]
+    ],
+    "training_features_available": 0,
+    "feature_access": "two adaptively chosen scalars per alert"
+  },
+  {
+    "name": "rf_full",
+    "category_accuracy": 0.7202797202797203,
+    "action_accuracy": 0.4755244755244755,
+    "category_correct": 103,
+    "action_correct": 68,
+    "teacher_action_agreement": 1.0,
+    "labels_required": 400,
+    "budget": 6,
+    "tier": "SIMULATED",
+    "N_train": 400,
+    "N_test": 143,
+    "seed": 42,
+    "split": "original ordered 400/143; no shuffle",
+    "fixture": "gen-ai-roi-demo-v4-v50\\backend\\support\\setup\\zero_day_decisions_v5.json",
+    "feature_names": [
+      "privileged_identity_context",
+      "asset_criticality",
+      "threat_intel_enrichment",
+      "pattern_history",
+      "time_anomaly",
+      "device_trust"
+    ],
+    "feature_selection_labels_required": 0,
+    "budget_unit": "unique scalar surface features; no additional evidence",
+    "protocol": "strict two-scalar sensitivity; classifier pair from full-fixture banked VLD frequencies; FI train-selected; VLD adaptive; RF(full) exempt reference",
+    "category_metric_definition": "predicted category == fixture true category",
+    "action_metric_definition": "predicted final action == correct-decision fixture action vote",
+    "label_source": "synthetic 543-alert fixture; not operationally verified outcomes",
+    "action_training_target": "category-conditioned centroid pseudo-labels, unchanged from original harness; evaluation uses fixture votes",
+    "original_policy_reproduced": true,
+    "caveat": "six features; excluded from matched-budget claim",
+    "predictions": [
+      {
+        "alert_id": "SYN-CA-D401-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D402-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D403-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D404-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D405-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D406-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D407-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D408-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D409-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D410-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D411-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D412-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D413-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D414-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D415-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D416-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D417-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D418-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D419-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D420-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D421-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D422-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D423-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D424-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D425-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CI-D426-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D427-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D428-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D429-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D430-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D431-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D432-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D433-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D434-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D435-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D436-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D437-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D438-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D439-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D440-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D441-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D442-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D443-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D444-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D445-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D446-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D447-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D448-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D449-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D450-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D451-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D452-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D453-001",
+        "category": "cloud_infrastructure",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D454-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D455-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D456-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D457-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D458-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D459-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D460-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D461-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D462-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-DE-D463-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D464-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-ME-D465-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D466-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D467-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-ME-D468-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D469-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D470-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D471-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D472-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D473-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D474-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D475-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D476-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D477-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D478-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D479-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D480-001",
+        "category": "data_exfiltration",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D481-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-DE-D482-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D483-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D484-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D485-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D486-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D487-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D488-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D489-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D490-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D491-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D492-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D493-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D494-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D495-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D496-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D497-001",
+        "category": "malware_execution",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D498-001",
+        "category": "insider_threat",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D499-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D500-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D501-001",
+        "category": "lateral_movement",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D502-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D503-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CA-D504-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-IT-D505-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D506-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-LM-D507-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D508-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D509-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D510-001",
+        "category": "malware_execution",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D511-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D512-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D513-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D514-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-DE-D515-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D516-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D517-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CI-D518-001",
+        "category": "cloud_infrastructure",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-DE-D519-001",
+        "category": "data_exfiltration",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-CI-D520-001",
+        "category": "data_exfiltration",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-ME-D521-001",
+        "category": "malware_execution",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D522-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D523-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-IT-D524-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-LM-D525-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-IT-D526-001",
+        "category": "insider_threat",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-ME-D527-001",
+        "category": "malware_execution",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D528-001",
+        "category": "cloud_infrastructure",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CI-D529-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D530-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D531-001",
+        "category": "data_exfiltration",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D532-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D533-001",
+        "category": "credential_access",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D534-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-IT-D535-001",
+        "category": "insider_threat",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-CA-D536-001",
+        "category": "lateral_movement",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D537-001",
+        "category": "credential_access",
+        "action": "monitor"
+      },
+      {
+        "alert_id": "SYN-CA-D538-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D539-001",
+        "category": "lateral_movement",
+        "action": "escalate"
+      },
+      {
+        "alert_id": "SYN-LM-D540-001",
+        "category": "credential_access",
+        "action": "investigate"
+      },
+      {
+        "alert_id": "SYN-LM-D541-001",
+        "category": "lateral_movement",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D542-001",
+        "category": "credential_access",
+        "action": "suppress"
+      },
+      {
+        "alert_id": "SYN-CA-D543-001",
+        "category": "credential_access",
+        "action": "investigate"
+      }
+    ],
+    "training_features_available": 6,
+    "feature_access": "fixed feature subset"
+  }
+]

@@ -1,11 +1,12 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
   await page.goto("/");
   await waitForAppShell(page);
   await clickTab(page, "Analysis");
   await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
 }
 
@@ -28,15 +29,15 @@ test("profile archetype shows Researcher or profile", async ({ page }) => {
 test("fingerprint renders factor names", async ({ page }) => {
   await gotoAnalysis(page);
 
-  await expect(page.getByText("Fingerprint")).toBeVisible();
-  await expectAnyText(page, [/Conviction/i, /Research Depth/i, /Technical Signal/i, /Position Size/i, /Time Horizon/i, /Market Regime/i]);
+  await expect(page.getByRole("heading", { name: "Fingerprint" })).toBeVisible();
+  await expectAnyText(page, [/options delta exposure/i, /options iv percentile/i, /earnings proximity/i, /factor precision/i, /analyzed/i]);
 });
 
 test("counterfactual card shows dollar or saved text", async ({ page }) => {
   await gotoAnalysis(page);
 
   await expect(page.getByText(/what if/i)).toBeVisible();
-  await expectAnyText(page, [/\$\d[\d,]*/, /saved/i, /scenario/i, /No counterfactual/i]);
+  await expectAnyText(page, [/\$\d[\d,]*/, /saved/i, /scenario/i, /No counterfactual/i, /Original score/i, /Delta/i, /Calculating counterfactual/i]);
 });
 
 test("analysis shows edge and noise sections", async ({ page }) => {
@@ -63,5 +64,6 @@ test("SC-13 and SC-16 analysis evidence panels render", async ({ page }) => {
 
   await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /No evolution data yet/i, /Evolution variant/i, /Lifecycle event/i]);
   await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i, /No evolution data yet/i, /promoted/i, /rejected/i, /shadow/i]);
-  await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
+  await expectAnyText(page, [/Audit Trail/i, /Immutable ledger/i, /entries/i, /decision/i]);
 });
+

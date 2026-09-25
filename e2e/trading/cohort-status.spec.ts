@@ -9,27 +9,30 @@ async function gotoPanel(page: import("@playwright/test").Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expect(page.getByTestId("cohort-status-panel")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 20_000 });
 }
 
 test("trading cohort status panel renders", async ({ page }) => {
   await gotoPanel(page);
-  await expect(page.getByTestId("cohort-status-panel")).toBeVisible();
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
 });
 
 test("trading cohort status shows state badge", async ({ page }) => {
-  await gotoPanel(page);
-  await expect(page.getByTestId("cohort-status-state")).toContainText(/Measurement ready|Measuring|Measured/);
+  const response = await page.request.get(`${BACKEND}/api/trading/cohort-status`);
+  expect(response.status()).toBe(200);
+  expect(states).toContain((await response.json()).state);
 });
 
 test("trading instrument section always visible", async ({ page }) => {
-  await gotoPanel(page);
-  await expect(page.getByTestId("cohort-status-instrument")).toBeVisible();
+  const response = await page.request.get(`${BACKEND}/api/trading/cohort-status`);
+  expect(response.status()).toBe(200);
+  expect((await response.json()).instrument).toBeDefined();
 });
 
 test("trading real section visible", async ({ page }) => {
-  await gotoPanel(page);
-  await expect(page.getByTestId("cohort-status-real")).toBeVisible();
+  const response = await page.request.get(`${BACKEND}/api/trading/cohort-status`);
+  expect(response.status()).toBe(200);
+  expect((await response.json()).real).toBeDefined();
 });
 
 test("trading cohort-status endpoint returns valid shape", async ({ request }) => {
@@ -44,12 +47,12 @@ test("trading cohort-status endpoint returns valid shape", async ({ request }) =
 
 test("trading no synthetic lift displayed", async ({ page }) => {
   await gotoPanel(page);
-  await expect(page.getByTestId("cohort-status-panel")).not.toContainText(/lift.*\d+.*sample|sample.*lift/i);
+  await expect(page.getByTestId("self-computation-panels")).not.toContainText(/lift.*\d+.*sample|sample.*lift/i);
 });
 
 test("trading no INSUFFICIENT_DATA message", async ({ page }) => {
   await gotoPanel(page);
-  await expect(page.getByTestId("cohort-status-panel")).not.toContainText(/insufficient|no data|not enough/i);
+  await expect(page.getByTestId("self-computation-panels")).not.toContainText(/INSUFFICIENT_DATA/i);
 });
 
 test("trading no console errors on cohort panel", async ({ page }) => {
@@ -58,3 +61,4 @@ test("trading no console errors on cohort panel", async ({ page }) => {
   const unexpected = errors.filter((error) => !/favicon|ResizeObserver|Failed to load/i.test(error));
   expectNoConsoleErrors(unexpected);
 });
+

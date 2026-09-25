@@ -54,6 +54,27 @@ function normalizePoints(trajectory?: TrajectoryResponse): TrajectoryPoint[] {
     .filter((point) => point.decisions > 0);
 }
 
+function isAbortError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /abort/i.test(message);
+}
+
+async function retryAbort<T>(load: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await load();
+    } catch (error) {
+      if (!isAbortError(error)) {
+        throw error;
+      }
+      lastError = error;
+      await new Promise((resolve) => window.setTimeout(resolve, 150 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
 export default function PerformanceScreen() {
   const [analytics, setAnalytics] = useState<Analytics | undefined>();
   const [trajectory, setTrajectory] = useState<TrajectoryResponse | undefined>();
@@ -77,7 +98,11 @@ export default function PerformanceScreen() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([getAnalytics(), getTrajectory(), getConservationStatus()])
+    Promise.all([
+      retryAbort(getAnalytics),
+      retryAbort(getTrajectory),
+      retryAbort(getConservationStatus),
+    ])
       .then(([nextAnalytics, nextTrajectory, nextConservation]) => {
         if (cancelled) return;
         setAnalytics(nextAnalytics);

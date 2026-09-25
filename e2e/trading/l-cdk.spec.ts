@@ -34,3 +34,4 @@ test.describe("L-CDK SDK developer cut", () => {
     expect(scaffoldGenerator).toMatch(/CopilotScaffold|open-source|developer/i);
   });
 });
+

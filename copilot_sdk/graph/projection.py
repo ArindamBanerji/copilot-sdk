@@ -68,16 +68,16 @@ class ProjectionRegistry:
     )
 
     @classmethod
-    def render(cls, name: str, domain: str | None = None) -> str:
-        """Render a registered query, optionally adding a Decision domain filter."""
+    def render(cls, name: str, domain: str) -> str:
+        """Render a registered query with its required Decision domain filter."""
         pattern = cls.PATTERNS[name]
-        if domain is None or "Decision" not in pattern.query_template:
-            return pattern.query_template
-        if not _SAFE_DOMAIN_RE.fullmatch(str(domain)):
+        if not isinstance(domain, str) or not _SAFE_DOMAIN_RE.fullmatch(domain):
             raise ValueError(f"unsupported graph domain: {domain}")
-        predicate = d2_predicate("d", str(domain))
+        if "Decision" not in pattern.query_template:
+            raise ValueError(f"projection pattern is not domain scoped: {name}")
+        predicate = d2_predicate("d", domain)
         query = pattern.query_template.replace("<d2>", predicate, 1)
-        query = query.replace("<d2-correct>", d2_correct_predicate("d", str(domain)), 1)
+        query = query.replace("<d2-correct>", d2_correct_predicate("d", domain), 1)
         if query == pattern.query_template:
             query = query.replace(
                 "MATCH (d:Decision)",

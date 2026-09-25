@@ -1,0 +1,150 @@
+{
+  "phase": "JM-CHARTS Phase 1",
+  "status": "inventory_complete",
+  "extraction": {
+    "archive": "gen_ai_roi_demo_temp/v5/sources_55_v8/repo/updates/hero_docs_v7/jm_experiments_v2.zip",
+    "extracted_to": "experiments/jm_extracted",
+    "experiments_run": false,
+    "charts_rendered_in_phase": false,
+    "archived_charts_present": true
+  },
+  "paper_manifest": "docs/design/jm_paper_draft_v9.md",
+  "experiments": {
+    "E-JM-1": {
+      "actual_behavior": "30 synthetic trials compare stateless scoring, flat centroid learning, and a judgment-memory simulation over 500 Person-A plus 300 Person-B decisions. A rolling quality drop pauses centroid updates.",
+      "source": "experiments/jm_extracted/e_jm_1_personnel_change.py",
+      "results": "experiments/jm_extracted/results/e_jm_1/e_jm_1_summary.json",
+      "charts": ["e_jm_1_trajectory", "e_jm_1_recovery_boxplot", "e_jm_1_benefit_scatter"],
+      "result_highlights": {"detection_rate": 0.9666666667, "mean_detection_delay": 65.2068965517, "mean_jm_advantage_pp": -1.6888888889},
+      "strategy": "c",
+      "data": "Synthetic only; saved results present.",
+      "concerns": ["Toy detector, not production gate.", "Summary contains non-standard NaN values.", "Archived JM advantage is negative and conflicts with a positive-benefit narrative."],
+      "protocol_mismatch": "Toy stochastic centroid comparison rather than the full governed implementation.",
+      "effort": "medium"
+    },
+    "E-JM-2": {
+      "actual_behavior": "500 synthetic seven-factor domains compare random, noise-attracted, recency-biased, familiarity-biased, and perfect attention models using rank mismatch, bottom-half placement, full inversion, Spearman correlation, and displacement.",
+      "source": "experiments/jm_extracted/e_jm_2_inversion_prevalence.py",
+      "results": "experiments/jm_extracted/results/e_jm_2/e_jm_2_summary.json",
+      "charts": ["e_jm_2_inversion_rates", "e_jm_2_radar_worst_case", "e_jm_2_spearman_dist"],
+      "result_highlights": {"domains": 500, "noise_attracted_top1_mismatch_pct": 100.0, "noise_attracted_bottom_half_pct": 93.6, "noise_attracted_full_inversion_pct": 41.2},
+      "strategy": "a",
+      "data": "Synthetic only; saved results and charts present.",
+      "concerns": ["N_DECISIONS_PER_DOMAIN is declared but unused.", "Bias mechanisms are directly encoded in attention models."],
+      "protocol_mismatch": "Synthetic prevalence model, not observed human or production behavior.",
+      "effort": "low"
+    },
+    "E-JM-3": {
+      "actual_behavior": "Synthetic source/target domains at similarity 0.0-1.0 compare cold start, full centroid transfer, and 50% discounted transfer after 500 source and 400 target decisions.",
+      "source": "experiments/jm_extracted/e_jm_3_cross_domain_transfer.py",
+      "results": "experiments/jm_extracted/results/e_jm_3/e_jm_3_summary.json",
+      "charts": ["e_jm_3_trajectories", "e_jm_3_convergence_speed", "e_jm_3_negative_transfer"],
+      "result_highlights": {"similarities": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0], "trials_per_similarity": 20},
+      "strategy": "a",
+      "data": "Synthetic controllable domain pairs; saved results and charts present.",
+      "concerns": ["Conditions consume a shared RNG sequentially and are not strictly paired on identical target draws.", "Transfer is direct array initialization, not the SDK transfer API."],
+      "protocol_mismatch": "Toy centroid initialization rather than persisted cross-domain transfer.",
+      "effort": "low to medium"
+    },
+    "E-JM-4": {
+      "actual_behavior": "30 trials compare local rolling-quality/category-coverage pausing against unconstrained learning under personnel change, 30% corruption, gradual drift, and adversarial errors.",
+      "source": "experiments/jm_extracted/e_jm_4_conservation_vs_unconstrained.py",
+      "results": "experiments/jm_extracted/results/e_jm_4/e_jm_4_summary.json",
+      "charts": ["e_jm_4_trajectories", "e_jm_4_conservation_status", "e_jm_4_degradation_depth", "e_jm_4_detection_rates"],
+      "result_highlights": {"q_threshold": 0.65, "reported_false_positive_rate_pct": 100.0, "reported_detection_rate_pct": 100.0},
+      "strategy": "c",
+      "data": "Synthetic degradation functions; saved results and charts present.",
+      "concerns": ["Uses process-salted Python hash() for seeds, so reruns are not deterministic.", "Implements a toy conservation rule, not the SDK gate.", "The 100% false-positive result needs audit before publication."],
+      "protocol_mismatch": "Production conservation claims are represented by a separate simplified q/alpha rule.",
+      "effort": "high"
+    },
+    "E-JM-4b": {
+      "actual_behavior": "30 synthetic trials shift four of seven factor means after 500 decisions and compare unconstrained, conservation-only freeze, and automatic reset/recalibration after a fixed pause.",
+      "source": "experiments/jm_extracted/e_jm_4b_recalibration.py",
+      "results": "experiments/jm_extracted/results/e_jm_4b/e_jm_4b_summary.json",
+      "charts": ["e_jm_4b_trajectory", "e_jm_4b_recovery_box"],
+      "result_highlights": {"recovery_pct": 86.8003341688, "gap_closed_pp": 17.3166666667},
+      "strategy": "a",
+      "data": "Synthetic shifted factor vectors; saved results and charts present.",
+      "concerns": ["Approval is hard-coded and automatic.", "Reset/grace-period values are assumptions.", "Uses an independent toy gate."],
+      "protocol_mismatch": "Toy reset lifecycle, not supervisor-approved production recalibration.",
+      "effort": "medium"
+    },
+    "E-JM-5": {
+      "actual_behavior": "100 synthetic domains, five trials each, and 2,000 decisions estimate factor weights using inverse variance times class discriminability, reporting rank, overlap, cosine, Kendall, and trap discovery at checkpoints.",
+      "source": "experiments/jm_extracted/e_jm_5_weight_convergence.py",
+      "results": "experiments/jm_extracted/results/e_jm_5/e_jm_5_summary.json",
+      "charts": ["e_jm_5_convergence", "e_jm_5_discovery_rate", "e_jm_5_trajectories"],
+      "result_highlights": {"domains": 100, "trials": 5, "trap_pct_at_2000": 63.4},
+      "strategy": "a",
+      "data": "Synthetic factor vectors and simulator truth; saved results and charts present.",
+      "concerns": ["True weights are privileged simulator truth.", "Estimator is hand-built rather than confirmed production DK.", "Five trials per domain is thin for uncertainty."],
+      "protocol_mismatch": "Synthetic estimator evaluation rather than production factor discovery.",
+      "effort": "medium"
+    },
+    "E-JM-6": {
+      "actual_behavior": "15 synthetic trials of 3,000 decisions compare stateless, linear uniform-kernel, and multiplicative DK×centroid regimes, tracking rolling accuracy, IKS, approved scope, and an accuracy-times-scope metric.",
+      "source": "experiments/jm_extracted/e_jm_6_compounding_trajectory.py",
+      "results": "experiments/jm_extracted/results/e_jm_6/e_jm_6_summary.json",
+      "charts": ["e_jm_6_trajectories", "e_jm_6_iks_trajectory", "e_jm_6_combined_metric", "e_jm_6_disruption_recovery"],
+      "result_highlights": {"trials": 15, "decisions": 3000, "combined_metric_power_exponent": 1.1386506742, "combined_metric_power_r2": 0.9999999997},
+      "strategy": "c",
+      "data": "Synthetic only; summary and charts present.",
+      "concerns": ["Centroids exist only in memory and are never serialized.", "Combined metric is defined from the same trajectory being fit.", "Multiplicative compounding is built into the simulator."],
+      "protocol_mismatch": "Figure 2 requires Day 1/Month 6/Month 12 centroid geometry, but no snapshots are saved; Figure 2 is not extractable from archived results alone.",
+      "effort": "high"
+    },
+    "E-JM-6b": {
+      "actual_behavior": "20 paired synthetic trials compare the E-JM-6 DK regime with a hand-coded Bayesian online linear baseline for 3,000 decisions and bootstrap-fit the DK compounding exponent 100 times.",
+      "source": "experiments/jm_extracted/e_jm_6b_baseline_ci.py",
+      "results": "experiments/jm_extracted/results/e_jm_6b/e_jm_6b_summary.json",
+      "charts": ["e_jm_6b_dk_vs_bayesian", "e_jm_6b_exponent_ci"],
+      "result_highlights": {"dk_advantage_pp": 1.21, "exponent_mean": 1.1386506742, "exponent_ci_95": [1.1386506742, 1.1386506742], "exponent_gt_1_pct": 100.0},
+      "strategy": "c",
+      "data": "Synthetic only; saved results and charts present.",
+      "concerns": ["95% exponent CI is degenerate.", "Bayesian comparator is hand-coded and not independently validated.", "Paired-seed comparability needs checking."],
+      "protocol_mismatch": "Archived uncertainty output does not support a meaningful non-degenerate bootstrap claim.",
+      "effort": "high"
+    },
+    "E-JM-7": {
+      "actual_behavior": "25 synthetic trials over three entity groups and 2,000 decisions compare global DK, per-entity DK, and a nominal separate-stores condition using late accuracy and entity trap detection.",
+      "source": "experiments/jm_extracted/e_jm_7_cross_type.py",
+      "results": "experiments/jm_extracted/results/e_jm_7/e_jm_7_summary.json",
+      "charts": ["e_jm_7_accuracy", "e_jm_7_trap_detection"],
+      "result_highlights": {"global_trap_detection_pct": 8.5714285714, "per_entity_trap_detection_pct": 22.8571428571, "separate_stores_trap_detection_pct": 8.5714285714},
+      "strategy": "c",
+      "data": "Synthetic entity-conditioned weights; saved results and charts present.",
+      "concerns": ["Separate-stores has the same result as global because both use global DK weights.", "Simulator has direct access to entity-specific truth.", "Accuracy is nearly unchanged while trap detection changes."],
+      "protocol_mismatch": "The archive does not implement distinct persistent stores for the separate-stores arm.",
+      "effort": "medium"
+    }
+  },
+  "strategy_counts": {"a_render_saved_results": 4, "b_rerun_existing_harness": 0, "c_adapt_harness": 5, "d_build_from_primitives": 0, "e_not_found": 0},
+  "datasets": {
+    "htrust/data/default_credit.csv": false,
+    "htrust/data/default_credit.xls": false,
+    "htrust/data/heloc.csv": false,
+    "htrust/data/coil.zip": false,
+    "archive_external_datasets": false,
+    "blocker_assessment": "No external dataset blocks the nine archived synthetic harnesses. Missing htrust datasets block separate real-data validation only."
+  },
+  "cross_cutting_concerns": [
+    "run_all_experiments.py claims four experiments and omits E-JM-4b, E-JM-5, E-JM-6, E-JM-6b, and E-JM-7.",
+    "Scripts execute computation and chart rendering at top level; Phase 2 should add controlled entry points before rerunning.",
+    "Only summaries and PNG/PDF charts are archived; raw trial-level results are not.",
+    "Several claims use synthetic truth and hard-coded mechanisms rather than measurements from the production SDK."
+  ],
+  "figure_2": {
+    "extractable_from_e_jm_6": false,
+    "evidence": "E-JM-6 creates centroid tensors inside run_regime() but only stores results, IKS, and approved counts. The summary stores fit coefficients, not centroid snapshots.",
+    "phase_2_action": "Adapt E-JM-6 to capture deterministic centroid tensors or a documented low-dimensional projection at Day 1, Month 6, and Month 12, then render Figure 2."
+  },
+  "recommended_phase_2_order": [
+    "1. Audit/adapt E-JM-2 and E-JM-3.",
+    "2. Adapt E-JM-5 and E-JM-7 with explicit simulator-truth labeling.",
+    "3. Repair E-JM-4 determinism and gate alignment, then validate E-JM-4b.",
+    "4. Adapt E-JM-6 to serialize centroid checkpoints and produce Figure 2.",
+    "5. Repair E-JM-6b bootstrap/CI protocol and rerun the baseline comparison.",
+    "6. Reconcile E-JM-1's negative advantage and NaN fields before publication rendering."
+  ]
+}

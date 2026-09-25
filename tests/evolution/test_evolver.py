@@ -29,7 +29,7 @@ class FailingRule:
         raise RuntimeError("boom")
 
 
-def _decisions(count=10):
+def _decisions(count=1_000):
     return [
         {
             "actual_action": "accept",

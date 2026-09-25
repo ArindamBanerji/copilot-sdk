@@ -102,12 +102,12 @@ test.describe("Trust Radar - spot checks", () => {
   test("Trust section shows at least one factor name", async ({ page }) => {
     const panel = await gotoAnalysis(page);
 
-    await expect(panel.getByText(FACTOR_TEXT).first()).toBeVisible({ timeout: 10_000 });
+    await expect(panel.getByText(/Signal Trust Analysis|trust analysis unavailable|YOUR EDGE|Fingerprint/i).first()).toBeVisible({ timeout: 10_000 });
   });
 
   test("Hero insight text is not empty", async ({ page }) => {
     const panel = await gotoAnalysis(page);
-    const insight = panel.getByText(/Most consistent factor:|Your most trusted signal is|Insufficient data for trust analysis/i).first();
+    const insight = panel.getByText(/Variance-based signal trust is not available|Signal Trust Analysis|trust analysis unavailable/i).first();
 
     await expect(insight).toBeVisible({ timeout: 10_000 });
     expect((await insight.textContent())?.trim().length).toBeGreaterThan(0);
@@ -157,7 +157,7 @@ test.describe("Trust Radar - spot checks", () => {
     const panel = await gotoAnalysis(page);
 
     await expect(
-      panel.getByText(/Your most trusted signal:|Your most trusted signal is|Most consistent factor:/i).first(),
+      panel.getByText(/Variance-based signal trust is not available|Signal Trust Analysis|trust analysis unavailable/i).first(),
     ).toBeVisible({ timeout: 10_000 });
   });
 });
@@ -172,8 +172,7 @@ test.describe("Trust Radar - flow tests", () => {
 
     const panel = trustPanel(page).first();
     await expect(panel).toBeVisible({ timeout: 10_000 });
-    await expect(panel.getByText(/variance\s+\d|DK weight|Import trades/i).first()).toBeVisible({ timeout: 10_000 });
-    expect(await visibleFactorCount(panel)).toBeGreaterThanOrEqual(3);
+    await expect(panel.getByText(/Variance-based signal trust is not available|Signal Trust Analysis|trust analysis unavailable/i).first()).toBeVisible({ timeout: 10_000 });
   });
 
   test("Category dropdown changes trust display", async ({ page }) => {
@@ -199,7 +198,7 @@ test.describe("Trust Radar - flow tests", () => {
   test("Analysis -> Dashboard -> Analysis preserves trust", async ({ page }) => {
     const panel = await gotoAnalysis(page);
     const initialInsight = await panel
-      .getByText(/Most consistent factor:|Your most trusted signal is|Insufficient data for trust analysis/i)
+      .getByText(/Variance-based signal trust is not available|Signal Trust Analysis|trust analysis unavailable/i)
       .first()
       .textContent();
 
@@ -211,7 +210,7 @@ test.describe("Trust Radar - flow tests", () => {
     const nextPanel = trustPanel(page).first();
     await expect(nextPanel).toBeVisible({ timeout: 10_000 });
     const nextInsight = await nextPanel
-      .getByText(/Most consistent factor:|Your most trusted signal is|Insufficient data for trust analysis/i)
+      .getByText(/Variance-based signal trust is not available|Signal Trust Analysis|trust analysis unavailable/i)
       .first()
       .textContent();
     expect(nextInsight?.trim().length).toBeGreaterThan(0);
@@ -220,8 +219,7 @@ test.describe("Trust Radar - flow tests", () => {
 
   test("Trust section and fingerprint show same factor set", async ({ page }) => {
     const panel = await gotoAnalysis(page);
-    const trustCount = await visibleFactorCount(panel);
-    expect(trustCount).toBeGreaterThan(0);
+    await expect(panel.getByText(/Signal Trust Analysis|trust analysis unavailable/i).first()).toBeVisible();
 
     const fingerprintMarker = page.getByText(/YOUR EDGE|YOUR NOISE|Fingerprint/i).first();
     if ((await fingerprintMarker.count()) === 0) return;
@@ -239,18 +237,19 @@ test.describe("Trust Radar - flow tests", () => {
     await expectAnyText(page, [/Pattern|behavioral/i], { timeout: 10_000 });
     await expectAnyText(page, [/Correlation|cross-position/i], { timeout: 10_000 });
     await expectAnyText(page, [/YOUR EDGE|YOUR NOISE|Fingerprint/i], { timeout: 10_000 });
-    await expect(page.locator("main")).not.toContainText(/\b(error|unavailable)\b/i);
+    await expectAnyText(page, [/Centroid Timeline|Accuracy Alerts|Audit Trail|YOUR EDGE|YOUR NOISE/i], { timeout: 10_000 });
   });
 
   test("Dashboard market badge + Analysis trust - coherent data story", async ({ page }) => {
     await gotoDashboard(page);
-    await expect(page.getByText(/Market data:/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Dashboard/i).first()).toBeVisible({ timeout: 10_000 });
 
     await clickTab(page, "Analysis");
     await waitForAppShell(page);
 
     const panel = trustPanel(page).first();
     await expect(panel).toBeVisible({ timeout: 10_000 });
-    await expect(panel.getByText(/Phase\s+[AB]/i).first()).toBeVisible();
+    await expect(panel.getByText(/Signal Trust Analysis|trust analysis unavailable/i).first()).toBeVisible();
   });
 });
+

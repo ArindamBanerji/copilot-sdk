@@ -26,7 +26,7 @@ class Variant:
         return self.action
 
 
-def _decisions(count: int = 10) -> list[dict[str, str]]:
+def _decisions(count: int = 1_000) -> list[dict[str, str]]:
     return [
         {
             "recommended_action": "review",

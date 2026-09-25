@@ -46,6 +46,44 @@ def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
         LOGGER.error("Demo bundle domain mismatch: expected %s, got %s", domain, bundle_domain)
         return False
 
+    # AGE-native restore is the only production path.  The bundle is clearly
+    # synthetic and therefore carries provenance on every restored decision.
+    graph_config = getattr(store, "graph_config", None)
+    backend = str(
+        getattr(graph_config, "backend", None)
+        or getattr(store, "backend", "")
+    ).lower()
+    is_age_adapter = type(store).__name__ == "AGEGraphStoreAdapter"
+    if backend == "age" or is_age_adapter:
+        threshold = int(bundle.get("min_decisions_to_skip", DEFAULT_MIN_DECISIONS_TO_SKIP))
+        if store.count_decisions(domain) >= threshold:
+            return False
+        decisions = list(_items(bundle.get("decisions")))
+        written = 0
+        for decision in decisions:
+            metadata = dict(decision.get("metadata") or {})
+            metadata["provenance"] = "synthetic"
+            metadata["source"] = "demo_bundle"
+            try:
+                store.write_governed_decision(
+                    decision_id=str(decision["decision_id"]),
+                    domain=domain,
+                    category=str(decision.get("category") or "unknown"),
+                    category_index=int(decision.get("category_index") or 0),
+                    recommended_action=str(decision.get("recommended_action") or "unknown"),
+                    recommended_index=int(decision.get("recommended_index") or 0),
+                    confidence=float(decision.get("confidence") or 0.0),
+                    probabilities=list(decision.get("probabilities") or []),
+                    factor_vector=list(decision.get("factor_vector") or []),
+                    factor_names=list(decision.get("factor_names") or []),
+                    source="demo_bundle",
+                    metadata=metadata,
+                )
+                written += 1
+            except Exception as exc:
+                LOGGER.warning("AGE bundle decision skipped: %s", exc)
+        return written > 0
+
     sqlite_store = _sqlite_restore_store(store)
     threshold = int(bundle.get("min_decisions_to_skip", DEFAULT_MIN_DECISIONS_TO_SKIP))
     try:

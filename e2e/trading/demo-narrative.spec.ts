@@ -7,7 +7,7 @@ async function openPerformanceTab(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expectAnyText(page, [/Performance Summary/i, /Trajectory/i, /IKS/i]);
+  await expectAnyText(page, [/Centroid Timeline/i, /Accuracy Alerts/i, /Decision Explorer/i]);
 }
 
 async function openDashboard(page: Page) {
@@ -76,3 +76,4 @@ test("first-run suggestion browse button hidden when decisions exist", async ({ 
   await openDashboard(page);
   await expect(page.getByRole("button", { name: "Browse Industry Templates" })).not.toBeVisible();
 });
+

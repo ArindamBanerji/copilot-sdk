@@ -19,7 +19,7 @@ test("factor fingerprint shows seven S2P factors", async ({ page }) => {
   await openInsight(page);
   const fingerprint = panel(page, "Factor fingerprint");
 
-  if (!(await page.locator("select").first().getByText(/S2P-INV/i).count())) {
+  if (!(await page.locator("select").first().getByText(/S2P-INV|STRESS-CONC-S2P|INV-/i).count())) {
     await expect(fingerprint).toContainText(/Select an invoice/i);
     return;
   }
@@ -36,7 +36,7 @@ test("similar invoices list renders with distances", async ({ page }) => {
   const similar = panel(page, "Similar invoices");
 
   await expect(similar).toContainText(/Nearest exceptions|Select an invoice|No similar invoice evidence available|Loading similar invoices/i);
-  await expect(similar).toContainText(/distance|S2P-INV|INV-S2P|Select an invoice|No similar invoice evidence available|Loading similar invoices/i);
+  await expect(similar).toContainText(/distance|S2P-INV|STRESS-CONC-S2P|INV-|INV-S2P|Select an invoice|No similar invoice evidence available|Loading similar invoices/i);
 });
 
 test("cross-graph shows supplier and commodity impact correlation", async ({ page }) => {

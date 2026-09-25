@@ -39,7 +39,6 @@ def create_regime_router(
     router = APIRouter(prefix="/api/trading", tags=["trading-regime"])
 
     @router.get("/regime")
-    @cached_static("regime")
     def current_regime(request: Request) -> dict[str, Any]:
         service = service_factory()
         trades = _journal_records(graph_store_factory, domain)

@@ -2,16 +2,28 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 from types import ModuleType
+from typing import TypedDict
 
 from copilot_sdk.graph import EdgeType, GraphContract, NodeType
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DOMAINS = {
+
+
+class DomainInfo(TypedDict):
+    backend_path: Path
+    contract_path: Path
+    seed_path: Path
+    contract_name: str
+    seed_name: str
+
+
+DOMAINS: dict[str, DomainInfo] = {
     "trading": {
         "backend_path": REPO_ROOT / "apps" / "trading" / "backend",
         "contract_path": REPO_ROOT / "apps" / "trading" / "backend" / "app" / "graph_contract.py",
@@ -146,7 +158,7 @@ def test_all_seed_outputs_cover_contract_labels():
         assert {edge.label for edge in contract.edge_types} <= {edge["label"] for edge in edges}
 
 
-def test_app_package_imports_work_in_domain_isolated_subprocesses():
+def test_app_package_imports_work_in_domain_isolated_subprocesses(tmp_path):
     script = r"""
 import importlib
 import sys
@@ -174,6 +186,24 @@ assert len(edges) > 0
 print(f"OK:{domain}")
 """
     for domain, info in DOMAINS.items():
+        # Importing app packages constructs their module-level app. This unit
+        # test must not initialize stores on the user's active AGE database.
+        config_path = tmp_path / f"{domain}.toml"
+        config_path.write_text(
+            '[defaults]\nbackend="sqlite"\nexpected_backend="sqlite"\ngraph="test_graph"\ndsn=""\n',
+            encoding="utf-8",
+        )
+        child_env = {
+            key: value for key, value in os.environ.items()
+            if not key.startswith(("GRAPH_", "AGE_", "TRADING_ACTIVE_", "PURCHASING_ACTIVE_", "DATAOPS_ACTIVE_"))
+        }
+        child_env.update({
+            "GRAPH_CONFIG_PATH": str(config_path), "GRAPH_BACKEND": "sqlite",
+            f"{domain.upper()}_PROFILE": "test",
+            f"{domain.upper()}_ACTIVE_GRAPH_BACKEND": "sqlite",
+            "CI_DATA_DIR": str(tmp_path), "CROSS_SIGNAL_DB_PATH": str(tmp_path / "signals.db"),
+            "DEMO_NO_RESEED": "1",
+        })
         result = subprocess.run(
             [
                 sys.executable,
@@ -186,9 +216,14 @@ print(f"OK:{domain}")
                 domain,
             ],
             cwd=REPO_ROOT,
+            env=child_env,
             capture_output=True,
             text=True,
-            timeout=30,
+            # Domain-isolated imports compete with the full SDK suite for
+            # process startup and filesystem resources on Windows.  The
+            # contract itself completes in seconds when isolated; 60 seconds
+            # avoids a false timeout under full-suite contention.
+            timeout=60,
         )
 
         assert result.returncode == 0, (

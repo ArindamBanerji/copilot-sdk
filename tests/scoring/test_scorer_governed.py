@@ -63,6 +63,7 @@ def _build_scorer(
         preset,
         gae_scorer,
         graph_store=cast(GraphStore, store),
+        profile="test",
         governed_writes=governed_writes,
     )
 

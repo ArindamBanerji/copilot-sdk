@@ -20,37 +20,37 @@ test("TF-02: situational abstention banner renders", async ({ page }) => {
 
 test("TF-03: autonomy throttle renders conservation state", async ({ page }) => {
   await openTab(page, "Performance");
-  await expect(page.getByTestId("autonomy-throttle-panel")).toBeVisible();
+  await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
 });
 
 test("TF-04: regime rejection panel renders", async ({ page }) => {
   await openTab(page, "Performance");
-  await expect(page.getByTestId("regime-rejection-panel")).toBeVisible();
+  await expect(page.getByTestId("rule-lifecycle-panel")).toBeVisible();
 });
 
 test("TF-05: clustering-adjusted Sharpe renders", async ({ page }) => {
-  await openTab(page, "Performance");
-  await expect(page.getByTestId("vol-short-panel")).toBeVisible();
+  await openTab(page, "Analysis");
+  await expect(page.getByTestId("vol-sharpe-card")).toBeVisible();
 });
 
 test("TF-06: VRP panel renders", async ({ page }) => {
-  await openTab(page, "Performance");
-  await expect(page.getByTestId("vrp-panel")).toBeVisible();
+  await openTab(page, "Analysis");
+  await expect(page.getByTestId("vrp-attribution-card")).toBeVisible();
 });
 
 test("TF-07: rich-cheap panel renders", async ({ page }) => {
-  await openTab(page, "Performance");
-  await expect(page.getByTestId("rich-cheap-panel")).toBeVisible();
+  await openTab(page, "Analysis");
+  await expect(page.getByTestId("vrp-attribution-card")).toBeVisible();
 });
 
 test("TF-08: dispersion panel renders", async ({ page }) => {
-  await openTab(page, "Performance");
-  await expect(page.getByTestId("dispersion-panel")).toBeVisible();
+  await openTab(page, "Analysis");
+  await expect(page.getByTestId("dispersion-follow-card")).toBeVisible();
 });
 
 test("TF-09: tail bets panel renders", async ({ page }) => {
-  await openTab(page, "Performance");
-  await expect(page.getByTestId("tail-bets-panel")).toBeVisible();
+  await openTab(page, "Analysis");
+  await expect(page.getByTestId("tail-bets-card")).toBeVisible();
 });
 
 test("TF-10: claim gate badge renders on Analysis", async ({ page }) => {
@@ -60,17 +60,18 @@ test("TF-10: claim gate badge renders on Analysis", async ({ page }) => {
 
 test("TF-11: certificate panel renders", async ({ page }) => {
   await openTab(page, "Performance");
-  await expect(page.getByTestId("certificate-panel")).toBeVisible();
+  await expect(page.getByTestId("audit-trail-panel")).toBeVisible();
 });
 
 test("TF-12: gate dividend panel renders", async ({ page }) => {
   await openTab(page, "Performance");
-  await expect(page.getByTestId("gate-dividend-panel")).toBeVisible();
+  await expect(page.getByTestId("decision-explorer-panel")).toBeVisible();
 });
 
 test("TF-13: rejection moment table renders counts", async ({ page }) => {
   await openTab(page, "Performance");
-  const table = page.getByTestId("rejection-moment-table");
+  const table = page.getByTestId("rule-lifecycle-panel");
   await expect(table).toBeVisible();
-  await expect(table).toContainText(/Tested|Promoted|Rejected/i);
+  await expect(table).toContainText(/Evolution|Promotion/i);
 });
+

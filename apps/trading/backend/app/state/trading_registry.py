@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any, Callable, cast
 
 from app import context_router
@@ -50,16 +51,37 @@ def create_trading_tab_state_cache(
     graph_store_factory: GraphStoreFactory,
     regime_monitor: RegimeMonitor,
 ) -> TabStateCache:
-    cache = TabStateCache("trading")
+    cache = TabStateCache("trading", ttl_seconds=5.0)
+
+    decision_cache: dict[str, Any] = {"data": None, "expires": 0.0, "store": None}
+
+    class _SharedDecisionStore:
+        def __init__(self, store: Any) -> None:
+            self._store = store
+
+        def get_all_decisions(self, domain: str = "trading") -> list[dict[str, Any]]:
+            now = time.time()
+            if decision_cache["data"] is None or now >= decision_cache["expires"]:
+                decision_cache["data"] = list(self._store.get_all_decisions(domain))
+                decision_cache["expires"] = now + 5.0
+            return cast(list[dict[str, Any]], decision_cache["data"])
+
+        def __getattr__(self, name: str) -> Any:
+            return getattr(self._store, name)
 
     def scorer() -> Any:
         return scorer_provider()
 
     def graph_store() -> Any:
-        return graph_store_factory()
+        now = time.time()
+        if decision_cache["store"] is None or now >= decision_cache["expires"]:
+            decision_cache["store"] = _SharedDecisionStore(graph_store_factory())
+            decision_cache["data"] = None
+            decision_cache["expires"] = now + 5.0
+        return decision_cache["store"]
 
     def verified() -> list[dict[str, Any]]:
-        return cast(list[dict[str, Any]], compute_verified_decisions(graph_store_factory))
+        return cast(list[dict[str, Any]], compute_verified_decisions(graph_store))
 
     def centroid_history_summary() -> dict[str, Any]:
         store = graph_store()
@@ -91,7 +113,10 @@ def create_trading_tab_state_cache(
         }
 
     def regime_analytics() -> dict[str, Any]:
-        return RegimeAnalytics().compute(_read_decisions(graph_store_factory, "trading"))
+        return cast(
+            dict[str, Any],
+            RegimeAnalytics().compute(_read_decisions(graph_store, "trading")),
+        )
 
     def transfer_status() -> dict[str, Any]:
         info = getattr(scorer(), "_warm_start_info", None)
@@ -109,7 +134,7 @@ def create_trading_tab_state_cache(
     def correlation() -> dict[str, Any]:
         from app.routers.correlation import _correlation_service
 
-        return cast(dict[str, Any], _correlation_service(20).compute(_journal_records(graph_store_factory, "trading")))
+        return cast(dict[str, Any], _correlation_service(20).compute(_journal_records(graph_store, "trading")))
 
     def rejection_summary() -> dict[str, Any]:
         persisted = _load_persisted_rejection_summary()
@@ -125,11 +150,11 @@ def create_trading_tab_state_cache(
         }
 
     def execution() -> dict[str, Any]:
-        return cast(dict[str, Any], json_safe(ExecutionAnalyzer().analyze(_journal_records(graph_store_factory, "trading"))))
+        return cast(dict[str, Any], json_safe(ExecutionAnalyzer().analyze(_journal_records(graph_store, "trading"))))
 
     compute: dict[TradingKey, Callable[[], Any]] = {
-        TradingKey.ANALYTICS: context_router.analytics,
-        TradingKey.HISTORY_SUMMARY: lambda: compute_history_summary(graph_store_factory),
+        TradingKey.ANALYTICS: lambda: context_router._analytics_from_store(graph_store()),
+        TradingKey.HISTORY_SUMMARY: lambda: compute_history_summary(graph_store),
         TradingKey.TRADE_METADATA: context_router.get_trade_metadata,
         TradingKey.MARKET_SNAPSHOT: context_router.market_snapshot,
         TradingKey.TRANSFER_STATUS: transfer_status,
@@ -137,10 +162,10 @@ def create_trading_tab_state_cache(
         TradingKey.MEASUREMENT_STATE: measurement_state,
         TradingKey.REGIME: regime_status,
         TradingKey.PATTERNS: context_router.behavioral_patterns,
-        TradingKey.ACCURACY: lambda: compute_accuracy_summary(graph_store_factory),
+        TradingKey.ACCURACY: lambda: compute_accuracy_summary(graph_store),
         TradingKey.FINGERPRINT: lambda: json_safe(scorer().fingerprint()),
         TradingKey.TRUST_ANALYSIS: trust_analysis,
-        TradingKey.DECISIONS_SUMMARY: lambda: compute_decisions_summary(graph_store_factory),
+        TradingKey.DECISIONS_SUMMARY: lambda: compute_decisions_summary(graph_store),
         TradingKey.VOL_SHARPE: lambda: compute_clustering_adjusted_sharpe(verified()),
         TradingKey.VRP_ATTRIBUTION: lambda: compute_vrp_attribution(verified()),
         TradingKey.REGIME_VRP: lambda: compute_regime_vrp(verified()),
@@ -154,16 +179,16 @@ def create_trading_tab_state_cache(
         TradingKey.AUDIT_TRAIL_SUMMARY: audit_trail_summary,
         TradingKey.REGIME_STATUS: regime_status,
         TradingKey.REGIME_ANALYTICS: regime_analytics,
-        TradingKey.PROMOTION: lambda: compute_promotion_dashboard(graph_store_factory),
+        TradingKey.PROMOTION: lambda: compute_promotion_dashboard(graph_store),
         TradingKey.REJECTION_SUMMARY: rejection_summary,
         TradingKey.TRANSFER: transfer_status,
         TradingKey.EXECUTION: execution,
         TradingKey.WEBHOOK_HISTORY: compute_webhook_status,
         TradingKey.COHORT_STATUS: lambda: CohortStatusService(graph_store=graph_store()).get_status(),
         TradingKey.VIX: lambda: {"status": "not_computed"},
-        TradingKey.JOURNAL_TRADES_SUMMARY: lambda: compute_journal_trades_summary(graph_store_factory),
-        TradingKey.ANALYTICS_BY_CATEGORY: lambda: compute_journal_analytics(graph_store_factory, "category"),
-        TradingKey.ANALYTICS_BY_SUBCATEGORY: lambda: compute_journal_analytics(graph_store_factory, "subcategory"),
+        TradingKey.JOURNAL_TRADES_SUMMARY: lambda: compute_journal_trades_summary(graph_store),
+        TradingKey.ANALYTICS_BY_CATEGORY: lambda: compute_journal_analytics(graph_store, "category"),
+        TradingKey.ANALYTICS_BY_SUBCATEGORY: lambda: compute_journal_analytics(graph_store, "subcategory"),
         TradingKey.REGIME_HISTORY: lambda: {"history": [], "bounded": True},
         TradingKey.CORRELATION_CONFIG: lambda: {"window": 20},
         TradingKey.REGIME_ANALYTICS_SUMMARY: regime_analytics,
@@ -173,8 +198,8 @@ def create_trading_tab_state_cache(
         TradingKey.EVOLUTION_PROMOTED: lambda: {"promoted": []},
     }
     service_fns: dict[TradingKey, Callable[..., Any]] = {
-        TradingKey.ANALYTICS: context_router.analytics,
-        TradingKey.HISTORY_SUMMARY: lambda: compute_history_summary(graph_store_factory),
+        TradingKey.ANALYTICS: lambda: context_router._analytics_from_store(graph_store()),
+        TradingKey.HISTORY_SUMMARY: lambda: compute_history_summary(graph_store),
         TradingKey.TRADE_METADATA: context_router.get_trade_metadata,
         TradingKey.MARKET_SNAPSHOT: context_router.market_snapshot,
         TradingKey.TRANSFER_STATUS: transfer_status,
@@ -182,10 +207,10 @@ def create_trading_tab_state_cache(
         TradingKey.MEASUREMENT_STATE: measurement_state,
         TradingKey.REGIME: regime_status,
         TradingKey.PATTERNS: context_router.behavioral_patterns,
-        TradingKey.ACCURACY: lambda: compute_accuracy_summary(graph_store_factory),
+        TradingKey.ACCURACY: lambda: compute_accuracy_summary(graph_store),
         TradingKey.FINGERPRINT: lambda: json_safe(scorer().fingerprint()),
         TradingKey.TRUST_ANALYSIS: trust_analysis,
-        TradingKey.DECISIONS_SUMMARY: lambda: compute_decisions_summary(graph_store_factory),
+        TradingKey.DECISIONS_SUMMARY: lambda: compute_decisions_summary(graph_store),
         TradingKey.VOL_SHARPE: lambda: compute_clustering_adjusted_sharpe(verified()),
         TradingKey.VRP_ATTRIBUTION: lambda: compute_vrp_attribution(verified()),
         TradingKey.REGIME_VRP: lambda: compute_regime_vrp(verified()),
@@ -199,16 +224,16 @@ def create_trading_tab_state_cache(
         TradingKey.AUDIT_TRAIL_SUMMARY: audit_trail_summary,
         TradingKey.REGIME_STATUS: regime_status,
         TradingKey.REGIME_ANALYTICS: regime_analytics,
-        TradingKey.PROMOTION: lambda: compute_promotion_dashboard(graph_store_factory),
+        TradingKey.PROMOTION: lambda: compute_promotion_dashboard(graph_store),
         TradingKey.REJECTION_SUMMARY: rejection_summary,
         TradingKey.TRANSFER: transfer_status,
         TradingKey.EXECUTION: execution,
         TradingKey.WEBHOOK_HISTORY: compute_webhook_status,
         TradingKey.COHORT_STATUS: lambda: CohortStatusService(graph_store=graph_store()).get_status(),
         TradingKey.VIX: lambda: {"status": "not_computed"},
-        TradingKey.JOURNAL_TRADES_SUMMARY: lambda: compute_journal_trades_summary(graph_store_factory),
-        TradingKey.ANALYTICS_BY_CATEGORY: lambda: compute_journal_analytics(graph_store_factory, "category"),
-        TradingKey.ANALYTICS_BY_SUBCATEGORY: lambda: compute_journal_analytics(graph_store_factory, "subcategory"),
+        TradingKey.JOURNAL_TRADES_SUMMARY: lambda: compute_journal_trades_summary(graph_store),
+        TradingKey.ANALYTICS_BY_CATEGORY: lambda: compute_journal_analytics(graph_store, "category"),
+        TradingKey.ANALYTICS_BY_SUBCATEGORY: lambda: compute_journal_analytics(graph_store, "subcategory"),
         TradingKey.REGIME_HISTORY: lambda: {"history": [], "bounded": True},
         TradingKey.CORRELATION_CONFIG: lambda: {"window": 20},
         TradingKey.REGIME_ANALYTICS_SUMMARY: regime_analytics,

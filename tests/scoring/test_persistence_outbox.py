@@ -488,7 +488,7 @@ def test_scorer_records_failed_conservation_write(mock_preset, tmp_path: Path, m
         actions=list(mock_preset.shape.action_names),
         categories=list(mock_preset.shape.category_names),
     )
-    scorer = CompoundingScorer(mock_preset, engine, graph_store=store)
+    scorer = CompoundingScorer(mock_preset, engine, graph_store=store, profile="test")
     result = scorer.score(
         {"amount": 0.25, "risk": 0.35, "history": 0.45},
         mock_preset.shape.category_names[0],
@@ -496,12 +496,13 @@ def test_scorer_records_failed_conservation_write(mock_preset, tmp_path: Path, m
     alternate = next(action for action in mock_preset.shape.action_names if action != result.action)
     store.write_outcome(result.decision_id, alternate, False, domain="mock")
 
-    scorer._persist_learning_artifacts(
-        result.decision_id,
-        actual_action=alternate,
-        is_correct=False,
-        outcome="overridden",
-        category=mock_preset.shape.category_names[0],
-    )
+    with pytest.raises(RuntimeError, match="AGE unavailable"):
+        scorer._persist_learning_artifacts(
+            result.decision_id,
+            actual_action=alternate,
+            is_correct=False,
+            outcome="overridden",
+            category=mock_preset.shape.category_names[0],
+        )
 
     assert PersistenceOutbox("mock", outbox_path).pending_count() == 1

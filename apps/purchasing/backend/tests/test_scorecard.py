@@ -78,11 +78,14 @@ def test_iks_in_health(client):
     r = client.get("/api/health")
 
     assert r.status_code == 200
-    assert "iks_score" in r.json()
+    data = r.json()
+    assert "graph_backend" in data
+    assert "graph_connected" in data
+    assert "graph_name" in data
 
 
 def test_iks_bounded(client):
-    r = client.get("/api/health")
+    r = client.get("/api/purchasing/iks/summary")
 
     assert r.status_code == 200
     assert 0 <= r.json()["iks_score"] <= 100

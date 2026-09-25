@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
-from apps.trading.backend.app.services.market_computations import compute_rsi, compute_vol_rank
+from .market_computations import compute_rsi, compute_vol_rank
 from copilot_sdk.evidence.provenance import Provenanced
 
 LIVE_TIMEOUT_SECONDS = 3

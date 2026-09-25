@@ -1,0 +1,105 @@
+[global-setup] frontend warmup skipped for http://127.0.0.1:5174: page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:5174/", waiting until "domcontentloaded"
+
+[global-setup] frontend warmup skipped for http://127.0.0.1:5176: page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:5176/", waiting until "domcontentloaded"
+
+[global-setup] frontend warmup skipped for http://127.0.0.1:5175: page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:5175/", waiting until "domcontentloaded"
+
+[global-setup] frontend warmup skipped for http://127.0.0.1:5177: page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:5177/", waiting until "domcontentloaded"
+
+
+Running 36 tests using 1 worker
+
+
+[1A[2K(node:76704) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+
+[1A[2K(node:76704) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[1A[2K[1/36] [demo] › demo\fork\fork-01-clone-run.spec.ts:4:1 › FORK-01 clone-run: trading preseed fingerprint has ten factors
+[1A[2K[2/36] [demo] › demo\fork\fork-02-replay-parity.spec.ts:3:1 › FORK-02 replay parity: repeated fingerprint reads preserve factor geometry
+[1A[2K[3/36] [demo] › demo\pilot\pilot-01-first-90.spec.ts:4:1 › PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields
+[1A[2K[4/36] [demo] › demo\pilot\pilot-02-readiness-evidence.spec.ts:3:1 › PILOT-02 readiness evidence: readiness payload includes coverage detail
+[1A[2K[5/36] [demo] › demo\platform\plat-01-shared-trace.spec.ts:3:6 › PLAT-01 › BUILD: shared cross-copilot trace panel is not shipped
+[1A[2K[6/36] [demo] › demo\platform\plat-02-routing-badge.spec.ts:3:6 › PLAT-02 › ROADMAP: cross-copilot routing accuracy badge is not measured
+[1A[2K[7/36] [demo] › demo\platform\plat-05-five-health-checks.spec.ts:3:1 › PLAT-05 five health checks: all demo copilots are reachable
+
+
+[1A[2K(node:71432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[1A[2K(node:71432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[8/36] [demo-soc] › demo\soc\soc-01-analyst-left.spec.ts:4:1 › SOC-01 analyst-left: learning state has verified evidence and weighted categories
+[1A[2K[9/36] [demo-soc] › demo\soc\soc-02-no-precedent.spec.ts:3:6 › SOC-02 › PLANT: needs PL-SOC-1 no-precedent alert fixture
+[1A[2K[10/36] [demo-soc] › demo\soc\soc-04-authority-ladder.spec.ts:3:6 › SOC-04 › BUILD: authority ladder and RED veto are not shipped
+[1A[2K[11/36] [demo-soc] › demo\soc\soc-05-frozen-twin.spec.ts:3:6 › SOC-05 › BUILD: frozen-twin comparison surface is not shipped
+[1A[2K[12/36] [demo-soc] › demo\soc\soc-06-investigation-trace.spec.ts:3:6 › SOC-06 › ROADMAP: shared investigation trace panel is not deployed
+[1A[2K[13/36] [demo-soc] › demo\soc\soc-07-chained.spec.ts:3:1 › SOC-07 chained: audit verifies and export affordance is present
+[1A[2K[14/36] [demo-soc] › demo\soc\soc-08-routing-accuracy.spec.ts:3:6 › SOC-08 › CONCEPTUAL: routing-accuracy claim is not measured
+[1A[2K[15/36] [demo-soc] › demo\soc\soc-10-campaign-path.spec.ts:3:6 › SOC-10 › PLANT: linked campaign investigation fixture is missing
+[1A[2K(node:44640) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K(node:44640) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[16/36] [demo-s2p] › demo\s2p\s2p-01-rule-said-no.spec.ts:3:1 › S2P-01 rule-said-no: copper invoice is accepted with contract reasoning
+[1A[2K[17/36] [demo-s2p] › demo\s2p\s2p-02-day-zero.spec.ts:3:1 › S2P-02 day-zero: cold start still returns confidence and contributions
+[1A[2K[18/36] [demo-s2p] › demo\s2p\s2p-03-earned-autonomy.spec.ts:3:6 › S2P-03 › BUILD: S2P promotion/autonomy ladder is not shipped
+[1A[2K[19/36] [demo-s2p] › demo\s2p\s2p-04-earned-autonomy.spec.ts:3:1 › S2P-04 earned autonomy: performance conservation is green
+[1A[2K[20/36] [demo-s2p] › demo\s2p\s2p-05-supplier-enrichment.spec.ts:3:6 › S2P-05 › PLANT: supplier enrichment fixture is missing
+[1A[2K[21/36] [demo-s2p] › demo\s2p\s2p-06-otif-provenance.spec.ts:3:6 › S2P-06 › ROADMAP: OTIF provenance surface is not complete
+
+[1A[2K(node:64968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+
+[1A[2K(node:64968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[1A[2K[22/36] [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries learned supplier fingerprint
+[1A[2K[23/36] [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor
+[1A[2K[24/36] [demo-purchasing] › demo\purchasing\pur-03-vendor-cascade.spec.ts:3:6 › PUR-03 › PLANT: vendor-cascade order fixture is missing
+[1A[2K[25/36] [demo-purchasing] › demo\purchasing\pur-04-quiet-week.spec.ts:3:1 › PUR-04 quiet week: proof ledger has both curves
+[1A[2K[26/36] [demo-purchasing] › demo\purchasing\pur-05-proof-ledger-export.spec.ts:3:6 › PUR-05 › BUILD: purchasing proof-ledger export is not shipped
+[1A[2K[27/36] [demo-purchasing] › demo\purchasing\pur-06-multi-unit-transfer.spec.ts:3:6 › PUR-06 › ROADMAP: multi-unit trust transfer scenario is not ready
+
+
+[1A[2K(node:69700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:69700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[1A[2K[28/36] [demo-trading] › demo\trading\trd-01-favorite-setup.spec.ts:3:1 › TRD-01 favorite setup: ten-factor trust radar flags sigma
+[1A[2K[29/36] [demo-trading] › demo\trading\trd-02-friday-regime.spec.ts:3:6 › TRD-02 › PLANT: Friday regime fixture is missing
+[1A[2K[30/36] [demo-trading] › demo\trading\trd-03-certificate.spec.ts:3:1 › TRD-03 certificate: category accuracy exposes verified detector evidence
+[1A[2K[31/36] [demo-trading] › demo\trading\trd-04-revenge-trade.spec.ts:3:6 › TRD-04 › PLANT: revenge-trade fixture is missing
+[1A[2K[32/36] [demo-trading] › demo\trading\trd-05-prove-before-money.spec.ts:3:6 › TRD-05 › CONCEPTUAL: prove-before-real-money gate is not deployed
+[1A[2K[33/36] [demo-trading] › demo\trading\trd-06-code-free.spec.ts:3:1 › TRD-06 code-free: fingerprint has ten earned nonzero weights
+
+[1A[2K(node:3636) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K(node:3636) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[34/36] [demo-dataops] › demo\dataops\do-01-source-lost.spec.ts:3:1 › DO-01 source-lost-trust: source trust data is populated and ranked
+[1A[2K[35/36] [demo-dataops] › demo\dataops\do-03-twelve-years.spec.ts:3:1 › DO-03 twelve-years: six-factor profile and centroid checkpoints exist
+[1A[2K[36/36] [demo-dataops] › demo\dataops\do-06-jan-vs-now.spec.ts:3:1 › DO-06 jan-vs-now: insight shows the current differentiated trust distribution
+[1A[2K  17 skipped
+  19 passed (2.1m)

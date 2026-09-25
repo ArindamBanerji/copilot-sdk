@@ -30,14 +30,6 @@ ACTIONS = (
 )
 
 
-class FullFlowGraphStore(InMemoryGraphStore):
-    def count_categories_with_n(self, domain: str, n: int) -> int:
-        counts: dict[str, int] = {}
-        for decision in self.get_all_decisions(domain):
-            category = decision.get("category")
-            if category is not None:
-                counts[str(category)] = counts.get(str(category), 0) + 1
-        return sum(1 for count in counts.values() if count >= int(n))
 
 
 def _factor_payload(i: int) -> dict[str, float]:
@@ -85,7 +77,7 @@ def _score_and_learn(
 
 
 def _run_sdk_full_flow() -> SimpleNamespace:
-    store = FullFlowGraphStore(domain=DOMAIN)
+    store = InMemoryGraphStore(domain=DOMAIN)
     scorer = CompoundingScorer.from_preset(
         DOMAIN,
         graph_store=store,

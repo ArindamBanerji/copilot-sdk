@@ -12,7 +12,7 @@ import os
 import sys
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Coroutine, Optional, cast
@@ -27,6 +27,8 @@ from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
 from copilot_sdk.evolution.protocol import EvolutionStore
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
+from copilot_sdk.config.graph_config import GraphConfig, GraphConfigError, resolve_profile
+from copilot_sdk.graph.production import validate_production_store
 from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.scoring.persistence_outbox import PersistenceOutbox
 from copilot_sdk.stats.bootstrap import block_bootstrap_mean_se
@@ -115,6 +117,10 @@ class LearnResult:
     exploration_used: bool = False
     cold_start: bool = False
     bootstrap: bool = False
+    status: str = "complete"
+    persistence: dict[str, bool] = field(default_factory=dict)
+    persistence_failures: list[dict[str, str]] = field(default_factory=list)
+    dk_refresh: str = "skipped"
 
 
 class CompoundingScorer:
@@ -131,6 +137,7 @@ class CompoundingScorer:
         evolve: bool = False,
         consolidation_enabled: bool = False,
         governed_writes: bool | None = None,
+        profile: str | None = None,
     ):
         self._preset = preset
         self._scorer = scorer
@@ -140,6 +147,20 @@ class CompoundingScorer:
         self._canonical_mu = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
         self._graph_store = graph_store
         self._domain = str(getattr(graph_store, "domain", preset.name) or preset.name)
+        self._profile = resolve_profile(profile, domain=self._domain)
+        if self._profile == "production":
+            try:
+                from copilot_sdk.graph.production import age_client_for_store
+
+                age_client_for_store(graph_store, domain=preset.name)
+                bound_config = getattr(graph_store, "graph_config", None)
+                if not isinstance(bound_config, GraphConfig):
+                    bound_config = GraphConfig.load(preset.name, profile="production")
+                if bound_config.domain != preset.name:
+                    raise GraphConfigError("scorer and GraphConfig domain mismatch")
+                validate_production_store(graph_store, bound_config)
+            except GraphConfigError as exc:
+                raise RuntimeError(str(exc)) from exc
         self._reward_fn = reward_function
         self._credit = credit_assigner
         self._explorer = exploration_policy
@@ -264,21 +285,18 @@ class CompoundingScorer:
         consolidation_enabled: bool = False,
         enable_rl: bool = True,
         governed_writes: bool | None = None,
-        profile: str = "production",
+        profile: str | None = None,
+        graph_config: GraphConfig | None = None,
     ) -> "CompoundingScorer":
-        if profile not in {"production", "test", "development"}:
-            raise ValueError("profile must be 'production', 'test', or 'development'")
+        profile = resolve_profile(profile, domain=domain)
+        if graph_config is not None and graph_config.profile != profile:
+            raise GraphConfigError("scorer profile conflicts with injected GraphConfig")
         if domain not in PRESET_REGISTRY:
             available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
             raise ValueError(f"Unknown preset {domain!r}. Available presets: {available}")
 
         preset_cls = PRESET_REGISTRY[domain]
         preset = preset_cls()
-        if db_path is None:
-            data_dir = Path(__file__).resolve().parents[1] / "data"
-            data_dir.mkdir(parents=True, exist_ok=True)
-            db_path = str(data_dir / f"{domain}.db")
-
         if graph_store is None and profile == "production":
             raise RuntimeError(
                 "Production scorer requires an injected GraphStore. "
@@ -289,34 +307,33 @@ class CompoundingScorer:
 
             graph_store = InMemoryGraphStore(domain=preset.name)
         elif graph_store is None:
-            # Development-only SQLite fallback; production requires an injected
-            # AGE-backed store and is rejected above.
+            # Explicit offline/development mode only. No local file is created
+            # as a side effect of rejected production construction.
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
+            if db_path is None:
+                data_dir = Path(__file__).resolve().parents[1] / "data"
+                data_dir.mkdir(parents=True, exist_ok=True)
+                db_path = str(data_dir / f"{domain}.db")
             graph_store = cast(
                 GraphStore,
                 SQLiteGraphStore(db_path, domain=preset.name),
             )
         assert graph_store is not None
         if profile == "production":
-            from copilot_sdk.graph.memory_store import InMemoryGraphStore
-            from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
-            from copilot_sdk.graph.dual_write_store import DualWriteStore
+            try:
+                # Check the primary before loading config or reading any learned state.
+                from copilot_sdk.graph.production import age_client_for_store
 
-            if isinstance(graph_store, (SQLiteGraphStore, InMemoryGraphStore)):
-                raise RuntimeError(
-                    "Production scorer requires an AGE-backed GraphStore; "
-                    "SQLite and InMemoryGraphStore are test/development stores."
-                )
-            if isinstance(graph_store, DualWriteStore) and isinstance(
-                cast(DualWriteStore, graph_store).primary,
-                (SQLiteGraphStore, InMemoryGraphStore),
-            ):
-                raise RuntimeError(
-                    "Production scorer requires AGE to be the primary GraphStore; "
-                    "dual-write stores with a SQLite or in-memory primary are "
-                    "test/migration stores."
-                )
+                age_client_for_store(graph_store, domain=preset.name)
+                bound_config = graph_config or getattr(graph_store, "graph_config", None)
+                if not isinstance(bound_config, GraphConfig):
+                    bound_config = GraphConfig.load(preset.name, profile=profile)
+                if bound_config.domain != preset.name:
+                    raise GraphConfigError("scorer and GraphConfig domain mismatch")
+                validate_production_store(graph_store, bound_config)
+            except GraphConfigError as exc:
+                raise RuntimeError(str(exc)) from exc
         centroids = graph_store.load_latest_centroids(preset.name)
         latest_checkpoints = graph_store.get_centroid_checkpoints(
             preset.name,
@@ -380,6 +397,7 @@ class CompoundingScorer:
             evolve=evolve,
             consolidation_enabled=consolidation_enabled,
             governed_writes=governed_writes,
+            profile=profile,
         )
 
     def score(
@@ -439,6 +457,7 @@ class CompoundingScorer:
                 )
             except Exception as exc:
                 self._record_persistence_failure(decision_id, "decision", decision_payload, exc)
+                raise
         else:
             decision_payload = {
                 "decision_id": decision_id,
@@ -459,6 +478,7 @@ class CompoundingScorer:
                 )
             except Exception as exc:
                 self._record_persistence_failure(decision_id, "decision", decision_payload, exc)
+                raise
             else:
                 decision_id = stored_id
 
@@ -1110,24 +1130,71 @@ class CompoundingScorer:
         }
         if context is not None:
             outcome_metadata["context"] = dict(context)
-        self._graph_store.write_outcome(
-            decision_id=decision_id,
-            actual_action=actual_action,
-            is_correct=is_correct,
-            metadata=outcome_metadata,
-            domain=self._domain,
-        )
+        try:
+            atomic_writer = getattr(self._graph_store, "write_outcome_and_update_centroid", None)
+            if callable(atomic_writer):
+                atomic_writer(
+                    decision_id=decision_id,
+                    actual_action=actual_action,
+                    is_correct=is_correct,
+                    metadata=outcome_metadata,
+                    domain=self._domain,
+                    category=category,
+                    action=actual_action,
+                    centroid_vector=np.asarray(self._scorer.centroids[category_index, actual_index], dtype=float).tolist(),
+                    delta_norm=centroid_delta,
+                    caused_by_decision_id=decision_id,
+                )
+            else:
+                self._graph_store.write_outcome(
+                    decision_id=decision_id,
+                    actual_action=actual_action,
+                    is_correct=is_correct,
+                    metadata=outcome_metadata,
+                    domain=self._domain,
+                )
+                if self._profile == "production":
+                    cast(Any, self._graph_store).save_centroids(
+                        self._domain,
+                        category,
+                        self._scorer.centroids,
+                        metadata={"decision_id": decision_id, "source": "learn"},
+                        decision_id=decision_id,
+                    )
+        except Exception:
+            # Learning state was changed speculatively; restore it when the
+            # durable graph write (including centroid persistence) fails.
+            self._scorer.centroids = before_centroids
+            raise
         self._verified_decisions_cache = None
         self._fingerprint_cache = None
+        persistence: dict[str, bool] = {}
+        persistence_failures: list[dict[str, str]] = []
         if persist_artifacts:
-            self._persist_evidence_receipt(
+            persistence.update(
+                {
+                    "checkpoint": True,
+                    "receipt": True,
+                }
+            )
+        if persist_artifacts:
+            receipt_persisted = self._persist_evidence_receipt(
                 decision_id=decision_id,
                 actual_action=actual_action,
                 is_correct=is_correct,
                 outcome=outcome,
                 metadata=outcome_metadata,
             )
-        self._refresh_dk_after_learn()
+            persistence["receipt"] = receipt_persisted
+            if not receipt_persisted:
+                persistence_failures.append(
+                    {"step": "receipt", "error": "evidence_receipt_failed"}
+                )
+        dk_refresh = self._refresh_dk_after_learn()
+        if dk_refresh == "failed":
+            persistence_failures.append(
+                {"step": "dk_refresh", "error": "dk_reestimate_failed"}
+            )
         invoice_id = (context or {}).get("invoice_id")
         if invoice_id and isinstance(self._graph_store, ProtocolV2GraphStore):
             self._graph_store.link_entity(
@@ -1151,8 +1218,9 @@ class CompoundingScorer:
         if self._consolidation_enabled:
             self._batch_decision_count += 1
             if consolidate:
+                checkpoint_saved = True
                 if persist_artifacts:
-                    self._save_centroids_checkpoint(
+                    checkpoint_saved = self._save_centroids_checkpoint(
                         decision_id=decision_id,
                         category=category,
                         action=actual_action,
@@ -1164,13 +1232,19 @@ class CompoundingScorer:
                         decision_time_end=self._batch_decision_time_end,
                         regime_tag=regime_tag,
                     )
-                    checkpoint_already_persisted = True
-                self._batch_decision_count = 0
-                self._batch_decision_time_start = None
-                self._batch_decision_time_end = None
+                    checkpoint_already_persisted = checkpoint_saved
+                    persistence["checkpoint"] = checkpoint_saved
+                    if not checkpoint_saved:
+                        persistence_failures.append(
+                            {"step": "checkpoint", "error": "centroid_checkpoint_failed"}
+                        )
+                if checkpoint_saved:
+                    self._batch_decision_count = 0
+                    self._batch_decision_time_start = None
+                    self._batch_decision_time_end = None
         else:
             if persist_artifacts:
-                self._save_centroids_checkpoint(
+                checkpoint_saved = self._save_centroids_checkpoint(
                     decision_id=decision_id,
                     category=category,
                     action=actual_action,
@@ -1179,7 +1253,12 @@ class CompoundingScorer:
                     decision_time_end=decision_timestamp,
                     regime_tag=regime_tag,
                 )
-                checkpoint_already_persisted = True
+                checkpoint_already_persisted = checkpoint_saved
+                persistence["checkpoint"] = checkpoint_saved
+                if not checkpoint_saved:
+                    persistence_failures.append(
+                        {"step": "checkpoint", "error": "centroid_checkpoint_failed"}
+                    )
         reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome, context)
         if reward_raw is not None:
             if self._explorer is not None:
@@ -1198,10 +1277,8 @@ class CompoundingScorer:
             if self._evolve_count % 20 == 0:
                 self._run_evolution()
 
-        self._maybe_archive()
-
         if persist_artifacts:
-            self._persist_learning_artifacts(
+            persistence_failures.extend(self._persist_learning_artifacts(
                 decision_id,
                 actual_action=actual_action,
                 is_correct=is_correct,
@@ -1211,7 +1288,12 @@ class CompoundingScorer:
                 evidence_already_persisted=True,
                 checkpoint_already_persisted=checkpoint_already_persisted,
                 skip_history_scan=synthetic_preseed,
-            )
+            ))
+        if persistence_failures:
+            for failure in persistence_failures:
+                step = failure.get("step")
+                if step:
+                    persistence[step] = False
 
         return LearnResult(
             decision_id=decision_id,
@@ -1225,6 +1307,10 @@ class CompoundingScorer:
             exploration_used=False,
             cold_start=cold_start_learn,
             bootstrap=bootstrap_learn,
+            status="partial" if persistence_failures else "complete",
+            persistence=persistence,
+            persistence_failures=persistence_failures,
+            dk_refresh=dk_refresh,
         )
 
     def fingerprint(
@@ -1339,7 +1425,7 @@ class CompoundingScorer:
                 exc,
             )
             self._record_persistence_failure(decision_id, "conservation", conservation_payload, exc)
-            return False
+            raise
 
     def _persist_learning_artifacts(
         self,
@@ -1355,7 +1441,7 @@ class CompoundingScorer:
         skip_history_scan: bool = False,
         transaction: Any | None = None,
         raise_on_error: bool = False,
-    ) -> None:
+    ) -> list[dict[str, str]]:
         """Persist learning artifacts after a successful update.
 
         The shared ``learn`` path already persists its evidence receipt and
@@ -1364,7 +1450,8 @@ class CompoundingScorer:
         allowing the SOC raw-profile bridge to use this method independently.
         """
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
-            return
+            return []
+        failures: list[dict[str, str]] = []
 
         decision: dict[str, Any] | None = None
 
@@ -1382,13 +1469,16 @@ class CompoundingScorer:
         if not skip_history_scan:
             try:
                 fingerprint = self.fingerprint(persist=False)
-                self._persist_fingerprint(fingerprint, decision_id=decision_id)
+                fingerprint_persisted = self._persist_fingerprint(fingerprint, decision_id=decision_id)
+                if not fingerprint_persisted:
+                    failures.append({"step": "fingerprint", "error": "fingerprint_persistence_failed"})
             except Exception as exc:
-                logger.warning(
+                logger.error(
                     "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                     self._domain, decision_id, "fingerprint", type(exc).__name__, exc,
                 )
                 self._record_persistence_failure(decision_id, "fingerprint", {}, exc)
+                failures.append({"step": "fingerprint", "error": f"{type(exc).__name__}: {exc}"})
 
         if not evidence_already_persisted:
             try:
@@ -1414,19 +1504,22 @@ class CompoundingScorer:
                 if resolved_metadata is None:
                     candidate_metadata = _decision_field(row, "outcome_metadata", {})
                     resolved_metadata = candidate_metadata if isinstance(candidate_metadata, dict) else {}
-                self._persist_evidence_receipt(
+                receipt_persisted = self._persist_evidence_receipt(
                     decision_id=decision_id,
                     actual_action=str(resolved_action or ""),
                     is_correct=resolved_correct,
                     outcome=str(resolved_outcome),
                     metadata=dict(resolved_metadata),
                 )
+                if not receipt_persisted:
+                    failures.append({"step": "receipt", "error": "evidence_receipt_failed"})
             except Exception as exc:
-                logger.warning(
+                logger.error(
                     "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                     self._domain, decision_id, "evidence_receipt", type(exc).__name__, exc,
                 )
                 self._record_persistence_failure(decision_id, "evidence_receipt", {}, exc)
+                failures.append({"step": "receipt", "error": f"{type(exc).__name__}: {exc}"})
 
         if not checkpoint_already_persisted:
             try:
@@ -1443,7 +1536,7 @@ class CompoundingScorer:
                     )
                 if not resolved_action:
                     raise ValueError(f"Decision {decision_id} has no action")
-                self._save_centroids_checkpoint(
+                checkpoint_persisted = self._save_centroids_checkpoint(
                     decision_id=decision_id,
                     category=checkpoint_category,
                     action=str(resolved_action),
@@ -1455,14 +1548,20 @@ class CompoundingScorer:
                     transaction=transaction,
                     raise_on_error=raise_on_error,
                 )
+                if not checkpoint_persisted:
+                    failures.append(
+                        {"step": "checkpoint", "error": "centroid_checkpoint_failed"}
+                    )
             except Exception as exc:
                 if raise_on_error:
                     raise
-                logger.warning(
+                logger.error(
                     "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                     self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
                 )
                 self._record_persistence_failure(decision_id, "centroid_checkpoint", {}, exc)
+                failures.append({"step": "checkpoint", "error": f"{type(exc).__name__}: {exc}"})
+        return failures
 
     def capture_existing_state(
         self,
@@ -1618,9 +1717,9 @@ class CompoundingScorer:
         is_correct: bool,
         outcome: str,
         metadata: dict[str, Any],
-    ) -> None:
+    ) -> bool:
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
-            return
+            return False
         receipt_intent_id = f"{self._domain}:outcome:{decision_id}:{uuid.uuid4().hex}"
         canonical_payload: dict[str, Any] = {
             "receipt_type": "post_outcome_verification",
@@ -1647,8 +1746,9 @@ class CompoundingScorer:
                 actor="compounding_scorer",
                 source_route="copilot_sdk.scoring.learn",
             )
+            return True
         except Exception as exc:
-            logger.warning(
+            logger.error(
                 "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                 self._domain, decision_id, "evidence_receipt", type(exc).__name__, exc,
             )
@@ -1661,7 +1761,8 @@ class CompoundingScorer:
                         str(exc),
                     )
                 except Exception as outbox_exc:
-                    logger.warning("Persistence outbox record failed: %s", outbox_exc)
+                    logger.error("Persistence outbox record failed: %s", outbox_exc)
+            return False
 
     def _persist_fingerprint(
         self,
@@ -1755,7 +1856,7 @@ class CompoundingScorer:
         if self._last_checkpoint_decision_id is None or self._last_checkpoint_category is None:
             return 0
         flushed = self._batch_decision_count
-        self._save_centroids_checkpoint(
+        saved = self._save_centroids_checkpoint(
             decision_id=self._last_checkpoint_decision_id,
             category=self._last_checkpoint_category,
             action=self._last_checkpoint_action or self._preset.shape.action_names[0],
@@ -1772,6 +1873,8 @@ class CompoundingScorer:
                 ) or {}
             ),
         )
+        if not saved:
+            return 0
         self._batch_decision_count = 0
         self._batch_decision_time_start = None
         self._batch_decision_time_end = None
@@ -1885,26 +1988,20 @@ class CompoundingScorer:
 
     def get_phase(self) -> str:
         """Return the current SDK phase from GraphStore verification counts."""
-        try:
-            verified = int(self._graph_store.count_verified(self._domain))
-            if verified < 10:
-                return "A"
-            correct = int(self._graph_store.count_correct(self._domain))
-            q = correct / verified
-            return "B" if q >= 0.5 else "A"
-        except Exception:
+        verified = int(self._graph_store.count_verified(self._domain))
+        if verified < 10:
             return "A"
+        correct = int(self._graph_store.count_correct(self._domain))
+        q = correct / verified
+        return "B" if q >= 0.5 else "A"
 
     def get_alpha(self) -> float:
         """Return current verified accuracy from GraphStore counts."""
-        try:
-            verified = int(self._graph_store.count_verified(self._domain))
-            if verified == 0:
-                return 0.0
-            correct = int(self._graph_store.count_correct(self._domain))
-            return round(correct / verified, 4)
-        except Exception:
+        verified = int(self._graph_store.count_verified(self._domain))
+        if verified == 0:
             return 0.0
+        correct = int(self._graph_store.count_correct(self._domain))
+        return round(correct / verified, 4)
 
     def warm_start(
         self,
@@ -1944,6 +2041,14 @@ class CompoundingScorer:
             )
         else:
             transfer_patterns = list(patterns or [])
+
+        if self._profile == "production":
+            transfer_patterns = [
+                pattern
+                for pattern in transfer_patterns
+                if str(getattr(pattern, "provenance", "") or
+                       getattr(pattern, "metadata", {}).get("provenance", "")).lower() != "demo"
+            ]
 
         current_centroids = np.array(self._scorer.centroids, dtype=np.float64, copy=True)
         applied_transfer_patterns = applied_patterns(
@@ -2043,6 +2148,7 @@ class CompoundingScorer:
                         emission_errors += 1
             else:
                 skipped = applied
+            checkpoint_failed = False
             if isinstance(self._graph_store, GraphStore):
                 try:
                     self._graph_store.save_centroids(
@@ -2058,7 +2164,18 @@ class CompoundingScorer:
                         },
                     )
                 except Exception as exc:
-                    logger.warning("Failed to save warm-start centroid checkpoint: %s", exc)
+                    logger.error("Failed to save warm-start centroid checkpoint: %s", exc)
+                    checkpoint_failed = True
+            if checkpoint_failed:
+                return {
+                    "applied": 0,
+                    "score": 0.0,
+                    "source_copilots": source_copilots,
+                    "emitted": emitted,
+                    "skipped": skipped,
+                    "emission_errors": emission_errors,
+                    "error": "checkpoint_failed",
+                }
         else:
             source_copilots = []
             emitted = 0
@@ -2106,11 +2223,8 @@ class CompoundingScorer:
         decision_id: str | None = None,
         skip_history_scan: bool = False,
     ) -> float:
-        try:
-            verified_decisions = self._verified_decisions()
-            verified = len(verified_decisions)
-        except Exception:
-            verified = self._graph_store.count_verified(self._domain)
+        verified_decisions = self._verified_decisions()
+        verified = len(verified_decisions)
         if verified == 0:
             return 0.0
 
@@ -2186,14 +2300,16 @@ class CompoundingScorer:
             "quality_policy_version": QUALITY_POLICY_VERSION,
         }
 
-    def _refresh_dk_after_learn(self) -> None:
+    def _refresh_dk_after_learn(self) -> str:
         """Refresh DK weights once enough verified decisions exist."""
         if self.get_verified_count() < 400:
-            return
+            return "skipped"
         try:
             self.reestimate_dk_if_due()
+            return "complete"
         except Exception as exc:
-            logger.warning("DK re-estimation failed for %s: %s", self._domain, exc)
+            logger.error("DK re-estimation failed for %s: %s", self._domain, exc)
+            return "failed"
 
     def _conservation_pause(self) -> dict[str, Any] | None:
         if self._preseed_mode:
@@ -2373,13 +2489,10 @@ class CompoundingScorer:
             self._last_conflict = None
 
     def _fingerprint_weight_map(self) -> dict[str, float]:
-        try:
-            # Conflict detection reads the current fingerprint; persistence
-            # belongs after a successful learning update.
-            fingerprint = self.fingerprint(persist=False)
-        except Exception as exc:
-            logger.debug("Could not compute fingerprint weights for conflict detection: %s", exc)
-            return {}
+        # Conflict detection reads the current fingerprint; persistence
+        # belongs after a successful learning update. Graph read failures must
+        # remain visible rather than disabling factor weighting silently.
+        fingerprint = self.fingerprint(persist=False)
         weights: dict[str, float] = {}
         for factor in fingerprint.factors:
             try:
@@ -2454,7 +2567,7 @@ class CompoundingScorer:
                 )
                 persisted = True
             except Exception as exc:
-                logger.warning(
+                logger.error(
                     "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                     self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
                 )
@@ -2489,7 +2602,7 @@ class CompoundingScorer:
         except Exception as exc:
             if raise_on_error:
                 raise
-            logger.warning(
+            logger.error(
                 "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                 self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
             )
@@ -2502,10 +2615,19 @@ class CompoundingScorer:
                         str(exc),
                     )
                 except Exception as outbox_exc:
-                    logger.warning("Persistence outbox record failed: %s", outbox_exc)
+                    logger.error("Persistence outbox record failed: %s", outbox_exc)
             return persisted
 
     def _maybe_archive(self, keep_recent: int = 800) -> None:
+        """Run an explicit administrative archive operation.
+
+        Learning must never call this method implicitly.  AGE is the durable
+        decision history for the shared JM graph, so applying a fixed active
+        retention window during ``learn()`` hides prior judgments from normal
+        reads and makes the apparent history collapse after the next learned
+        outcome.  Operators may still invoke the graph-store archive protocol
+        deliberately when a governed retention policy requires it.
+        """
         try:
             count = int(self._graph_store.count_decisions(self._domain))
             if count <= keep_recent:

@@ -16,12 +16,17 @@ from copilot_sdk.evolution import GraphOutcomeLedger, GraphPromotionStore
 from copilot_sdk.promotion import DataOpsPromotionPolicy, PromotionEngine, PromotionStage
 from copilot_sdk.twin import FrozenTwin
 from copilot_sdk.twin.store import GraphFrozenTwinStore
+from copilot_sdk.config.graph_config import resolve_profile
 
 
 class DataOpsGovernance:
     """Own DataOps policy state while delegating scoring mechanisms to the SDK."""
 
-    def __init__(self, db_path: str | Path, graph_store: Any, scorer: Any, conservation: Any) -> None:
+    def __init__(self, db_path: str | Path, graph_store: Any, scorer: Any, conservation: Any, *, profile: str | None = None) -> None:
+        active_profile = resolve_profile(profile, domain="dataops")
+        age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
+        if active_profile == "production" and not age_events:
+            raise RuntimeError("production DataOps governance requires graph-backed holdout storage")
         self.graph_store = graph_store
         self.scorer = scorer
         self.conservation = conservation
@@ -40,7 +45,6 @@ class DataOpsGovernance:
             self._db.commit()
         except sqlite3.OperationalError:
             pass
-        age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
         self._outcomes = GraphOutcomeLedger(graph_store, "dataops") if age_events else OutcomeLedger(":memory:" if str(db_path) == ":memory:" else str(Path(db_path).with_name("dataops_outcomes.sqlite3")))
         self.outcome_processor = OutcomeProcessor(self._outcomes)
         promotion_store_type = GraphPromotionStore

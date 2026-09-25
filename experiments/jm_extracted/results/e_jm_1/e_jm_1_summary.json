@@ -1,0 +1,38 @@
+{
+  "experiment": "E-JM-1: Personnel Change Resilience",
+  "n_trials": 30,
+  "n_decisions_person_a": 500,
+  "n_decisions_person_b": 300,
+  "n_factors": 7,
+  "person_b_quality_range": [
+    0.45,
+    0.85
+  ],
+  "person_b_quality_mean": 0.6507103680464168,
+  "detection_rate": 0.9666666666666667,
+  "mean_detection_delay": 65.20689655172414,
+  "median_detection_delay": 42.0,
+  "post_change_accuracy": {
+    "no_memory": {
+      "first_50": 0.41733333333333333,
+      "51_150": 0.4383333333333334,
+      "151_300": NaN
+    },
+    "flat_db": {
+      "first_50": 0.45266666666666666,
+      "51_150": 0.425,
+      "151_300": NaN
+    },
+    "judgment_memory": {
+      "first_50": 0.4286666666666667,
+      "51_150": 0.4276666666666667,
+      "151_300": NaN
+    }
+  },
+  "jm_advantage": {
+    "jm_better_count": 9,
+    "neutral_count": 4,
+    "flat_db_better_count": 17,
+    "mean_advantage_pp": -1.6888888888888893
+  }
+}

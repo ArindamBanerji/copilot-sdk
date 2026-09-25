@@ -6,7 +6,6 @@ import CorrelationPanel from "../components/CorrelationPanel";
 import CounterfactualCard from "../components/CounterfactualPanel";
 import DayOfWeekChart from "../components/DayOfWeekChart";
 import DecisionExplorer from "../components/DecisionExplorer";
-import DispersionFollowCard from "../components/DispersionFollowCard";
 import PatternDetectionPanel from "../components/PatternDetectionPanel";
 import ProfileArchetype from "../components/ProfileArchetype";
 import RegimeChart from "../components/RegimeChart";
@@ -16,12 +15,9 @@ import ResearchImpactChart from "../components/ResearchImpactChart";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
-import TailBetsCard from "../components/TailBetsCard";
 import TrustRadarPanel from "../components/TrustRadarPanel";
-import VolSharpeCard from "../components/VolSharpeCard";
 import VolatilityPanel from "../components/VolatilityPanel";
-import VRPAttributionCard from "../components/VRPAttributionCard";
-import { ClaimGateBadge, RegimeMirrorPanel } from "../components/DemoBeatPanels";
+import { ClaimGateBadge, DispersionPanel, RegimeMirrorPanel, TailBetsPanel, VolShortPanel, VRPPanel } from "../components/DemoBeatPanels";
 import type { Analytics, FingerprintResponse } from "../types";
 
 const displayNames: Record<string, string> = {
@@ -175,11 +171,11 @@ export default function AnalysisScreen() {
       />
       <DecisionExplorer />
       <div className="grid gap-4 xl:grid-cols-2" data-testid="vol-analytics-grid">
-        <VolSharpeCard />
-        <VRPAttributionCard />
+        <VolShortPanel />
+        <VRPPanel />
         <RegimeVRPCard />
-        <DispersionFollowCard />
-        <TailBetsCard />
+        <DispersionPanel />
+        <TailBetsPanel />
       </div>
       <CorrelationPanel />
       <CounterfactualCard analytics={analytics} />

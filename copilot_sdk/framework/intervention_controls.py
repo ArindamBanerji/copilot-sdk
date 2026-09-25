@@ -139,9 +139,13 @@ class InterventionControls:
             }
 
         # Apply rollback
-        from app.framework.checkpoint import CheckpointService
-
-        rollback_result = await CheckpointService.rollback(
+        rollback = getattr(self.checkpoint_service, "rollback", None)
+        if not callable(rollback):
+            return {
+                "error": "Checkpoint service is unavailable for rollback",
+                "preview": False,
+            }
+        rollback_result = await rollback(
             checkpoint_id=snapshot_id,
             scorer=self.scorer,
             graph_service=self.db,

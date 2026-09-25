@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import sys
 from copy import deepcopy
@@ -13,6 +12,9 @@ from typing import Any, cast
 from fastapi import HTTPException
 
 from copilot_sdk.config import GraphConfig
+from copilot_sdk.config.graph_config import GraphConfigError, resolve_profile
+from copilot_sdk.graph.production import age_client_for_store, validate_production_store
+from copilot_sdk.graph.protocol import GraphStore
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -29,43 +31,20 @@ READ_ONLY_FORBIDDEN = re.compile(
     r"\b(CREATE|MERGE|SET|DELETE|REMOVE|DROP|DETACH|ON\s+CREATE|ON\s+MATCH)\b",
     re.IGNORECASE,
 )
-_TOPOLOGY_ENV_KEYS = (
-    "GRAPH_BACKEND",
-    "GRAPH_DSN",
-    "GRAPH_NAME",
-    "GRAPH_DOMAIN",
-    "AGE_DSN",
-    "AGE_GRAPH_NAME",
-    "CI_ALLOW_SQLITE_FALLBACK",
-)
-_DATAOPS_GRAPH_CONFIG_KEYS = (
-    "DATAOPS_ACTIVE_GRAPH_BACKEND",
-    "DATAOPS_ACTIVE_AGE_DSN",
-    "DATAOPS_ACTIVE_AGE_GRAPH",
-)
 
 
-def _load_topology_config() -> GraphConfig:
-    """Resolve topology connection settings from the typed DataOps config only."""
-    previous = {key: os.environ.get(key) for key in _TOPOLOGY_ENV_KEYS}
-    try:
-        for key in _TOPOLOGY_ENV_KEYS:
-            os.environ.pop(key, None)
-        has_dataops_backend = bool(os.environ.get(_DATAOPS_GRAPH_CONFIG_KEYS[0], "").strip())
-        generic_backend = previous.get("GRAPH_BACKEND")
-        has_generic_backend = bool(generic_backend and generic_backend.strip())
-        profile = "production" if has_dataops_backend or has_generic_backend else "development"
-        if not has_dataops_backend and has_generic_backend:
-            for key, value in previous.items():
-                if value is not None:
-                    os.environ[key] = value
+def _load_topology_config(
+    config: GraphConfig | None = None, *, profile: str | None = None,
+) -> GraphConfig:
+    """Use the app's resolved object; standalone tools use the same sole resolver."""
+    if config is None:
         return GraphConfig.load("dataops", profile=profile)
-    finally:
-        for key in _TOPOLOGY_ENV_KEYS:
-            os.environ.pop(key, None)
-        for key, value in previous.items():
-            if value is not None:
-                os.environ[key] = value
+    if config.domain != "dataops":
+        raise GraphConfigError("DataOps topology requires the dataops GraphConfig")
+    if profile is not None and resolve_profile(profile) != config.profile:
+        raise GraphConfigError("topology profile conflicts with GraphConfig")
+    config.validate()
+    return config
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -104,6 +83,10 @@ class DataOpsGraphClient:
         fallback_dir: Path | None = None,
         age_client: Any | None = None,
         age_client_cls: type[Any] | None = None,
+        *,
+        config: GraphConfig | None = None,
+        graph_store: GraphStore | None = None,
+        profile: str | None = None,
     ) -> None:
         self._fallback_dir = fallback_dir or FALLBACK_DIR
         self._graph_connected = False
@@ -111,26 +94,38 @@ class DataOpsGraphClient:
         self._serializer = self._fixture_serializer
         self.last_query: str | None = None
 
-        active_config = _load_topology_config()
+        active_config = _load_topology_config(config, profile=profile)
+        self.graph_config = active_config
+        self.graph_store = graph_store
+        if dsn is not None and dsn != active_config.dsn:
+            raise GraphConfigError("topology DSN override conflicts with GraphConfig")
         self._age_required = active_config.backend in {"age", "dual_write"} or age_client is not None
         graph_dsn = active_config.dsn
         graph_name = active_config.graph
-        if graph_dsn and "sslmode" not in graph_dsn:
-            graph_dsn += " sslmode=disable"
+        if active_config.profile == "production":
+            if graph_store is None or age_client is not None or age_client_cls is not None:
+                raise GraphConfigError("production topology requires the shared GraphStore, not a separate AGE client")
+            validate_production_store(graph_store, active_config)
+            age_client = age_client_for_store(graph_store, domain="dataops")
+        elif graph_store is not None and active_config.backend == "age":
+            try:
+                age_client = age_client_for_store(graph_store, domain="dataops")
+            except GraphConfigError:
+                # Explicit test/offline store doubles have no AGE connection.
+                # Remain unavailable (queries return 503), never use fixtures.
+                return
         if age_client is not None:
             self._age_client = age_client
             self._serializer = getattr(age_client, "serialize_for_age", self._fixture_serializer)
             self._graph_connected = True
-        elif graph_dsn:
+        elif graph_dsn and active_config.backend in {"age", "dual_write"}:
             cls = age_client_cls or _load_age_client_class()
             if cls is not None:
-                try:
-                    self._age_client = cls(dsn=graph_dsn, graph_name=graph_name)
-                    self._serializer = getattr(cls, "serialize_for_age", self._fixture_serializer)
-                    self._graph_connected = True
-                except Exception:
-                    self._age_client = None
-                    self._graph_connected = False
+                self._age_client = cls(dsn=graph_dsn, graph_name=graph_name)
+                self._serializer = getattr(cls, "serialize_for_age", self._fixture_serializer)
+                self._graph_connected = True
+            else:
+                raise GraphConfigError("AGE topology client is unavailable")
 
     @property
     def is_graph_connected(self) -> bool:
@@ -239,7 +234,8 @@ class DataOpsGraphClient:
             f"""
             MATCH (alert:DataQualityAlert {{alert_id: {self._serialize(alert_id)}}})-[:AFFECTS]->(system:PipelineSystem)
             WHERE alert.domain = {self._serialize("dataops")}
-            OPTIONAL MATCH (parent:PipelineSystem)-[:FEEDS]->(child:PipelineSystem)
+            OPTIONAL MATCH (system)-[:FEEDS*0..3]->(parent:PipelineSystem)-[:FEEDS]->(child:PipelineSystem)
+            WHERE parent.domain = {self._serialize("dataops")} AND child.domain = {self._serialize("dataops")}
             RETURN system, collect(DISTINCT {{parent: parent.name, child: child.name,
                    child_sla: child.sla_minutes,
                    child_criticality: child.business_criticality}}) AS edges

@@ -1,0 +1,6 @@
+copilot,budget,scenarios,single_pass_accuracy,vld_accuracy,saves,hurts,accuracy_uplift_pp,evidence_tier,provenance,source_file,source_section,source_sha256
+soc,3,50,0.1,0.18,4,0,8.0,SIMULATED,paper_table_transcription,docs/design/ci_vld_architecture_prepaper_v10.md,10.2: With-Without Results (B=3),9a07b45e42d3cebe72d6f49bf9d3c001468bdf02904bc7419405070da53b863c
+s2p,3,50,0.3,0.54,12,0,24.0,SIMULATED,paper_table_transcription,docs/design/ci_vld_architecture_prepaper_v10.md,10.2: With-Without Results (B=3),9a07b45e42d3cebe72d6f49bf9d3c001468bdf02904bc7419405070da53b863c
+dataops,3,50,0.52,0.76,12,0,24.0,SIMULATED,paper_table_transcription,docs/design/ci_vld_architecture_prepaper_v10.md,10.2: With-Without Results (B=3),9a07b45e42d3cebe72d6f49bf9d3c001468bdf02904bc7419405070da53b863c
+trading,3,50,0.44,0.8,18,0,36.0,SIMULATED,paper_table_transcription,docs/design/ci_vld_architecture_prepaper_v10.md,10.2: With-Without Results (B=3),9a07b45e42d3cebe72d6f49bf9d3c001468bdf02904bc7419405070da53b863c
+purchasing,3,50,0.46,0.68,11,0,22.0,SIMULATED,paper_table_transcription,docs/design/ci_vld_architecture_prepaper_v10.md,10.2: With-Without Results (B=3),9a07b45e42d3cebe72d6f49bf9d3c001468bdf02904bc7419405070da53b863c

@@ -1,0 +1,422 @@
+{
+  "protocol": {
+    "total_decisions": 500,
+    "checkpoint_interval": 50,
+    "evaluation_scenarios_per_checkpoint": 50,
+    "budget": 2,
+    "k_bounds": [
+      0.1,
+      3.0
+    ],
+    "learning_rates": {
+      "positive": 0.02,
+      "negative": 0.005
+    }
+  },
+  "copilots": [
+    {
+      "name": "dataops",
+      "tensor_shape": [
+        6,
+        5,
+        6
+      ],
+      "tensor_cells": 180,
+      "final_routing_learning": 0.63,
+      "final_routing_control": 0.44,
+      "routing_delta": 0.19,
+      "accuracy_learning": 0.9,
+      "accuracy_control": 0.58,
+      "accuracy_delta": 0.32000000000000006,
+      "hurts": 0,
+      "starvation_rate": 0.08333333333333333,
+      "starved_count": 3,
+      "total_category_dims": 36,
+      "starved_dims": [
+        {
+          "category": "schema_change",
+          "dimension": 4,
+          "factor_name": "data_freshness"
+        },
+        {
+          "category": "freshness_violation",
+          "dimension": 2,
+          "factor_name": "recurrence_frequency"
+        },
+        {
+          "category": "pipeline_failure",
+          "dimension": 3,
+          "factor_name": "downstream_urgency"
+        }
+      ]
+    },
+    {
+      "name": "trading",
+      "tensor_shape": [
+        5,
+        4,
+        10
+      ],
+      "tensor_cells": 200,
+      "final_routing_learning": 0.75,
+      "final_routing_control": 0.63,
+      "routing_delta": 0.12,
+      "accuracy_learning": 0.92,
+      "accuracy_control": 0.78,
+      "accuracy_delta": 0.14,
+      "hurts": 0,
+      "starvation_rate": 0.48,
+      "starved_count": 24,
+      "total_category_dims": 50,
+      "starved_dims": [
+        {
+          "category": "trend_following",
+          "dimension": 6,
+          "factor_name": "signal_confidence"
+        },
+        {
+          "category": "trend_following",
+          "dimension": 7,
+          "factor_name": "options_delta_exposure"
+        },
+        {
+          "category": "trend_following",
+          "dimension": 8,
+          "factor_name": "options_iv_percentile"
+        },
+        {
+          "category": "trend_following",
+          "dimension": 9,
+          "factor_name": "options_gamma_risk"
+        },
+        {
+          "category": "mean_reversion",
+          "dimension": 6,
+          "factor_name": "signal_confidence"
+        },
+        {
+          "category": "mean_reversion",
+          "dimension": 7,
+          "factor_name": "options_delta_exposure"
+        },
+        {
+          "category": "mean_reversion",
+          "dimension": 8,
+          "factor_name": "options_iv_percentile"
+        },
+        {
+          "category": "mean_reversion",
+          "dimension": 9,
+          "factor_name": "options_gamma_risk"
+        },
+        {
+          "category": "event_driven",
+          "dimension": 5,
+          "factor_name": "emotional_indicator"
+        },
+        {
+          "category": "event_driven",
+          "dimension": 6,
+          "factor_name": "signal_confidence"
+        },
+        {
+          "category": "event_driven",
+          "dimension": 7,
+          "factor_name": "options_delta_exposure"
+        },
+        {
+          "category": "event_driven",
+          "dimension": 8,
+          "factor_name": "options_iv_percentile"
+        },
+        {
+          "category": "event_driven",
+          "dimension": 9,
+          "factor_name": "options_gamma_risk"
+        },
+        {
+          "category": "income_strategy",
+          "dimension": 2,
+          "factor_name": "position_sizing"
+        },
+        {
+          "category": "income_strategy",
+          "dimension": 4,
+          "factor_name": "risk_reward_actual"
+        },
+        {
+          "category": "income_strategy",
+          "dimension": 6,
+          "factor_name": "signal_confidence"
+        },
+        {
+          "category": "income_strategy",
+          "dimension": 7,
+          "factor_name": "options_delta_exposure"
+        },
+        {
+          "category": "income_strategy",
+          "dimension": 8,
+          "factor_name": "options_iv_percentile"
+        },
+        {
+          "category": "income_strategy",
+          "dimension": 9,
+          "factor_name": "options_gamma_risk"
+        },
+        {
+          "category": "scalp_intraday",
+          "dimension": 2,
+          "factor_name": "position_sizing"
+        },
+        {
+          "category": "scalp_intraday",
+          "dimension": 4,
+          "factor_name": "risk_reward_actual"
+        },
+        {
+          "category": "scalp_intraday",
+          "dimension": 7,
+          "factor_name": "options_delta_exposure"
+        },
+        {
+          "category": "scalp_intraday",
+          "dimension": 8,
+          "factor_name": "options_iv_percentile"
+        },
+        {
+          "category": "scalp_intraday",
+          "dimension": 9,
+          "factor_name": "options_gamma_risk"
+        }
+      ]
+    },
+    {
+      "name": "purchasing",
+      "tensor_shape": [
+        5,
+        4,
+        7
+      ],
+      "tensor_cells": 140,
+      "final_routing_learning": 0.72,
+      "final_routing_control": 0.51,
+      "routing_delta": 0.20999999999999996,
+      "accuracy_learning": 0.82,
+      "accuracy_control": 0.52,
+      "accuracy_delta": 0.29999999999999993,
+      "hurts": 0,
+      "starvation_rate": 0.2857142857142857,
+      "starved_count": 10,
+      "total_category_dims": 35,
+      "starved_dims": [
+        {
+          "category": "protein",
+          "dimension": 5,
+          "factor_name": "supplier_lead_time"
+        },
+        {
+          "category": "protein",
+          "dimension": 6,
+          "factor_name": "price_memory_index"
+        },
+        {
+          "category": "produce",
+          "dimension": 0,
+          "factor_name": "expected_demand"
+        },
+        {
+          "category": "produce",
+          "dimension": 6,
+          "factor_name": "price_memory_index"
+        },
+        {
+          "category": "dairy",
+          "dimension": 5,
+          "factor_name": "supplier_lead_time"
+        },
+        {
+          "category": "dairy",
+          "dimension": 6,
+          "factor_name": "price_memory_index"
+        },
+        {
+          "category": "dry_goods",
+          "dimension": 0,
+          "factor_name": "expected_demand"
+        },
+        {
+          "category": "dry_goods",
+          "dimension": 6,
+          "factor_name": "price_memory_index"
+        },
+        {
+          "category": "beverages",
+          "dimension": 3,
+          "factor_name": "event_flag"
+        },
+        {
+          "category": "beverages",
+          "dimension": 6,
+          "factor_name": "price_memory_index"
+        }
+      ]
+    },
+    {
+      "name": "soc",
+      "tensor_shape": [
+        6,
+        4,
+        6
+      ],
+      "tensor_cells": 144,
+      "final_routing_learning": 0.81,
+      "final_routing_control": 0.69,
+      "routing_delta": 0.1200000000000001,
+      "accuracy_learning": 0.86,
+      "accuracy_control": 0.72,
+      "accuracy_delta": 0.14,
+      "hurts": 0,
+      "starvation_rate": 0.3611111111111111,
+      "starved_count": 13,
+      "total_category_dims": 36,
+      "starved_dims": [
+        {
+          "category": "credential_access",
+          "dimension": 4,
+          "factor_name": "time_anomaly"
+        },
+        {
+          "category": "malware_execution",
+          "dimension": 3,
+          "factor_name": "pattern_history"
+        },
+        {
+          "category": "malware_execution",
+          "dimension": 4,
+          "factor_name": "time_anomaly"
+        },
+        {
+          "category": "lateral_movement",
+          "dimension": 1,
+          "factor_name": "asset_criticality"
+        },
+        {
+          "category": "lateral_movement",
+          "dimension": 2,
+          "factor_name": "threat_intel_enrichment"
+        },
+        {
+          "category": "lateral_movement",
+          "dimension": 4,
+          "factor_name": "time_anomaly"
+        },
+        {
+          "category": "data_exfiltration",
+          "dimension": 3,
+          "factor_name": "pattern_history"
+        },
+        {
+          "category": "data_exfiltration",
+          "dimension": 4,
+          "factor_name": "time_anomaly"
+        },
+        {
+          "category": "insider_threat",
+          "dimension": 1,
+          "factor_name": "asset_criticality"
+        },
+        {
+          "category": "insider_threat",
+          "dimension": 2,
+          "factor_name": "threat_intel_enrichment"
+        },
+        {
+          "category": "cloud_infrastructure",
+          "dimension": 1,
+          "factor_name": "asset_criticality"
+        },
+        {
+          "category": "cloud_infrastructure",
+          "dimension": 3,
+          "factor_name": "pattern_history"
+        },
+        {
+          "category": "cloud_infrastructure",
+          "dimension": 4,
+          "factor_name": "time_anomaly"
+        }
+      ]
+    },
+    {
+      "name": "s2p",
+      "tensor_shape": [
+        5,
+        5,
+        8
+      ],
+      "tensor_cells": 200,
+      "final_routing_learning": 0.65,
+      "final_routing_control": 0.62,
+      "routing_delta": 0.030000000000000027,
+      "accuracy_learning": 0.84,
+      "accuracy_control": 0.78,
+      "accuracy_delta": 0.05999999999999994,
+      "hurts": 0,
+      "starvation_rate": 0.225,
+      "starved_count": 9,
+      "total_category_dims": 40,
+      "starved_dims": [
+        {
+          "category": "price_variance",
+          "dimension": 2,
+          "factor_name": "duplicate_score"
+        },
+        {
+          "category": "price_variance",
+          "dimension": 3,
+          "factor_name": "supplier_exception_history"
+        },
+        {
+          "category": "price_variance",
+          "dimension": 7,
+          "factor_name": "environmental_risk"
+        },
+        {
+          "category": "quantity_mismatch",
+          "dimension": 7,
+          "factor_name": "environmental_risk"
+        },
+        {
+          "category": "duplicate_risk",
+          "dimension": 4,
+          "factor_name": "payment_terms_impact"
+        },
+        {
+          "category": "duplicate_risk",
+          "dimension": 7,
+          "factor_name": "environmental_risk"
+        },
+        {
+          "category": "contract_gap",
+          "dimension": 7,
+          "factor_name": "environmental_risk"
+        },
+        {
+          "category": "format_compliance",
+          "dimension": 2,
+          "factor_name": "duplicate_score"
+        },
+        {
+          "category": "format_compliance",
+          "dimension": 7,
+          "factor_name": "environmental_risk"
+        }
+      ]
+    }
+  ],
+  "cross_copilot": {
+    "tensor_size_vs_starvation_correlation": 0.0002627650953970705,
+    "tensor_size_vs_routing_gain_correlation": -0.5887762607782873
+  }
+}

@@ -1,0 +1,281 @@
+{
+  "determinism": {
+    "bootstrap_resamples": 5000,
+    "bootstrap_unit": "whole deployment",
+    "random_state": 42
+  },
+  "final_score": "26/26 PASS (was 21/24)",
+  "fix1_ejm4": {
+    "chart": "e_jm_4_detection_rates.png",
+    "clean_false_positive_rate": 0.0,
+    "per_threat_detection": {
+      "drift": 100.0,
+      "sparse_adversarial": 56.99999999999999,
+      "sudden": 100.0,
+      "sustained": 100.0
+    },
+    "source": "existing Phase 3 data",
+    "status": "PASS (scoped claim)"
+  },
+  "fix2a_ejm6_reframe": {
+    "accuracy_exponent": 0.6432160647418932,
+    "chart": "e_jm_6_trajectories.png",
+    "final_gain_pp": 21.955999999999996,
+    "reframe": "logistic baseline confirmation",
+    "status": "PASS (reframed)"
+  },
+  "fix2b_ejm6a_advantage": {
+    "advantage_exponent_c": 1.3871186537818938,
+    "bootstrap_ci": [
+      1.3075370587759743,
+      1.4766532148841494
+    ],
+    "bootstrap_resamples": 5000,
+    "chart": "e_jm_6a_cumulative_advantage.png",
+    "ci_excludes_1": true,
+    "deployments": [
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 790
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 100790
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 201124
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 300376
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 400331
+      },
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 1799
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 101799
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 202133
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 301385
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 401340
+      },
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 2808
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 102808
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 203142
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 302394
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 402349
+      },
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 3817
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 103817
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 204151
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 303403
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 403358
+      },
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 4826
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 104826
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 205160
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 304412
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 404367
+      },
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 5835
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 105835
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 206169
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 305421
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 405376
+      },
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 6844
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 106844
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 207178
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 306430
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 406385
+      },
+      {
+        "copilot": "dataops",
+        "geometry_hash": "f018c9fc40a8f239458c50d397b91b3c15a860e6faedb1a85e053907c07a10d3",
+        "seed": 7853
+      },
+      {
+        "copilot": "trading",
+        "geometry_hash": "250fa415b99735ead7bd089252b5d23447713d07a82f1cb42d54092fae3efdac",
+        "seed": 107853
+      },
+      {
+        "copilot": "purchasing",
+        "geometry_hash": "e08f56256a9c0d68435cdfa150b9c3a54d609dcbb9c4eaca56422308e6030d60",
+        "seed": 208187
+      },
+      {
+        "copilot": "soc",
+        "geometry_hash": "40deb5aaa381cdaf6cd85c8ba79154ff55da4e6d63077c522ae8921af02e3a15",
+        "seed": 307439
+      },
+      {
+        "copilot": "s2p",
+        "geometry_hash": "e77317c54a729ba5c6e4d19e4ad9470446f743e651704a6f1b6b8e25c9add530",
+        "seed": 407394
+      }
+    ],
+    "final_cumulative_advantage": 80.03599999999999,
+    "fit_r_squared": 0.9997030368906428,
+    "interpretation": "super-linear",
+    "n_deployments_bootstrapped": 40,
+    "random_state": 42,
+    "status": "PASS"
+  },
+  "fix2c_ejm6b_discovery": {
+    "bootstrap_resamples": 5000,
+    "chart": "e_jm_6b_discovery_surface.png",
+    "gamma": 2.6220805684946216,
+    "gamma_ci": [
+      2.435724212506256,
+      2.9640373086388716
+    ],
+    "gamma_fit_r_squared": 0.9980620261214768,
+    "n_deployments_bootstrapped": 40,
+    "n_exponent": 2.1496944170652417,
+    "n_exponent_ci": [
+      2.0296607719094064,
+      2.2985015435790044
+    ],
+    "n_fit_r_squared": 0.9979884285564203,
+    "n_squared_confirmed": true,
+    "n_values": [
+      4,
+      6,
+      8,
+      12,
+      16,
+      24,
+      32
+    ],
+    "random_state": 42,
+    "status": "PASS",
+    "t_values": [
+      5,
+      10,
+      20,
+      40,
+      80
+    ]
+  }
+}

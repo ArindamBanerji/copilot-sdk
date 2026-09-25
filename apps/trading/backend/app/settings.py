@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 
-import os
-
-
-_TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
-
-
 class TradingSettings:
-    """Environment-backed settings with safe observation-only defaults."""
+    """Runtime settings for an observation-only Trading copilot."""
 
     @property
     def TRADING_EXECUTION_ENABLED(self) -> bool:
-        """Return whether a deployment explicitly enables broker writes."""
-        return os.getenv("TRADING_EXECUTION_ENABLED", "false").strip().lower() in _TRUE_VALUES
+        """Keep broker writes unavailable in every deployment profile.
+
+        The retained property is a compatibility surface for callers and makes
+        the safety invariant inspectable. Environment configuration cannot
+        re-enable execution through this application.
+        """
+        return False
 
 
 settings = TradingSettings()
-

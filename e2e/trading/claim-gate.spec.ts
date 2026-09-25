@@ -27,3 +27,4 @@ test("promotion endpoint remains fail-closed for unsafe authority", async ({ req
     expect(JSON.stringify(body).toLowerCase()).toMatch(/evidence|conservation|promotion/);
   }
 });
+

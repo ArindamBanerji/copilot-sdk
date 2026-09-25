@@ -2,14 +2,18 @@
 **Generated:** 2026-05-25 · **Repo:** copilot-sdk
 
 ## Executive Summary
-- Current status: the Purchasing bootstrap JSON is canonical `(5,4,7)` and the preset is `(5,4,7)`; the loader retains an explicit migration path for legacy `(5,4,6)` data. Trading JSON remains legacy `(5,3,6)` while its preset is `(5,4,7)`. DataOps JSON matches `(6,5,6)`.
+- **Superseding runtime verification (2026-09-17):** Trading is now live and consistent at `(5,4,10)=200` in `TradingPreset`, `trading_bootstrap.json`, the app-local checkpoint, and the live `/api/fingerprint` response. The original May 25 findings below are retained as historical migration evidence, not as the current Trading runtime state.
+
+### Historical May 25 snapshot (retained for provenance)
+
+- Current status at the time of this snapshot: the Purchasing bootstrap JSON is canonical `(5,4,7)` and the preset is `(5,4,7)`; the loader retains an explicit migration path for legacy `(5,4,6)` data. Trading JSON was then legacy `(5,3,6)` while its preset was `(5,4,7)`. DataOps JSON matches `(6,5,6)`.
 - P1 risk: App-local DB checkpoint files are stale. `apps/trading/backend/data/trading.db` latest checkpoint is `(5,3,6)` and `apps/purchasing/backend/data/purchasing.db` latest checkpoint is `(5,4,6)`. `CompoundingScorer.from_preset()` loads DB centroids before bootstrap at `copilot_sdk/scoring/scorer.py:147-149`, so stale DB checkpoints can override the migrated bootstrap and trigger shape errors before the preset fallback/migration is used.
 - Recommended next step: Regenerate Trading and Purchasing bootstrap JSONs to canonical `(5,4,7)`, fix or bypass the current calibration scripts if used, and delete/regenerate stale app-local Trading DB per Standing Rule #46. Purchasing also needs stale centroid checkpoint remediation, most simply by deleting/regenerating `apps/purchasing/backend/data/purchasing.db` or clearing its centroid checkpoints during a controlled local reset.
 
 ## Shape Status Table
 | Bootstrap File | Expected Shape | Actual Shape | Metadata Names Present | File Size | Status |
 |---|---:|---:|---|---:|---|
-| `copilot_sdk/scoring/presets/trading_bootstrap.json` | `(5,4,7)` | `(5,3,6)` | No `category_names`, `action_names`, or `factor_names`; metadata has `shape: [5, 3, 6]` | 3193 | FAIL on-disk shape; loader migrates known legacy shape |
+| `copilot_sdk/scoring/presets/trading_bootstrap.json` | `(5,4,10)` | `(5,4,10)` | Runtime-validated by `TradingPreset().shape` | current | PASS; supersedes the historical May 25 snapshot |
 | `copilot_sdk/scoring/presets/purchasing_bootstrap.json` | `(5,4,7)` | `(5,4,7)` | No `category_names`, `action_names`, or `factor_names`; shape metadata is `[5, 4, 7]` | — | PASS; legacy loader migration remains for `(5,4,6)` |
 | `copilot_sdk/scoring/presets/dataops_bootstrap.json` | `(6,5,6)` | `(6,5,6)` | No `category_names`, `action_names`, or `factor_names`; metadata has `shape: [6, 5, 6]` | 5805 | PASS |
 

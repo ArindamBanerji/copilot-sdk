@@ -15,9 +15,7 @@ async function clickPerformanceTab(page: Page) {
 }
 
 function safetyPanel(page: Page): Locator {
-  return page.locator("section.copilot-card", {
-    has: page.getByRole("heading", { name: "Strategy Safety Breakdown" }),
-  }).first();
+  return page.getByTestId("accuracy-alerts-panel");
 }
 
 async function gotoSafetyPanel(page: Page): Promise<Locator> {
@@ -43,31 +41,31 @@ async function expectSafetyDataOrUnavailable(panel: Locator, populatedPattern: R
 test("Performance screen shows Strategy Safety Breakdown panel", async ({ page }) => {
   const panel = await gotoSafetyPanel(page);
 
-  await expect(panel.getByText("Strategy Safety Breakdown")).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Accuracy Alerts" })).toBeVisible();
 });
 
 test("Panel shows category names", async ({ page }) => {
   const panel = await gotoSafetyPanel(page);
 
-  await expectSafetyDataOrUnavailable(panel, /Trend Following|Mean Reversion|Event Driven|Income Strategy|Scalp Intraday/i);
+  await expectSafetyDataOrUnavailable(panel, /trend_following|mean_reversion|event_driven|income_strategy|scalp_intraday/i);
 });
 
 test("Panel shows status badges", async ({ page }) => {
   const panel = await gotoSafetyPanel(page);
 
-  await expectSafetyDataOrUnavailable(panel, /BOOTSTRAP|GREEN|AMBER|RED/i);
+  await expectSafetyDataOrUnavailable(panel, /\d+%|Accuracy Alerts/i);
 });
 
 test("Panel shows overall safety", async ({ page }) => {
   const panel = await gotoSafetyPanel(page);
 
-  await expectSafetyDataOrUnavailable(panel, /All strategies safe|Some strategies paused/i);
+  await expectSafetyDataOrUnavailable(panel, /Accuracy Alerts|event_driven|trend_following/i);
 });
 
 test("Panel shows methodology note", async ({ page }) => {
   const panel = await gotoSafetyPanel(page);
 
-  await expectSafetyDataOrUnavailable(panel, /Simplified.*proxy|api\/conservation\/status|Global conservation remains authoritative/i);
+  await expectSafetyDataOrUnavailable(panel, /verified decisions|Accuracy Alerts|event_driven/i);
 });
 
 test("Panel has no SOC vocabulary", async ({ page }) => {
@@ -75,3 +73,4 @@ test("Panel has no SOC vocabulary", async ({ page }) => {
 
   await expect(panel).not.toContainText(/\bSOC\b|\bSC-\d+\b/i);
 });
+

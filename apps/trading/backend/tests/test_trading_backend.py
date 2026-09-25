@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import pytest
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -151,9 +152,9 @@ def test_app_factory_production_defaults(tmp_path, monkeypatch):
     _write_sqlite_graph_config(config_path)
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
 
-    app = app_main.create_app(db_path=tmp_path / "prod-defaults.db", demo_bundle_path=False)
-
-    assert app.title == "Trading Copilot"
+    with pytest.raises(ValueError, match="production requires AGE primary"):
+        app_main.create_app(db_path=tmp_path / "prod-defaults.db", demo_bundle_path=False)
+    assert not (tmp_path / "prod-defaults.db").exists()
     assert app_main._resolve_profile() == "production"
     assert context_router._demo_mode() is False
     assert context_router._explicit_demo_mode() is False
@@ -548,7 +549,9 @@ def test_analytics(client):
     }.issubset(payload)
     assert "aligned" in payload["contrast_card"]
     assert "misaligned" in payload["contrast_card"]
-    assert payload["counterfactual"]["dollars_saved"] > 0
+    assert payload["source"] == "graph"
+    assert sum(payload["category_counts"].values()) == payload["total_trades"]
+    assert payload["counterfactual"]["dollars_saved"] is None
 
 
 def test_analytics_consistent_with_seed_v2(client):
@@ -596,12 +599,15 @@ def test_similar_trades(client):
         assert "pnl_pct" in item
 
 
-def test_v2_context_uses_temp_data_without_default_fallback(client, monkeypatch, tmp_path):
+def test_graph_analytics_does_not_depend_on_fixture_fallback(client, monkeypatch, tmp_path):
     monkeypatch.setattr(context_router, "_DEFAULT_DATA_DIR", tmp_path / "missing-default-data")
 
     analytics_response = client.get("/api/context/analytics")
     assert analytics_response.status_code == 200
-    assert analytics_response.json()["source"] == "computed_from_trading_seed_v2"
+    assert analytics_response.json()["source"] == "graph"
+    assert analytics_response.json()["total_trades"] == sum(
+        analytics_response.json()["category_counts"].values()
+    )
 
     similar_response = client.get(
         "/api/context/similar",

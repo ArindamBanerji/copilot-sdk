@@ -14,11 +14,11 @@ from copilot_sdk.config import GraphConfigError
 
 def test_graphstore_factory_requires_domain_when_backend_unset():
     with pytest.raises(GraphConfigError):
-        create_graph_store(env={})
+        create_graph_store(profile="test", env={})
 
 
 def test_graphstore_factory_explicit_sqlite_returns_sqlite():
-    store = create_graph_store(backend="sqlite", domain="s2p", env={})
+    store = create_graph_store(profile="test", backend="sqlite", domain="s2p", env={})
     try:
         assert isinstance(store, SQLiteGraphStore)
         assert store.domain == "s2p"
@@ -28,7 +28,7 @@ def test_graphstore_factory_explicit_sqlite_returns_sqlite():
 
 def test_graphstore_factory_sqlite_uses_explicit_db_path(tmp_path: Path):
     db_path = tmp_path / "explicit.db"
-    store = create_graph_store(backend="sqlite", domain="trading", db_path=db_path, env={})
+    store = create_graph_store(profile="test", backend="sqlite", domain="trading", db_path=db_path, env={})
     try:
         assert isinstance(store, SQLiteGraphStore)
         assert store.db_path == str(db_path)
@@ -37,7 +37,7 @@ def test_graphstore_factory_sqlite_uses_explicit_db_path(tmp_path: Path):
 
 
 def test_graphstore_factory_sqlite_can_resolve_ci_data_dir(tmp_path: Path):
-    store = create_graph_store(
+    store = create_graph_store(profile="test",
         backend="sqlite",
         domain="purchasing",
         env={"CI_DATA_DIR": str(tmp_path)},
@@ -51,12 +51,12 @@ def test_graphstore_factory_sqlite_can_resolve_ci_data_dir(tmp_path: Path):
 
 def test_graphstore_factory_rejects_invalid_backend():
     with pytest.raises(ValueError, match="invalid graph backend"):
-        create_graph_store(backend="graph", env={})
+        create_graph_store(profile="test", backend="graph", env={})
 
 
 def test_graphstore_factory_age_requires_dsn():
-    with pytest.raises(ValueError, match="GRAPH_DSN"):
-        create_graph_store(
+    with pytest.raises(ValueError, match="missing AGE DSN"):
+        create_graph_store(profile="test",
             backend="age",
             domain="s2p",
             graph_name="product_graph",
@@ -66,7 +66,7 @@ def test_graphstore_factory_age_requires_dsn():
 
 def test_graphstore_factory_age_requires_graph_name():
     with pytest.raises(ValueError, match="GRAPH_NAME|graph"):
-        create_graph_store(
+        create_graph_store(profile="test",
             backend="age",
             domain="s2p",
             dsn="postgresql://example/test",
@@ -75,8 +75,8 @@ def test_graphstore_factory_age_requires_graph_name():
 
 
 def test_graphstore_factory_age_rejects_blank_graph_name():
-    with pytest.raises(ValueError, match="non-blank"):
-        create_graph_store(
+    with pytest.raises(ValueError, match="missing AGE graph"):
+        create_graph_store(profile="test",
             backend="age",
             domain="s2p",
             dsn="postgresql://example/test",
@@ -87,7 +87,7 @@ def test_graphstore_factory_age_rejects_blank_graph_name():
 
 def test_graphstore_factory_age_rejects_soc_graph_for_non_soc_write():
     with pytest.raises(ValueError, match="soc_graph"):
-        create_graph_store(
+        create_graph_store(profile="test",
             backend="age",
             domain="s2p",
             dsn="postgresql://example/test",
@@ -100,7 +100,7 @@ def test_graphstore_factory_age_allows_protocol_v2_test_graph_only_in_test_mode(
     fake_adapter = _install_fake_age_adapter(monkeypatch)
 
     with pytest.raises(ValueError, match="test_mode=True"):
-        create_graph_store(
+        create_graph_store(profile="test",
             backend="age",
             domain="s2p",
             dsn="postgresql://example/test",
@@ -108,7 +108,7 @@ def test_graphstore_factory_age_allows_protocol_v2_test_graph_only_in_test_mode(
             env={},
         )
 
-    store = create_graph_store(
+    store = create_graph_store(profile="test",
         backend="age",
         domain="s2p",
         dsn="postgresql://example/test",
@@ -123,7 +123,7 @@ def test_graphstore_factory_age_allows_protocol_v2_test_graph_only_in_test_mode(
 def test_graphstore_factory_age_alias_env_works_when_canonical_absent(monkeypatch):
     fake_adapter = _install_fake_age_adapter(monkeypatch)
 
-    store = create_graph_store(
+    store = create_graph_store(profile="test",
         backend="age",
         domain="dataops",
         env={
@@ -137,34 +137,27 @@ def test_graphstore_factory_age_alias_env_works_when_canonical_absent(monkeypatc
     assert store.graph_name == "product_graph"
 
 
-def test_graphstore_factory_age_alias_conflict_raises():
-    with pytest.raises(ValueError, match="GRAPH_DSN and AGE_DSN"):
-        create_graph_store(
-            backend="age",
-            domain="s2p",
-            graph_name="product_graph",
-            env={
-                "GRAPH_DSN": "postgresql://example/canonical",
-                "AGE_DSN": "postgresql://example/alias",
-            },
-        )
-
-    with pytest.raises(ValueError, match="GRAPH_NAME and AGE_GRAPH_NAME"):
-        create_graph_store(
-            backend="age",
-            domain="s2p",
-            dsn="postgresql://example/test",
-            env={
-                "GRAPH_NAME": "product_graph",
-                "AGE_GRAPH_NAME": "other_product_graph",
-            },
-        )
+def test_graphstore_factory_alias_precedence_uses_graphconfig(monkeypatch):
+    fake_adapter = _install_fake_age_adapter(monkeypatch)
+    store = create_graph_store(
+        profile="test", backend="age", domain="s2p",
+        env={
+            "GRAPH_DSN": "postgresql://example/canonical",
+            "AGE_DSN": "postgresql://example/alias",
+            "GRAPH_NAME": "product_graph",
+            "AGE_GRAPH_NAME": "other_product_graph",
+        },
+    )
+    assert isinstance(store, fake_adapter)
+    assert store.dsn == "postgresql://example/canonical"
+    assert store.graph_name == "product_graph"
+    assert dict(store.graph_config.source_keys)["dsn"] == "GRAPH_DSN"
 
 
 def test_graphstore_factory_explicit_args_override_env_conflict(monkeypatch):
     fake_adapter = _install_fake_age_adapter(monkeypatch)
 
-    store = create_graph_store(
+    store = create_graph_store(profile="test",
         backend="age",
         domain="s2p",
         dsn="postgresql://example/explicit",
@@ -184,12 +177,12 @@ def test_graphstore_factory_explicit_args_override_env_conflict(monkeypatch):
 
 def test_graphstore_factory_graph_domain_conflict_raises():
     with pytest.raises(ValueError, match="GRAPH_DOMAIN"):
-        create_graph_store(domain="s2p", env={"GRAPH_DOMAIN": "trading"})
+        create_graph_store(profile="test", domain="s2p", env={"GRAPH_DOMAIN": "trading"})
 
 
 def test_graphstore_factory_does_not_read_database_url():
-    with pytest.raises(ValueError, match="GRAPH_DSN"):
-        create_graph_store(
+    with pytest.raises(ValueError, match="missing AGE DSN"):
+        create_graph_store(profile="test",
             backend="age",
             domain="s2p",
             graph_name="product_graph",
@@ -199,7 +192,7 @@ def test_graphstore_factory_does_not_read_database_url():
 
 def test_graphstore_factory_rejects_soc_graph_even_with_read_only_soc_projection_flag():
     with pytest.raises(ValueError, match="soc_graph"):
-        create_graph_store(
+        create_graph_store(profile="test",
             backend="age",
             domain="soc",
             dsn="postgresql://example/soc",
@@ -220,7 +213,7 @@ def test_graphstore_factory_age_import_error_is_clear(monkeypatch):
     monkeypatch.setattr("importlib.import_module", fail_age_import)
 
     with pytest.raises(RuntimeError, match="AGE graph backend requires ci-platform"):
-        create_graph_store(
+        create_graph_store(profile="test",
             backend="age",
             domain="s2p",
             dsn="postgresql://example/test",
@@ -230,7 +223,7 @@ def test_graphstore_factory_age_import_error_is_clear(monkeypatch):
 
 
 def test_graphstore_factory_close_remains_store_owned():
-    store = create_graph_store(backend="sqlite", domain="test", db_path=":memory:")
+    store = create_graph_store(profile="test", backend="sqlite", domain="test", db_path=":memory:")
     assert isinstance(store, SQLiteGraphStore)
     store.close()
     with pytest.raises(RuntimeError, match="closed"):

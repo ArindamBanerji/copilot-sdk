@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 from app.main import create_app
 from app.services.trading_evolver import (
@@ -16,7 +17,7 @@ from app.services.trading_evolver import (
 
 class BaselineScorer:
     def __init__(self):
-        self.graph_store = object()
+        self.graph_store = InMemoryGraphStore(domain="trading")
         self.mutated = False
         self.state = {"weights": [1.0, 2.0, 3.0]}
 
@@ -29,17 +30,11 @@ class StoreFactory:
         self.created = []
 
     def __call__(self):
-        store = ShadowStore()
+        store = InMemoryGraphStore(domain="trading")
         self.created.append(store)
         return store
 
 
-class ShadowStore:
-    def __init__(self):
-        self.reads = []
-
-    def record_shadow_read(self, decision):
-        self.reads.append(decision)
 
 
 def decisions(improvement_pp=10.0, count=50):
@@ -92,7 +87,7 @@ def test_shadow_uses_isolated_store():
     result = evolver.shadow_test(variant, decisions(), batch_size=50)
     assert result["shadow_store_isolated"] is True
     assert evolver.last_shadow_store is not evolver.baseline_scorer.graph_store
-    assert evolver.last_shadow_store.reads
+    assert evolver.baseline_scorer.graph_store.count_decisions("trading") == 0
 
 
 def test_shadow_result_fields():

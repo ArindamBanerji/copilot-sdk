@@ -18,6 +18,7 @@ from copilot_sdk.backend.models import (
     ConservationStatusResponse,
     ConservationWhatIfResponse,
 )
+from copilot_sdk.scoring.composite_gate import CompositeGate, outcomes_from_state
 from copilot_sdk.state.cached_static import cached_static
 
 
@@ -34,13 +35,13 @@ class ConservationWhatIfRequest(BaseModel):
 def create_conservation_router(
     domain: str,
     state_provider: Callable[[], Any] | Any | None = None,
+    projection_provider: Callable[[int], dict[str, Any]] | None = None,
 ) -> APIRouter:
     """Create a domain-parametric conservation router."""
 
     router = APIRouter()
 
-    @router.get("/conservation/status", response_model=ConservationStatusResponse)
-    @cached_static("conservation", copilot=domain)
+    @router.get("/conservation/status", response_model=None)
     def status(request: Request) -> dict[str, Any]:
         try:
             state = _resolve_state(state_provider)
@@ -52,11 +53,57 @@ def create_conservation_router(
             payload = compute_conservation_status_payload(domain, state)
         except Exception as exc:
             raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+        outcomes = outcomes_from_state(state)
+        gate = CompositeGate(
+            w_short=int(getattr(getattr(state, "_preset", None), "w_short", 20) or (state.get("w_short", 20) if isinstance(state, dict) else 20)),
+            m_rate=float(getattr(getattr(state, "_preset", None), "m_rate", 0.85) or (state.get("m_rate", 0.85) if isinstance(state, dict) else 0.85)),
+            m_rel=float(payload.get("relative_trigger_ratio") or 0.7),
+        )
+        layer_status = gate.evaluate(
+            alpha_q_v=float(payload.get("signal") or 0.0),
+            theta_min=_finite_or_none(payload.get("theta_min")),
+            rolling_accuracy=float(payload.get("q") or 0.0),
+            baseline=float(payload.get("baseline_q") or 0.0),
+            verified_outcomes=outcomes,
+            base_status=str(payload.get("status") or "GREEN"),
+        )
+        payload.update(layer_status)
         mode = str(payload.get("conservation_mode") or "normal")
         if mode == "cold_start":
             payload.update({"status": "COLD_START", "passed": True})
         elif mode == "bootstrap":
             payload.update({"status": "BOOTSTRAP", "passed": True})
+        gate_status = str(layer_status.get("status") or "GREEN")
+        gate_active = any(
+            isinstance(details, dict) and details.get("active") is True
+            for name, details in layer_status.items()
+            if name.startswith("g_")
+        )
+        if gate_active and gate_status in {"AMBER", "RED"}:
+            if gate_status == "RED":
+                reason = "Gate RED"
+            else:
+                active_layers = [
+                    name.upper()
+                    for name, details in layer_status.items()
+                    if name.startswith("g_")
+                    and isinstance(details, dict)
+                    and details.get("active") is True
+                ]
+                reason = "/".join(active_layers) + " active" if active_layers else "Gate AMBER"
+            payload.update({"status": gate_status, "passed": False, "reason": reason})
+        if projection_provider is not None:
+            # Projection is explanatory only; it must never change gate fields.
+            try:
+                projection = projection_provider(int(payload.get("verified_count") or 0))
+            except (ValueError, TypeError):
+                projection = {"projected_divergence_week": None, "readiness_score": None,
+                              "evidence_label": "INVALID_PROJECTION_INPUTS"}
+            for key in ("projected_divergence_week", "readiness_score", "evidence_label",
+                        "projection_definition", "projection_inputs", "projected_weekly_net_benefit",
+                        "projection_status", "projection_tier", "readiness_definition"):
+                if key in projection:
+                    payload[key] = projection[key]
         return payload
 
     @router.post("/conservation/what-if", response_model=ConservationWhatIfResponse)

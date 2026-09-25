@@ -14,7 +14,7 @@ from app.graph_status import (
 )
 from app.main import create_app
 from app.main import _graph_store
-from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
 
 
 TRADING_FACTORS = {
@@ -198,7 +198,7 @@ def test_shared_soc_graph_requires_exact_trading_authorization():
             "TRADING_SHARED_GRAPH_AUTHORIZED": "trading:soc_graph",
         }
     )
-    active = create_trading_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
+    active = create_trading_active_graph_store(config, store_factory=lambda **_: InMemoryGraphStore(domain="trading"))
     assert isinstance(active, TradingActiveAGEGraphStore)
     assert active.active_phase == "shared_graph"
 
@@ -237,7 +237,7 @@ def test_active_age_status_redacts_dsn_and_reports_test_mode(
         create_app(
             db_path=tmp_path / "trading.db",
             demo_bundle_path=False,
-            active_store_factory=lambda **_: FakeAGEStore(),
+            active_store_factory=lambda **_: InMemoryGraphStore(domain="trading"),
         )
     )
 
@@ -254,21 +254,23 @@ def test_active_age_status_redacts_dsn_and_reports_test_mode(
     assert "password=other" not in str(payload)
 
 
+@pytest.mark.age
 def test_active_age_score_learn_and_duplicate_invariant(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    disposable_age,
 ):
-    client, fake = _active_client(tmp_path, monkeypatch)
+    client, fake = _active_client(tmp_path, monkeypatch, disposable_age)
 
     score = _score(client)
     decision_id = score["decision_id"]
-    assert decision_id in fake.decisions
-    assert fake.decisions[decision_id]["decision_id"] == decision_id
+    assert decision_id in {row["decision_id"] for row in fake.get_all_decisions("trading")}
+    assert fake.get_decision(decision_id, domain="trading")["decision_id"] == decision_id
 
     learn = _learn(client, decision_id, score["action"])
     assert learn["decision_id"] == decision_id
-    assert fake.decisions[decision_id]["status"] == "confirmed"
-    assert len(fake.outcomes[decision_id]) == 1
+    assert fake.get_decision(decision_id, domain="trading")["status"] == "confirmed"
+    assert len([row for row in fake.get_verified_decisions("trading") if row["decision_id"] == decision_id]) == 1
 
     duplicate = client.post(
         "/api/learn",
@@ -277,11 +279,13 @@ def test_active_age_score_learn_and_duplicate_invariant(
     assert duplicate.status_code == 400
 
 
+@pytest.mark.age
 def test_social_score_as_and_webhook_auto_score_write_active_age_decisions(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    disposable_age,
 ):
-    client, fake = _active_client(tmp_path, monkeypatch)
+    client, fake = _active_client(tmp_path, monkeypatch, disposable_age)
 
     social = client.post(
         "/api/trading/score-as",
@@ -289,8 +293,8 @@ def test_social_score_as_and_webhook_auto_score_write_active_age_decisions(
     )
     assert social.status_code == 200
     social_payload = social.json()
-    assert social_payload["decision_id"] in fake.decisions
-    assert fake.decisions[social_payload["decision_id"]]["metadata"]["trader_id"] == "alice"
+    assert social_payload["decision_id"] in {row["decision_id"] for row in fake.get_all_decisions("trading")}
+    assert fake.get_decision(social_payload["decision_id"], domain="trading")["metadata"]["trader_id"] == "alice"
 
     webhook = client.post(
         "/api/trading/webhook/tradingview",
@@ -307,15 +311,17 @@ def test_social_score_as_and_webhook_auto_score_write_active_age_decisions(
     assert webhook.status_code == 200
     webhook_payload = webhook.json()
     assert webhook_payload["scored"] is True
-    assert webhook_payload["decision_id"] in fake.decisions
-    assert fake.decisions[webhook_payload["decision_id"]]["metadata"]["source"] == "tradingview_webhook"
+    assert webhook_payload["decision_id"] in {row["decision_id"] for row in fake.get_all_decisions("trading")}
+    assert fake.get_decision(webhook_payload["decision_id"], domain="trading")["metadata"]["source"] == "tradingview_webhook"
 
 
+@pytest.mark.age
 def test_prescore_and_read_like_routes_do_not_create_decisions_under_active_age(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    disposable_age,
 ):
-    client, fake = _active_client(tmp_path, monkeypatch)
+    client, fake = _active_client(tmp_path, monkeypatch, disposable_age)
 
     before = fake.count_decisions("trading")
     for method, path, json_body in (
@@ -333,13 +339,15 @@ def test_prescore_and_read_like_routes_do_not_create_decisions_under_active_age(
     assert fake.count_decisions("trading") == before
 
 
+@pytest.mark.age
 def test_rollback_to_sqlite_proves_no_hidden_reconciliation(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    disposable_age,
 ):
-    active_client, fake = _active_client(tmp_path, monkeypatch)
+    active_client, fake = _active_client(tmp_path, monkeypatch, disposable_age)
     active_score = _score(active_client)
-    assert active_score["decision_id"] in fake.decisions
+    assert active_score["decision_id"] in {row["decision_id"] for row in fake.get_all_decisions("trading")}
 
     _clear_active_env(monkeypatch)
     _configure_explicit_sqlite(tmp_path, monkeypatch)
@@ -351,7 +359,7 @@ def test_rollback_to_sqlite_proves_no_hidden_reconciliation(
     status = sqlite_client.get("/api/trading/graph/status").json()
     assert status["active_backend"] == "sqlite"
     assert status["age_active"] is False
-    assert active_score["decision_id"] in fake.decisions
+    assert active_score["decision_id"] in {row["decision_id"] for row in fake.get_all_decisions("trading")}
     assert _sqlite_decision_count(sqlite_db) == 1
 
 
@@ -361,7 +369,7 @@ def test_active_store_constructs_with_factory_after_guards():
 
     def factory(**kwargs):
         calls.append(kwargs)
-        return FakeAGEStore()
+        return InMemoryGraphStore(domain="trading")
 
     active = create_trading_active_graph_store(config, store_factory=factory)
 
@@ -374,6 +382,7 @@ def test_active_store_constructs_with_factory_after_guards():
             "graph_name": "protocol_v2_test",
             "env": {},
             "test_mode": True,
+            "profile": "test",
         }
     ]
 
@@ -386,7 +395,7 @@ def test_direct_store_construction_rejects_shadow_conflict(monkeypatch: pytest.M
     def factory(**kwargs):
         nonlocal called
         called = True
-        return FakeAGEStore()
+        return InMemoryGraphStore(domain="trading")
 
     with pytest.raises(TradingActiveGraphConfigError, match="conflicts"):
         create_trading_active_graph_store(config, store_factory=factory)
@@ -396,9 +405,11 @@ def test_direct_store_construction_rejects_shadow_conflict(monkeypatch: pytest.M
 def _active_client(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-) -> tuple[TestClient, "FakeAGEStore"]:
-    _set_active_age_env(monkeypatch)
-    fake = FakeAGEStore()
+    disposable_age,
+) -> tuple[TestClient, Any]:
+    _set_active_age_env(monkeypatch, dsn=disposable_age.dsn)
+    monkeypatch.setenv("TRADING_ACTIVE_AGE_GRAPH", disposable_age.graph)
+    fake = disposable_age.store("trading")
     client = TestClient(
         create_app(
             db_path=tmp_path / "trading.db",
@@ -491,7 +502,7 @@ def _clear_active_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _sqlite_decision_count(db_path: Path) -> int:
-    from copilot_sdk.graph import SQLiteGraphStore
+    from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
 
     store = SQLiteGraphStore(db_path, domain="trading")
     try:
@@ -500,117 +511,3 @@ def _sqlite_decision_count(db_path: Path) -> int:
         store.close()
 
 
-class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
-    domain = "trading"
-
-    def __init__(self) -> None:
-        self.decisions: dict[str, dict[str, Any]] = {}
-        self.outcomes: dict[str, list[dict[str, Any]]] = {}
-        self.centroids: list[dict[str, Any]] = []
-
-    def write_governed_decision(self, **kwargs: Any) -> None:
-        decision_id = str(kwargs["decision_id"])
-        if decision_id in self.decisions and self.decisions[decision_id] != kwargs:
-            raise ValueError("conflicting decision")
-        self.decisions[decision_id] = {
-            **kwargs,
-            "status": "pending",
-            "recommended_action": kwargs["recommended_action"],
-            "action": kwargs["recommended_action"],
-            "factors": {
-                name: value
-                for name, value in zip(kwargs["factor_names"], kwargs["factor_vector"])
-            },
-            "metadata": dict(kwargs.get("metadata") or {}),
-        }
-
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
-        decision = self.decisions.get(decision_id)
-        return dict(decision) if decision is not None else None
-
-    def write_outcome(
-        self,
-        decision_id: str,
-        actual_action: str,
-        is_correct: bool,
-        metadata: dict[str, Any] | None = None,
-        domain: str | None = None,
-    ) -> None:
-        if decision_id not in self.decisions:
-            raise KeyError(decision_id)
-        if decision_id in self.outcomes:
-            raise ValueError("outcome already exists")
-        outcome = {
-            "decision_id": decision_id,
-            "actual_action": actual_action,
-            "is_correct": bool(is_correct),
-            "metadata": dict(metadata or {}),
-        }
-        self.outcomes[decision_id] = [outcome]
-        decision = self.decisions[decision_id]
-        decision["actual_action"] = actual_action
-        decision["is_correct"] = bool(is_correct)
-        decision["outcome"] = "confirmed" if is_correct else "overridden"
-        decision["status"] = decision["outcome"]
-        decision["outcome_metadata"] = dict(metadata or {})
-
-    def load_latest_centroids(self, domain: str) -> Any | None:
-        return None
-
-    def save_centroids(
-        self,
-        domain: str,
-        category: str,
-        centroids: Any,
-        metadata: dict[str, Any] | None = None,
-        **kwargs: Any,
-    ) -> None:
-        self.centroids.append({"domain": domain, "category": category, "metadata": metadata or {}, **kwargs})
-
-    def get_centroid_checkpoints(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]:
-        return list(self.centroids)
-
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
-        return [
-            dict(decision)
-            for decision in self.decisions.values()
-            if decision.get("status") in {"confirmed", "overridden"}
-        ]
-
-    def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
-        return [dict(decision) for decision in self.decisions.values()]
-
-    def get_decisions(
-        self,
-        domain: str,
-        category: str | None = None,
-        limit: int = 400,
-    ) -> list[dict[str, Any]]:
-        decisions = self.get_all_decisions(domain)
-        if category is not None:
-            decisions = [decision for decision in decisions if decision.get("category") == category]
-        return decisions[:limit]
-
-    def count_decisions(self, domain: str) -> int:
-        return len(self.decisions)
-
-    def count_verified(self, domain: str) -> int:
-        return len(self.get_verified_decisions(domain))
-
-    def count_verified_decisions(self, domain: str) -> int:
-        return self.count_verified(domain)
-
-    def count_correct(self, domain: str) -> int:
-        return sum(1 for decision in self.decisions.values() if decision.get("is_correct") is True)
-
-    def count_archived(self, domain: str) -> int:
-        return 0
-
-    def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
-        return 0
-
-    def get_evolution_events(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]:
-        return []
-
-    def close(self) -> None:
-        return None

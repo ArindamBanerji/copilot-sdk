@@ -12,6 +12,7 @@ from copilot_sdk.backend.transfer import (
     save_fingerprint,
 )
 from copilot_sdk.backend.transfer_router import create_transfer_router
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 
 def _fingerprint(domain: str, factors: dict[str, float]) -> dict:
@@ -162,10 +163,28 @@ def test_load_fingerprints_skips_malformed_json(tmp_path: Path) -> None:
 class FakeScorer:  # MOCK-OK: transfer planner reads centroids only
     _domain = "trading"
 
+    def __init__(self, fingerprints: list[dict] | None = None) -> None:
+        self.graph_store = InMemoryGraphStore(domain=self._domain)
+        for index, payload in enumerate(fingerprints or []):
+            fingerprint = dict(payload.get("fingerprint") or {})
+            self.graph_store.write_fingerprint(
+                fingerprint_id=f"fp-{index}",
+                domain=str(payload["domain"]),
+                factor_names=[
+                    str(factor.get("name"))
+                    for factor in fingerprint.get("factors", [])
+                    if isinstance(factor, dict) and factor.get("name")
+                ],
+                factor_stats=fingerprint,
+                skipped_incompatible=0,
+                window=int(fingerprint.get("decisions_analyzed", 0)),
+                metadata={"provenance": "test"},
+            )
 
-def _client(tmp_path: Path) -> TestClient:
+
+def _client(tmp_path: Path, fingerprints: list[dict] | None = None) -> TestClient:
     app = FastAPI()
-    app.include_router(create_transfer_router(FakeScorer(), fingerprint_base_path=tmp_path))
+    app.include_router(create_transfer_router(FakeScorer(fingerprints)))
     return TestClient(app)
 
 
@@ -184,11 +203,14 @@ def test_transfer_router_status_returns_200_with_no_fingerprint_files(tmp_path: 
     assert response.json() == {"warm_started": False}
 
 
-def test_transfer_router_returns_opportunities_from_temp_fingerprints(tmp_path: Path) -> None:
-    save_fingerprint("trading", {"factors": [{"name": "shared", "sigma": 0.5}]}, tmp_path)
-    save_fingerprint("dataops", {"factors": [{"name": "shared", "sigma": 0.1}]}, tmp_path)
-
-    payload = _client(tmp_path).get("/api/transfer/opportunities").json()
+def test_transfer_router_returns_opportunities_from_graph_fingerprints(tmp_path: Path) -> None:
+    payload = _client(
+        tmp_path,
+        [
+            _fingerprint("trading", {"shared": 0.5}),
+            _fingerprint("dataops", {"shared": 0.1}),
+        ],
+    ).get("/api/transfer/opportunities").json()
 
     assert payload["status"] == "opportunities_available"
     assert payload["own_fingerprint_present"] is True
@@ -198,10 +220,13 @@ def test_transfer_router_returns_opportunities_from_temp_fingerprints(tmp_path: 
 def test_transfer_router_hides_other_domain_opportunities_when_own_fingerprint_missing(
     tmp_path: Path,
 ) -> None:
-    save_fingerprint("dataops", {"factors": [{"name": "shared", "sigma": 0.1}]}, tmp_path)
-    save_fingerprint("purchasing", {"factors": [{"name": "shared", "sigma": 0.5}]}, tmp_path)
-
-    response = _client(tmp_path).get("/api/transfer/opportunities")
+    response = _client(
+        tmp_path,
+        [
+            _fingerprint("dataops", {"shared": 0.1}),
+            _fingerprint("purchasing", {"shared": 0.5}),
+        ],
+    ).get("/api/transfer/opportunities")
     payload = response.json()
 
     assert response.status_code == 200
@@ -211,11 +236,12 @@ def test_transfer_router_hides_other_domain_opportunities_when_own_fingerprint_m
     assert payload["opportunities"] == []
 
 
-def test_endpoint_response_is_json_safe_with_malformed_file(tmp_path: Path) -> None:
+def test_endpoint_ignores_legacy_fingerprint_files(tmp_path: Path) -> None:
     (tmp_path / "bad.json").write_text("{", encoding="utf-8")
 
     response = _client(tmp_path).get("/api/transfer/opportunities")
 
     assert response.status_code == 200
     json.dumps(response.json())
-    assert response.json()["warnings"][0]["file"] == "bad.json"
+    assert response.json()["source"] == "graph"
+    assert response.json()["warnings"] == []

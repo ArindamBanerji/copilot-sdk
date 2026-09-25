@@ -1,0 +1,188 @@
+
+Running 34 tests using 1 worker
+
+(node:13328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [demo] › demo\fork\fork-01-clone-run.spec.ts:4:1 › FORK-01 clone-run: trading preseed fingerprint has ten factors (1.5s)
+  ok  2 [demo] › demo\fork\fork-02-replay-parity.spec.ts:3:1 › FORK-02 replay parity: repeated fingerprint reads preserve factor geometry (348ms)
+  ok  3 [demo] › demo\pilot\pilot-01-first-90.spec.ts:4:1 › PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields (1.9s)
+  ok  4 [demo] › demo\pilot\pilot-02-readiness-evidence.spec.ts:3:1 › PILOT-02 readiness evidence: readiness payload includes coverage detail (440ms)
+  -   5 [demo] › demo\platform\plat-01-shared-trace.spec.ts:3:6 › PLAT-01 › BUILD: shared cross-copilot trace panel is not shipped
+  -   6 [demo] › demo\platform\plat-02-routing-badge.spec.ts:3:6 › PLAT-02 › ROADMAP: cross-copilot routing accuracy badge is not measured
+  ok  7 [demo] › demo\platform\plat-05-five-health-checks.spec.ts:3:1 › PLAT-05 five health checks: all demo copilots are reachable (439ms)
+(node:76424) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:76424) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  8 [demo-soc] › demo\soc\soc-01-analyst-left.spec.ts:4:1 › SOC-01 analyst-left: learning state has verified evidence and weighted categories (900ms)
+  -   9 [demo-soc] › demo\soc\soc-02-no-precedent.spec.ts:3:6 › SOC-02 › PLANT: needs PL-SOC-1 no-precedent alert fixture
+  -  10 [demo-soc] › demo\soc\soc-04-authority-ladder.spec.ts:3:6 › SOC-04 › BUILD: authority ladder and RED veto are not shipped
+  -  11 [demo-soc] › demo\soc\soc-05-frozen-twin.spec.ts:3:6 › SOC-05 › BUILD: frozen-twin comparison surface is not shipped
+  -  12 [demo-soc] › demo\soc\soc-06-investigation-trace.spec.ts:3:6 › SOC-06 › ROADMAP: shared investigation trace panel is not deployed
+  ok 13 [demo-soc] › demo\soc\soc-07-chained.spec.ts:3:1 › SOC-07 chained: audit verifies and export affordance is present (1.6s)
+  -  14 [demo-soc] › demo\soc\soc-08-routing-accuracy.spec.ts:3:6 › SOC-08 › CONCEPTUAL: routing-accuracy claim is not measured
+  -  15 [demo-soc] › demo\soc\soc-10-campaign-path.spec.ts:3:6 › SOC-10 › PLANT: linked campaign investigation fixture is missing
+(node:72272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 16 [demo-s2p] › demo\s2p\s2p-01-rule-said-no.spec.ts:3:1 › S2P-01 rule-said-no: copper invoice is accepted with contract reasoning (2.7s)
+  ok 17 [demo-s2p] › demo\s2p\s2p-02-day-zero.spec.ts:3:1 › S2P-02 day-zero: cold start still returns confidence and contributions (672ms)
+  -  18 [demo-s2p] › demo\s2p\s2p-03-earned-autonomy.spec.ts:3:6 › S2P-03 › BUILD: S2P promotion/autonomy ladder is not shipped
+  ok 19 [demo-s2p] › demo\s2p\s2p-04-earned-autonomy.spec.ts:3:1 › S2P-04 earned autonomy: performance conservation is green (1.7s)
+  -  20 [demo-s2p] › demo\s2p\s2p-05-supplier-enrichment.spec.ts:3:6 › S2P-05 › PLANT: supplier enrichment fixture is missing
+  -  21 [demo-s2p] › demo\s2p\s2p-06-otif-provenance.spec.ts:3:6 › S2P-06 › ROADMAP: OTIF provenance surface is not complete
+(node:80428) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:80428) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  22 [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history (10.8s)
+(node:71596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  23 [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history (retry #1) (10.6s)
+(node:81404) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:81404) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  24 [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor (10.7s)
+(node:47464) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:47464) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 25 [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor (retry #1) (905ms)
+  -  26 [demo-purchasing] › demo\purchasing\pur-03-vendor-cascade.spec.ts:3:6 › PUR-03 › PLANT: vendor-cascade order fixture is missing
+  ok 27 [demo-purchasing] › demo\purchasing\pur-04-quiet-week.spec.ts:3:1 › PUR-04 quiet week: proof ledger has both curves (1.1s)
+  -  28 [demo-purchasing] › demo\purchasing\pur-05-proof-ledger-export.spec.ts:3:6 › PUR-05 › BUILD: purchasing proof-ledger export is not shipped
+  -  29 [demo-purchasing] › demo\purchasing\pur-06-multi-unit-transfer.spec.ts:3:6 › PUR-06 › ROADMAP: multi-unit trust transfer scenario is not ready
+(node:71932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 30 [demo-trading] › demo\trading\trd-01-favorite-setup.spec.ts:3:1 › TRD-01 favorite setup: ten-factor trust radar flags sigma (852ms)
+  -  31 [demo-trading] › demo\trading\trd-02-friday-regime.spec.ts:3:6 › TRD-02 › PLANT: Friday regime fixture is missing
+  -  32 [demo-trading] › demo\trading\trd-04-revenge-trade.spec.ts:3:6 › TRD-04 › PLANT: revenge-trade fixture is missing
+  -  33 [demo-trading] › demo\trading\trd-05-prove-before-money.spec.ts:3:6 › TRD-05 › CONCEPTUAL: prove-before-real-money gate is not deployed
+  ok 34 [demo-trading] › demo\trading\trd-06-code-free.spec.ts:3:1 › TRD-06 code-free: fingerprint has ten earned nonzero weights (1.1s)
+  -  35 [demo-dataops] › demo\dataops\do-01-source-lost.spec.ts:3:6 › DO-01 › PLANT: source-lost alert fixture is missing
+(node:75260) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75260) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 36 [demo-dataops] › demo\dataops\do-03-twelve-years.spec.ts:3:1 › DO-03 twelve-years: six-factor profile and centroid checkpoints exist (1.6s)
+
+
+  1) [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/supplier history|history|prior decisions/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/supplier history|history|prior decisions/i).first()[22m
+
+
+      3 | test("PUR-01 new GM: order screen carries supplier history", async ({ page }) => {
+      4 |   await page.goto("http://127.0.0.1:5175/"); await expect(page.getByText(/Order/i).first()).toBeVisible();
+    > 5 |   await expect(page.getByText(/supplier history|history|prior decisions/i).first()).toBeVisible();
+        |                                                                                     ^
+      6 | });
+      7 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-01-new-gm.spec.ts:5:85
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/supplier history|history|prior decisions/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/supplier history|history|prior decisions/i).first()[22m
+
+
+      3 | test("PUR-01 new GM: order screen carries supplier history", async ({ page }) => {
+      4 |   await page.goto("http://127.0.0.1:5175/"); await expect(page.getByText(/Order/i).first()).toBeVisible();
+    > 5 |   await expect(page.getByText(/supplier history|history|prior decisions/i).first()).toBeVisible();
+        |                                                                                     ^
+      6 | });
+      7 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-01-new-gm.spec.ts:5:85
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor 
+
+    TimeoutError: apiRequestContext.get: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - → GET http://127.0.0.1:8020/api/fingerprint[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+
+
+      3 | test("PUR-02 trust trap: fingerprint flags a highest-sigma factor", async ({ page, request }) => {
+      4 |   await page.goto("http://127.0.0.1:5175/"); await expect(page.getByText(/Analysis/i).first()).toBeVisible();
+    > 5 |   const response = await request.get(`${API}/api/fingerprint`); expect(response.ok()).toBeTruthy(); const body = await response.json();
+        |                                  ^
+      6 |   const factors = body.factors ?? body.profile?.factors ?? []; expect(factors.length).toBeGreaterThan(0);
+      7 |   expect(factors.some((f: Record<string, unknown>) => Number(f.sigma ?? 0) > 0)).toBeTruthy();
+      8 | });
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-02-trust-trap.spec.ts:5:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history 
+  1 flaky
+    [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor 
+  18 skipped
+  14 passed (1.2m)

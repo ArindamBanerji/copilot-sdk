@@ -12,6 +12,7 @@ from typing import Any, Callable
 
 import numpy as np
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
@@ -70,6 +71,12 @@ class LearnRequest(BaseModel):
     actual_action: str
     outcome: str = "confirmed"
     context: dict[str, Any] | None = None
+
+
+class LearnLockedResponse(BaseModel):
+    blocked: bool = True
+    gate_status: str
+    reason: str
 
 
 _MUTABLE_CONTEXT_TOKENS = {
@@ -240,8 +247,9 @@ def create_scoring_router(
                 query_cache_invalidator()
             return payload
 
-    @router.post("/learn", response_model=LearnResponse)
-    def learn(request: LearnRequest) -> dict[str, Any]:
+    @router.post("/learn", response_model=LearnResponse,
+                 responses={423: {"model": LearnLockedResponse}})
+    def learn(request: LearnRequest) -> dict[str, Any] | JSONResponse:
         with mutation_lock_scope(domain):
             scorer = get_scorer()
             try:
@@ -286,6 +294,20 @@ def create_scoring_router(
                 raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
 
             payload = _json_safe(result)
+            if payload.get("blocked_by_gate") is True:
+                gate = payload.get("gate_status") or {}
+                active_layers = [
+                    label for key, label in (
+                        ("g_abs", "G-ABS"), ("g_rel", "G-REL"), ("g_rate", "G-RATE")
+                    )
+                    if isinstance(gate.get(key), dict) and gate[key].get("active") is True
+                ]
+                locked = LearnLockedResponse(
+                    gate_status=str(gate.get("status") or "AMBER"),
+                    reason=", ".join(active_layers) + " active"
+                    if active_layers else "Safety gate active",
+                )
+                return JSONResponse(status_code=423, content=locked.model_dump())
             _shape_learn_payload(
                 payload,
                 request=request,
@@ -308,16 +330,20 @@ def create_scoring_router(
                     bool(is_correct),
                 )
 
-            _persist_centroid_l5(
-                domain=domain,
-                scorer=scorer,
-                explicit_learning_store=learning_store,
-                category=category,
-                actual_action=request.actual_action,
-                caused_by_decision_id=request.decision_id,
-                pre_centroid=pre_centroid,
-                persistence_lock=l5_centroid_lock,
-                logger=log,
+            _record_learn_persistence(
+                payload,
+                "centroid_l5",
+                _persist_centroid_l5(
+                    domain=domain,
+                    scorer=scorer,
+                    explicit_learning_store=learning_store,
+                    category=category,
+                    actual_action=request.actual_action,
+                    caused_by_decision_id=request.decision_id,
+                    pre_centroid=pre_centroid,
+                    persistence_lock=l5_centroid_lock,
+                    logger=log,
+                ),
             )
             # NOTE: L5 conservation persistence (update_conservation_state) coexists
             # with V2 conservation persistence (write_conservation_status) in the
@@ -325,30 +351,38 @@ def create_scoring_router(
             # L5 updates operational state; V2 writes a graph snapshot. Both are
             # intentional. Remove L5 only after V2 is proven sufficient and the
             # L5 contract is formally retired.
-            _persist_conservation_state_l5(
-                domain=domain,
-                scorer=scorer,
-                explicit_learning_store=learning_store,
-                caused_by_decision_id=request.decision_id,
-                persistence_lock=l5_conservation_lock,
+            _record_learn_persistence(
+                payload,
+                "conservation_l5",
+                _persist_conservation_state_l5(
+                    domain=domain,
+                    scorer=scorer,
+                    explicit_learning_store=learning_store,
+                    caused_by_decision_id=request.decision_id,
+                    persistence_lock=l5_conservation_lock,
+                ),
             )
-            _persist_dk_state_l5(
-                domain=domain,
-                scorer=scorer,
-                explicit_learning_store=learning_store,
-                decision=decision,
-                actual_action=request.actual_action,
-                payload=payload,
-                welford_tracker=active_dk_welford_tracker,
-                persistence_lock=l5_dk_lock,
+            _record_learn_persistence(
+                payload,
+                "dk_l5",
+                _persist_dk_state_l5(
+                    domain=domain,
+                    scorer=scorer,
+                    explicit_learning_store=learning_store,
+                    decision=decision,
+                    actual_action=request.actual_action,
+                    payload=payload,
+                    welford_tracker=active_dk_welford_tracker,
+                    persistence_lock=l5_dk_lock,
+                ),
             )
+            _finalize_learn_persistence(payload)
             apply_cache_invalidation_event(domain, "learn")
             if query_cache_invalidator is not None:
                 query_cache_invalidator()
             return payload
 
     @router.get("/fingerprint", response_model=FingerprintResponse)
-    @cached_static("fingerprint", copilot=domain)
     def fingerprint(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(scorer.fingerprint())
@@ -390,7 +424,6 @@ def create_scoring_router(
             return result
 
     @router.get("/history", response_model=ScoringHistoryResponse)
-    @cached_static("history-summary", copilot=domain)
     def history(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
         store = _scorer_data_store(scorer)
@@ -405,7 +438,6 @@ def create_scoring_router(
         return payload
 
     @router.get("/measurement-state", response_model=MeasurementStateResponse)
-    @cached_static("measurement-state", copilot=domain)
     def measurement_state(request: Request) -> dict[str, Any]:
         return measurement_payload()
 
@@ -552,18 +584,18 @@ def _persist_conservation_state_l5(
     explicit_learning_store: Any | None = None,
     caused_by_decision_id: str | None = None,
     persistence_lock: threading.RLock | None = None,
-) -> None:
+) -> bool:
     store = _learning_store_for(scorer, explicit_learning_store)
     lock = persistence_lock or threading.RLock()
     with lock:
         if store is not None:
-            _persist_conservation_state_l5_locked(
+            return _persist_conservation_state_l5_locked(
                 domain=domain,
                 scorer=scorer,
                 store=store,
                 caused_by_decision_id=caused_by_decision_id,
             )
-    return None
+    return False
 
 
 def _persist_conservation_state_l5_locked(
@@ -572,17 +604,17 @@ def _persist_conservation_state_l5_locked(
     scorer: Any,
     store: Any,
     caused_by_decision_id: str | None = None,
-) -> None:
+) -> bool:
     try:
         metrics = compute_conservation_metrics(scorer, domain=domain)
     except Exception as exc:  # pragma: no cover - exercised through caller behavior
         log.warning("L5 conservation state skipped for %s: %s", domain, exc)
-        return None
+        return False
     try:
         old_state = store.get_conservation_state(domain)
     except Exception as exc:
         log.warning("L5 conservation state read failed for %s: %s", domain, exc)
-        return None
+        return False
     old_status = None
     if isinstance(old_state, dict):
         stored_status = old_state.get("status")
@@ -606,7 +638,8 @@ def _persist_conservation_state_l5_locked(
         )
     except Exception as exc:
         log.warning("L5 conservation state write failed for %s: %s", domain, exc)
-    return None
+        return False
+    return True
 
 
 def _learning_store_for(scorer: Any, explicit_learning_store: Any | None = None) -> Any | None:
@@ -769,19 +802,19 @@ def _persist_dk_state_l5(
     payload: dict[str, Any],
     welford_tracker: DKWelfordTracker,
     persistence_lock: threading.RLock,
-) -> None:
+) -> bool:
     if payload.get("status") == "paused" or payload.get("paused") is True:
-        return None
+        return False
     factor_vector = _decision_factor_vector(decision)
     recommended_action = _decision_recommended_action(decision)
     if factor_vector is None or recommended_action is None:
         log.warning("L5 DK persistence skipped for %s: missing decision factor/action data", domain)
-        return None
+        return False
     reestimate = getattr(scorer, "reestimate_dk_if_due", None)
     get_dk_weights = getattr(scorer, "get_dk_weights", None)
     if not callable(reestimate) or not callable(get_dk_weights):
         log.warning("L5 DK persistence skipped for %s: scorer lacks DK runtime helpers", domain)
-        return None
+        return False
     is_correct = str(actual_action) == str(recommended_action)
     try:
         with persistence_lock:
@@ -789,10 +822,10 @@ def _persist_dk_state_l5(
             reestimate()
             store = _dk_learning_store_for(scorer, explicit_learning_store)
             if store is None:
-                return None
+                return False
             if get_dk_weights() is None:
-                return None
-            persist_dk_after_reestimate(
+                return False
+            return persist_dk_after_reestimate(
                 domain=domain,
                 scorer=scorer,
                 learning_store=store,
@@ -802,7 +835,7 @@ def _persist_dk_state_l5(
             )
     except Exception as exc:
         log.warning("L5 DK persistence skipped for %s: %s", domain, exc)
-    return None
+        return False
 
 
 def _decision_factor_vector(decision: dict[str, Any]) -> list[float] | None:
@@ -878,6 +911,33 @@ def _shape_learn_payload(
 def _learn_result_blocked(payload: dict[str, Any]) -> bool:
     status = str(payload.get("status") or "").strip().lower()
     return payload.get("paused") is True or status in {"paused", "blocked"}
+
+
+def _record_learn_persistence(
+    payload: dict[str, Any],
+    step: str,
+    succeeded: bool,
+) -> None:
+    persistence = payload.setdefault("persistence", {})
+    if isinstance(persistence, dict):
+        persistence[step] = bool(succeeded)
+    else:
+        payload["persistence"] = {step: bool(succeeded)}
+    if succeeded:
+        return
+    failures = payload.setdefault("persistence_failures", [])
+    failure = {"step": step, "error": "persistence_failed"}
+    if isinstance(failures, list):
+        failures.append(failure)
+    else:
+        payload["persistence_failures"] = [failure]
+
+
+def _finalize_learn_persistence(payload: dict[str, Any]) -> None:
+    if payload.get("paused") is True:
+        return
+    failures = payload.get("persistence_failures")
+    payload["status"] = "partial" if isinstance(failures, list) and failures else "complete"
 
 
 def _reward_multiplier(reward: float, previous_reward: float | None) -> float:

@@ -58,8 +58,9 @@ test("enterprise shows 3 systems", async ({ page }) => {
 test("enterprise shows impact", async ({ page }) => {
   await gotoDashboard(page);
 
-  await expect(page.getByTestId("enterprise-impact")).toBeVisible();
-  await expectAnyText(page, [/invoice exceptions/i, /Match Invoice to GR/i]);
+  const enterpriseValue = page.getByTestId("enterprise-value-card");
+  await expect(enterpriseValue).toBeVisible();
+  await expect(enterpriseValue).toContainText(/Enterprise Systems Integration|Celonis sees WHERE/i);
 });
 
 test("enterprise badges visible", async ({ page }) => {
@@ -101,7 +102,7 @@ test("pipeline status shows system names with criticality", async ({ page }) => 
 
   const pipeline = dashboardPanel(page, "Pipeline Status");
   await expect(pipeline).toBeVisible();
-  await expect(pipeline.getByText(/Billing API|CRM Sync|ERP Export|HR Feed|Inventory Feed/i).first()).toBeVisible({
+  await expect(pipeline.getByText(/migration|compounding_scorer|dataops_active_age_score|demo_bundle|Pipeline Status|graph/i).first()).toBeVisible({
     timeout: 15_000,
   });
   await expect(pipeline.getByText(/Business criticality|\d+%/i).first()).toBeVisible();
@@ -146,7 +147,7 @@ test("SAP systems visible", async ({ page }) => {
   await gotoDashboard(page);
 
   const pipeline = dashboardPanel(page, "Pipeline Status");
-  await expect(pipeline.getByText(/Billing API|CRM Sync|ERP Export|HR Feed|Inventory Feed/i).first()).toBeVisible({
+  await expect(pipeline.getByText(/migration|compounding_scorer|dataops_active_age_score|demo_bundle|Pipeline Status|graph/i).first()).toBeVisible({
     timeout: 15_000,
   });
 });

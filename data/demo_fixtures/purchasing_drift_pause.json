@@ -1,0 +1,133 @@
+{
+  "copilot": "purchasing",
+  "decisions": [
+    {
+      "decision": 1,
+      "verified_correct": true
+    },
+    {
+      "decision": 2,
+      "verified_correct": true
+    },
+    {
+      "decision": 3,
+      "verified_correct": true
+    },
+    {
+      "decision": 4,
+      "verified_correct": true
+    },
+    {
+      "decision": 5,
+      "verified_correct": true
+    },
+    {
+      "decision": 6,
+      "verified_correct": true
+    },
+    {
+      "decision": 7,
+      "verified_correct": true
+    },
+    {
+      "decision": 8,
+      "verified_correct": true
+    },
+    {
+      "decision": 9,
+      "verified_correct": true
+    },
+    {
+      "decision": 10,
+      "verified_correct": true
+    },
+    {
+      "decision": 11,
+      "verified_correct": true
+    },
+    {
+      "decision": 12,
+      "verified_correct": true
+    },
+    {
+      "decision": 13,
+      "verified_correct": true
+    },
+    {
+      "decision": 14,
+      "verified_correct": true
+    },
+    {
+      "decision": 15,
+      "verified_correct": true
+    },
+    {
+      "decision": 16,
+      "verified_correct": true
+    },
+    {
+      "decision": 17,
+      "verified_correct": true
+    },
+    {
+      "decision": 18,
+      "verified_correct": true
+    },
+    {
+      "decision": 19,
+      "verified_correct": true
+    },
+    {
+      "decision": 20,
+      "verified_correct": true
+    },
+    {
+      "decision": 21,
+      "verified_correct": false
+    },
+    {
+      "decision": 22,
+      "verified_correct": false
+    },
+    {
+      "decision": 23,
+      "verified_correct": false
+    },
+    {
+      "decision": 24,
+      "verified_correct": false
+    },
+    {
+      "decision": 25,
+      "verified_correct": false
+    },
+    {
+      "decision": 26,
+      "verified_correct": false
+    },
+    {
+      "decision": 27,
+      "verified_correct": false
+    },
+    {
+      "decision": 28,
+      "verified_correct": false
+    },
+    {
+      "decision": 29,
+      "verified_correct": false
+    },
+    {
+      "decision": 30,
+      "verified_correct": false
+    }
+  ],
+  "expected": {
+    "auto_pause_active": true,
+    "conservation_status": "AMBER"
+  },
+  "fixture_id": "PL-PUR-1",
+  "injection_mode": "file_placement",
+  "planted": true,
+  "scenario": "PUR-03"
+}

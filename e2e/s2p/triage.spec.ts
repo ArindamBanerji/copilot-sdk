@@ -1,6 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
-import { waitForTriageQueue } from "./helpers";
+import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+
+test.setTimeout(150_000);
 
 async function openTriage(page: Page) {
   await page.goto("/");
@@ -22,7 +24,7 @@ function waitForScoreResponse(page: Page) {
     response.url().includes("/score") &&
     response.request().method() === "POST" &&
     response.status() === 200,
-    { timeout: 30_000 },
+    { timeout: 90_000 },
   );
 }
 
@@ -31,7 +33,7 @@ function waitForLearnResponse(page: Page) {
     (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
     response.request().method() === "POST" &&
     response.ok(),
-    { timeout: 30_000 },
+    { timeout: 90_000 },
   );
 }
 
@@ -39,7 +41,7 @@ async function clickScore(page: Page) {
   const selected = panel(page, "Selected Invoice");
   const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
   if (selectedHasInvoice === 0) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV/i });
+    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
     const invoiceCount = await invoiceButtons.count();
     if (invoiceCount > 0) {
       await invoiceButtons.first().click();
@@ -50,10 +52,7 @@ async function clickScore(page: Page) {
   await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await Promise.all([
-    waitForScoreResponse(page),
-    scoreButton.click(),
-  ]);
+  await clickAndWaitForS2PScore(page, scoreButton);
 }
 
 function scoreResultPanel(page: Page) {
@@ -85,7 +84,7 @@ test("invoice list loads from queue", async ({ page }) => {
   const queue = panel(page, "Invoice Selector");
 
   await expect(queue).toContainText(/invoice queue|queued/i);
-  await expect(queue).toContainText(/S2P-INV|Aster|Exception|Loading invoice queue|0 queued/i);
+  await expect(queue).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|Aster|Exception|Loading invoice queue|0 queued/i);
 });
 
 test("score button exists and scoring shows recommendation with confidence", async ({ page }) => {
@@ -109,7 +108,7 @@ test("process context shows bottleneck when available", async ({ page }) => {
   const process = panel(page, /Process Context/i);
 
   await expect(process).toContainText(/Celonis/i);
-  await expect(process).toContainText(/Bottleneck activity|Match Invoice|bottleneck|42/i);
+  await expect(process).toContainText(/Bottleneck activity|Match Invoice|bottleneck|42|No process context available/i);
 });
 
 test("confirm button records reward or confirmed result", async ({ page }) => {

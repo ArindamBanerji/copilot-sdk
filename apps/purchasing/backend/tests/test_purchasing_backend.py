@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import pytest
 from collections import Counter
 from pathlib import Path
 
@@ -110,9 +111,9 @@ def test_app_factory_production_defaults(tmp_path, monkeypatch):
     _write_sqlite_graph_config(config_path)
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
 
-    app = app_main.create_app(db_path=tmp_path / "prod-defaults.db", demo_bundle_path=False)
-
-    assert app.title == "Purchasing Copilot"
+    with pytest.raises(ValueError, match="production requires AGE primary"):
+        app_main.create_app(db_path=tmp_path / "prod-defaults.db", demo_bundle_path=False)
+    assert not (tmp_path / "prod-defaults.db").exists()
     assert app_main._resolve_profile() == "production"
     assert app_main._demo_mode() is False
     assert discovery_router._demo_mode() is False

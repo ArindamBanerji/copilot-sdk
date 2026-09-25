@@ -1,0 +1,49 @@
+{
+  "experiment": "E-JM-2: Signal-Confidence Inversion Prevalence",
+  "n_domains": 500,
+  "n_factors": 7,
+  "seed": 42,
+  "results_by_model": {
+    "Random": {
+      "top1_mismatch_pct": 84.8,
+      "top_in_bottom_half_pct": 56.39999999999999,
+      "full_inversion_pct": 16.2,
+      "mean_spearman_r": 0.0012142857142857179,
+      "mean_displacement": 2.368032284826605
+    },
+    "Noise-attracted": {
+      "top1_mismatch_pct": 100.0,
+      "top_in_bottom_half_pct": 93.60000000000001,
+      "full_inversion_pct": 41.199999999999996,
+      "mean_spearman_r": -0.05550000000000002,
+      "mean_displacement": 3.774665289062959
+    },
+    "Recency-biased": {
+      "top1_mismatch_pct": 85.0,
+      "top_in_bottom_half_pct": 59.8,
+      "full_inversion_pct": 17.599999999999998,
+      "mean_spearman_r": -0.020928571428571435,
+      "mean_displacement": 2.4436328085625547
+    },
+    "Familiarity-biased": {
+      "top1_mismatch_pct": 42.0,
+      "top_in_bottom_half_pct": 6.4,
+      "full_inversion_pct": 0.2,
+      "mean_spearman_r": 0.2859285714285715,
+      "mean_displacement": 0.8630395807396154
+    },
+    "Perfect (control)": {
+      "top1_mismatch_pct": 0.0,
+      "top_in_bottom_half_pct": 0.0,
+      "full_inversion_pct": 0.0,
+      "mean_spearman_r": 1.0,
+      "mean_displacement": 0.0
+    }
+  },
+  "interpretation": {
+    "top1_mismatch": "% of domains where the #1 intuitive factor is not the #1 true factor",
+    "top_in_bottom_half": "% of domains where the #1 intuitive factor is in the bottom half of true ranking \u2014 this IS the trust trap",
+    "full_inversion": "% of domains where the #1 intuitive factor is the WORST true factor",
+    "spearman_r": "Rank correlation between intuitive and true. r<0 = systematically inverted"
+  }
+}

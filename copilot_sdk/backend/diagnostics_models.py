@@ -4,11 +4,14 @@ from __future__ import annotations
 import math
 import os
 import time
+import logging
 from typing import Any
 
 from pydantic import BaseModel, Field
 from copilot_sdk.graph.protocol import ProtocolV2GraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
+
+logger = logging.getLogger(__name__)
 
 
 class InfrastructureDiag(BaseModel):
@@ -375,8 +378,13 @@ def build_diagnostics(
             state = None
             try:
                 state = _call(live_scorer, "_evolution_conservation_state")
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("conservation state provider unavailable: %s", exc)
+                state = {"status": "unavailable"}
+            if state.get("status") == "unavailable" and store is not None:
+                fallback_state = _call(store, "get_conservation_state", domain)
+                if fallback_state is not None:
+                    state = fallback_state
             if state is None:
                 state = _call(store, "get_conservation_state", domain) if store is not None else None
             if state is None:

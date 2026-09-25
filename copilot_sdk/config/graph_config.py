@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import logging
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dataclass_field
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Literal, Mapping, cast
 
 try:  # Python 3.11+
     import tomllib
@@ -15,12 +15,43 @@ except ModuleNotFoundError:  # pragma: no cover - only embedded Python 3.10
 
 logger = logging.getLogger(__name__)
 
-Source = Literal["env", "file", "default"]
-Backend = Literal["sqlite", "age", "dual_write"]
+Source = Literal["env", "file", "default", "argument"]
+Backend = Literal["sqlite", "memory", "age", "dual_write"]
+Profile = Literal["production", "test", "offline"]
+DOMAINS = ("soc", "trading", "purchasing", "dataops", "s2p")
 
 
 class GraphConfigError(ValueError):
     """Raised when graph configuration is incomplete or unsafe."""
+
+
+def resolve_profile(
+    profile: str | None = None, *, domain: str = "", env: Mapping[str, str] | None = None,
+) -> Profile:
+    """Resolve only explicit profile settings; flags/store types never select a profile."""
+    source = os.environ if env is None else env
+    value = profile if profile is not None else source.get(
+        f"{domain.upper()}_PROFILE", source.get("GRAPH_PROFILE", source.get("COPILOT_PROFILE", "production"))
+    )
+    normalized = value.strip().lower()
+    # Backward-compatible spelling, not an inferred fallback permission.
+    if normalized == "development":
+        normalized = "offline"
+    if normalized not in {"production", "test", "offline"}:
+        raise GraphConfigError("profile must be 'production', 'test', or 'offline'")
+    return cast(Profile, normalized)
+
+
+@dataclass(frozen=True)
+class GraphIdentity:
+    """Opaque server/database identity plus graph identity; contains no DSN secrets."""
+
+    database_id: str
+    graph_name: str
+    graph_oid: int
+
+    def same_destination(self, other: "GraphIdentity") -> bool:
+        return self == other
 
 
 def require_shared_graph(
@@ -31,17 +62,15 @@ def require_shared_graph(
     profile: str = "production",
     test_mode: bool = False,
 ) -> None:
-    """Require the JM shared graph at a production AGE startup boundary.
-
-    The low-level factory intentionally remains usable by migration and
-    disposable-test callers.  Copilot startup paths call this explicit guard
-    after resolving their typed configuration.
-    """
+    """Static compatibility guard; GraphConfig.require_shared_graph also probes AGE."""
+    selected_profile = resolve_profile(profile, domain=domain)
     normalized_backend = str(backend).strip().lower()
-    if normalized_backend not in {"age", "dual_write"}:
+    if selected_profile != "production":
         return
-    if profile != "production" or test_mode:
-        return
+    if test_mode:
+        raise GraphConfigError("production profile conflicts with AGE test_mode")
+    if normalized_backend != "age":
+        raise GraphConfigError("production requires AGE primary; SQLite/InMemory/dual_write are test/offline only")
     normalized_graph = str(graph or "").strip()
     if normalized_graph != "soc_graph":
         raise GraphConfigError(
@@ -70,7 +99,7 @@ class GraphConfig:
     domain: str
     backend: Backend
     expected_backend: Backend
-    dsn: str | None
+    dsn: str | None = dataclass_field(repr=False)
     graph: str
     prefix: str
     active_test_mode: bool
@@ -79,6 +108,13 @@ class GraphConfig:
     port: int | None
     sources: tuple[tuple[str, Source], ...]
     narrative_provider: str | None = None
+    profile: Profile = "production"
+    source_keys: tuple[tuple[str, str], ...] = ()
+    shared_dsn: str | None = dataclass_field(default=None, repr=False)
+    shared_graph: str = "soc_graph"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "profile", resolve_profile(self.profile, domain=self.domain))
 
     @property
     def authorized(self) -> str:
@@ -86,12 +122,17 @@ class GraphConfig:
         return f"{self.domain}:{self.graph}"
 
     @classmethod
-    def load(cls, domain: str = "trading", *, profile: str = "production") -> "GraphConfig":
+    def load(
+        cls, domain: str = "trading", *, profile: str | None = None,
+        env: Mapping[str, str] | None = None, overrides: Mapping[str, Any] | None = None,
+    ) -> "GraphConfig":
         domain = domain.strip().lower()
-        if domain not in {"soc", "trading", "purchasing", "dataops", "s2p"}:
+        source = os.environ if env is None else env
+        selected_profile = resolve_profile(profile, domain=domain, env=source)
+        if not domain or (selected_profile == "production" and domain not in DOMAINS):
             raise GraphConfigError(f"unknown graph config domain '{domain}'")
 
-        raw, _file_values = cls._read_file(domain)
+        raw, _file_values = cls._read_file(domain, env=source)
         defaults = dict(raw.get("defaults", {}))
         section = dict(raw.get("copilot", {}).get(domain, {}))
         merged: dict[str, Any] = {**defaults, **section}
@@ -121,6 +162,7 @@ class GraphConfig:
         # Prefix, expected backend, and ports are file policy unless explicitly
         # extended later; graph connection values are environment-overridable.
         sources: dict[str, Source] = {}
+        source_keys: dict[str, str] = {}
         values: dict[str, Any] = {}
         fields = (
             "domain", "backend", "expected_backend", "dsn", "graph", "prefix",
@@ -129,10 +171,14 @@ class GraphConfig:
         )
         for field in fields:
             names = env_specs.get(field, ())
-            env_key, env_value = cls._first_env(names)
+            env_key, env_value = cls._first_env(names, env=source)
             file_has = field in merged
             file_value = merged.get(field)
-            if _present(env_value):
+            if overrides is not None and field in overrides:
+                values[field] = overrides[field]
+                sources[field] = "argument"
+                source_keys[field] = f"argument:{field}"
+            elif _present(env_value):
                 assert env_value is not None
                 if file_has and str(file_value) != env_value:
                     logger.warning(
@@ -141,12 +187,18 @@ class GraphConfig:
                     )
                 values[field] = cls._coerce(field, env_value)
                 sources[field] = "env"
+                source_keys[field] = str(env_key)
             elif file_has:
                 values[field] = file_value
                 sources[field] = "file"
+                table = "soc" if domain == "soc" and field in raw.get("soc", {}) else (
+                    f"copilot.{domain}" if field in section else "defaults"
+                )
+                source_keys[field] = f"toml:{table}.{field}"
             else:
                 values[field] = cls._default(field, domain)
                 sources[field] = "default"
+                source_keys[field] = f"default:{field}"
 
         # Domain is a fixed policy value for non-SOC sections; do not permit a
         # generic GRAPH_DOMAIN to silently change a copilot identity.
@@ -157,6 +209,9 @@ class GraphConfig:
                 f"Check {domain.upper()}_ACTIVE_AGE_DOMAIN env var."
             )
         values["domain"] = resolved_domain
+        canonical = {**defaults, **dict(raw.get("copilot", {}).get("soc", {})), **raw.get("soc", {})}
+        _, shared_dsn = cls._first_env(("GRAPH_DSN", "AGE_DSN"), env=source)
+        _, shared_graph = cls._first_env(("GRAPH_NAME", "AGE_GRAPH_NAME"), env=source)
         config = cls(
             domain=values["domain"],
             backend=cast(Backend, str(values["backend"]).strip().lower()),
@@ -170,15 +225,24 @@ class GraphConfig:
             port=_as_int(values["port"]),
             sources=tuple(sorted(sources.items())),
             narrative_provider=_optional_text(values.get("narrative_provider")),
+            profile=selected_profile,
+            shared_dsn=_optional_text(shared_dsn or canonical.get("dsn")),
+            shared_graph=str(shared_graph or canonical.get("graph", "soc_graph")),
+            source_keys=tuple(sorted(source_keys.items())) + (("profile", (
+                "argument:profile" if profile is not None else
+                f"{domain.upper()}_PROFILE" if f"{domain.upper()}_PROFILE" in source else
+                "GRAPH_PROFILE" if "GRAPH_PROFILE" in source else
+                "COPILOT_PROFILE" if "COPILOT_PROFILE" in source else "default:profile"
+            )),),
         )
-        config.validate(profile=profile)
+        config.validate()
         return config
 
     @classmethod
-    def _read_file(cls, domain: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    def _read_file(cls, domain: str, *, env: Mapping[str, str] | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
         package_root = Path(__file__).resolve().parents[2]
         candidates: list[Path] = []
-        configured = os.environ.get("GRAPH_CONFIG_PATH")
+        configured = (os.environ if env is None else env).get("GRAPH_CONFIG_PATH")
         if _present(configured):
             assert configured is not None
             candidates.append(Path(configured).expanduser())
@@ -202,9 +266,10 @@ class GraphConfig:
         return {}, {}
 
     @staticmethod
-    def _first_env(names: tuple[str, ...]) -> tuple[str | None, str | None]:
+    def _first_env(names: tuple[str, ...], *, env: Mapping[str, str] | None = None) -> tuple[str | None, str | None]:
+        source = os.environ if env is None else env
         for name in names:
-            value = os.environ.get(name)
+            value = source.get(name)
             if _present(value):
                 return name, value
         return None, None
@@ -233,20 +298,20 @@ class GraphConfig:
             return _as_int(value)
         return value
 
-    def validate(self, *, profile: str = "production") -> None:
-        if self.backend not in {"sqlite", "age", "dual_write"}:
+    def validate(self, *, profile: str | None = None) -> None:
+        selected_profile = resolve_profile(self.profile if profile is None else profile)
+        if self.backend not in {"sqlite", "memory", "age", "dual_write"}:
             raise GraphConfigError(f"invalid backend '{self.backend}'")
-        if self.expected_backend not in {"sqlite", "age", "dual_write"}:
+        if self.expected_backend not in {"sqlite", "memory", "age", "dual_write"}:
             raise GraphConfigError(f"invalid expected backend '{self.expected_backend}'")
-        if self.domain not in {"soc", "trading", "purchasing", "dataops", "s2p"}:
+        if selected_profile == "production" and self.domain not in DOMAINS:
             raise GraphConfigError(f"unknown graph config domain '{self.domain}'")
         if self.expected_backend == "age" and self.backend == "sqlite":
-            allowed = profile == "development" and os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1"
-            if not allowed:
+            if selected_profile == "production":
                 raise GraphConfigError(
                     f"expected backend age but resolved sqlite for domain '{self.domain}'"
                 )
-        if self.backend == "age":
+        if self.backend in {"age", "dual_write"}:
             if not self.dsn:
                 raise GraphConfigError(f"missing AGE DSN for domain '{self.domain}'")
             if not self.graph:
@@ -256,6 +321,36 @@ class GraphConfig:
         expected = f"{self.domain}:{self.graph}"
         if self.authorized != expected:
             raise GraphConfigError(f"domain/graph authorization mismatch: expected '{expected}'")
+        require_shared_graph(
+            backend=self.backend, graph=self.graph, domain=self.domain,
+            profile=selected_profile, test_mode=self.active_test_mode or self.live_age_test,
+        )
+
+    def redacted_identity(self) -> GraphIdentity:
+        """Probe the actual server, database and AGE graph, never a DSN-string hash."""
+        from copilot_sdk.graph.production import probe_graph_identity
+
+        if self.backend != "age" or not self.dsn:
+            raise GraphConfigError("AGE DSN is required for a graph identity probe")
+        return cast(GraphIdentity, probe_graph_identity(self.dsn, self.graph))
+
+    def same_destination(self, other: "GraphConfig") -> bool:
+        return self.redacted_identity().same_destination(other.redacted_identity())
+
+    def require_shared_graph(self) -> GraphIdentity | None:
+        """Validate policy and a real AGE connection against the canonical SOC destination."""
+        self.validate()
+        if self.profile != "production":
+            return None
+        identity = self.redacted_identity()
+        if not self.shared_dsn or self.shared_graph != "soc_graph":
+            raise GraphConfigError("canonical SOC AGE DSN + soc_graph must be configured")
+        if self.dsn != self.shared_dsn or self.graph != self.shared_graph:
+            from copilot_sdk.graph.production import probe_graph_identity
+
+            if not identity.same_destination(probe_graph_identity(self.shared_dsn, self.shared_graph)):
+                raise GraphConfigError("graph destination differs from canonical SOC database + soc_graph")
+        return identity
 
 
 def _as_bool(value: Any) -> bool:
@@ -279,4 +374,4 @@ def _optional_text(value: Any) -> str | None:
     return str(value).strip()
 
 
-__all__ = ["GraphConfig", "GraphConfigError", "require_shared_graph"]
+__all__ = ["GraphConfig", "GraphConfigError", "GraphIdentity", "Profile", "resolve_profile", "require_shared_graph"]

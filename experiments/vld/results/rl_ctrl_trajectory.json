@@ -1,0 +1,932 @@
+{
+  "dataops": {
+    "A0_fixed": {
+      "aggregate": {
+        "clean_pause_rate": 0.331,
+        "final_quality": 0.7561111111111111,
+        "plateau_height": 0.7561111111111111,
+        "sustained_poison_detection_rate": 1.0,
+        "time_to_plateau": 1500.0,
+        "time_to_plateau_std": 0.0,
+        "trajectory_variance": 13.572516289437598
+      },
+      "per_seed": {
+        "123": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.6627777777777778
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.7144444444444444
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.05,
+            "1500": 0.05,
+            "2000": 0.05,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 13.572516289437598
+        },
+        "42": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.6627777777777778
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.7144444444444444
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.05,
+            "1500": 0.05,
+            "2000": 0.05,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 13.572516289437598
+        },
+        "7": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.6627777777777778
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.7144444444444444
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.05,
+            "1500": 0.05,
+            "2000": 0.05,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 13.572516289437598
+        }
+      }
+    },
+    "A1_rule_based": {
+      "aggregate": {
+        "clean_pause_rate": 0.331,
+        "delta_vs_A0": {
+          "conservation_regression": false,
+          "plateau_height": 0.0,
+          "time_to_plateau": 0.0,
+          "trajectory_variance": 0.41382129629629816
+        },
+        "final_quality": 0.7561111111111111,
+        "plateau_height": 0.7561111111111111,
+        "sustained_poison_detection_rate": 1.0,
+        "time_to_plateau": 1500.0,
+        "time_to_plateau_std": 0.0,
+        "trajectory_variance": 13.986337585733896
+      },
+      "per_seed": {
+        "123": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.6627777777777778
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.6808611111111111
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.024,
+            "1500": 0.0192,
+            "2000": 0.01536,
+            "250": 0.06,
+            "50": 0.05,
+            "500": 0.03,
+            "750": 0.03
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 13.986337585733896
+        },
+        "42": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.6627777777777778
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.6808611111111111
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.024,
+            "1500": 0.0192,
+            "2000": 0.01536,
+            "250": 0.06,
+            "50": 0.05,
+            "500": 0.03,
+            "750": 0.03
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 13.986337585733896
+        },
+        "7": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.6627777777777778
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.6808611111111111
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.024,
+            "1500": 0.0192,
+            "2000": 0.01536,
+            "250": 0.06,
+            "50": 0.05,
+            "500": 0.03,
+            "750": 0.03
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 13.986337585733896
+        }
+      }
+    },
+    "A2_learned": {
+      "aggregate": {
+        "clean_pause_rate": 0.331,
+        "delta_vs_A0": {
+          "conservation_regression": false,
+          "plateau_height": 0.0,
+          "time_to_plateau": 0.0,
+          "trajectory_variance": -6.707634858989191
+        },
+        "final_quality": 0.7561111111111111,
+        "plateau_height": 0.7561111111111111,
+        "sustained_poison_detection_rate": 1.0,
+        "time_to_plateau": 1500.0,
+        "time_to_plateau_std": 0.0,
+        "trajectory_variance": 6.864881430448406
+      },
+      "per_seed": {
+        "123": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7608055555555555
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.559138888888889
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.6134958333333334
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.025,
+            "1500": 0.025,
+            "2000": 0.01,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.025,
+            "750": 0.025
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 6.864881430448406
+        },
+        "42": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7608055555555555
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.559138888888889
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.6134958333333334
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.025,
+            "1500": 0.025,
+            "2000": 0.01,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.025,
+            "750": 0.025
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 6.864881430448406
+        },
+        "7": {
+          "clean_pause_rate": 0.331,
+          "curve": {
+            "100": {
+              "routing_quality": 0.5033333333333334
+            },
+            "1000": {
+              "routing_quality": 0.7608055555555555
+            },
+            "1500": {
+              "routing_quality": 0.7561111111111111
+            },
+            "2000": {
+              "routing_quality": 0.7561111111111111
+            },
+            "250": {
+              "routing_quality": 0.559138888888889
+            },
+            "50": {
+              "routing_quality": 0.4711111111111111
+            },
+            "500": {
+              "routing_quality": 0.6134958333333334
+            },
+            "750": {
+              "routing_quality": 0.7633333333333333
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.025,
+            "1500": 0.025,
+            "2000": 0.01,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.025,
+            "750": 0.025
+          },
+          "final_quality": 0.7561111111111111,
+          "plateau_height": 0.7561111111111111,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1500,
+          "trajectory_variance": 6.864881430448406
+        }
+      }
+    }
+  },
+  "metadata": {
+    "a1_control_law": "d2-driven damping",
+    "a2_method": "discrete offline-policy emulation from trajectory signals",
+    "api_limitation": "ProfileScorer.update() does not accept eta per call; eta_override is constructor-level",
+    "checkpoints": [
+      50,
+      100,
+      250,
+      500,
+      750,
+      1000,
+      1500,
+      2000
+    ],
+    "conservation_constraint": "eta never increases under negative/flat quality pressure",
+    "eta_default": 0.05,
+    "ood_caveat": "in-distribution only; RL-CHAR reported -32.75pp supported OOD gap",
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "tier": "REAL_COMPONENT geometry + GEOMETRY-DERIVED / SIMULATED",
+    "two_rebuild_byte_identical": true
+  },
+  "soc": {
+    "A0_fixed": {
+      "aggregate": {
+        "clean_pause_rate": 0.006,
+        "final_quality": 0.8872222222222222,
+        "plateau_height": 0.8872222222222222,
+        "sustained_poison_detection_rate": 1.0,
+        "time_to_plateau": 1000.0,
+        "time_to_plateau_std": 0.0,
+        "trajectory_variance": 216.5688537379972
+      },
+      "per_seed": {
+        "123": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.8333333333333334
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.8772222222222222
+            },
+            "750": {
+              "routing_quality": 0.8861111111111111
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.05,
+            "1500": 0.05,
+            "2000": 0.05,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1000,
+          "trajectory_variance": 216.5688537379972
+        },
+        "42": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.8333333333333334
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.8772222222222222
+            },
+            "750": {
+              "routing_quality": 0.8861111111111111
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.05,
+            "1500": 0.05,
+            "2000": 0.05,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1000,
+          "trajectory_variance": 216.5688537379972
+        },
+        "7": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.8333333333333334
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.8772222222222222
+            },
+            "750": {
+              "routing_quality": 0.8861111111111111
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.05,
+            "1500": 0.05,
+            "2000": 0.05,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1000,
+          "trajectory_variance": 216.5688537379972
+        }
+      }
+    },
+    "A1_rule_based": {
+      "aggregate": {
+        "clean_pause_rate": 0.006,
+        "delta_vs_A0": {
+          "conservation_regression": false,
+          "plateau_height": 0.0,
+          "time_to_plateau": 0.0,
+          "trajectory_variance": 0.0
+        },
+        "final_quality": 0.8872222222222222,
+        "plateau_height": 0.8872222222222222,
+        "sustained_poison_detection_rate": 1.0,
+        "time_to_plateau": 1000.0,
+        "time_to_plateau_std": 0.0,
+        "trajectory_variance": 216.5688537379972
+      },
+      "per_seed": {
+        "123": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.8333333333333334
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.8772222222222222
+            },
+            "750": {
+              "routing_quality": 0.8861111111111111
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.032,
+            "1500": 0.0256,
+            "2000": 0.02048,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.04
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1000,
+          "trajectory_variance": 216.5688537379972
+        },
+        "42": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.8333333333333334
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.8772222222222222
+            },
+            "750": {
+              "routing_quality": 0.8861111111111111
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.032,
+            "1500": 0.0256,
+            "2000": 0.02048,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.04
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1000,
+          "trajectory_variance": 216.5688537379972
+        },
+        "7": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.8333333333333334
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.8772222222222222
+            },
+            "750": {
+              "routing_quality": 0.8861111111111111
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.032,
+            "1500": 0.0256,
+            "2000": 0.02048,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.04
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 1000,
+          "trajectory_variance": 216.5688537379972
+        }
+      }
+    },
+    "A2_learned": {
+      "aggregate": {
+        "clean_pause_rate": 0.006,
+        "delta_vs_A0": {
+          "conservation_regression": false,
+          "plateau_height": 0.0,
+          "time_to_plateau": 1000.0,
+          "trajectory_variance": -4.014177821950227
+        },
+        "final_quality": 0.8872222222222222,
+        "plateau_height": 0.8872222222222222,
+        "sustained_poison_detection_rate": 1.0,
+        "time_to_plateau": 2000.0,
+        "time_to_plateau_std": 0.0,
+        "trajectory_variance": 212.55467591604696
+      },
+      "per_seed": {
+        "123": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.7441388888888889
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.7907180555555555
+            },
+            "750": {
+              "routing_quality": 0.824105625
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.025,
+            "1500": 0.025,
+            "2000": 0.025,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 2000,
+          "trajectory_variance": 212.55467591604696
+        },
+        "42": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.7441388888888889
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.7907180555555555
+            },
+            "750": {
+              "routing_quality": 0.824105625
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.025,
+            "1500": 0.025,
+            "2000": 0.025,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 2000,
+          "trajectory_variance": 212.55467591604696
+        },
+        "7": {
+          "clean_pause_rate": 0.006,
+          "curve": {
+            "100": {
+              "routing_quality": 0.6961111111111111
+            },
+            "1000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "1500": {
+              "routing_quality": 0.8872222222222222
+            },
+            "2000": {
+              "routing_quality": 0.8872222222222222
+            },
+            "250": {
+              "routing_quality": 0.7441388888888889
+            },
+            "50": {
+              "routing_quality": 0.47000000000000003
+            },
+            "500": {
+              "routing_quality": 0.7907180555555555
+            },
+            "750": {
+              "routing_quality": 0.824105625
+            }
+          },
+          "eta_trajectory": {
+            "100": 0.05,
+            "1000": 0.025,
+            "1500": 0.025,
+            "2000": 0.025,
+            "250": 0.05,
+            "50": 0.05,
+            "500": 0.05,
+            "750": 0.05
+          },
+          "final_quality": 0.8872222222222222,
+          "plateau_height": 0.8872222222222222,
+          "sustained_poison_detection_rate": 1.0,
+          "time_to_plateau": 2000,
+          "trajectory_variance": 212.55467591604696
+        }
+      }
+    }
+  },
+  "verdict": {
+    "a1_approx_a2": true,
+    "a1_beats_a0": false,
+    "a2_beats_a0": false,
+    "rationale": "Both controllers smooth the recorded curves while preserving final_quality, but this is curve-level emulation because ProfileScorer.update() has no per-update eta parameter; no live closed-loop eta advantage is established.",
+    "thesis_has_legs": false
+  }
+}

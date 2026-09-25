@@ -62,6 +62,7 @@ export interface TransferStatusResponse {
   opportunities?: Record<string, unknown>[];
   warnings?: unknown[];
   availableTransfers?: Record<string, unknown>[];
+  source?: string;
   [key: string]: unknown;
 }
 
@@ -381,6 +382,7 @@ export interface TransferResponse {
   opportunities?: Record<string, unknown>[];
   warnings?: unknown[];
   availableTransfers?: Record<string, unknown>[];
+  source?: string;
   [key: string]: unknown;
 }
 

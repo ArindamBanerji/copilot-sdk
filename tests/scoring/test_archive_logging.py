@@ -18,6 +18,7 @@ def test_maybe_archive_uses_logger_not_print(mock_preset, caplog, capsys) -> Non
             categories=list(mock_preset.shape.category_names),
         ),
         graph_store=store,
+        profile="test",
     )
     category = mock_preset.shape.category_names[0]
     for index in range(801):

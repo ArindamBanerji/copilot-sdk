@@ -10,6 +10,8 @@ import re
 from fastapi import APIRouter, Request
 
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph
+from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.graph.production import GraphStoreWrapper, validate_production_store
 from copilot_sdk.scoring.presets.dataops import DataOpsPreset
 
 
@@ -78,39 +80,21 @@ _GRAPH_CONFIG_ENV_KEYS = (
 
 
 def _load_dataops_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
-    """Load production config fail-closed, or an isolated compatibility mapping for tests."""
+    """Resolve an explicit profile and mapping without process-environment mutation."""
+    profile = resolve_profile(domain=DOMAIN)
     if env is None:
-        return GraphConfig.load("dataops")
-
-    previous = {key: os.environ.get(key) for key in _GRAPH_CONFIG_ENV_KEYS}
-    try:
-        for key in _GRAPH_CONFIG_ENV_KEYS:
-            os.environ.pop(key, None)
-        os.environ.update(env)
-        profile = "production"
-        if "DATAOPS_ACTIVE_GRAPH_BACKEND" not in env:
-            os.environ["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "sqlite"
-            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
-            profile = "development"
-        if os.environ.get("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
-            if not os.environ.get("DATAOPS_ACTIVE_AGE_DSN", "").strip():
-                raise GraphConfigError(
-                    "DATAOPS_ACTIVE_AGE_DSN is required when DATAOPS_ACTIVE_GRAPH_BACKEND=age"
-                )
-            if not os.environ.get("DATAOPS_ACTIVE_AGE_GRAPH", "").strip():
-                raise GraphConfigError(
-                    "DATAOPS_ACTIVE_AGE_GRAPH is required when DATAOPS_ACTIVE_GRAPH_BACKEND=age"
-                )
-            if "DATAOPS_ACTIVE_AGE_DOMAIN" in env and not env.get("DATAOPS_ACTIVE_AGE_DOMAIN", "").strip():
-                raise GraphConfigError("DATAOPS_ACTIVE_AGE_DOMAIN must not be blank")
-        return GraphConfig.load("dataops", profile=profile)
-    finally:
-        for key in _GRAPH_CONFIG_ENV_KEYS:
-            os.environ.pop(key, None)
-        for key, value in previous.items():
-            if value is not None:
-                os.environ[key] = value
-
+        return GraphConfig.load(DOMAIN, profile=profile)
+    overrides: dict[str, Any] = {}
+    if profile != "production" and "DATAOPS_ACTIVE_GRAPH_BACKEND" not in env:
+        overrides["backend"] = "sqlite"
+    if env.get("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
+        for field in ("DSN", "GRAPH"):
+            key = f"DATAOPS_ACTIVE_AGE_{field}"
+            if not str(env.get(key, "")).strip():
+                raise GraphConfigError(f"{key} is required when DATAOPS_ACTIVE_GRAPH_BACKEND=age")
+        if "DATAOPS_ACTIVE_AGE_DOMAIN" in env and not env["DATAOPS_ACTIVE_AGE_DOMAIN"].strip():
+            raise GraphConfigError("DATAOPS_ACTIVE_AGE_DOMAIN must not be blank")
+    return GraphConfig.load(DOMAIN, profile=profile, env=env, overrides=overrides)
 
 @dataclass(frozen=True)
 class DataOpsActiveGraphConfig:
@@ -124,10 +108,11 @@ class DataOpsActiveGraphConfig:
     ignored_generic_graph_env: bool = False
 
     @classmethod
-    def from_env(cls, env: Mapping[str, str] | None = None) -> "DataOpsActiveGraphConfig":
+    def from_env(cls, env: Mapping[str, str] | None = None, *, graph_config: GraphConfig | None = None) -> "DataOpsActiveGraphConfig":
         source = os.environ if env is None else env
         try:
-            graph_config = _load_dataops_graph_config(env)
+            graph_config = graph_config or _load_dataops_graph_config(env)
+            graph_config.validate()
         except GraphConfigError as exc:
             message = str(exc)
             if message.startswith("invalid backend"):
@@ -215,7 +200,7 @@ class DataOpsActiveGraphConfig:
         }
 
 
-class DataOpsActiveAGEGraphStore:
+class DataOpsActiveAGEGraphStore(GraphStoreWrapper):
     """Active AGE adapter preserving governed Decision write semantics."""
 
     domain = DOMAIN
@@ -307,6 +292,7 @@ def create_dataops_active_graph_store(
     config: DataOpsActiveGraphConfig,
     *,
     store_factory: Any | None = None,
+    graph_config: GraphConfig | None = None,
 ) -> Any | None:
     if config.requested_backend != "age":
         return None
@@ -316,7 +302,7 @@ def create_dataops_active_graph_store(
             backend=config.requested_backend,
             graph=config.graph,
             domain=DOMAIN,
-            profile="test" if (config.test_mode or config.live_age_test) else "production",
+            profile=graph_config.profile if graph_config is not None else resolve_profile(domain=DOMAIN),
             test_mode=config.test_mode or config.live_age_test,
         )
     except GraphConfigError as exc:
@@ -336,15 +322,26 @@ def create_dataops_active_graph_store(
         from copilot_sdk.graph.factory import create_graph_store
 
         factory = create_graph_store
-    factory_args: dict[str, Any] = {
-        "backend": "age", "domain": config.domain, "dsn": config.dsn,
-        "graph_name": config.graph, "env": {}, "test_mode": config.test_mode,
-    }
+    if graph_config is not None:
+        # The resolved config has already passed the canonical AGE checks.
+        # Passing raw overrides as well would make create_graph_store rebuild
+        # an instance-level config and can lose the validated shared-destination
+        # fields. Keep the injected immutable config as the sole source of truth.
+        factory_args: dict[str, Any] = {"config": graph_config}
+    else:
+        factory_args = {
+            "backend": "age", "domain": config.domain, "dsn": config.dsn,
+            "graph_name": config.graph, "env": {}, "test_mode": config.test_mode,
+            "profile": resolve_profile(domain=DOMAIN),
+        }
     if shared_soc_graph:
         factory_args["shared_graph_authorization"] = config.shared_graph_authorization
     store = factory(**factory_args)
     phase = "shared_graph" if shared_soc_graph else ("test_mode" if config.graph_kind() == "test" else "live_age_test")
-    return DataOpsActiveAGEGraphStore(store, active_phase=phase)
+    wrapped = DataOpsActiveAGEGraphStore(store, active_phase=phase)
+    if (graph_config.profile if graph_config is not None else resolve_profile(domain=DOMAIN)) == "production":
+        validate_production_store(wrapped, graph_config or GraphConfig.load(DOMAIN))
+    return wrapped
 
 
 def build_dataops_graph_status(app_state: Any) -> dict[str, Any]:

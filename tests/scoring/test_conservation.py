@@ -19,7 +19,7 @@ def _make_scorer(mock_preset, store: InMemoryGraphStore, *, domain: str = "mock"
         actions=list(preset.shape.action_names),
         categories=list(preset.shape.category_names),
     )
-    return CompoundingScorer(preset, engine, graph_store=store)
+    return CompoundingScorer(preset, engine, graph_store=store, profile="test")
 
 
 def _add_verified(

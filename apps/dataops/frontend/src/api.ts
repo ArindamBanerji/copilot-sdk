@@ -753,7 +753,7 @@ export async function getProcessSignals(system: string): Promise<ProcessSignalsR
 
 export async function fetchEnterpriseHealth(): Promise<EnterpriseHealth | null> {
   try {
-    return await apiGet<EnterpriseHealth>("/api/dataops/enterprise-health");
+    return await apiGet<EnterpriseHealth>("/api/context/enterprise-health");
   } catch {
     return null;
   }

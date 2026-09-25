@@ -1,0 +1,15 @@
+{
+  "copilot": "trading",
+  "fixture_id": "PL-TRD-1",
+  "injection_mode": "file_placement",
+  "planted": true,
+  "regime_break": {
+    "after": "mean_reversion",
+    "before": "trend",
+    "local_hurst_after": 0.43,
+    "local_hurst_before": 0.71,
+    "tail_dependence_after": 0.39,
+    "tail_dependence_before": 0.18
+  },
+  "scenario": "TRD-02"
+}

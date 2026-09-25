@@ -19,6 +19,8 @@ from copilot_sdk.promotion import PromotionEngine, PromotionStage, PurchasingPro
 from copilot_sdk.evolution import GraphOutcomeLedger, GraphProofLedger, GraphPromotionStore
 from copilot_sdk.twin import FrozenTwin, FrozenTwinStore
 from copilot_sdk.twin.store import GraphFrozenTwinStore
+from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 
 
 class PurchasingGraphUnavailableError(RuntimeError):
@@ -150,11 +152,13 @@ class ProofLedger:
 
 
 class PurchasingControlService:
-    def __init__(self, graph_store_factory: Any, scorer_provider: Any, data_dir: Path) -> None:
+    def __init__(self, graph_store_factory: Any, scorer_provider: Any, data_dir: Path, *, profile: str | None = None) -> None:
         self.graph_store_factory = graph_store_factory
         self.scorer_provider = scorer_provider
         graph_store = graph_store_factory()
         age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
+        if resolve_profile(profile, domain="purchasing") == "production" and not age_events:
+            raise RuntimeError("production Purchasing control requires graph-backed proof and outcome ledgers")
         self.proof = GraphProofLedger(graph_store, "purchasing") if age_events else ProofLedger(data_dir / "purchasing_proof_ledger.sqlite3")
         self.outcomes = GraphOutcomeLedger(graph_store, "purchasing") if age_events else OutcomeLedger(data_dir / "purchasing_verified_outcomes.sqlite3")
         self.processor = OutcomeProcessor(self.outcomes)
@@ -248,15 +252,56 @@ class PurchasingControlService:
 
     def frozen_status(self) -> dict[str, Any]:
         if not self.twin.is_frozen():
-            return {"available": False, "status": "NOT_INITIALIZED", "evidence_tier": "T_S"}
+            return {"available": False, "status": "NOT_INITIALIZED", "evidence_tier": "T_S",
+                    "learning_curve": [], "frozen_curve": []}
         snapshot = self.twin.get_snapshot()
-        return {"available": True, "status": "FROZEN", "snapshot_time": snapshot.metadata.get("timestamp"), "checksum": snapshot.checksum, "evidence_tier": "T_O"}
+        return {"available": True, "status": "FROZEN", "snapshot_time": snapshot.metadata.get("timestamp"),
+                "checksum": snapshot.checksum, "evidence_tier": "T_O", **self._twin_curves()}
+
+    def _twin_curves(self) -> dict[str, Any]:
+        """Paired read-only replay; not fabricated historical accuracy or waste."""
+        scorer = self.scorer_provider()
+        unwrap = getattr(scorer, "_scorer", None)
+        if callable(unwrap):
+            scorer = unwrap()
+        shape = PurchasingPreset().shape
+        learning: list[dict[str, Any]] = []
+        frozen: list[dict[str, Any]] = []
+        live_correct = frozen_correct = excluded = 0
+        rows = sorted(self._verified(), key=lambda row: str(row.get("created_at", "")))[-200:]
+        for row in rows:
+            factors = row.get("factors") or row.get("factor_vector")
+            if isinstance(factors, list) and len(factors) == shape.n_factors:
+                factors = dict(zip(shape.factor_names, factors))
+            category, actual = row.get("category"), row.get("actual_action")
+            if (not isinstance(factors, dict) or not all(name in factors for name in shape.factor_names)
+                    or category not in shape.category_names or actual not in shape.action_names):
+                excluded += 1
+                continue
+            live = scorer.score_read_only(factors, category)
+            pinned = self.twin.score_frozen([factors[name] for name in shape.factor_names],
+                                          shape.category_names.index(category))
+            live_action = live.get("action") if isinstance(live, dict) else live.action
+            live_correct += int(live_action == actual)
+            frozen_correct += int(pinned.action_name == actual)
+            count = len(learning) + 1
+            common = {"decision_id": row.get("decision_id"), "decisions": count,
+                      "timestamp": row.get("created_at")}
+            learning.append({**common, "accuracy": live_correct / count})
+            frozen.append({**common, "accuracy": frozen_correct / count})
+        return {"learning_curve": learning, "frozen_curve": frozen,
+                "curve_kind": "retrospective_paired_replay", "metric": "accuracy",
+                "curve_note": "Current and immutable frozen models replay the same verified cohort; not historical learning or waste curves.",
+                "excluded_decisions": excluded}
 
     def frozen_comparison(self) -> dict[str, Any]:
         if not self.twin.is_frozen():
             return {"available": False, "status": "NOT_INITIALIZED", "evidence_tier": "T_S"}
         scorer = self.scorer_provider()
-        raw = getattr(scorer, "_scorer", lambda: scorer)()
+        unwrap = getattr(scorer, "_scorer", None)
+        if callable(unwrap):
+            scorer = unwrap()
+        raw = getattr(scorer, "gae_scorer", scorer)
         report = self.twin.get_drift_report(raw)
         return {
             "available": True,
@@ -272,11 +317,16 @@ class PurchasingControlService:
 
     def freeze(self) -> dict[str, Any]:
         scorer = self.scorer_provider()
-        raw = getattr(scorer, "_scorer", lambda: scorer)()
+        unwrap = getattr(scorer, "_scorer", None)
+        if callable(unwrap):
+            scorer = unwrap()
+        raw = getattr(scorer, "gae_scorer", scorer)
         if self.twin.is_frozen():
             return self.frozen_status()
-        snapshot = self.twin.freeze(raw, {"status": self.readiness()["conservation_status"]}, 0.0, "purchasing")
-        return {"available": True, "status": "FROZEN", "checksum": snapshot.checksum, "snapshot_time": snapshot.metadata.get("timestamp")}
+        self.twin.freeze(raw, {"status": self.readiness()["conservation_status"]}, 0.0, "purchasing")
+        # Creation and subsequent GETs expose the same curve contract. Curves
+        # replay observed labels against the pinned model, never invented points.
+        return self.frozen_status()
 
     def record_outcome(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         outcome = VerifiedOutcome.from_dict(dict(payload))

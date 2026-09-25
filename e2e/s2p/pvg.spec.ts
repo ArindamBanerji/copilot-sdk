@@ -37,7 +37,7 @@ test("insight shows leakage detection", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Insight" })).toBeVisible();
   const leakage = panel(page, "Leakage detection");
   await expect(leakage).toContainText(/PVG at-risk invoices/i);
-  await expect(leakage).toContainText(/Total at risk|No invoices currently meet|Leakage data is unavailable|S2P-INV|Loading leakage signals/i);
+  await expect(leakage).toContainText(/Total at risk|No invoices currently meet|Leakage data is unavailable|S2P-INV|STRESS-CONC-S2P|INV-|Loading leakage signals/i);
 });
 
 test("performance shows cycle-time signal or unavailable state", async ({ page }) => {

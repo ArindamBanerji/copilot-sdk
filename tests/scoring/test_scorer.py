@@ -51,6 +51,7 @@ def build_compounding_scorer(
         mock_preset,
         gae_scorer,
         graph_store=graph_store or store,
+        profile="test",
         reward_function=reward_function,
         credit_assigner=credit_assigner,
         exploration_policy=exploration_policy,
@@ -534,7 +535,7 @@ def test_maybe_archive_exists(mock_preset, store):
     assert callable(getattr(scorer, "_maybe_archive"))
 
 
-def test_archive_triggered_on_learn(monkeypatch, mock_preset, store):
+def test_learn_preserves_full_active_history(monkeypatch, mock_preset, store):
     graph_store = InMemoryGraphStore()
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
     monkeypatch.setattr(scorer, "_conservation_pause", lambda: None)
@@ -558,8 +559,8 @@ def test_archive_triggered_on_learn(monkeypatch, mock_preset, store):
 
     scorer.learn(result.decision_id, result.action)
 
-    assert graph_store.count_decisions("test") == 800
-    assert graph_store.count_archived("test") == 2
+    assert graph_store.count_decisions("test") == 802
+    assert graph_store.count_archived("test") == 0
 
 
 def test_maybe_archive_failure_is_non_fatal(monkeypatch, mock_preset, store):
@@ -604,7 +605,7 @@ def test_get_alpha_correct_ratio(mock_preset, store):
     assert scorer.get_alpha() == pytest.approx(0.5833)
 
 
-def test_get_phase_failure_returns_a(monkeypatch, mock_preset, store):
+def test_graph_read_failures_propagate_from_phase_and_alpha(monkeypatch, mock_preset, store):
     graph_store = InMemoryGraphStore()
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
 
@@ -613,8 +614,22 @@ def test_get_phase_failure_returns_a(monkeypatch, mock_preset, store):
 
     monkeypatch.setattr(graph_store, "count_verified", fail_count_verified)
 
-    assert scorer.get_phase() == "A"
-    assert scorer.get_alpha() == 0.0
+    with pytest.raises(RuntimeError, match="graph unavailable"):
+        scorer.get_phase()
+    with pytest.raises(RuntimeError, match="graph unavailable"):
+        scorer.get_alpha()
+
+
+def test_decision_write_failure_propagates(monkeypatch, mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    def fail_write(*_args, **_kwargs):
+        raise RuntimeError("graph write unavailable")
+
+    monkeypatch.setattr(graph_store, "write_decision", fail_write)
+    with pytest.raises(RuntimeError, match="graph write unavailable"):
+        scorer.score(sample_factors(), "alpha")
 
 
 def test_compounding_scorer_conservation_from_graph_store(mock_preset, store):

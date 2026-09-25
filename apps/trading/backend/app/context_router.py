@@ -19,6 +19,7 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
 from copilot_sdk.atomic_json import write_json_atomic
 from copilot_sdk.process_lock import file_lock
+from copilot_sdk.config import resolve_profile
 
 
 router = APIRouter(tags=["context"])
@@ -56,6 +57,8 @@ def _load_json(filename: str) -> Any:
 
 
 def _load_json_optional(filename: str) -> Any | None:
+    if resolve_profile(domain="trading") == "production":
+        return None
     path = _DATA_DIR / filename
     if path.exists():
         try:
@@ -296,8 +299,7 @@ def _conservation_category_row(
 
 
 @router.get("/market-snapshot")
-@cached_static("market-snapshot")
-def market_snapshot(request: Request) -> dict[str, Any]:
+def market_snapshot() -> dict[str, Any]:
     provider = _market_provider()
     try:
         result = provider.get_market_snapshot()
@@ -365,28 +367,130 @@ def ticker_detail(ticker: str) -> dict[str, Any]:
 
 
 @router.get("/portfolio-summary")
-def portfolio_summary() -> dict[str, Any]:
-    if not _demo_mode():
-        raise HTTPException(status_code=503, detail="Portfolio analytics provider unavailable")
-    analytics = _load_json_optional("analytics_cache.json")
-    if isinstance(analytics, dict) and isinstance(analytics.get("portfolio_summary"), dict):
-        summary = analytics["portfolio_summary"]
-    else:
-        summary = _load_json("portfolio_summary.json")
-    if _explicit_demo_mode():
-        return {**summary, "source": "demo_fixture", "provenance": "demo_fixture"}
-    return cast(dict[str, Any], summary)
+def portfolio_summary(request: Request) -> dict[str, Any]:
+    store = getattr(request.app.state, "graph_store", request.app.state.trading_selected_graph_store)
+    return cast(dict[str, Any], _analytics_from_store(store)["portfolio_summary"])
+
+
+def _analytics_from_store(store: Any) -> dict[str, Any]:
+    decisions = store.get_all_decisions(domain="trading")
+    categories: dict[str, int] = {}
+    for decision in decisions:
+        category = str(decision.get("category") or "unknown")
+        categories[category] = categories.get(category, 0) + 1
+    closed = [
+        decision for decision in decisions
+        if decision.get("status") in {"confirmed", "overridden"}
+        or decision.get("outcome") is not None
+    ]
+    aligned: list[str] = []
+    misaligned: list[str] = []
+    neutral: list[str] = []
+    for decision in decisions:
+        decision_id = str(decision.get("decision_id") or decision.get("_age_id") or "")
+        correctness = _graph_decision_correctness(decision)
+        if correctness is True:
+            aligned.append(decision_id)
+        elif correctness is False:
+            misaligned.append(decision_id)
+        else:
+            neutral.append(decision_id)
+
+    calendar: dict[str, dict[str, int]] = {}
+    for decision in closed:
+        created_at = str(decision.get("created_at") or "unknown")
+        day = created_at[:10] if len(created_at) >= 10 else "unknown"
+        bucket = calendar.setdefault(day, {"closed": 0, "aligned": 0, "misaligned": 0})
+        bucket["closed"] += 1
+        correctness = _graph_decision_correctness(decision)
+        if correctness is True:
+            bucket["aligned"] += 1
+        elif correctness is False:
+            bucket["misaligned"] += 1
+
+    total = len(decisions)
+    concentration = {
+        category: (count / total if total else 0.0)
+        for category, count in categories.items()
+    }
+    rolling = [
+        {
+            "decision_id": str(decision.get("decision_id") or decision.get("_age_id") or ""),
+            "correct": _graph_decision_correctness(decision),
+        }
+        for decision in decisions[-10:]
+    ]
+    return {
+        **_empty_analytics(),
+        "source": "graph",
+        "total_trades": total,
+        "closed_trades": len(closed),
+        "category_counts": categories,
+        "contrast_card": {
+            "aligned": {"count": len(aligned), "trade_ids": aligned},
+            "misaligned": {"count": len(misaligned), "trade_ids": misaligned},
+            "neutral": {"count": len(neutral), "trade_ids": neutral},
+            "basis": "graph_outcomes",
+        },
+        "counterfactual": {
+            "skipped_trade_count": len(misaligned),
+            "dollars_saved": None,
+            "basis": "graph_outcomes; monetary impact unavailable",
+        },
+        "calendar_heatmap": calendar,
+        "thesis_breakdown": categories,
+        "regime_analysis": {"source": "graph", "regime": None},
+        "research_impact": {"verified_decisions": len(closed)},
+        "portfolio_concentration": concentration,
+        "rolling_10": rolling,
+        "risk_management": {
+            "verified_decisions": len(closed),
+            "pending_decisions": total - len(closed),
+        },
+        "portfolio_summary": {
+            "total_trades": total,
+            "closed_trades": len(closed),
+            "open_positions": total - len(closed),
+            "win_rate": (len(aligned) / len(closed)) if closed else None,
+        },
+    }
+
+
+def _graph_decision_correctness(decision: dict[str, Any]) -> bool | None:
+    if decision.get("status") in {"confirmed", "overridden"}:
+        for key in ("correct", "is_correct"):
+            if isinstance(decision.get(key), bool):
+                return bool(decision[key])
+    outcome = decision.get("outcome")
+    if isinstance(outcome, dict):
+        for key in ("correct", "is_correct"):
+            if isinstance(outcome.get(key), bool):
+                return bool(outcome[key])
+        actual = outcome.get("actual_action") or outcome.get("action")
+        recommended = decision.get("recommended_action") or decision.get("action")
+        if actual is not None and recommended is not None:
+            return str(actual) == str(recommended)
+        outcome = outcome.get("result") or outcome.get("status")
+    if isinstance(outcome, bool):
+        return outcome
+    if outcome is None:
+        return None
+    normalized = str(outcome).strip().lower()
+    if normalized in {"confirmed", "correct", "win", "won", "success", "positive"}:
+        return True
+    if normalized in {"overridden", "incorrect", "loss", "lost", "failure", "negative"}:
+        return False
+    actual = decision.get("actual_action")
+    recommended = decision.get("recommended_action") or decision.get("action")
+    if actual is not None and recommended is not None:
+        return str(actual) == str(recommended)
+    return None
 
 
 @router.get("/analytics")
-@cached_static("analytics")
 def analytics(request: Request) -> dict[str, Any]:
-    payload = _load_json_optional("analytics_cache.json")
-    if isinstance(payload, dict):
-        if _explicit_demo_mode():
-            return {**payload, "provenance": "demo_fixture"}
-        return payload
-    return {**_empty_analytics(), "provenance": "demo_fixture"}
+    store = getattr(request.app.state, "graph_store", request.app.state.trading_selected_graph_store)
+    return _analytics_from_store(store)
 
 
 @router.get("/trust-analysis")
@@ -402,8 +506,7 @@ def trust_analysis(request: Request, category: str | None = None) -> dict[str, A
 
 
 @router.get("/patterns")
-@cached_static("patterns")
-def behavioral_patterns(request: Request) -> dict[str, Any]:
+def behavioral_patterns() -> dict[str, Any]:
     trades = [_as_trade_dict(trade) for trade in list(_trade_store_ref)]
     trades = [trade for trade in trades if trade]
     if not trades:
@@ -536,6 +639,5 @@ def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.get("/trade-metadata")
-@cached_static("trade-metadata")
-def get_trade_metadata(request: Request) -> dict[str, Any]:
+def get_trade_metadata() -> dict[str, Any]:
     return _load_json_optional("trade_metadata.json") or {}

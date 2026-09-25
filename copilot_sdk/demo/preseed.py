@@ -146,7 +146,7 @@ class DemoPreseed:
                 "reason": "conservation",
                 "detail": "conservation gate not GREEN",
                 "tested_at": f"2026-07-11T00:0{i}:00Z",
-                "provenance": "learned",
+                "provenance": "synthetic",
             }
             for i in range(1, 6)
         ]
@@ -214,6 +214,11 @@ class DemoPreseed:
             raise ValueError("S2P cross-copilot signal missing")
 
     def _preseed_domain(self, domain: str) -> CopilotPreseedResult:
+        from copilot_sdk.config import resolve_profile
+        if resolve_profile(domain=domain) == "production":
+            raise RuntimeError(
+                "InMemory demo preseed is restricted to explicit test/offline profiles"
+            )
         store = InMemoryGraphStore(domain=domain)
         scorer = CompoundingScorer.from_preset(
             domain,
@@ -345,7 +350,7 @@ class DemoPreseed:
             "total_rejected": len(result.rejected_variants),
             "rejection_breakdown": breakdown,
             "rejected_variants": result.rejected_variants,
-            "provenance": "learned",
+            "provenance": "synthetic",
         }
         log_path.write_text(
             json.dumps(payload, sort_keys=True, indent=2) + "\n",

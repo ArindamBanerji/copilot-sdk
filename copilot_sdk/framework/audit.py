@@ -16,7 +16,7 @@ Two population paths (unchanged from before):
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 from uuid import uuid4
 
 log = logging.getLogger(__name__)
@@ -193,16 +193,20 @@ def get_decision_rows() -> List[Dict[str, Any]]:
     return list(reversed(rows))
 
 
-async def reconstruct_from_memory() -> int:
-    """Reconstruct outcome events from FEEDBACK_GIVEN."""
-    try:
-        from app.framework.feedback_store import FEEDBACK_GIVEN  # noqa: PLC0415
-    except ImportError:
-        FEEDBACK_GIVEN = None  # SDK standalone — no SOC backend
+async def reconstruct_from_memory(
+    feedback_given: Mapping[str, Mapping[str, Any]] | None = None,
+) -> int:
+    """Reconstruct outcomes from an injected feedback store.
+
+    The shared framework has no dependency on a consumer application's
+    ``app.framework.feedback_store``. Consumers pass their store explicitly;
+    standalone callers get a meaningful no-op when no store is supplied.
+    """
+    records = feedback_given or {}
 
     async with _ledger_lock:
         added = 0
-        for alert_id, fb in FEEDBACK_GIVEN.items():
+        for alert_id, fb in records.items():
             did = fb.get("decision_id")
             if not did:
                 continue
@@ -286,16 +290,15 @@ async def rebuild_chain_from_graph(client: Any, domain: str | None = None) -> in
     return n
 
 
-async def rebuild_from_age(domain: str | None = None) -> int:
+async def rebuild_from_age(client: Any | None = None, domain: str | None = None) -> int:
     """Rebuild the audit ledger from Decision nodes in AGE.
 
     Called once during startup to restore the hash chain after restart.
-    Skipped (returns 0) if the ledger already has entries (hot reload).
+    The AGE client is injected by the consumer; without one this is a
+    standalone no-op rather than an import of a consumer application's DB.
     """
-    try:
-        from app.db.graph_client import graph_client  # noqa: PLC0415
-    except ImportError:
-        graph_client = None  # SDK standalone — no SOC backend
+    if client is None:
+        return 0
 
     domain_clause = " AND d.domain = $domain" if domain is not None else ""
     params = {"domain": domain} if domain is not None else None
@@ -312,7 +315,7 @@ async def rebuild_from_age(domain: str | None = None) -> int:
         "d.outcome AS outcome "
         "ORDER BY d.timestamp_epoch ASC"
     )
-    rows = await graph_client.run_query(query, params) if domain is not None else await graph_client.run_query(query)
+    rows = await client.run_query(query, params) if domain is not None else await client.run_query(query)
 
     async with _ledger_lock:
         if len(_LEDGER._entries) > 0:

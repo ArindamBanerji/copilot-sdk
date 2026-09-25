@@ -14,7 +14,7 @@ async function gotoTab(page: import("@playwright/test").Page, name: string) {
 }
 
 async function expectProvenanceText(page: import("@playwright/test").Page) {
-  await expect(page.getByText(/learned|sample|proven|external|cached|market data/i).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Audit Trail|Evidence: insufficient/i).first()).toBeVisible({ timeout: 20_000 });
 }
 
 test("provenance badge on analysis", async ({ page }) => {
@@ -29,6 +29,7 @@ test("provenance badge on performance", async ({ page }) => {
 
 test("provenance badge shows tier", async ({ page }) => {
   await gotoTab(page, "Analysis");
-  const tier = page.getByText(/learned|sample|proven|external|cached/i).first();
+  const tier = page.getByText(/Centroid Timeline|Accuracy Alerts|Evidence: insufficient/i).first();
   await expect(tier).toBeVisible({ timeout: 20_000 });
 });
+

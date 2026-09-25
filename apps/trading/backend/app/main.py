@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import os
+import sqlite3
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
@@ -53,6 +54,7 @@ from .routers.regime_analytics import create_regime_analytics_router  # noqa: E4
 from .routers.regime_router import create_regime_router as create_regime_classifier_router  # noqa: E402
 from .routers.regime_status import create_regime_status_router  # noqa: E402
 from .routers.regime_beats import create_regime_beats_router  # noqa: E402
+from .routers.entrant_comparison import create_entrant_comparison_router  # noqa: E402
 from .routers.situation_router import create_situation_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
@@ -79,24 +81,42 @@ from copilot_sdk.backend.archetype_router import create_archetype_router  # noqa
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
     create_evolution_router,
+    create_investigation_router,
     create_scoring_router,
+    create_switching_cost_router,
     mount_self_computation_router,
 )
+from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
+from copilot_sdk.backend.traversal_router import create_traversal_router  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.counterfactual_router import create_counterfactual_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
+from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
+from copilot_sdk.backend.signal_store import GraphSignalStore  # noqa: E402
+from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
 from copilot_sdk.evolution import ScorerBackedProvider  # noqa: E402
-from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph, resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
+from copilot_sdk.graph.memory_store import InMemoryGraphStore  # noqa: E402
+from copilot_sdk.scoring.fingerprint import compute_fingerprint  # noqa: E402
+from fastapi.encoders import jsonable_encoder  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
+from copilot_sdk.scoring.composite_gate import CompositeGate  # noqa: E402
+from copilot_sdk.scoring.gate_enforced_scorer import GateEnforcedScorer  # noqa: E402
+from copilot_sdk.scoring.investigation import KUtilityStore  # noqa: E402
+from copilot_sdk.scoring.situation_classifier import SituationClassifier  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 from copilot_sdk.state import cached_static, create_invalidation_header_middleware, create_tab_state_router  # noqa: E402
 from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
+from .investigation_config import INVESTIGATION_CONFIG, create_evidence_provider  # noqa: E402
+from .vld_preseed import seed_vld_trading_showcase  # noqa: E402
 
 
 DOMAIN = "trading"
@@ -104,18 +124,32 @@ DOMAIN = "trading"
 
 def _resolve_profile() -> str:
     """Select the graph profile from explicit configuration."""
-    configured = os.environ.get("TRADING_PROFILE", os.environ.get("COPILOT_PROFILE"))
-    if configured:
-        return configured.strip().lower()
-    if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
-        return "development"
-    return "production"
+    from copilot_sdk.config import resolve_profile
+
+    return str(resolve_profile(domain="trading"))
 logger = logging.getLogger(__name__)
 DB_FILENAME = "trading.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
 SEED_FIXTURE_PATH = DATA_DIR / "trading_seed_v2.json"
 FACTOR_NAMES = tuple(TradingPreset().shape.factor_names)
+
+
+class _VLDKDecisionConnection:
+    def __init__(self, path: Path):
+        self.conn = sqlite3.connect(path, check_same_thread=False)
+
+
+def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
+    return KUtilityStore(_VLDKDecisionConnection(path), dimensions)
+
+
+def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
+    return {"k_store": _create_vld_k_store(path, dimensions)}
+
+
+def _vld_classifier_router_kwargs() -> dict[str, SituationClassifier]:
+    return {"classifier": SituationClassifier()}
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173,"
     "http://localhost:5174,"
@@ -386,7 +420,8 @@ def create_app(
         logger.info("OUTBOX_PATH: %s", getattr(outbox, "path", None))
     trading_preset = TradingPreset()
     regime_monitor = RegimeMonitor(config=trading_preset)
-    scorer_proxy = TradingRegimeScorerProxy(base_scorer_proxy, regime_monitor)
+    regime_scorer_proxy = TradingRegimeScorerProxy(base_scorer_proxy, regime_monitor)
+    scorer_proxy: Any = GateEnforcedScorer(regime_scorer_proxy, CompositeGate())
     tab_state_cache = create_trading_tab_state_cache(
         scorer_provider=lambda: scorer_proxy,
         graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
@@ -404,6 +439,17 @@ def create_app(
     }
 
     trading_store_factory = lambda: selected_graph_store_factory(scoring_db)
+    try:
+        vld_seed = seed_vld_trading_showcase(trading_store_factory())
+        app.state.trading_vld_showcase = vld_seed
+        print(
+            f"[{DOMAIN}] VLD showcase registered: "
+            f"{vld_seed['trade_count']} trades, {vld_seed['evidence_records']} evidence records"
+        )
+    except Exception as exc:
+        app.state.trading_vld_showcase = {"status": "unavailable", "error": str(exc)}
+        print(f"[{DOMAIN}] VLD showcase preseed failed (non-blocking): {exc}")
+
     trading_promotion_guard = TradingPromotionGuard(
         claim_registry,
         graph_store=selected_graph_store_factory(scoring_db),
@@ -451,7 +497,7 @@ def create_app(
             elif active_graph_store is not None:
                 print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
             else:
-                if _bundle_path is not False:
+                if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
                 _auto_seed_if_needed(seed_graph_store, profile=resolved_profile)
             claim_registry.refresh_from_store(selected_graph_store_factory(scoring_db))
@@ -464,12 +510,17 @@ def create_app(
                 welford_tracker=dk_welford_tracker,
             )
             status.pop("welford_tracker", None)
+            replayed = regime_monitor.restore(scorer_proxy.graph_store.get_all_decisions(DOMAIN))
+            status["regime_source"] = "persisted_decision_tags"
+            status["regime_decisions_replayed"] = replayed
             app.state.l5_startup_status = status
 
     app.state.trading_active_graph_config = active_graph_config
     app.state.trading_selected_graph_store = scorer_proxy.graph_store
+    app.state.graph_store = scorer_proxy.graph_store
+    app.state.domain = DOMAIN
     app.state.trading_regime_monitor = regime_monitor
-    app.state.trading_regime_conditioning = scorer_proxy
+    app.state.trading_regime_conditioning = regime_scorer_proxy
     app.state.trading_tab_state_cache = tab_state_cache
     app.state.l5_startup_status = l5_startup_status
     app.state.entity_cache = entity_cache
@@ -523,6 +574,41 @@ def create_app(
         ),
         prefix="/api",
     )
+    app.include_router(
+        create_switching_cost_router(scorer_proxy, domain=DOMAIN),
+        prefix="/api",
+    )
+    app.include_router(
+        create_platform_router(scorer_proxy, current_domain=DOMAIN),
+        prefix="/api",
+    )
+    app.include_router(
+        create_cross_signal_router(GraphSignalStore(app.state.graph_store, DOMAIN)), prefix="/api"
+    )
+    app.include_router(create_concepts_router())
+    app.include_router(create_entrant_comparison_router(lambda: scorer_proxy))
+    app.include_router(
+        create_investigation_router(
+            scorer_provider=lambda: scorer_proxy._scorer(),
+            evidence_provider_factory=lambda decision_id: create_evidence_provider(
+                trading_store_factory(),
+                decision_id,
+            ),
+            **_vld_k_router_kwargs(DATA_DIR / "k_utility.db", len(FACTOR_NAMES)),
+            **_vld_classifier_router_kwargs(),
+            factor_names=INVESTIGATION_CONFIG["factor_names"],
+            default_budget=2,
+            # Literal set retained for the existing VLD validation sweep.
+            gated_sources={
+                "correlation_engine",
+                "portfolio_engine",
+                "SYNTHETIC:fixture:correlation_engine",
+                "SYNTHETIC:fixture:portfolio_engine",
+                "SYNTHETIC:PLACEHOLDER:Tier5D:correlation_engine",
+                "SYNTHETIC:PLACEHOLDER:Tier5D:portfolio_engine",
+            },
+        )
+    )
     mount_self_computation_router(
         app,
         selected_graph_store_factory(scoring_db),
@@ -552,7 +638,6 @@ def create_app(
         return {"window": 20}
 
     @app.get("/api/trading/iks")
-    @cached_static("iks")
     def trading_iks(request: Request) -> dict[str, float]:
         compute_iks = getattr(scorer_proxy, "_compute_iks", None)
         if callable(compute_iks):
@@ -616,6 +701,7 @@ def create_app(
     app.include_router(data_import_router)
     app.include_router(trading_graph_status_router)
     app.include_router(create_tab_state_router(tab_state_cache))
+    app.include_router(create_traversal_router())
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:
@@ -623,27 +709,32 @@ def create_app(
 
     @app.middleware("http")
     async def direct_testclient_autoseed(request, call_next):
-        if request.url.path == "/api/health":
-            _run_startup_seed_once()
         return await call_next(request)
 
     @app.get("/health")
-    def health() -> dict[str, Any]:
+    @app.get("/api/health")
+    def health() -> Any:
+        payload = build_graph_health(app.state.trading_selected_graph_store, app.state.trading_active_graph_config, DOMAIN)
         cache_stats = entity_cache.stats()
-        graph_status = build_trading_graph_status(app.state)
-        return {
-            "status": "ok",
-            "domain": DOMAIN,
-            "engine": "copilot_sdk.scoring + gae.profile_scorer",
-            "cache_hits": cache_stats.hits,
-            "cache_misses": cache_stats.misses,
-            "cache_size": cache_stats.size,
-            "conservation": conservation_provider.get_state(),
-            "graph_backend": graph_status["active_backend"],
-            "graph_status": graph_status,
-            "graph_store_status": "available" if graph_status["active_backend"] else "unavailable",
-            "dual_write_enabled": graph_status["requested_backend"] == "dual_write",
-        }
+        payload.update(
+            cache_hits=cache_stats.hits,
+            cache_misses=cache_stats.misses,
+            cache_size=cache_stats.size,
+        )
+        return JSONResponse(payload, status_code=health_status_code(payload))
+
+    @app.get("/api/self/clone-fingerprint")
+    def clone_fingerprint() -> dict[str, Any]:
+        # Run the scorer's canonical fingerprint calculation on an isolated
+        # empty store. Do not construct a CompoundingScorer here: its startup
+        # drains the domain's persistence outbox, which belongs to the live app.
+        store = InMemoryGraphStore(domain=DOMAIN)
+        try:
+            fingerprint = compute_fingerprint(store.get_verified_decisions(DOMAIN), list(TradingPreset().shape.factor_names))
+            return {**jsonable_encoder(fingerprint),
+                    "instance_kind": "disposable_clean_clone", "persistent": False}
+        finally:
+            store.close()
 
     @app.get("/api/trading/fingerprint")
     def trading_fingerprint() -> dict[str, Any]:

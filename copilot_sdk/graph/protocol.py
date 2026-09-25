@@ -47,7 +47,21 @@ class GraphStore(Protocol):
     ) -> None:
         ...
 
-    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None:
+    def get_decision(
+        self,
+        decision_id: str,
+        domain: str,
+        *,
+        include_outcome: bool = False,
+    ) -> dict[str, Any] | None:
+        """Return one domain-scoped Decision.
+
+        By default this is the Decision node/row only.  Callers that need the
+        verified outcome in the same read may set ``include_outcome=True``;
+        stores then merge canonical Outcome fields such as ``actual_action``,
+        ``actual_index``, ``is_correct`` and ``verified_at`` when present.
+        Missing outcomes leave the returned Decision unchanged.
+        """
         ...
 
     def get_decisions(
@@ -59,6 +73,11 @@ class GraphStore(Protocol):
         ...
 
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
+        """All active Decisions in the domain, independent of writer or ID prefix.
+
+        Archived history is exposed separately by get_archived_decisions;
+        it must not be included in active inventory or conservation V.
+        """
         ...
 
     def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]:
@@ -419,6 +438,30 @@ class ProtocolV2GraphStore(GraphStore, Protocol):
         source_domain: str | None = None,
         target_domain: str | None = None,
     ) -> list[dict[str, Any]]:
+        ...
+
+    def decision_movement(self, domain: str, decision_id: str) -> list[dict[str, Any]]:
+        """Return one graph traversal of a decision and its linked evidence."""
+        ...
+
+    def contextual_judgment(
+        self, domain: str, entity_group: str, category: str
+    ) -> list[dict[str, Any]]:
+        """Return entity-scoped semantic/judgment context in one traversal."""
+        ...
+
+    def promotion_basis(self, domain: str, rule_id: str) -> list[dict[str, Any]]:
+        """Return procedural rule evidence and linked judgment history."""
+        ...
+
+    def transfer_witness(
+        self, source_domain: str, target_domain: str, pattern_id: str
+    ) -> list[dict[str, Any]]:
+        """Return the authorized cross-domain transfer evidence path."""
+        ...
+
+    def list_fingerprints(self, domain: str | None = None) -> list[dict[str, Any]]:
+        """List persisted graph fingerprints for production discovery."""
         ...
 
     def get_latest_conservation_statuses(

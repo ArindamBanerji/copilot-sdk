@@ -16,6 +16,16 @@ def test_graph_store_protocol_is_runtime_checkable(tmp_path):
     assert isinstance(InMemoryGraphStore(), GraphStore)
 
 
+def test_builtin_stores_remain_protocol_v2_runtime_checkable(tmp_path):
+    memory = InMemoryGraphStore(domain="test")
+    sqlite = SQLiteGraphStore(str(tmp_path / "protocol-v2.db"), domain="test")
+    try:
+        assert isinstance(memory, ProtocolV2GraphStore)
+        assert isinstance(sqlite, ProtocolV2GraphStore)
+    finally:
+        sqlite.close()
+
+
 def test_graph_store_protocol_required_methods_exist():
     required = [
         "write_decision",

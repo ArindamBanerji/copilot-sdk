@@ -1,22 +1,46 @@
-"""Explicit SQLite GraphConfig for isolated DataOps backend tests."""
+"""Scoped graph configuration for dataops collection and tests."""
+from __future__ import annotations
 
-import os
-import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any
+
+import pytest
 
 
-_config_file = tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False, encoding="utf-8")
-_config_file.write(
-    "[defaults]\n"
-    'dsn = ""\n'
-    'graph = "test_graph"\n'
-    "\n"
-    "[copilot.dataops]\n"
-    'domain = "dataops"\n'
-    'backend = "sqlite"\n'
-    'expected_backend = "sqlite"\n'
-    'prefix = "DOPS-"\n'
-)
-_config_file.close()
-os.environ["GRAPH_CONFIG_PATH"] = _config_file.name
-os.environ["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "sqlite"
-os.environ["GRAPH_BACKEND"] = "sqlite"
+@contextmanager
+def _graph_environment(directory: Path) -> Iterator[None]:
+    config = directory / "graph.toml"
+    config.write_text(
+        '[defaults]\ndsn = ""\ngraph = "test_graph"\n'
+        '[copilot.dataops]\ndomain = "dataops"\n'
+        'backend = "sqlite"\nexpected_backend = "sqlite"\nprefix = "DOPS-"\n',
+        encoding="utf-8",
+    )
+    with pytest.MonkeyPatch.context() as env:
+        env.setenv("GRAPH_CONFIG_PATH", str(config))
+        env.setenv("GRAPH_BACKEND", "sqlite")
+        env.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "sqlite")
+        env.setenv("DATAOPS_PROFILE", "test")
+        env.setenv("DATAOPS_DEMO_MODE", "1")
+        env.setenv("CROSS_SIGNAL_DB_PATH", str(directory / "signals.db"))
+        yield
+
+
+@pytest.hookimpl(wrapper=True)
+def pytest_make_collect_report(collector: pytest.Collector) -> Iterator[Any]:
+    # Module-level app construction precedes fixture setup. Bound these writes
+    # to collection too; always restore environment and remove temporary files.
+    if not collector.path.is_relative_to(Path(__file__).parent):
+        return (yield)
+    with TemporaryDirectory(prefix="dataops-collect-") as temporary:
+        with _graph_environment(Path(temporary)):
+            return (yield)
+
+
+@pytest.fixture(autouse=True)
+def isolated_graph_environment(tmp_path: Path) -> Iterator[None]:
+    with _graph_environment(tmp_path):
+        yield

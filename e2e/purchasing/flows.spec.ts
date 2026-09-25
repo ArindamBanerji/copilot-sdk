@@ -73,10 +73,7 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
 
   await clickTab(page, "Performance");
   await expectAnyText(page, [/IKS/i, /Trajectory/i, /orders to learn/i]);
-  await page.waitForFunction(
-    () => !document.querySelector("main")?.textContent?.includes("Loading"),
-    { timeout: 15000 },
-  );
+  await waitForScreenReady(page);
   const mainText = await page.locator("main").innerText();
   expect(mainText).toMatch(/IKS[\s\S]{0,80}\d+(\.\d+)?/i);
 });

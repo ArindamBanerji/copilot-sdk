@@ -1,58 +1,58 @@
 {
   "domain": "dataops",
-  "exported_at": "2026-09-10T07:32:52Z",
+  "exported_at": "2026-09-21T03:24:05Z",
   "fingerprint": {
-    "decisions_analyzed": 417,
+    "decisions_analyzed": 400,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
     },
     "factors": [
       {
-        "interpretation": "noisy",
+        "interpretation": "moderate",
         "name": "impact_scope",
-        "sigma": 0.223,
-        "weight": 0.309
+        "sigma": 0.198,
+        "weight": 0.741
       },
       {
         "interpretation": "moderate",
         "name": "source_reliability",
-        "sigma": 0.124,
-        "weight": 1.0
+        "sigma": 0.192,
+        "weight": 0.794
       },
       {
         "interpretation": "noisy",
         "name": "recurrence_frequency",
-        "sigma": 0.322,
-        "weight": 0.148
-      },
-      {
-        "interpretation": "moderate",
-        "name": "downstream_urgency",
-        "sigma": 0.152,
-        "weight": 0.665
+        "sigma": 0.239,
+        "weight": 0.51
       },
       {
         "interpretation": "noisy",
-        "name": "data_freshness",
-        "sigma": 0.224,
-        "weight": 0.306
+        "name": "downstream_urgency",
+        "sigma": 0.207,
+        "weight": 0.678
       },
       {
         "interpretation": "moderate",
+        "name": "data_freshness",
+        "sigma": 0.171,
+        "weight": 1.0
+      },
+      {
+        "interpretation": "noisy",
         "name": "business_criticality",
-        "sigma": 0.181,
-        "weight": 0.467
+        "sigma": 0.218,
+        "weight": 0.611
       }
     ],
-    "overall_win_rate": 0.743,
+    "overall_win_rate": 0.75,
     "per_category_precision": {
-      "freshness_violation": 0.962,
-      "pipeline_failure": 0.708,
-      "quality_anomaly": 0.5,
-      "schema_change": 0.737,
+      "freshness_violation": 0.667,
+      "pipeline_failure": 0.75,
+      "quality_anomaly": 0.75,
+      "schema_change": 1.0,
       "transform_drift": 0.667,
-      "volume_anomaly": 0.962
+      "volume_anomaly": 0.667
     },
     "skipped_decisions": 0
   },

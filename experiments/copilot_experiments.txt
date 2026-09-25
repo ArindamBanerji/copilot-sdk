@@ -1,0 +1,535 @@
+Folder PATH listing for volume Windows-SSD
+Volume serial number is 80E2-4F82
+C:.
+|   copilot_experiments.txt
+|   
++---experiments
+|   \---vld
++---htrust
+|   |   run_htrust.py
+|   |   run_htrust_v2.py
+|   |   
+|   +---data
+|   |       coil.zip
+|   |       default_credit.csv
+|   |       default_credit.xls
+|   |       heloc.csv
+|   |       
+|   +---raw
+|   |       c1_cells.csv
+|   |       c1_summary.json
+|   |       c2_cells.csv
+|   |       c2_summary.json
+|   |       f2_normalized_cells.csv
+|   |       f2_summary.json
+|   |       manifest.json
+|   |       
+|   +---v2_data
+|   |       adult_origin.zip
+|   |       coil_origin.zip
+|   |       credit_origin.zip
+|   |       
+|   +---v2_raw
+|   |       c1_factorial_cells.csv
+|   |       c1_summary.json
+|   |       c2_curve_cells.csv
+|   |       c2_h_base.csv
+|   |       c2_summary.json
+|   |       f2_prime_cells.csv
+|   |       f2_prime_summary.json
+|   |       manifest.json
+|   |       
+|   \---__pycache__
+|           run_htrust_v2.cpython-311.pyc
+|           
+\---vld
+    |   astra_57_0_summary.csv
+    |   astra_budget_sensitivity_summary.csv
+    |   budget_accuracy_frontier.csv
+    |   budget_accuracy_frontier.json
+    |   c1_c6_campaign_v1.py
+    |   exp_ae_gate_rerun.py
+    |   external_baseline.py
+    |   gap1_adaptive_halting.csv
+    |   gap1_adaptive_halting.json
+    |   gap2_abstention_curve.csv
+    |   gap2_abstention_curve.json
+    |   group_a_d_report.md
+    |   group_b_c_report.md
+    |   k14_compounding_noise.py
+    |   k14_generate_k2_labels.py
+    |   k14_validation_tier.py
+    |   ke4_distribution_sensitivity.json
+    |   ke4_distribution_sensitivity_results.json
+    |   ke5_conservation_interaction.json
+    |   ke5_conservation_interaction_results.json
+    |   k_learning_curve_cross_copilot_report.md
+    |   k_learning_curve_cross_copilot_summary.json
+    |   k_learning_curve_dataops_extended.json
+    |   k_learning_curve_purchasing.json
+    |   k_learning_curve_results.json
+    |   k_learning_curve_s2p.json
+    |   k_learning_curve_soc.json
+    |   k_learning_curve_trading.json
+    |   q_term_ablation.csv
+    |   q_term_ablation.json
+    |   q_term_ablation_normalized.csv
+    |   q_term_ablation_normalized.json
+    |   README.md
+    |   render_publication_figures.py
+    |   ri1_routing_k_interaction.json
+    |   ri2_ucb_sweep.json
+    |   ri3_hybrid.json
+    |   ri4_cross_copilot_transfer.json
+    |   ri5_rich_k_state.json
+    |   ri6_temporal_decay.json
+    |   ri7_category_conditional.json
+    |   ri8_sequence_aware.json
+    |   ri9_regime_indexed.json
+    |   rv01_routing_variants_report.md
+    |   rv0_gru_ablation_results.json
+    |   rv1_bandit_results.json
+    |   rv4_ke45_report.md
+    |   rv4_risk_sensitive.json
+    |   rv4_risk_sensitive_results.json
+    |   rv5_hierarchical.json
+    |   rv8_adaptive_q.json
+    |   rv9_mcts.json
+    |   test_external_baseline.py
+    |   test_k14_compounding_noise.py
+    |   test_k14_validation_tier.py
+    |   vld_adversarial_dose_response_v1.py
+    |   vld_adversarial_saves_hurts_v1.py
+    |   vld_conservation_characterization_v1.py
+    |   vld_conservation_lag_c5_v1.py
+    |   vld_conservation_perdecision_signals_v1.py
+    |   vld_conservation_stage2_composite_v1.py
+    |   vld_conservation_stage3_track_v1.py
+    |   vld_cons_pd_decision_features_v1.py
+    |   vld_cons_pd_routing_analysis_v1.py
+    |   vld_d2_control_signal_v1.py
+    |   vld_decision_complexity_v1.py
+    |   vld_delayed_entrant_v1.py
+    |   vld_eta_sweep_f1_v1.py
+    |   vld_gate_calibration_f2_v1.py
+    |   vld_label_breadth_c3_v1.py
+    |   vld_looped_depth_c7_v1.py
+    |   vld_moat_b2_seeds_v1.py
+    |   vld_moat_b2_v1.py
+    |   vld_moat_c2_mu_all_five_v1.py
+    |   vld_moat_mu_probe_v1.py
+    |   vld_offline_rl_router_v1.py
+    |   vld_oracle_ceiling_diagnostic_v1.py
+    |   vld_rec_action_readout_v1.py
+    |   vld_rl1_characterization_v1.py
+    |   vld_rl_characterization_full_v1.py
+    |   vld_rl_ctrl2c_constrained_v1.py
+    |   vld_rl_ctrl2c_redesign_v1.py
+    |   vld_rl_ctrl_enrichment_v1.py
+    |   vld_rl_ctrl_fork_v1.py
+    |   vld_rl_ctrl_reconcile_v1.py
+    |   vld_rl_ctrl_trajectory_live_v1.py
+    |   vld_rl_ctrl_trajectory_live_v2.py
+    |   vld_rl_ctrl_trajectory_live_v3.py
+    |   vld_rl_ctrl_trajectory_optC.py
+    |   vld_rl_ctrl_trajectory_v1.py
+    |   vld_two_loop_curves_v1.py
+    |   
+    +---charts
+    |       pub_budget_efficiency.png
+    |       pub_budget_frontier_all_copilots.png
+    |       pub_complexity_scatter.png
+    |       pub_confidence_ablation.png
+    |       pub_confidence_frontier.png
+    |       pub_cross_copilot_accuracy.png
+    |       pub_cross_copilot_routing.png
+    |       pub_cross_copilot_starvation.png
+    |       pub_gap1_halt_distribution.png
+    |       pub_gap1_reads_saved_summary.png
+    |       pub_gap1_reads_vs_accuracy.png
+    |       pub_gap2_best_signal_summary.png
+    |       pub_gap2_coverage_vs_lift.png
+    |       pub_gap2_risk_coverage_dataops.png
+    |       pub_gap2_risk_coverage_purchasing.png
+    |       pub_gap2_risk_coverage_soc.png
+    |       pub_k14_agreement.png
+    |       pub_k14_compounding_noise.png
+    |       pub_ke4_distribution_robustness.png
+    |       pub_ke4_distribution_robustness_group_a_d.png
+    |       pub_ke4_final_comparison.png
+    |       pub_ke4_final_comparison_group_a_d.png
+    |       pub_ke5_blocked_updates.png
+    |       pub_ke5_blocked_updates_group_a_d.png
+    |       pub_ke5_conservation_curves.png
+    |       pub_ke5_conservation_curves_group_a_d.png
+    |       pub_k_convergence.png
+    |       pub_k_extended_routing.png
+    |       pub_k_extended_starvation_evolution.png
+    |       pub_k_heatmap_evolution.png
+    |       pub_k_learning_accuracy.png
+    |       pub_k_learning_routing.png
+    |       pub_moat_catchup.png
+    |       pub_oracle_ceiling_gaps.png
+    |       pub_q_ablation_bar_dataops.png
+    |       pub_q_ablation_norm_comparison.png
+    |       pub_q_ablation_norm_heatmap.png
+    |       pub_q_ablation_routing_heatmap.png
+    |       pub_q_ablation_term_contribution.png
+    |       pub_q_ablation_term_scales.png
+    |       pub_recurrence_ladder_state_k.png
+    |       pub_rgi_mechanism_schematic.png
+    |       pub_ri1_interaction_heatmap.png
+    |       pub_ri1_k_lift.png
+    |       pub_ri1_ranking_comparison.png
+    |       pub_ri2_ucb_pareto.png
+    |       pub_ri2_ucb_sweep_by_copilot.png
+    |       pub_ri3_hybrid_comparison.png
+    |       pub_ri4_transfer_overlap.png
+    |       pub_ri4_transfer_speedup.png
+    |       pub_ri5_routing_vs_starvation.png
+    |       pub_ri5_starvation_comparison.png
+    |       pub_ri6_k_weight_evolution.png
+    |       pub_ri6_regime_recovery.png
+    |       pub_ri7_adaptive_vs_uniform.png
+    |       pub_ri8_sequence_effect.png
+    |       pub_ri9_regime_recovery.png
+    |       pub_rv0_budget_sweep.png
+    |       pub_rv0_cost_efficiency.png
+    |       pub_rv0_routing_comparison.png
+    |       pub_rv1_learning_speed.png
+    |       pub_rv1_routing_by_copilot.png
+    |       pub_rv1_starvation_fix.png
+    |       pub_rv4_adaptive_budget.png
+    |       pub_rv4_penalty_vs_gain.png
+    |       pub_rv5_hierarchical.png
+    |       pub_rv8_headroom.png
+    |       pub_rv9_lookahead.png
+    |       pub_safety_layers.png
+    |       pub_safety_layers.py
+    |       pub_safety_layers_r2.png
+    |       pub_safety_layers_r2.py
+    |       pub_safety_multiplier.py
+    |       pub_safety_multiplier_sensitivity.png
+    |       pub_safety_rate_threshold.png
+    |       pub_safety_rate_threshold.py
+    |       pub_tensor_vs_starvation.png
+    |       
+    +---data
+    |       dataops_stage1.json
+    |       k14_k2_labels.json
+    |       purchasing_stage1.json
+    |       s2p_stage1.json
+    |       soc_stage1.json
+    |       trading_stage1.json
+    |       
+    +---docs
+    |   |   map_vld_addendum_v6.md
+    |   |   map_vld_addendum_v7.md
+    |   |   vld_ci_graph_reasoning_v1_1.md
+    |   |   vld_ci_graph_reasoning_v2.md
+    |   |   vld_recurrence_addendum_v1.md
+    |   |   
+    |   \---astra_prompts
+    |           astra_dataops_full_50.md
+    |           astra_purchasing_full_50.md
+    |           astra_s2p_full_50.md
+    |           astra_soc_full_50.md
+    |           astra_trading_full_50.md
+    |           
+    +---harnesses
+    |   |   safety_layer_characterization.py
+    |   |   safety_layer_characterization_r2.py
+    |   |   
+    |   \---__pycache__
+    |           safety_layer_characterization.cpython-311.pyc
+    |           safety_layer_characterization_r2.cpython-311.pyc
+    |           
+    +---paper_charts
+    |       fig1_five_domain_curves.png
+    |       fig1_five_domain_curves.svg
+    |       fig2_delayed_entrant.png
+    |       fig2_delayed_entrant.svg
+    |       fig3_risk_coverage.png
+    |       fig3_risk_coverage.svg
+    |       fig_1_k_divergence.png
+    |       fig_1_k_divergence.svg
+    |       fig_2b_baseline_comparison.png
+    |       fig_2b_baseline_comparison.svg
+    |       fig_2_cross_copilot_k.png
+    |       fig_2_cross_copilot_k.svg
+    |       fig_3_budget_frontier.png
+    |       fig_3_budget_frontier.svg
+    |       fig_4_risk_coverage.png
+    |       fig_4_risk_coverage.svg
+    |       fig_5_recurrence_heatmap.png
+    |       fig_5_recurrence_heatmap.svg
+    |       fig_6_q_ablation_normalized.png
+    |       fig_6_q_ablation_normalized.svg
+    |       fig_7_budget_sensitivity.png
+    |       fig_7_budget_sensitivity.svg
+    |       fig_8_taxonomy.png
+    |       fig_8_taxonomy.svg
+    |       
+    +---prompts
+    |       codex_e4_trading_evaluation.md
+    |       codex_e5_purchasing_evaluation.md
+    |       
+    +---pub_charts
+    |       pub10_c4_confusion_matrix.png
+    |       pub11_c5_k_utility_compounding.png
+    |       pub12_astra_57_0_summary.png
+    |       pub13_c4_adaptive_budget.png
+    |       pub14_distractor_crossover.png
+    |       pub15_decision_aligned.png
+    |       pub16_stage1_multihop.png
+    |       pub17b_centroid_comparison.png
+    |       pub17_depth_accuracy_confidence.png
+    |       pub18_hop_ablation.png
+    |       pub19_convergence.png
+    |       pub1_routing_comparators.png
+    |       pub20_order_dependence.png
+    |       pub21_evidence_compounding.png
+    |       pub22_intermediate_state.png
+    |       pub23_gating.png
+    |       pub24_routing_quality.png
+    |       pub25_long_range.png
+    |       pub2_rho_calibration.png
+    |       pub3_budget_regime.png
+    |       pub4_geometry_tension.png
+    |       pub5_dual_centroid.png
+    |       pub6_dimension_impact.png
+    |       pub7_confusion_matrix.png
+    |       pub8_abstention_utility.png
+    |       pub9_c4_feature_importance.png
+    |       pub_ww_dataops_aggregate.png
+    |       pub_ww_dataops_astra_aggregate.png
+    |       pub_ww_dataops_astra_factor_movement.png
+    |       pub_ww_dataops_astra_per_rho.png
+    |       pub_ww_dataops_astra_trajectory.png
+    |       pub_ww_dataops_factor_movement.png
+    |       pub_ww_dataops_merged_aggregate.png
+    |       pub_ww_dataops_merged_factor_movement.png
+    |       pub_ww_dataops_merged_per_rho.png
+    |       pub_ww_dataops_merged_trajectory.png
+    |       pub_ww_dataops_per_rho.png
+    |       pub_ww_dataops_trajectory.png
+    |       pub_ww_purchasing_astra_aggregate.png
+    |       pub_ww_purchasing_astra_factor_movement.png
+    |       pub_ww_purchasing_astra_per_rho.png
+    |       pub_ww_purchasing_astra_trajectory.png
+    |       pub_ww_s2p_astra_aggregate.png
+    |       pub_ww_s2p_astra_factor_movement.png
+    |       pub_ww_s2p_astra_per_rho.png
+    |       pub_ww_s2p_astra_trajectory.png
+    |       pub_ww_soc_aggregate.png
+    |       pub_ww_soc_astra_aggregate.png
+    |       pub_ww_soc_astra_factor_movement.png
+    |       pub_ww_soc_astra_per_rho.png
+    |       pub_ww_soc_astra_trajectory.png
+    |       pub_ww_soc_factor_movement.png
+    |       pub_ww_soc_per_rho.png
+    |       pub_ww_soc_trajectory.png
+    |       pub_ww_trading_aggregate.png
+    |       pub_ww_trading_astra_aggregate.png
+    |       pub_ww_trading_astra_factor_movement.png
+    |       pub_ww_trading_astra_per_rho.png
+    |       pub_ww_trading_astra_trajectory.png
+    |       pub_ww_trading_factor_movement.png
+    |       pub_ww_trading_per_rho.png
+    |       pub_ww_trading_trajectory.png
+    |       
+    +---results
+    |   |   adversarial_dose_response.json
+    |   |   adversarial_dose_response_summary.md
+    |   |   adversarial_saves_hurts.json
+    |   |   adversarial_saves_hurts_summary.md
+    |   |   c1_oracle_sep_results.json
+    |   |   c1_oracle_sep_summary.md
+    |   |   c2_mu_learning_all_five.json
+    |   |   c2_mu_learning_summary.md
+    |   |   c3_label_breadth.json
+    |   |   c3_label_breadth_summary.md
+    |   |   c4_gamma_reconvergence.json
+    |   |   c4_gamma_summary.md
+    |   |   c5_conservation_lag.json
+    |   |   c5_conservation_lag_summary.md
+    |   |   c5_tmp_purchasing.json
+    |   |   c5_tmp_s2p.json
+    |   |   c5_tmp_soc.json
+    |   |   c5_tmp_trading.json
+    |   |   c6_risk_coverage_summary.md
+    |   |   c6_risk_coverage_trading_s2p.json
+    |   |   c7_looped_depth.json
+    |   |   c7_looped_depth_summary.md
+    |   |   c8_action_boundary.json
+    |   |   c8_action_boundary_summary.md
+    |   |   case_studies_dataops_astra.md
+    |   |   case_studies_purchasing_astra.md
+    |   |   case_studies_s2p_astra.md
+    |   |   case_studies_soc_astra.md
+    |   |   case_studies_trading_astra.md
+    |   |   conservation_characterization_stage1.json
+    |   |   conservation_characterization_stage1_summary.md
+    |   |   conservation_decision_features.csv
+    |   |   conservation_decision_features.json
+    |   |   conservation_decision_features_summary.md
+    |   |   conservation_gate_reconciliation.md
+    |   |   conservation_perdecision_signals.csv
+    |   |   conservation_perdecision_summary.md
+    |   |   conservation_routing_analysis.json
+    |   |   conservation_routing_analysis_summary.md
+    |   |   conservation_stage2_composite.json
+    |   |   conservation_stage2_summary.md
+    |   |   conservation_stage3b_d2_control.json
+    |   |   conservation_stage3b_d2_control_summary.md
+    |   |   conservation_stage3_summary.md
+    |   |   conservation_stage3_track.json
+    |   |   d1_d2_figures_audit_v1.json
+    |   |   d1_d2_figures_notes_v1.md
+    |   |   decision_complexity_characterization.json
+    |   |   decision_complexity_scatter.csv
+    |   |   decision_complexity_summary.md
+    |   |   delayed_entrant_catchup.json
+    |   |   eta_sweep_f1.json
+    |   |   eta_sweep_f1_summary.md
+    |   |   exp_ae_gate_rerun.json
+    |   |   external_baseline.json
+    |   |   external_baseline_full.json
+    |   |   external_baseline_full_audit.json
+    |   |   gap2_abstention_heldout_v1.json
+    |   |   gate_calibration_f2.json
+    |   |   gate_calibration_f2_summary.md
+    |   |   k14_compounding_noise.json
+    |   |   k14_validation_tier.json
+    |   |   k14_validation_tier_summary.md
+    |   |   moat_b2_seeds.json
+    |   |   moat_b2_summary.md
+    |   |   moat_mu_learning.json
+    |   |   offline_rl_router.json
+    |   |   offline_rl_router_summary.md
+    |   |   oracle_ceiling_diagnostic.json
+    |   |   oracle_ceiling_summary.md
+    |   |   recursion_trace_example.md
+    |   |   rec_action_conditioned_readout.json
+    |   |   rec_action_conditioned_readout_summary.md
+    |   |   result_manifest.csv
+    |   |   result_manifest_README.md
+    |   |   rl1_characterization.json
+    |   |   rl1_characterization_summary.md
+    |   |   rl_ctrl2c_constrained_enrichment.json
+    |   |   rl_ctrl2c_constrained_enrichment_summary.md
+    |   |   rl_ctrl_enrichment.json
+    |   |   rl_ctrl_enrichment_summary.md
+    |   |   rl_ctrl_reconciliation.json
+    |   |   rl_ctrl_reconciliation_summary.md
+    |   |   rl_ctrl_trajectory.json
+    |   |   rl_ctrl_trajectory_live.json
+    |   |   rl_ctrl_trajectory_live_summary.md
+    |   |   rl_ctrl_trajectory_optB.json
+    |   |   rl_ctrl_trajectory_optB_summary.md
+    |   |   rl_ctrl_trajectory_optC.json
+    |   |   rl_ctrl_trajectory_optC_summary.md
+    |   |   rl_ctrl_trajectory_summary.md
+    |   |   safety_layer_characterization.json
+    |   |   safety_layer_characterization_r2.json
+    |   |   safety_layer_narrative.md
+    |   |   two_loop_second_derivative.json
+    |   |   two_loop_second_derivative_summary.md
+    |   |   verified_outcome_latency.csv
+    |   |   vld_moat_b2_v1.json
+    |   |   
+    |   \---rl_ctrl_work
+    |       +---dataops
+    |       |   +---A0_fixed
+    |       |   |   +---123
+    |       |   |   |       k_learning_curve_dataops.json
+    |       |   |   |       
+    |       |   |   +---42
+    |       |   |   |       k_learning_curve_dataops.json
+    |       |   |   |       
+    |       |   |   \---7
+    |       |   |           k_learning_curve_dataops.json
+    |       |   |           
+    |       |   +---A1_rule_based
+    |       |   |   +---123
+    |       |   |   |       k_learning_curve_dataops.json
+    |       |   |   |       
+    |       |   |   +---42
+    |       |   |   |       k_learning_curve_dataops.json
+    |       |   |   |       
+    |       |   |   \---7
+    |       |   |           k_learning_curve_dataops.json
+    |       |   |           
+    |       |   \---A2_learned
+    |       |       +---123
+    |       |       |       k_learning_curve_dataops.json
+    |       |       |       
+    |       |       +---42
+    |       |       |       k_learning_curve_dataops.json
+    |       |       |       
+    |       |       \---7
+    |       |               k_learning_curve_dataops.json
+    |       |               
+    |       \---soc
+    |           +---A0_fixed
+    |           |   +---123
+    |           |   |       k_learning_curve_soc.json
+    |           |   |       
+    |           |   +---42
+    |           |   |       k_learning_curve_soc.json
+    |           |   |       
+    |           |   \---7
+    |           |           k_learning_curve_soc.json
+    |           |           
+    |           +---A1_rule_based
+    |           |   +---123
+    |           |   |       k_learning_curve_soc.json
+    |           |   |       
+    |           |   +---42
+    |           |   |       k_learning_curve_soc.json
+    |           |   |       
+    |           |   \---7
+    |           |           k_learning_curve_soc.json
+    |           |           
+    |           \---A2_learned
+    |               +---123
+    |               |       k_learning_curve_soc.json
+    |               |       
+    |               +---42
+    |               |       k_learning_curve_soc.json
+    |               |       
+    |               \---7
+    |                       k_learning_curve_soc.json
+    |                       
+    +---scripts
+    |       generate_all_pub_charts.py
+    |       merge_supplement.py
+    |       validate_astra_scenarios.py
+    |       vld_experiments_v2.py
+    |       vld_experiments_v3.py
+    |       vld_experiments_v4.py
+    |       vld_experiments_v5.py
+    |       vld_experiments_v6.py
+    |       vld_graph_reasoning_experiments_v2.py
+    |       vld_math_validation_v1.py
+    |       vld_universal_eval_v2.py
+    |       vld_with_without_v2.py
+    |       
+    \---__pycache__
+            exp_ae_gate_rerun.cpython-311.pyc
+            k14_compounding_noise.cpython-311.pyc
+            k14_generate_k2_labels.cpython-311.pyc
+            k14_validation_tier.cpython-311.pyc
+            test_k14_compounding_noise.cpython-311-pytest-8.3.5.pyc
+            test_k14_validation_tier.cpython-311-pytest-8.3.5.pyc
+            vld_adversarial_saves_hurts_v1.cpython-311.pyc
+            vld_conservation_characterization_v1.cpython-311.pyc
+            vld_conservation_lag_c5_v1.cpython-311.pyc
+            vld_conservation_stage2_composite_v1.cpython-311.pyc
+            vld_moat_b2_v1.cpython-311.pyc
+            vld_offline_rl_router_v1.cpython-311.pyc
+            vld_rl_characterization_full_v1.cpython-311.pyc
+            vld_rl_ctrl_fork_v1.cpython-311.pyc
+            vld_rl_ctrl_trajectory_optC.cpython-311.pyc
+            vld_two_loop_curves_v1.cpython-311.pyc
+            

@@ -1,29 +1,22 @@
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.routers.trust_router import create_trust_router
 
 
-class _TrustStore:
-    domain = "dataops"
-
-    def count_verified(self, domain: str) -> int:
-        assert domain == self.domain
-        return 340
-
-    def count_verified_decisions(self, domain: str) -> int:
-        assert domain == self.domain
-        return 340
-
-    def count_correct(self, domain: str) -> int:
-        assert domain == self.domain
-        return 260
 
 
 class _TrustScorer:
-    graph_store = _TrustStore()
+    def __init__(self):
+        self.graph_store = InMemoryGraphStore(domain="dataops")
+        for index in range(340):
+            decision_id = self.graph_store.write_decision("dataops", "pipeline_failure", "investigate",
+                0.8, {"impact_scope": 0.5})
+            self.graph_store.write_outcome(decision_id, "investigate" if index < 260 else "pause_downstream",
+                                          index < 260, domain="dataops")
 
     def fingerprint(self) -> dict[str, object]:
         return {
@@ -35,7 +28,7 @@ class _TrustScorer:
                 {"name": "data_freshness", "weight": 0.18},
                 {"name": "business_criticality", "weight": 0.88},
             ],
-            "decisions_analyzed": 340,
+            "decisions_analyzed": self.graph_store.count_verified("dataops"),
         }
 
     def trajectory(self) -> dict[str, float]:
@@ -44,7 +37,9 @@ class _TrustScorer:
 
 def _client() -> TestClient:
     app = FastAPI()
-    app.include_router(create_trust_router("dataops", lambda: _TrustScorer()))
+    scorer = _TrustScorer()
+    app.state.scorer = scorer
+    app.include_router(create_trust_router("dataops", lambda: scorer))
     return TestClient(app)
 
 
@@ -100,3 +95,12 @@ def test_trust_narrative_mentions_highest_and_lowest() -> None:
 
     assert "source_reliability" in payload["narrative"]
     assert "data_freshness" in payload["narrative"]
+
+
+def test_trust_counts_refresh_after_graph_outcome():
+    client = _client()
+    store = client.app.state.scorer.graph_store
+    before = client.get("/dataops/trust").json()["verified_decisions"]
+    decision_id = store.write_decision("dataops", "pipeline_failure", "investigate", 0.8, {"impact_scope": 0.5})
+    store.write_outcome(decision_id, "investigate", True, domain="dataops")
+    assert client.get("/dataops/trust").json()["verified_decisions"] == before + 1 == store.count_verified("dataops")

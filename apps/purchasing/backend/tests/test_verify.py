@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from unittest.mock import Mock
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.scoring.scorer import CompoundingScorer
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -147,8 +151,8 @@ def test_verify_paused_learn_records_idempotency():
     assert first.status_code == 200
     assert first.json()["status"] == "paused"
     assert second.status_code == 409
-    assert state.graph_store.decision["status"] == "confirmed"
-    assert state.graph_store.outcome["context"]["reason_code"] == "supplier_preference"
+    assert state.graph_store.get_decision("DEC-PAUSED", domain="purchasing")["status"] == "confirmed"
+    assert state.graph_store.get_verified_decisions("purchasing")[0]["outcome_metadata"]["context"]["reason_code"] == "supplier_preference"
 
 
 def test_all_reason_codes(client):
@@ -195,26 +199,19 @@ def test_verify_reason_codes_endpoint(client):
 
 def test_verify_calls_learn():
     app = FastAPI()
-    state = _FakeState()
+    state = _VerifyState()
     app.include_router(create_verify_router(state))
     client = TestClient(app)
 
     response = _verify(client, "DEC-1", "order_as_planned")
 
     assert response.status_code == 200
-    assert state.scorer.calls == [
-        {
-            "decision_id": "DEC-1",
-            "actual_action": "order_as_planned",
-            "outcome": "confirmed",
-            "context": {
-                "reason_code": "supplier_preference",
-                "reason_label": "Chose preferred supplier",
-                "notes": None,
-                "source": "purchasing_verify",
-            },
-        }
-    ]
+    state.scorer.learn.assert_called_once_with(
+        "DEC-1", "order_as_planned", "confirmed",
+        context={"reason_code": "supplier_preference", "reason_label": "Chose preferred supplier",
+                 "notes": None, "source": "purchasing_verify"},
+    )
+    assert state.graph_store.count_verified("purchasing") == 1
 
 
 def test_reason_code_stored(client):
@@ -266,124 +263,30 @@ def test_verify_other_with_notes(client):
     assert payload["metadata"]["notes"] == "Custom ordering note."
 
 
-class _FakeStore:
-    domain = "purchasing"
-
-    def __init__(self) -> None:
-        self.decision = {
-            "decision_id": "DEC-1",
-            "domain": "purchasing",
-            "recommended_action": "order_as_planned",
-            "action": "order_as_planned",
-            "status": "pending",
-        }
-        self.verified = 0
-        self.correct = 0
-
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict | None:
-        if decision_id == self.decision["decision_id"]:
-            return dict(self.decision)
-        return None
-
-    def count_verified(self, domain: str) -> int:
-        return self.verified if domain == "purchasing" else 0
-
-    def count_correct(self, domain: str) -> int:
-        return self.correct if domain == "purchasing" else 0
-
-    def count_verified_decisions(self, domain: str) -> int:
-        return self.verified if domain == "purchasing" else 0
 
 
-class _FakeScorer:
-    def __init__(self, store: _FakeStore) -> None:
-        self.store = store
-        self.calls: list[dict] = []
-
-    def learn(self, decision_id: str, actual_action: str, outcome: str, *, context: dict):
-        self.calls.append(
-            {
-                "decision_id": decision_id,
-                "actual_action": actual_action,
-                "outcome": outcome,
-                "context": dict(context),
-            }
-        )
-        self.store.decision["status"] = "confirmed"
-        self.store.verified = 1
-        self.store.correct = int(actual_action == self.store.decision["recommended_action"])
-        return {
-            "decision_id": decision_id,
-            "outcome": outcome,
-            "reward": 1.0,
-            "iks_before": 0.0,
-            "iks_after": 0.0,
-        }
 
 
-class _FakeState:
+def _seed_verify_store(decision_id):
+    store = InMemoryGraphStore(domain="purchasing")
+    scorer = CompoundingScorer.from_preset("purchasing", graph_store=store, profile="test", enable_rl=False)
+    factors = {name: 0.5 for name in scorer._preset.shape.factor_names}
+    store.write_decision("purchasing", "protein", "order_as_planned", 0.8, factors,
+                         metadata={"decision_id": decision_id})
+    return store, scorer
+
+
+class _VerifyState:
     _preset_name = "purchasing"
 
     def __init__(self) -> None:
-        self.graph_store = _FakeStore()
-        self.scorer = _FakeScorer(self.graph_store)
+        self.graph_store, self.scorer = _seed_verify_store("DEC-1")
+        self.scorer.learn = Mock(wraps=self.scorer.learn)
 
-    def _scorer(self) -> _FakeScorer:
+    def _scorer(self) -> CompoundingScorer:
         return self.scorer
 
 
-class _PausedStore:
-    domain = "purchasing"
-
-    def __init__(self) -> None:
-        self.decision = {
-            "decision_id": "DEC-PAUSED",
-            "domain": "purchasing",
-            "recommended_action": "order_as_planned",
-            "action": "order_as_planned",
-            "status": "pending",
-        }
-        self.outcome: dict | None = None
-
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict | None:
-        if decision_id == self.decision["decision_id"]:
-            return dict(self.decision)
-        return None
-
-    def get_verified_decisions(self, domain: str) -> list[dict]:
-        if self.outcome is None or domain != "purchasing":
-            return []
-        return [{**self.decision, **self.outcome}]
-
-    def write_outcome(
-        self,
-        decision_id: str,
-        actual_action: str,
-        is_correct: bool,
-        metadata: dict | None = None,
-        domain: str | None = None,
-    ) -> None:
-        if domain is not None and domain != self.domain:
-            raise KeyError(f"unknown domain: {domain}")
-        if self.outcome is not None:
-            raise ValueError(f"outcome already exists for decision_id: {decision_id}")
-        meta = metadata or {}
-        self.outcome = {
-            "decision_id": decision_id,
-            "actual_action": actual_action,
-            "is_correct": is_correct,
-            "context": dict(meta.get("context") or {}),
-        }
-        self.decision["status"] = "confirmed" if is_correct else "overridden"
-
-    def count_verified(self, domain: str) -> int:
-        return 1 if self.outcome is not None and domain == "purchasing" else 0
-
-    def count_correct(self, domain: str) -> int:
-        return int(bool(self.outcome and self.outcome["is_correct"] and domain == "purchasing"))
-
-    def count_verified_decisions(self, domain: str) -> int:
-        return self.count_verified(domain)
 
 
 class _PausedScorer:
@@ -403,7 +306,7 @@ class _PausedState:
     _preset_name = "purchasing"
 
     def __init__(self) -> None:
-        self.graph_store = _PausedStore()
+        self.graph_store, _ = _seed_verify_store("DEC-PAUSED")
         self.scorer = _PausedScorer()
 
     def _scorer(self) -> _PausedScorer:

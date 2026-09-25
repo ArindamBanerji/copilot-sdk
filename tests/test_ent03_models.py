@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import re
 
@@ -64,17 +65,22 @@ def test_no_incorrect_rl_naming() -> None:
         re.compile("RL-based " + "decision", re.IGNORECASE),
     )
     matches: list[str] = []
-    for path in root.rglob("*"):
-        if not path.is_file() or path.suffix.lower() not in {".py", ".md", ".tsx"}:
-            continue
-        if any(part in {".git", "__pycache__", "node_modules", "old_outreach"} for part in path.parts):
-            continue
-        text = path.read_text(encoding="utf-8")
-        for line_number, line in enumerate(text.splitlines(), 1):
-            # Historical version tables may quote retired wording; active
-            # product guidance must still avoid the banned phrases.
-            if line.lstrip().startswith("| v"):
+    skip_dirs = {".git", "__pycache__", "node_modules", "old_outreach", "test-results"}
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [dirname for dirname in dirnames if dirname not in skip_dirs]
+        for filename in filenames:
+            path = Path(dirpath) / filename
+            if path.suffix.lower() not in {".py", ".md", ".tsx"}:
                 continue
-            if any(pattern.search(line) for pattern in patterns):
-                matches.append(f"{path}:{line_number}: {line.strip()}")
+            try:
+                text = path.read_text(encoding="utf-8")
+            except FileNotFoundError:
+                continue
+            for line_number, line in enumerate(text.splitlines(), 1):
+                # Historical version tables may quote retired wording; active
+                # product guidance must still avoid the banned phrases.
+                if line.lstrip().startswith("| v"):
+                    continue
+                if any(pattern.search(line) for pattern in patterns):
+                    matches.append(f"{path}:{line_number}: {line.strip()}")
     assert not matches, "Incorrect RL naming remains:\n" + "\n".join(matches)

@@ -8,3 +8,4 @@ test("Trading health exposes hot-path cache stats", async ({ page }) => {
   expect(data.cache_misses).toBeDefined();
   expect(data.cache_size).toBeDefined();
 });
+

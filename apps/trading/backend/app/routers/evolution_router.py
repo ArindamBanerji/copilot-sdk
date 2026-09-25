@@ -88,7 +88,6 @@ def create_trading_evolution_router(
         return log
 
     @router.get("/rejection-summary")
-    @cached_static("rejection-summary")
     def rejection_summary(request: Request) -> dict[str, Any]:
         persisted = _load_persisted_rejection_summary() if use_persisted_rejections else None
         entries = _merge_rejection_entries(

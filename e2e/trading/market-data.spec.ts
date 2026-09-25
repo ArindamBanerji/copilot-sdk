@@ -16,9 +16,12 @@ test.describe("Market Data API - spot checks", () => {
     const res = await request.get(`${BACKEND}/api/context/market-snapshot`);
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("spy");
-    if (body.spy && body.spy.price !== null) {
-      expect(typeof body.spy.price).toBe("number");
+    expect(body).toHaveProperty("vix");
+    if (body.regime !== undefined) {
+      expect(typeof body.regime).toBe("string");
+    }
+    if (body.vix && body.vix.price !== null) {
+      expect(typeof body.vix.price).toBe("number");
     }
   });
 
@@ -82,3 +85,4 @@ test.describe("Market Data API - flow checks", () => {
     expect(["live", "cached", "fixture", "demo_fixture", "scraped_external"]).toContain(snapshotBody.provenance.source);
   });
 });
+

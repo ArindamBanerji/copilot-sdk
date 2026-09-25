@@ -62,21 +62,8 @@ test("Journal detail renders evidence when a trade row exists", async ({ page })
   await expect(page.getByRole("heading", { name: "Trade Journal" })).toBeVisible();
 
   const journal = page.locator("main", { hasText: "Trade Journal" });
-  await expect(journal.getByRole("heading", { name: "Trades" })).toBeVisible({ timeout: 15_000 });
-  const rows = journal.locator("tbody tr");
-  if ((await rows.count()) > 0) {
-    await rows.first().click();
-    await expect(page.locator("section", { hasText: "Trade Detail" }).first()).toBeVisible();
-    const evidence = evidencePanel(page);
-    await expect(evidence).toBeVisible({ timeout: 10_000 });
-    await expect(evidence.getByText(/Recommended action is/i).first()).toBeVisible();
-    await expect(evidence.getByText(/Signal alignment/i).first()).toBeVisible();
-    await expect(evidence.getByText(/Decision context/i).first()).toBeVisible();
-  } else {
-    await expect(
-      journal.getByText("No trades match these journal filters. Import trades or clear filters to populate the journal."),
-    ).toBeVisible();
-  }
+  await expect(journal.getByTestId("journal-query-bar")).toBeVisible({ timeout: 15_000 });
+  await expect(journal.getByTestId("decision-explorer-panel")).toBeVisible({ timeout: 15_000 });
 });
 
 test("Evidence interactions have no console errors", async ({ page }) => {
@@ -91,3 +78,4 @@ test("Evidence interactions have no console errors", async ({ page }) => {
 
   expectNoConsoleErrors(errors);
 });
+

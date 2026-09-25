@@ -111,11 +111,24 @@ function VolPanel({ testId, title, beat, loader, fields }: { testId: string; tit
   return <Shell testId={testId} title={title} beat={beat} observation={text(data)}><div className="grid gap-3 sm:grid-cols-2">{fields.map(([label, keys]) => <Metric key={label} label={label} value={loading ? "-" : number(data, ...keys)} />)}<Evidence payload={data} /></div></Shell>;
 }
 
-export function VolShortPanel() { return <VolPanel testId="vol-short-panel" title="Clustering-adjusted Sharpe" beat="TRD-V1" loader={fetchVolatilitySharpe} fields={[["Adjusted quality", ["qualityAdjustedScore", "quality_adjusted_score"]], ["Decisions", ["nDecisions", "n_decisions"]]]} />; }
-export function VRPPanel() { return <VolPanel testId="vrp-panel" title="VRP and tail-dependence window" beat="TRD-V2" loader={fetchVolatilityVrp} fields={[["VRP spread", ["vrpSpreadMean", "vrp_spread_mean"]], ["Tail capture", ["tailCapture", "tail_capture"]]]} />; }
+export function VolShortPanel() { return <VolPanel testId="vol-sharpe-card" title="Clustering-adjusted Sharpe" beat="TRD-V1" loader={fetchVolatilitySharpe} fields={[["Adjusted quality", ["qualityAdjustedScore", "quality_adjusted_score"]], ["Decisions", ["nDecisions", "n_decisions"]]]} />; }
+export function VRPPanel() {
+  const { data, loading } = useData(fetchVolatilityVrp);
+  const classification = String(value(data, "classification") || (value(data, "dayZero", "day_zero") ? "Accumulating" : "Neutral"));
+  return <Shell testId="vrp-attribution-card" title="VRP and tail-dependence window" beat="TRD-V2" observation={text(data)}>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Metric label="VRP spread" value={loading ? "-" : number(data, "vrpSpreadMean", "vrp_spread_mean")} />
+      <Metric label="Tail capture" value={loading ? "-" : number(data, "tailCapture", "tail_capture")} />
+      <div data-testid="vrp-classification">
+        <Metric label="Reading" value={loading ? "-" : classification} />
+      </div>
+      <Evidence payload={data} />
+    </div>
+  </Shell>;
+}
 export function RichCheapPanel() { return <VolPanel testId="rich-cheap-panel" title="Regime-conditioned rich / cheap" beat="TRD-V5" loader={fetchVolatilityRichCheap} fields={[["IV percentile", ["ivPercentile", "iv_percentile"]], ["Band", ["band"]]]} />; }
-export function DispersionPanel() { return <VolPanel testId="dispersion-panel" title="Dispersion follow-rate" beat="TRD-V6" loader={fetchVolatilityDispersion} fields={[["Follow-rate", ["followRate", "follow_rate"]], ["Observed impact", ["skippedValue", "skipped_value"]]]} />; }
-export function TailBetsPanel() { return <VolPanel testId="tail-bets-panel" title="Effective bets in tail" beat="TRD-V7" loader={fetchVolatilityTailBets} fields={[["Effective bets", ["effectiveBets", "effective_bets"]], ["Tail decisions", ["tailDecisions", "tail_decisions"]]]} />; }
+export function DispersionPanel() { return <VolPanel testId="dispersion-follow-card" title="Dispersion follow-rate" beat="TRD-V6" loader={fetchVolatilityDispersion} fields={[["Follow-rate", ["followRate", "follow_rate"]], ["Observed impact", ["skippedValue", "skipped_value"]]]} />; }
+export function TailBetsPanel() { return <VolPanel testId="tail-bets-card" title="Effective bets in tail" beat="TRD-V7" loader={fetchVolatilityTailBets} fields={[["Effective bets", ["effectiveBets", "effective_bets"]], ["Tail decisions", ["tailDecisions", "tail_decisions"]]]} />; }
 
 function useClaim(): { data: ClaimGateResponse | null; loading: boolean } { return useData(fetchClaimGate); }
 

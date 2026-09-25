@@ -2,7 +2,7 @@ import { expect, test } from "../fixtures/copilot-fixture";
 import { clickTab, waitForAppShell } from "../helpers/ui";
 
 test("situation endpoint exposes regime-conditioned observations", async ({ request }) => {
-  const response = await request.get("/api/trading/situation");
+  const response = await request.get("http://127.0.0.1:8010/api/trading/situation");
   expect(response.ok()).toBeTruthy();
   const body = await response.json();
   expect(["trending", "ranging", "volatile", "calm"]).toContain(body.regime);
@@ -30,3 +30,4 @@ test("situation panel remains observation-only", async ({ page }) => {
   await expect(panel).toContainText(/No forward action is inferred/i);
   await expect(panel).not.toContainText(/reduce\s+size|\bavoid\b|\bhold\s+sizing\b/i);
 });
+

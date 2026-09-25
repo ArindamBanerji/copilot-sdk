@@ -45,3 +45,4 @@ test("SAFE-PW-04 regime panel uses observation language", async ({ page }) => {
   await expect(panel).not.toContainText(/recommendation|reduce\s+size|\bavoid\b|\bhold\s+sizing\b/i);
   await expect(panel).toContainText(/observation|Loading/i);
 });
+

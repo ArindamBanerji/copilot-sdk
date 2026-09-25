@@ -1,133 +1,136 @@
-"""Celonis connector with deterministic cache fallback for DataOps demos."""
+"""Celonis Knowledge Model API with captured-response and sample fallbacks.
 
+API contract: https://developer.celonis.com/process-intelligence-apis/knowledge-model-api/api-reference/try-it/
+The public Remockly service is a developer demo, not a customer tenant.
+"""
 from __future__ import annotations
 
 import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
+from urllib.parse import quote, urlparse
+
+from apps.dataops.backend.app.connector_cache import ConnectorCache
 
 logger = logging.getLogger(__name__)
-
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
-DEFAULT_CELONIS_URL = "https://developer.celonis.com/demo"
+DEFAULT_CELONIS_URL = "https://16abf815-424c-413e-b92d-6c6f8fc633cd.remockly.com/intelligence/api"
+DEMO_KM_ID = "open-purchase-requisition.purchase-requisition-km"
+SAMPLE_KM_ID = "km-p2p-dataops"
 
 
 class CelonisConnector:
-    provenance_tier = "sample"  # cache-backed fixture, not live Celonis
-    # When real Celonis API wired: change to "scraped_external"
+    provenance_tier = "sample"
 
-    def __init__(
-        self,
-        base_url: str | None = None,
-        token: str | None = None,
-        cache_dir: str | Path | None = None,
-        timeout: float = 5.0,
-    ) -> None:
-        env_base_url = os.getenv("CELONIS_URL")
-        env_token = os.getenv("CELONIS_TOKEN")
-        self.base_url = (base_url or env_base_url or DEFAULT_CELONIS_URL).rstrip("/")
-        self.token = token if token is not None else env_token or "demo-token"
+    def __init__(self, base_url: str | None = None, token: str | None = None,
+                 cache_dir: str | Path | None = None, timeout: float = 10.0) -> None:
+        env_url, env_token = os.getenv("CELONIS_URL"), os.getenv("CELONIS_TOKEN")
+        self.base_url = (base_url or env_url or DEFAULT_CELONIS_URL).rstrip("/")
+        self.is_demo = urlparse(self.base_url).hostname == urlparse(DEFAULT_CELONIS_URL).hostname
+        self.token = token if token is not None else env_token or ("demo-token" if self.is_demo else "")
         self.cache_dir = Path(cache_dir) if cache_dir is not None else DATA_DIR
         self.timeout = timeout
         self.last_source = "celonis_cache"
-        self._live_enabled = bool(base_url or env_base_url or token or env_token)
+        self._live_enabled = bool(base_url or env_url or token or env_token or
+                                  os.getenv("CELONIS_LIVE", "").lower() == "true")
+        self._cache = ConnectorCache(self.cache_dir, f"celonis:{self.base_url}:{self.token}")
+
+    async def _collection(self, endpoint: str, key: str, filename: str,
+                          allow_sample: bool = True) -> dict[str, Any]:
+        try:
+            payload, live = await self._cache.fetch(endpoint, None, self._request_json,
+                                                   lambda value: _list_from_payload(value, key))
+            rows = _list_from_payload(payload, key)
+            provenance = "sandbox" if self.is_demo else "external"
+        except (RuntimeError, ValueError):
+            rows = self._load_cache_list(filename) if allow_sample else []
+            live, provenance = False, "sample"
+        self.last_source = "celonis_live" if live else "celonis_cache"
+        return {"source": self.last_source, "provenance": provenance, key: rows}
 
     async def get_knowledge_models(self) -> dict[str, Any]:
-        try:
-            payload = await self._request_json("/knowledge-models")
-            models = _list_from_payload(payload, "knowledge_models")
-            self.last_source = "celonis_live"
-            return {"source": "celonis_live", "knowledge_models": models}
-        except Exception as exc:
-            logger.warning("Celonis knowledge model fetch failed; using cache: %s", exc)
-            models = self._load_cache_list("celonis_knowledge_models.json")
-            self.last_source = "celonis_cache"
-            return {"source": "celonis_cache", "knowledge_models": models}
+        return await self._collection("/knowledge-models", "knowledge_models", "celonis_knowledge_models.json")
 
     async def get_kpis(self, km_id: str) -> dict[str, Any]:
-        try:
-            payload = await self._request_json(f"/knowledge-models/{km_id}/kpis")
-            kpis = _list_from_payload(payload, "kpis")
-            self.last_source = "celonis_live"
-            return {"source": "celonis_live", "kpis": kpis}
-        except Exception as exc:
-            logger.warning("Celonis KPI fetch failed for %s; using cache: %s", km_id, exc)
-            kpis = self._load_cache_list("celonis_kpis.json")
-            self.last_source = "celonis_cache"
-            return {"source": "celonis_cache", "kpis": kpis}
+        return await self._collection(f"/knowledge-models/{quote(km_id, safe='')}/kpis", "kpis",
+                                      "celonis_kpis.json", allow_sample=km_id == SAMPLE_KM_ID)
 
-    async def get_process_data(
-        self,
-        km_id: str,
-        fields: list[str] | None = None,
-        kpis: list[str] | None = None,
-    ) -> dict[str, Any]:
+    async def get_process_data(self, km_id: str, fields: list[str] | None = None,
+                               kpis: list[str] | None = None) -> dict[str, Any]:
         params: dict[str, str] = {}
+        if self.is_demo and km_id == DEMO_KM_ID and fields is None and kpis is None:
+            fields, kpis = ["MATERIALS.ACTIVITY"], ["AVG_EVENTS_PER_CASE", "FILTERED_COUNT"]
         if fields:
             params["fields"] = ",".join(fields)
         if kpis:
             params["kpis"] = ",".join(kpis)
         try:
-            payload = await self._request_json(f"/knowledge-models/{km_id}/process-data", params=params)
-            process_data = payload.get("process_data", payload) if isinstance(payload, dict) else {}
-            self.last_source = "celonis_live"
-            return {"source": "celonis_live", "process_data": process_data if isinstance(process_data, dict) else {}}
-        except Exception as exc:
-            logger.warning("Celonis process data fetch failed for %s; using cache: %s", km_id, exc)
-            process_data = self._load_cache_dict("celonis_process_data.json")
-            self.last_source = "celonis_cache"
-            return {"source": "celonis_cache", "process_data": process_data}
+            payload, live = await self._cache.fetch(
+                f"/knowledge-models/{quote(km_id, safe='')}/data", params,
+                self._request_json, _process_payload)
+            process = _process_payload(payload)
+            provenance = "sandbox" if self.is_demo else "external"
+        except (RuntimeError, ValueError):
+            # The checked-in P2P scenario is not data for an arbitrary customer KM.
+            process = self._load_cache_dict("celonis_process_data.json") if km_id == SAMPLE_KM_ID and not params else {}
+            live, provenance = False, "sample"
+        self.last_source = "celonis_live" if live else "celonis_cache"
+        return {"source": self.last_source, "provenance": provenance,
+                "process_data": {**process, "source": self.last_source, "provenance": provenance} if process else {}}
 
     async def health(self) -> dict[str, Any]:
-        try:
-            await self._request_json("/knowledge-models")
-            return {"status": "ok", "live": True, "source": "celonis_live"}
-        except Exception as exc:
-            logger.warning("Celonis health check failed; using cache fallback: %s", exc)
-            models = self._load_cache_list("celonis_knowledge_models.json")
-            return {
-                "status": "cache",
-                "live": False,
-                "source": "celonis_cache",
-                "cached_models": len(models),
-            }
+        payload = await self.get_knowledge_models()
+        live = payload["source"] == "celonis_live"
+        count = len(payload["knowledge_models"])
+        return {"status": "ok" if live else "cache" if count else "unavailable",
+                "live": live, "connected": live, "cached": not live and bool(count),
+                "source": payload["source"], "km_count": count,
+                "cached_models": 0 if live else count, "provenance": payload["provenance"]}
 
-    async def _request_json(self, endpoint: str, params: dict[str, str] | None = None) -> dict[str, Any]:
-        if not self._live_enabled:
+    async def _request_json(self, endpoint: str, params: dict[str, str] | None = None) -> Any:
+        if not self._live_enabled or not self.token:
             raise RuntimeError("Celonis live connection is not configured")
         import httpx
-
-        headers = {"Accept": "application/json", "Authorization": f"Bearer {self.token}"}
+        # Keep certificate verification enabled. TLS errors follow the cache path.
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.get(f"{self.base_url}{endpoint}", params=params, headers=headers)
+            response = await client.get(f"{self.base_url}{endpoint}", params=params,
+                                        headers={"Accept": "application/json", "Authorization": f"Bearer {self.token}"})
             response.raise_for_status()
-            return cast(dict[str, Any], response.json())
+            return response.json()
 
     def _load_cache_list(self, filename: str) -> list[dict[str, Any]]:
         payload = self._load_cache_dict(filename)
-        for value in payload.values():
-            if isinstance(value, list):
-                return [item for item in value if isinstance(item, dict)]
-        logger.warning("Celonis cache file %s did not contain a list payload", filename)
-        return []
+        key = "knowledge_models" if filename == "celonis_knowledge_models.json" else "kpis"
+        try:
+            return _list_from_payload(payload, key)
+        except ValueError:
+            return []
 
     def _load_cache_dict(self, filename: str) -> dict[str, Any]:
-        path = self.cache_dir / filename
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            logger.warning("Celonis cache file %s could not be loaded: %s", filename, exc)
+            payload = json.loads((self.cache_dir / filename).read_text(encoding="utf-8"))
+            return payload if isinstance(payload, dict) else {}
+        except (OSError, ValueError):
             return {}
-        if isinstance(payload, dict):
-            return payload
-        logger.warning("Celonis cache file %s did not contain a dict payload", filename)
-        return {}
 
 
-def _list_from_payload(payload: dict[str, Any], key: str) -> list[dict[str, Any]]:
+def _list_from_payload(payload: Any, key: str) -> list[dict[str, Any]]:
+    raw = payload
+    if isinstance(payload, dict):
+        raw = next((payload[name] for name in (key, "content", "items", "data") if name in payload), None)
+    if not isinstance(raw, list) or not all(isinstance(item, dict) for item in raw):
+        raise ValueError("Expected a Celonis collection")
+    return raw
+
+
+def _process_payload(payload: Any) -> dict[str, Any]:
     if not isinstance(payload, dict):
-        return []
-    raw = payload.get(key) or payload.get("items") or payload.get("data") or []
-    return [item for item in raw if isinstance(item, dict)] if isinstance(raw, list) else []
+        raise ValueError("Expected Celonis KM data object")
+    process = payload.get("process_data", payload)
+    if not isinstance(process, dict) or not any(key in process for key in ("content", "activities", "process_model")):
+        raise ValueError("Expected Celonis data content")
+    # /data contains selected record fields and KPIs, not automatically durations.
+    # Preserve the raw result; do not invent timing metrics from event counts.
+    return process

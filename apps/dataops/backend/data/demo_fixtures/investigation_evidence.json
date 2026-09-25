@@ -1,0 +1,20 @@
+{
+  "planted": true,
+  "provenance": "sample",
+  "synthetic": true,
+  "evidence_tier": "T-sim",
+  "description": "Illustrative pipeline incident; actions are computed by the real investigator, not fixture labels.",
+  "alerts": {
+    "PL-DO-5": {
+      "alert_id": "PL-DO-5", "category": "pipeline_failure", "system": "demo_k14_pipeline",
+      "recurrence_count": 12,
+      "factors": {"impact_scope": 1.0, "source_reliability": 0.08, "recurrence_frequency": 1.0, "downstream_urgency": 1.0, "data_freshness": 0.0, "business_criticality": 1.0}
+    }
+  },
+  "pipelines": {"demo_k14_pipeline": {"status": "failed", "downstream": ["demo_billing", "demo_inventory", "demo_reporting"]}},
+  "schema_changes": {"demo_k14_pipeline": [{"column": "customer_id", "change_type": "incompatible_type", "downstream_impact": 10, "impacted_systems": ["demo_billing", "demo_inventory"]}]},
+  "dependencies": {"demo_k14_pipeline": {"value": 1.0, "confidence": 0.95, "downstream": ["demo_billing", "demo_inventory", "demo_reporting"]}},
+  "recurrences": {"PL-DO-5": {"prior_count": 12, "value": 1.0, "confidence": 0.95}},
+  "correlations": {"PL-DO-5": {"value": 0.0, "confidence": 0.95, "correlated_alerts": []}},
+  "blast_radius": {"PL-DO-5": {"value": 1.0, "confidence": 0.95, "affected_systems": ["demo_billing", "demo_inventory", "demo_reporting"]}}
+}

@@ -1,0 +1,2027 @@
+
+Running 47 tests using 1 worker
+
+(node:71560) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71560) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   1 [demo] › demo\fork\fork-01-clone-run.spec.ts:3:1 › FORK-01 clone-run: trading preseed fingerprint has ten factors (10.3s)
+(node:78924) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:78924) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   2 [demo] › demo\fork\fork-01-clone-run.spec.ts:3:1 › FORK-01 clone-run: trading preseed fingerprint has ten factors (retry #1) (10.3s)
+(node:18784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  3 [demo] › demo\fork\fork-02-replay-parity.spec.ts:3:1 › FORK-02 replay parity: repeated fingerprint reads preserve factor geometry (80ms)
+  x   4 [demo] › demo\machine\mach-01-through-machine.spec.ts:3:1 › MACH-01 through-machine: alert analysis returns an ordered trace and confidence (373ms)
+(node:51940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   5 [demo] › demo\machine\mach-01-through-machine.spec.ts:3:1 › MACH-01 through-machine: alert analysis returns an ordered trace and confidence (retry #1) (109ms)
+(node:29688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:29688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   6 [demo] › demo\machine\mach-02-reshape.spec.ts:3:1 › MACH-02 reshape: no-precedent analysis exposes an explicit path (10.3s)
+(node:68628) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:68628) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   7 [demo] › demo\machine\mach-02-reshape.spec.ts:3:1 › MACH-02 reshape: no-precedent analysis exposes an explicit path (retry #1) (10.3s)
+(node:71128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   8 [demo] › demo\machine\mach-04-500-not-5m.spec.ts:3:1 › MACH-04 500-not-5m: geometry and compounding data are present (267ms)
+(node:80012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:80012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   9 [demo] › demo\machine\mach-04-500-not-5m.spec.ts:3:1 › MACH-04 500-not-5m: geometry and compounding data are present (retry #1) (230ms)
+(node:77056) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:77056) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  10 [demo] › demo\pilot\pilot-01-first-90.spec.ts:3:1 › PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields (10.6s)
+(node:81784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:81784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  11 [demo] › demo\pilot\pilot-01-first-90.spec.ts:3:1 › PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields (retry #1) (10.4s)
+(node:80464) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:80464) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 12 [demo] › demo\pilot\pilot-02-readiness-evidence.spec.ts:3:1 › PILOT-02 readiness evidence: readiness payload includes coverage detail (270ms)
+  x  13 [demo] › demo\pilot\pilot-03-three-artifacts.spec.ts:3:1 › PILOT-03 three artifacts: centroid history has timestamped mu and K (199ms)
+(node:72912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  14 [demo] › demo\pilot\pilot-03-three-artifacts.spec.ts:3:1 › PILOT-03 three artifacts: centroid history has timestamped mu and K (retry #1) (171ms)
+  -  15 [demo] › demo\platform\plat-01-shared-trace.spec.ts:3:6 › PLAT-01 › BUILD: shared cross-copilot trace panel is not shipped
+  -  16 [demo] › demo\platform\plat-02-routing-badge.spec.ts:3:6 › PLAT-02 › ROADMAP: cross-copilot routing accuracy badge is not measured
+(node:22356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  17 [demo] › demo\platform\plat-03-five-corrections.spec.ts:3:1 › PLAT-03 five corrections: every copilot exposes an RSI indicator (156ms)
+(node:47552) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:47552) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  18 [demo] › demo\platform\plat-03-five-corrections.spec.ts:3:1 › PLAT-03 five corrections: every copilot exposes an RSI indicator (retry #1) (71ms)
+(node:75220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  19 [demo] › demo\platform\plat-04-five-curves.spec.ts:3:1 › PLAT-04 five curves: every trajectory endpoint returns data (67ms)
+(node:72568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  20 [demo] › demo\platform\plat-04-five-curves.spec.ts:3:1 › PLAT-04 five curves: every trajectory endpoint returns data (retry #1) (74ms)
+(node:69636) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69636) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 21 [demo] › demo\platform\plat-05-five-health-checks.spec.ts:3:1 › PLAT-05 five health checks: all demo copilots are reachable (701ms)
+(node:72876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  22 [demo-soc] › demo\soc\soc-01-analyst-left.spec.ts:4:1 › SOC-01 analyst-left: learning state has verified evidence and weighted categories (10.3s)
+(node:22660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  23 [demo-soc] › demo\soc\soc-01-analyst-left.spec.ts:4:1 › SOC-01 analyst-left: learning state has verified evidence and weighted categories (retry #1) (10.2s)
+  -  24 [demo-soc] › demo\soc\soc-02-no-precedent.spec.ts:3:6 › SOC-02 › PLANT: needs PL-SOC-1 no-precedent alert fixture
+(node:77612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:77612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  25 [demo-soc] › demo\soc\soc-03-rejected-35.spec.ts:3:1 › SOC-03 rejected-35: runtime evolution exposes promoted and rejected evidence (10.2s)
+(node:75352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  26 [demo-soc] › demo\soc\soc-03-rejected-35.spec.ts:3:1 › SOC-03 rejected-35: runtime evolution exposes promoted and rejected evidence (retry #1) (10.2s)
+  -  27 [demo-soc] › demo\soc\soc-04-authority-ladder.spec.ts:3:6 › SOC-04 › BUILD: authority ladder and RED veto are not shipped
+  -  28 [demo-soc] › demo\soc\soc-05-frozen-twin.spec.ts:3:6 › SOC-05 › BUILD: frozen-twin comparison surface is not shipped
+  -  29 [demo-soc] › demo\soc\soc-06-investigation-trace.spec.ts:3:6 › SOC-06 › ROADMAP: shared investigation trace panel is not deployed
+(node:68124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:68124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  30 [demo-soc] › demo\soc\soc-07-chained.spec.ts:3:1 › SOC-07 chained: audit verifies and export affordance is present (10.2s)
+(node:74716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  31 [demo-soc] › demo\soc\soc-07-chained.spec.ts:3:1 › SOC-07 chained: audit verifies and export affordance is present (retry #1) (10.2s)
+  -  32 [demo-soc] › demo\soc\soc-08-routing-accuracy.spec.ts:3:6 › SOC-08 › CONCEPTUAL: routing-accuracy claim is not measured
+(node:59068) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:59068) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  33 [demo-soc] › demo\soc\soc-09-same-alert.spec.ts:4:1 › SOC-09 same alert: replay returns the same action and factors (105ms)
+(node:28520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  34 [demo-soc] › demo\soc\soc-09-same-alert.spec.ts:4:1 › SOC-09 same alert: replay returns the same action and factors (retry #1) (147ms)
+  -  35 [demo-soc] › demo\soc\soc-10-campaign-path.spec.ts:3:6 › SOC-10 › PLANT: linked campaign investigation fixture is missing
+(node:40952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  36 [demo-s2p] › demo\s2p\s2p-01-rule-said-no.spec.ts:3:1 › S2P-01 rule-said-no: copper invoice is accepted with contract reasoning (10.3s)
+(node:69624) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69624) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  37 [demo-s2p] › demo\s2p\s2p-01-rule-said-no.spec.ts:3:1 › S2P-01 rule-said-no: copper invoice is accepted with contract reasoning (retry #1) (10.3s)
+(node:23168) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23168) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  38 [demo-s2p] › demo\s2p\s2p-02-day-zero.spec.ts:3:1 › S2P-02 day-zero: cold start still returns confidence and contributions (105ms)
+(node:55128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  39 [demo-s2p] › demo\s2p\s2p-02-day-zero.spec.ts:3:1 › S2P-02 day-zero: cold start still returns confidence and contributions (retry #1) (53ms)
+  -  40 [demo-s2p] › demo\s2p\s2p-03-earned-autonomy.spec.ts:3:6 › S2P-03 › BUILD: S2P promotion/autonomy ladder is not shipped
+(node:68304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:68304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  41 [demo-s2p] › demo\s2p\s2p-04-earned-autonomy.spec.ts:3:1 › S2P-04 earned autonomy: performance conservation is green (10.3s)
+(node:58292) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:58292) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  42 [demo-s2p] › demo\s2p\s2p-04-earned-autonomy.spec.ts:3:1 › S2P-04 earned autonomy: performance conservation is green (retry #1) (10.3s)
+  -  43 [demo-s2p] › demo\s2p\s2p-05-supplier-enrichment.spec.ts:3:6 › S2P-05 › PLANT: supplier enrichment fixture is missing
+  -  44 [demo-s2p] › demo\s2p\s2p-06-otif-provenance.spec.ts:3:6 › S2P-06 › ROADMAP: OTIF provenance surface is not complete
+(node:10396) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:10396) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  45 [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history (10.2s)
+(node:67440) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:67440) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  46 [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history (retry #1) (10.2s)
+(node:37996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  47 [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor (10.2s)
+(node:53792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:53792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  48 [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor (retry #1) (10.3s)
+  -  49 [demo-purchasing] › demo\purchasing\pur-03-vendor-cascade.spec.ts:3:6 › PUR-03 › PLANT: vendor-cascade order fixture is missing
+(node:77728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:77728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  50 [demo-purchasing] › demo\purchasing\pur-04-quiet-week.spec.ts:3:1 › PUR-04 quiet week: proof ledger has both curves (10.3s)
+(node:71468) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71468) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  51 [demo-purchasing] › demo\purchasing\pur-04-quiet-week.spec.ts:3:1 › PUR-04 quiet week: proof ledger has both curves (retry #1) (10.2s)
+  -  52 [demo-purchasing] › demo\purchasing\pur-05-proof-ledger-export.spec.ts:3:6 › PUR-05 › BUILD: purchasing proof-ledger export is not shipped
+  -  53 [demo-purchasing] › demo\purchasing\pur-06-multi-unit-transfer.spec.ts:3:6 › PUR-06 › ROADMAP: multi-unit trust transfer scenario is not ready
+(node:53420) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:53420) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  54 [demo-trading] › demo\trading\trd-01-favorite-setup.spec.ts:3:1 › TRD-01 favorite setup: ten-factor trust radar flags sigma (10.3s)
+(node:49908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  55 [demo-trading] › demo\trading\trd-01-favorite-setup.spec.ts:3:1 › TRD-01 favorite setup: ten-factor trust radar flags sigma (retry #1) (10.2s)
+  -  56 [demo-trading] › demo\trading\trd-02-friday-regime.spec.ts:3:6 › TRD-02 › PLANT: Friday regime fixture is missing
+(node:78716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:78716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  57 [demo-trading] › demo\trading\trd-03-certificate.spec.ts:3:1 › TRD-03 certificate: claim gate exposes detector count and outcome (10.2s)
+(node:6256) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6256) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  58 [demo-trading] › demo\trading\trd-03-certificate.spec.ts:3:1 › TRD-03 certificate: claim gate exposes detector count and outcome (retry #1) (10.2s)
+  -  59 [demo-trading] › demo\trading\trd-04-revenge-trade.spec.ts:3:6 › TRD-04 › PLANT: revenge-trade fixture is missing
+  -  60 [demo-trading] › demo\trading\trd-05-prove-before-money.spec.ts:3:6 › TRD-05 › CONCEPTUAL: prove-before-real-money gate is not deployed
+(node:3968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  61 [demo-trading] › demo\trading\trd-06-code-free.spec.ts:3:1 › TRD-06 code-free: fingerprint has ten earned nonzero weights (10.3s)
+(node:71992) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71992) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  62 [demo-trading] › demo\trading\trd-06-code-free.spec.ts:3:1 › TRD-06 code-free: fingerprint has ten earned nonzero weights (retry #1) (10.2s)
+  -  63 [demo-dataops] › demo\dataops\do-01-source-lost.spec.ts:3:6 › DO-01 › PLANT: source-lost alert fixture is missing
+(node:78488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:78488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  64 [demo-dataops] › demo\dataops\do-02-source-lost-trust.spec.ts:3:1 › DO-02 source-lost-trust: dashboard differentiates source scores (10.3s)
+(node:36272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  65 [demo-dataops] › demo\dataops\do-02-source-lost-trust.spec.ts:3:1 › DO-02 source-lost-trust: dashboard differentiates source scores (retry #1) (10.2s)
+(node:80448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:80448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  66 [demo-dataops] › demo\dataops\do-03-twelve-years.spec.ts:3:1 › DO-03 twelve-years: six-factor profile and centroid checkpoints exist (10.2s)
+(node:44348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:44348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  67 [demo-dataops] › demo\dataops\do-03-twelve-years.spec.ts:3:1 › DO-03 twelve-years: six-factor profile and centroid checkpoints exist (retry #1) (10.3s)
+(node:15492) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15492) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  68 [demo-dataops] › demo\dataops\do-04-rule-wrong.spec.ts:3:1 › DO-04 rule-wrong: lifecycle contains a promotion and demotion (10.3s)
+(node:53908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:53908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  69 [demo-dataops] › demo\dataops\do-04-rule-wrong.spec.ts:3:1 › DO-04 rule-wrong: lifecycle contains a promotion and demotion (retry #1) (10.3s)
+(node:71108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  70 [demo-dataops] › demo\dataops\do-05-llm-wrong.spec.ts:3:1 › DO-05 llm-wrong: investigation action differs and K14 caption is visible (10.3s)
+(node:48512) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48512) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  71 [demo-dataops] › demo\dataops\do-05-llm-wrong.spec.ts:3:1 › DO-05 llm-wrong: investigation action differs and K14 caption is visible (retry #1) (10.4s)
+(node:15280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  72 [demo-dataops] › demo\dataops\do-06-jan-vs-now.spec.ts:3:1 › DO-06 jan-vs-now: insight shows a differentiated trust distribution (10.3s)
+(node:71836) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71836) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  73 [demo-dataops] › demo\dataops\do-06-jan-vs-now.spec.ts:3:1 › DO-06 jan-vs-now: insight shows a differentiated trust distribution (retry #1) (10.4s)
+
+
+  1) [demo] › demo\fork\fork-01-clone-run.spec.ts:3:1 › FORK-01 clone-run: trading preseed fingerprint has ten factors 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Fingerprint|Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Fingerprint|Analysis/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("FORK-01 clone-run: trading preseed fingerprint has ten factors", async ({page,request})=>{await page.goto(`${API}/`);const r=await request.get(`${API}/api/fingerprint`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(b).toBeTruthy();expect(b.factors??b.profile?.factors).toHaveLength(10);await expect(page.getByText(/Fingerprint|Analysis/i).first()).toBeVisible();});
+        |                                                                                                                                                                                                                                                                                                                                                                               ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\fork\fork-01-clone-run.spec.ts:3:367
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Fingerprint|Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Fingerprint|Analysis/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("FORK-01 clone-run: trading preseed fingerprint has ten factors", async ({page,request})=>{await page.goto(`${API}/`);const r=await request.get(`${API}/api/fingerprint`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(b).toBeTruthy();expect(b.factors??b.profile?.factors).toHaveLength(10);await expect(page.getByText(/Fingerprint|Analysis/i).first()).toBeVisible();});
+        |                                                                                                                                                                                                                                                                                                                                                                               ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\fork\fork-01-clone-run.spec.ts:3:367
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\fork-fork-01-clone-run-FOR-97b21-fingerprint-has-ten-factors-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [demo] › demo\machine\mach-01-through-machine.spec.ts:3:1 › MACH-01 through-machine: alert analysis returns an ordered trace and confidence 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8001";
+    > 3 | test("MACH-01 through-machine: alert analysis returns an ordered trace and confidence", async ({request})=>{const r=await request.post(`${API}/api/alert/analyze`,{data:{alert_id:"demo-fixed-alert"}});expect(r.ok()).toBeTruthy();const b=await r.json();const trace=b.decision_trace??b.trace;expect(trace).toBeTruthy();expect(JSON.stringify(trace)).toMatch(/read|sequence/i);expect(Number(b.confidence??trace.confidence)).toBeGreaterThan(0);});
+        |                                                                                                                                                                                                                        ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\machine\mach-01-through-machine.spec.ts:3:216
+
+    Error Context: test-results\machine-mach-01-through-ma-37b14-rdered-trace-and-confidence-demo\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\machine-mach-01-through-ma-37b14-rdered-trace-and-confidence-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\machine-mach-01-through-ma-37b14-rdered-trace-and-confidence-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8001";
+    > 3 | test("MACH-01 through-machine: alert analysis returns an ordered trace and confidence", async ({request})=>{const r=await request.post(`${API}/api/alert/analyze`,{data:{alert_id:"demo-fixed-alert"}});expect(r.ok()).toBeTruthy();const b=await r.json();const trace=b.decision_trace??b.trace;expect(trace).toBeTruthy();expect(JSON.stringify(trace)).toMatch(/read|sequence/i);expect(Number(b.confidence??trace.confidence)).toBeGreaterThan(0);});
+        |                                                                                                                                                                                                                        ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\machine\mach-01-through-machine.spec.ts:3:216
+
+    Error Context: test-results\machine-mach-01-through-ma-37b14-rdered-trace-and-confidence-demo-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\machine-mach-01-through-ma-37b14-rdered-trace-and-confidence-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\machine-mach-01-through-ma-37b14-rdered-trace-and-confidence-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [demo] › demo\machine\mach-02-reshape.spec.ts:3:1 › MACH-02 reshape: no-precedent analysis exposes an explicit path 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/alert|triage|investigation/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/alert|triage|investigation/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8001";
+    > 3 | test("MACH-02 reshape: no-precedent analysis exposes an explicit path", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/alert|triage|investigation/i).first()).toBeVisible();const r=await request.post(`${API}/api/alert/analyze`,{data:{alert_id:"demo-no-precedent"}});expect(r.ok()).toBeTruthy();const b=await r.json();expect(JSON.stringify(b)).toMatch(/no.?precedent|new|escalat|trace/i);});
+        |                                                                                                                                                                                                 ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\machine\mach-02-reshape.spec.ts:3:193
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/alert|triage|investigation/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/alert|triage|investigation/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8001";
+    > 3 | test("MACH-02 reshape: no-precedent analysis exposes an explicit path", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/alert|triage|investigation/i).first()).toBeVisible();const r=await request.post(`${API}/api/alert/analyze`,{data:{alert_id:"demo-no-precedent"}});expect(r.ok()).toBeTruthy();const b=await r.json();expect(JSON.stringify(b)).toMatch(/no.?precedent|new|escalat|trace/i);});
+        |                                                                                                                                                                                                 ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\machine\mach-02-reshape.spec.ts:3:193
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\machine-mach-02-reshape-MA-d4809-is-exposes-an-explicit-path-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [demo] › demo\machine\mach-04-500-not-5m.spec.ts:3:1 › MACH-04 500-not-5m: geometry and compounding data are present 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8001";
+    > 3 | test("MACH-04 500-not-5m: geometry and compounding data are present", async ({page,request})=>{await page.goto(`${API}/`);const f=await request.get(`${API}/api/fingerprint`);const t=await request.get(`${API}/api/trajectory`);expect(f.ok()).toBeTruthy();expect(t.ok()).toBeTruthy();const fb=await f.json();const factors=fb.factors??fb.profile?.factors??[];expect(factors.length).toBeGreaterThan(0);const tb=await t.json();expect((tb.data??tb.points??tb.trajectory??tb).length).toBeGreaterThan(0);await expect(page.getByText(/Compounding|geometry|factor/i).first()).toBeVisible();});
+        |                                                                                                                                                                                                                                                 ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\machine\mach-04-500-not-5m.spec.ts:3:241
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8001";
+    > 3 | test("MACH-04 500-not-5m: geometry and compounding data are present", async ({page,request})=>{await page.goto(`${API}/`);const f=await request.get(`${API}/api/fingerprint`);const t=await request.get(`${API}/api/trajectory`);expect(f.ok()).toBeTruthy();expect(t.ok()).toBeTruthy();const fb=await f.json();const factors=fb.factors??fb.profile?.factors??[];expect(factors.length).toBeGreaterThan(0);const tb=await t.json();expect((tb.data??tb.points??tb.trajectory??tb).length).toBeGreaterThan(0);await expect(page.getByText(/Compounding|geometry|factor/i).first()).toBeVisible();});
+        |                                                                                                                                                                                                                                                 ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\machine\mach-04-500-not-5m.spec.ts:3:241
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\machine-mach-04-500-not-5m-31222-ompounding-data-are-present-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [demo] › demo\pilot\pilot-01-first-90.spec.ts:3:1 › PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/ready|coverage|not yet/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/ready|coverage|not yet/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8020";
+    > 3 | test("PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields", async ({page,request})=>{await page.goto(`${API}/`);const r=await request.get(`${API}/api/purchasing/day-0-readiness`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(b.ready).toBeDefined();expect(b.coverage).toBeDefined();expect(b.not_yet??b.notYet).toBeDefined();await expect(page.getByText(/ready|coverage|not yet/i).first()).toBeVisible();});
+        |                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\pilot\pilot-01-first-90.spec.ts:3:426
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/ready|coverage|not yet/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/ready|coverage|not yet/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8020";
+    > 3 | test("PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields", async ({page,request})=>{await page.goto(`${API}/`);const r=await request.get(`${API}/api/purchasing/day-0-readiness`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(b.ready).toBeDefined();expect(b.coverage).toBeDefined();expect(b.not_yet??b.notYet).toBeDefined();await expect(page.getByText(/ready|coverage|not yet/i).first()).toBeVisible();});
+        |                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\pilot\pilot-01-first-90.spec.ts:3:426
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pilot-pilot-01-first-90-PI-cddd3-coverage-and-not-yet-fields-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [demo] › demo\pilot\pilot-03-three-artifacts.spec.ts:3:1 › PILOT-03 three artifacts: centroid history has timestamped mu and K 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("PILOT-03 three artifacts: centroid history has timestamped mu and K", async ({request})=>{const r=await request.get(`${API}/api/self/centroid-history`);expect(r.ok()).toBeTruthy();const b=await r.json();const rows=b.checkpoints??b.history??b.data??[];expect(rows.length).toBeGreaterThan(0);expect(rows.some((x:Record<string,unknown>)=>x.mu!==undefined&&x.K!==undefined&&(x.timestamp!==undefined||x.created_at!==undefined))).toBeTruthy();});
+        |                                                                                                                                                                                                                                                                                                                                                                                                                                               ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\pilot\pilot-03-three-artifacts.spec.ts:3:431
+
+    Error Context: test-results\pilot-pilot-03-three-artif-ce241-ry-has-timestamped-mu-and-K-demo\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pilot-pilot-03-three-artif-ce241-ry-has-timestamped-mu-and-K-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pilot-pilot-03-three-artif-ce241-ry-has-timestamped-mu-and-K-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("PILOT-03 three artifacts: centroid history has timestamped mu and K", async ({request})=>{const r=await request.get(`${API}/api/self/centroid-history`);expect(r.ok()).toBeTruthy();const b=await r.json();const rows=b.checkpoints??b.history??b.data??[];expect(rows.length).toBeGreaterThan(0);expect(rows.some((x:Record<string,unknown>)=>x.mu!==undefined&&x.K!==undefined&&(x.timestamp!==undefined||x.created_at!==undefined))).toBeTruthy();});
+        |                                                                                                                                                                                                                                                                                                                                                                                                                                               ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\pilot\pilot-03-three-artifacts.spec.ts:3:431
+
+    Error Context: test-results\pilot-pilot-03-three-artif-ce241-ry-has-timestamped-mu-and-K-demo-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pilot-pilot-03-three-artif-ce241-ry-has-timestamped-mu-and-K-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pilot-pilot-03-three-artif-ce241-ry-has-timestamped-mu-and-K-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [demo] › demo\platform\plat-03-five-corrections.spec.ts:3:1 › PLAT-03 five corrections: every copilot exposes an RSI indicator 
+
+    Error: fingerprint 8001
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const ports=[8001,8002,8010,8020,8030];
+    > 3 | test("PLAT-03 five corrections: every copilot exposes an RSI indicator", async ({request})=>{for(const port of ports){const r=await request.get(`http://127.0.0.1:${port}/api/fingerprint`);expect(r.ok(),`fingerprint ${port}`).toBeTruthy();const b=await r.json();expect(JSON.stringify(b)).toMatch(/RSI|self.?correction|correction/i);}});
+        |                                                                                                                                                                                                                                  ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\platform\plat-03-five-corrections.spec.ts:3:226
+
+    Error Context: test-results\platform-plat-03-five-corr-f103b-ot-exposes-an-RSI-indicator-demo\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\platform-plat-03-five-corr-f103b-ot-exposes-an-RSI-indicator-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\platform-plat-03-five-corr-f103b-ot-exposes-an-RSI-indicator-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: fingerprint 8001
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const ports=[8001,8002,8010,8020,8030];
+    > 3 | test("PLAT-03 five corrections: every copilot exposes an RSI indicator", async ({request})=>{for(const port of ports){const r=await request.get(`http://127.0.0.1:${port}/api/fingerprint`);expect(r.ok(),`fingerprint ${port}`).toBeTruthy();const b=await r.json();expect(JSON.stringify(b)).toMatch(/RSI|self.?correction|correction/i);}});
+        |                                                                                                                                                                                                                                  ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\platform\plat-03-five-corrections.spec.ts:3:226
+
+    Error Context: test-results\platform-plat-03-five-corr-f103b-ot-exposes-an-RSI-indicator-demo-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\platform-plat-03-five-corr-f103b-ot-exposes-an-RSI-indicator-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\platform-plat-03-five-corr-f103b-ot-exposes-an-RSI-indicator-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [demo] › demo\platform\plat-04-five-curves.spec.ts:3:1 › PLAT-04 five curves: every trajectory endpoint returns data 
+
+    Error: trajectory 8001
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const ports=[8001,8002,8010,8020,8030];
+    > 3 | test("PLAT-04 five curves: every trajectory endpoint returns data", async ({request})=>{for(const port of ports){const r=await request.get(`http://127.0.0.1:${port}/api/trajectory`);expect(r.ok(),`trajectory ${port}`).toBeTruthy();const b=await r.json();expect((b.data??b.points??b.trajectory??b).length).toBeGreaterThan(0);}});
+        |                                                                                                                                                                                                                           ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\platform\plat-04-five-curves.spec.ts:3:219
+
+    Error Context: test-results\platform-plat-04-five-curv-83f38-ctory-endpoint-returns-data-demo\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\platform-plat-04-five-curv-83f38-ctory-endpoint-returns-data-demo\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\platform-plat-04-five-curv-83f38-ctory-endpoint-returns-data-demo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: trajectory 8001
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const ports=[8001,8002,8010,8020,8030];
+    > 3 | test("PLAT-04 five curves: every trajectory endpoint returns data", async ({request})=>{for(const port of ports){const r=await request.get(`http://127.0.0.1:${port}/api/trajectory`);expect(r.ok(),`trajectory ${port}`).toBeTruthy();const b=await r.json();expect((b.data??b.points??b.trajectory??b).length).toBeGreaterThan(0);}});
+        |                                                                                                                                                                                                                           ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\platform\plat-04-five-curves.spec.ts:3:219
+
+    Error Context: test-results\platform-plat-04-five-curv-83f38-ctory-endpoint-returns-data-demo-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\platform-plat-04-five-curv-83f38-ctory-endpoint-returns-data-demo-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\platform-plat-04-five-curv-83f38-ctory-endpoint-returns-data-demo-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [demo-soc] › demo\soc\soc-01-analyst-left.spec.ts:4:1 › SOC-01 analyst-left: learning state has verified evidence and weighted categories 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Executive Narrative|Compounding/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Executive Narrative|Compounding/i).first()[22m
+
+
+      4 | test("SOC-01 analyst-left: learning state has verified evidence and weighted categories", async ({ page, request }) => {
+      5 |   await page.goto(`${API}/`);
+    > 6 |   await expect(page.getByText(/Executive Narrative|Compounding/i).first()).toBeVisible();
+        |                                                                            ^
+      7 |   const response = await request.get(`${API}/api/learning-health`);
+      8 |   expect(response.ok()).toBeTruthy();
+      9 |   const body = await response.json();
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-01-analyst-left.spec.ts:6:76
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Executive Narrative|Compounding/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Executive Narrative|Compounding/i).first()[22m
+
+
+      4 | test("SOC-01 analyst-left: learning state has verified evidence and weighted categories", async ({ page, request }) => {
+      5 |   await page.goto(`${API}/`);
+    > 6 |   await expect(page.getByText(/Executive Narrative|Compounding/i).first()).toBeVisible();
+        |                                                                            ^
+      7 |   const response = await request.get(`${API}/api/learning-health`);
+      8 |   expect(response.ok()).toBeTruthy();
+      9 |   const body = await response.json();
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-01-analyst-left.spec.ts:6:76
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-01-analyst-left-SOC-01-4eaf9-nce-and-weighted-categories-demo-soc-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [demo-soc] › demo\soc\soc-03-rejected-35.spec.ts:3:1 › SOC-03 rejected-35: runtime evolution exposes promoted and rejected evidence 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Runtime Evolution/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Runtime Evolution/i).first()[22m
+
+
+      3 | test("SOC-03 rejected-35: runtime evolution exposes promoted and rejected evidence", async ({ page, request }) => {
+      4 |   await page.goto(`${API}/`);
+    > 5 |   await expect(page.getByText(/Runtime Evolution/i).first()).toBeVisible();
+        |                                                              ^
+      6 |   const response = await request.get(`${API}/api/evolution/rejection-summary`);
+      7 |   expect(response.ok()).toBeTruthy();
+      8 |   const body = await response.json();
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-03-rejected-35.spec.ts:5:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Runtime Evolution/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Runtime Evolution/i).first()[22m
+
+
+      3 | test("SOC-03 rejected-35: runtime evolution exposes promoted and rejected evidence", async ({ page, request }) => {
+      4 |   await page.goto(`${API}/`);
+    > 5 |   await expect(page.getByText(/Runtime Evolution/i).first()).toBeVisible();
+        |                                                              ^
+      6 |   const response = await request.get(`${API}/api/evolution/rejection-summary`);
+      7 |   expect(response.ok()).toBeTruthy();
+      8 |   const body = await response.json();
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-03-rejected-35.spec.ts:5:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-03-rejected-35-SOC-03--643e6-moted-and-rejected-evidence-demo-soc-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [demo-soc] › demo\soc\soc-07-chained.spec.ts:3:1 › SOC-07 chained: audit verifies and export affordance is present 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Evidence Room|Governance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Evidence Room|Governance/i).first()[22m
+
+
+      3 | test("SOC-07 chained: audit verifies and export affordance is present", async ({ page, request }) => {
+      4 |   await page.goto(`${API}/`);
+    > 5 |   await expect(page.getByText(/Evidence Room|Governance/i).first()).toBeVisible();
+        |                                                                     ^
+      6 |   const response = await request.get(`${API}/api/audit/verify`);
+      7 |   expect(response.ok()).toBeTruthy();
+      8 |   expect((await response.json()).verified).toBe(true);
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-07-chained.spec.ts:5:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Evidence Room|Governance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Evidence Room|Governance/i).first()[22m
+
+
+      3 | test("SOC-07 chained: audit verifies and export affordance is present", async ({ page, request }) => {
+      4 |   await page.goto(`${API}/`);
+    > 5 |   await expect(page.getByText(/Evidence Room|Governance/i).first()).toBeVisible();
+        |                                                                     ^
+      6 |   const response = await request.get(`${API}/api/audit/verify`);
+      7 |   expect(response.ok()).toBeTruthy();
+      8 |   expect((await response.json()).verified).toBe(true);
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-07-chained.spec.ts:5:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-07-chained-SOC-07-chai-d24b6-xport-affordance-is-present-demo-soc-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [demo-soc] › demo\soc\soc-09-same-alert.spec.ts:4:1 › SOC-09 same alert: replay returns the same action and factors 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+       5 |   const first = await request.post(`${API}/api/alert/analyze`, { data: fixture });
+       6 |   const second = await request.post(`${API}/api/alert/analyze`, { data: fixture });
+    >  7 |   expect(first.ok()).toBeTruthy(); expect(second.ok()).toBeTruthy();
+         |                      ^
+       8 |   const a = await first.json(); const b = await second.json();
+       9 |   expect(a.action).toEqual(b.action);
+      10 |   expect(a.factors).toEqual(b.factors);
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-09-same-alert.spec.ts:7:22
+
+    Error Context: test-results\soc-09-same-alert-SOC-09-s-f2f29-the-same-action-and-factors-demo-soc\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-09-same-alert-SOC-09-s-f2f29-the-same-action-and-factors-demo-soc\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-09-same-alert-SOC-09-s-f2f29-the-same-action-and-factors-demo-soc\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+       5 |   const first = await request.post(`${API}/api/alert/analyze`, { data: fixture });
+       6 |   const second = await request.post(`${API}/api/alert/analyze`, { data: fixture });
+    >  7 |   expect(first.ok()).toBeTruthy(); expect(second.ok()).toBeTruthy();
+         |                      ^
+       8 |   const a = await first.json(); const b = await second.json();
+       9 |   expect(a.action).toEqual(b.action);
+      10 |   expect(a.factors).toEqual(b.factors);
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\soc\soc-09-same-alert.spec.ts:7:22
+
+    Error Context: test-results\soc-09-same-alert-SOC-09-s-f2f29-the-same-action-and-factors-demo-soc-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\soc-09-same-alert-SOC-09-s-f2f29-the-same-action-and-factors-demo-soc-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\soc-09-same-alert-SOC-09-s-f2f29-the-same-action-and-factors-demo-soc-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [demo-s2p] › demo\s2p\s2p-01-rule-said-no.spec.ts:3:1 › S2P-01 rule-said-no: copper invoice is accepted with contract reasoning 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Exception Triage/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Exception Triage/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8002";
+      3 | test("S2P-01 rule-said-no: copper invoice is accepted with contract reasoning", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Exception Triage/i).first()).toBeVisible();
+        |                                                                                         ^
+      5 |   const response = await request.post(`${API}/api/s2p/score`, { data: { invoice_id: "copper-demo", supplier: "Copper", amount: 1250, contract_clause: "CL-7" } });
+      6 |   expect(response.ok()).toBeTruthy(); const body = await response.json();
+      7 |   expect(String(body.action ?? body.decision).toUpperCase()).toContain("ACCEPT");
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\s2p\s2p-01-rule-said-no.spec.ts:4:89
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Exception Triage/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Exception Triage/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8002";
+      3 | test("S2P-01 rule-said-no: copper invoice is accepted with contract reasoning", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Exception Triage/i).first()).toBeVisible();
+        |                                                                                         ^
+      5 |   const response = await request.post(`${API}/api/s2p/score`, { data: { invoice_id: "copper-demo", supplier: "Copper", amount: 1250, contract_clause: "CL-7" } });
+      6 |   expect(response.ok()).toBeTruthy(); const body = await response.json();
+      7 |   expect(String(body.action ?? body.decision).toUpperCase()).toContain("ACCEPT");
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\s2p\s2p-01-rule-said-no.spec.ts:4:89
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\s2p-01-rule-said-no-S2P-01-ac3cc-ted-with-contract-reasoning-demo-s2p-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [demo-s2p] › demo\s2p\s2p-02-day-zero.spec.ts:3:1 › S2P-02 day-zero: cold start still returns confidence and contributions 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      3 | test("S2P-02 day-zero: cold start still returns confidence and contributions", async ({ request }) => {
+      4 |   const response = await request.post(`${API}/api/s2p/score`, { data: { invoice_id: "cold-start-demo", prior_decisions: 0, supplier: "New supplier", amount: 500 } });
+    > 5 |   expect(response.ok()).toBeTruthy(); const body = await response.json();
+        |                         ^
+      6 |   expect(Number(body.confidence)).toBeGreaterThan(0); expect(body.factors ?? body.factor_contributions).toBeTruthy();
+      7 | });
+      8 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\s2p\s2p-02-day-zero.spec.ts:5:25
+
+    Error Context: test-results\s2p-02-day-zero-S2P-02-day-7a98b-onfidence-and-contributions-demo-s2p\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\s2p-02-day-zero-S2P-02-day-7a98b-onfidence-and-contributions-demo-s2p\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\s2p-02-day-zero-S2P-02-day-7a98b-onfidence-and-contributions-demo-s2p\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      3 | test("S2P-02 day-zero: cold start still returns confidence and contributions", async ({ request }) => {
+      4 |   const response = await request.post(`${API}/api/s2p/score`, { data: { invoice_id: "cold-start-demo", prior_decisions: 0, supplier: "New supplier", amount: 500 } });
+    > 5 |   expect(response.ok()).toBeTruthy(); const body = await response.json();
+        |                         ^
+      6 |   expect(Number(body.confidence)).toBeGreaterThan(0); expect(body.factors ?? body.factor_contributions).toBeTruthy();
+      7 | });
+      8 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\s2p\s2p-02-day-zero.spec.ts:5:25
+
+    Error Context: test-results\s2p-02-day-zero-S2P-02-day-7a98b-onfidence-and-contributions-demo-s2p-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\s2p-02-day-zero-S2P-02-day-7a98b-onfidence-and-contributions-demo-s2p-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\s2p-02-day-zero-S2P-02-day-7a98b-onfidence-and-contributions-demo-s2p-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  15) [demo-s2p] › demo\s2p\s2p-04-earned-autonomy.spec.ts:3:1 › S2P-04 earned autonomy: performance conservation is green 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Performance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Performance/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8002";
+      3 | test("S2P-04 earned autonomy: performance conservation is green", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Performance/i).first()).toBeVisible();
+        |                                                                                    ^
+      5 |   const response = await request.get(`${API}/api/conservation/status`); expect(response.ok()).toBeTruthy(); const body = await response.json();
+      6 |   expect(String(body.status ?? body.state).toUpperCase()).toBe("GREEN");
+      7 |   expect(Number(body.verified_count ?? body.verified)).toBeGreaterThan(0); expect(Number(body.accuracy)).toBeGreaterThan(0);
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\s2p\s2p-04-earned-autonomy.spec.ts:4:84
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Performance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Performance/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8002";
+      3 | test("S2P-04 earned autonomy: performance conservation is green", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Performance/i).first()).toBeVisible();
+        |                                                                                    ^
+      5 |   const response = await request.get(`${API}/api/conservation/status`); expect(response.ok()).toBeTruthy(); const body = await response.json();
+      6 |   expect(String(body.status ?? body.state).toUpperCase()).toBe("GREEN");
+      7 |   expect(Number(body.verified_count ?? body.verified)).toBeGreaterThan(0); expect(Number(body.accuracy)).toBeGreaterThan(0);
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\s2p\s2p-04-earned-autonomy.spec.ts:4:84
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\s2p-04-earned-autonomy-S2P-3012c-mance-conservation-is-green-demo-s2p-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  16) [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Order/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Order/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8020";
+      3 | test("PUR-01 new GM: order screen carries supplier history", async ({ page }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Order/i).first()).toBeVisible();
+        |                                                                              ^
+      5 |   await expect(page.getByText(/supplier history|history|prior decisions/i).first()).toBeVisible();
+      6 | });
+      7 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-01-new-gm.spec.ts:4:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Order/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Order/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8020";
+      3 | test("PUR-01 new GM: order screen carries supplier history", async ({ page }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Order/i).first()).toBeVisible();
+        |                                                                              ^
+      5 |   await expect(page.getByText(/supplier history|history|prior decisions/i).first()).toBeVisible();
+      6 | });
+      7 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-01-new-gm.spec.ts:4:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-01-new-gm-PUR-01-new-G-e1303-en-carries-supplier-history-demo-purchasing-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17) [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8020";
+      3 | test("PUR-02 trust trap: fingerprint flags a highest-sigma factor", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Analysis/i).first()).toBeVisible();
+        |                                                                                 ^
+      5 |   const response = await request.get(`${API}/api/fingerprint`); expect(response.ok()).toBeTruthy(); const body = await response.json();
+      6 |   const factors = body.factors ?? body.profile?.factors ?? []; expect(factors.length).toBeGreaterThan(0);
+      7 |   expect(factors.some((f: Record<string, unknown>) => Boolean(f.sigma_flagged ?? f.highest_sigma ?? f.is_highest_sigma))).toBeTruthy();
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-02-trust-trap.spec.ts:4:81
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8020";
+      3 | test("PUR-02 trust trap: fingerprint flags a highest-sigma factor", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Analysis/i).first()).toBeVisible();
+        |                                                                                 ^
+      5 |   const response = await request.get(`${API}/api/fingerprint`); expect(response.ok()).toBeTruthy(); const body = await response.json();
+      6 |   const factors = body.factors ?? body.profile?.factors ?? []; expect(factors.length).toBeGreaterThan(0);
+      7 |   expect(factors.some((f: Record<string, unknown>) => Boolean(f.sigma_flagged ?? f.highest_sigma ?? f.is_highest_sigma))).toBeTruthy();
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-02-trust-trap.spec.ts:4:81
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-02-trust-trap-PUR-02-t-cf01e-lags-a-highest-sigma-factor-demo-purchasing-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  18) [demo-purchasing] › demo\purchasing\pur-04-quiet-week.spec.ts:3:1 › PUR-04 quiet week: proof ledger has both curves 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Performance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Performance/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8020";
+      3 | test("PUR-04 quiet week: proof ledger has both curves", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Performance/i).first()).toBeVisible();
+        |                                                                                    ^
+      5 |   const response = await request.get(`${API}/api/purchasing/proof-ledger`); expect(response.ok()).toBeTruthy(); const body = await response.json();
+      6 |   expect((body.proof_curve ?? []).length).toBeGreaterThan(0); expect((body.competence_curve ?? []).length).toBeGreaterThan(0);
+      7 | });
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-04-quiet-week.spec.ts:4:84
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Performance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Performance/i).first()[22m
+
+
+      2 | const API = "http://127.0.0.1:8020";
+      3 | test("PUR-04 quiet week: proof ledger has both curves", async ({ page, request }) => {
+    > 4 |   await page.goto(`${API}/`); await expect(page.getByText(/Performance/i).first()).toBeVisible();
+        |                                                                                    ^
+      5 |   const response = await request.get(`${API}/api/purchasing/proof-ledger`); expect(response.ok()).toBeTruthy(); const body = await response.json();
+      6 |   expect((body.proof_curve ?? []).length).toBeGreaterThan(0); expect((body.competence_curve ?? []).length).toBeGreaterThan(0);
+      7 | });
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\purchasing\pur-04-quiet-week.spec.ts:4:84
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\pur-04-quiet-week-PUR-04-q-95da7-roof-ledger-has-both-curves-demo-purchasing-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  19) [demo-trading] › demo\trading\trd-01-favorite-setup.spec.ts:3:1 › TRD-01 favorite setup: ten-factor trust radar flags sigma 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("TRD-01 favorite setup: ten-factor trust radar flags sigma", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Analysis/i).first()).toBeVisible();const r=await request.get(`${API}/api/fingerprint`);expect(r.ok()).toBeTruthy();const b=await r.json();const f=b.factors??b.profile?.factors??[];expect(f).toHaveLength(10);expect(f.some((x:Record<string,unknown>)=>Boolean(x.sigma_flagged??x.highest_sigma??x.is_highest_sigma))).toBeTruthy();});
+        |                                                                                                                                                                         ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\trading\trd-01-favorite-setup.spec.ts:3:169
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("TRD-01 favorite setup: ten-factor trust radar flags sigma", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Analysis/i).first()).toBeVisible();const r=await request.get(`${API}/api/fingerprint`);expect(r.ok()).toBeTruthy();const b=await r.json();const f=b.factors??b.profile?.factors??[];expect(f).toHaveLength(10);expect(f.some((x:Record<string,unknown>)=>Boolean(x.sigma_flagged??x.highest_sigma??x.is_highest_sigma))).toBeTruthy();});
+        |                                                                                                                                                                         ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\trading\trd-01-favorite-setup.spec.ts:3:169
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\trd-01-favorite-setup-TRD--83ef0-tor-trust-radar-flags-sigma-demo-trading-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  20) [demo-trading] › demo\trading\trd-03-certificate.spec.ts:3:1 › TRD-03 certificate: claim gate exposes detector count and outcome 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis|Performance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis|Performance/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("TRD-03 certificate: claim gate exposes detector count and outcome", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Analysis|Performance/i).first()).toBeVisible();const r=await request.get(`${API}/api/claim-gate`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(Number(b.detector_count??b.detectors?.length)).toBeGreaterThan(0);expect(JSON.stringify(b)).toMatch(/certified|none survive/i);});
+        |                                                                                                                                                                                             ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\trading\trd-03-certificate.spec.ts:3:189
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis|Performance/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis|Performance/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("TRD-03 certificate: claim gate exposes detector count and outcome", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Analysis|Performance/i).first()).toBeVisible();const r=await request.get(`${API}/api/claim-gate`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(Number(b.detector_count??b.detectors?.length)).toBeGreaterThan(0);expect(JSON.stringify(b)).toMatch(/certified|none survive/i);});
+        |                                                                                                                                                                                             ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\trading\trd-03-certificate.spec.ts:3:189
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\trd-03-certificate-TRD-03--a5a81--detector-count-and-outcome-demo-trading-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  21) [demo-trading] › demo\trading\trd-06-code-free.spec.ts:3:1 › TRD-06 code-free: fingerprint has ten earned nonzero weights 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("TRD-06 code-free: fingerprint has ten earned nonzero weights", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Analysis/i).first()).toBeVisible();const r=await request.get(`${API}/api/fingerprint`);expect(r.ok()).toBeTruthy();const b=await r.json();const f=b.factors??b.profile?.factors??[];expect(f).toHaveLength(10);expect(f.some((x:Record<string,unknown>)=>Number(x.earned_weight??x.weight??x.value)>0)).toBeTruthy();});
+        |                                                                                                                                                                            ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\trading\trd-06-code-free.spec.ts:3:172
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Analysis/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Analysis/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8010";
+    > 3 | test("TRD-06 code-free: fingerprint has ten earned nonzero weights", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Analysis/i).first()).toBeVisible();const r=await request.get(`${API}/api/fingerprint`);expect(r.ok()).toBeTruthy();const b=await r.json();const f=b.factors??b.profile?.factors??[];expect(f).toHaveLength(10);expect(f.some((x:Record<string,unknown>)=>Number(x.earned_weight??x.weight??x.value)>0)).toBeTruthy();});
+        |                                                                                                                                                                            ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\trading\trd-06-code-free.spec.ts:3:172
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\trd-06-code-free-TRD-06-co-33cb0--ten-earned-nonzero-weights-demo-trading-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  22) [demo-dataops] › demo\dataops\do-02-source-lost-trust.spec.ts:3:1 › DO-02 source-lost-trust: dashboard differentiates source scores 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Dashboard/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Dashboard/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-02 source-lost-trust: dashboard differentiates source scores", async ({page})=>{await page.goto(`${API}/`);await expect(page.getByText(/Dashboard/i).first()).toBeVisible();const text=await page.locator("main").innerText();const values=[...text.matchAll(/(?:trust|score)[^\d]{0,20}(\d+(?:\.\d+)?)/gi)].map(m=>m[1]);expect(new Set(values).size).toBeGreaterThan(1);});
+        |                                                                                                                                                                        ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-02-source-lost-trust.spec.ts:3:168
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Dashboard/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Dashboard/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-02 source-lost-trust: dashboard differentiates source scores", async ({page})=>{await page.goto(`${API}/`);await expect(page.getByText(/Dashboard/i).first()).toBeVisible();const text=await page.locator("main").innerText();const values=[...text.matchAll(/(?:trust|score)[^\d]{0,20}(\d+(?:\.\d+)?)/gi)].map(m=>m[1]);expect(new Set(values).size).toBeGreaterThan(1);});
+        |                                                                                                                                                                        ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-02-source-lost-trust.spec.ts:3:168
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-02-source-lost-trust-DO-861dd-ifferentiates-source-scores-demo-dataops-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  23) [demo-dataops] › demo\dataops\do-03-twelve-years.spec.ts:3:1 › DO-03 twelve-years: six-factor profile and centroid checkpoints exist 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Insight/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Insight/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-03 twelve-years: six-factor profile and centroid checkpoints exist", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Insight/i).first()).toBeVisible();const f=await request.get(`${API}/api/fingerprint`);const h=await request.get(`${API}/api/self/centroid-history`);expect(f.ok()).toBeTruthy();expect(h.ok()).toBeTruthy();const fb=await f.json();const factors=fb.factors??fb.profile?.factors??[];expect(factors).toHaveLength(6);const hb=await h.json();expect((hb.checkpoints??hb.history??hb.data??[]).length).toBeGreaterThan(0);});
+        |                                                                                                                                                                                    ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-03-twelve-years.spec.ts:3:180
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Insight/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Insight/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-03 twelve-years: six-factor profile and centroid checkpoints exist", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Insight/i).first()).toBeVisible();const f=await request.get(`${API}/api/fingerprint`);const h=await request.get(`${API}/api/self/centroid-history`);expect(f.ok()).toBeTruthy();expect(h.ok()).toBeTruthy();const fb=await f.json();const factors=fb.factors??fb.profile?.factors??[];expect(factors).toHaveLength(6);const hb=await h.json();expect((hb.checkpoints??hb.history??hb.data??[]).length).toBeGreaterThan(0);});
+        |                                                                                                                                                                                    ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-03-twelve-years.spec.ts:3:180
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-03-twelve-years-DO-03-t-83f69--centroid-checkpoints-exist-demo-dataops-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  24) [demo-dataops] › demo\dataops\do-04-rule-wrong.spec.ts:3:1 › DO-04 rule-wrong: lifecycle contains a promotion and demotion 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Evidence/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Evidence/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-04 rule-wrong: lifecycle contains a promotion and demotion", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Evidence/i).first()).toBeVisible();const r=await request.get(`${API}/api/self/rule-lifecycle`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(JSON.stringify(b)).toMatch(/promot/i);expect(JSON.stringify(b)).toMatch(/demot/i);});
+        |                                                                                                                                                                             ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-04-rule-wrong.spec.ts:3:173
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Evidence/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Evidence/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-04 rule-wrong: lifecycle contains a promotion and demotion", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Evidence/i).first()).toBeVisible();const r=await request.get(`${API}/api/self/rule-lifecycle`);expect(r.ok()).toBeTruthy();const b=await r.json();expect(JSON.stringify(b)).toMatch(/promot/i);expect(JSON.stringify(b)).toMatch(/demot/i);});
+        |                                                                                                                                                                             ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-04-rule-wrong.spec.ts:3:173
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-04-rule-wrong-DO-04-rul-9ecda-ns-a-promotion-and-demotion-demo-dataops-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  25) [demo-dataops] › demo\dataops\do-05-llm-wrong.spec.ts:3:1 › DO-05 llm-wrong: investigation action differs and K14 caption is visible 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Triage/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Triage/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-05 llm-wrong: investigation action differs and K14 caption is visible", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Triage/i).first()).toBeVisible();const r=await request.post(`${API}/api/score`,{data:{alert_id:"K14",fixture:"K14"}});expect(r.ok()).toBeTruthy();const b=await r.json();expect(b.investigation_action??b.investigation?.action).not.toEqual(b.action??b.surface_assessment);const t=await page.locator("main").innerText();expect(t).toContain("12%");expect(t).toContain("76%");});
+        |                                                                                                                                                                                      ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-05-llm-wrong.spec.ts:3:182
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Triage/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Triage/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-05 llm-wrong: investigation action differs and K14 caption is visible", async ({page,request})=>{await page.goto(`${API}/`);await expect(page.getByText(/Triage/i).first()).toBeVisible();const r=await request.post(`${API}/api/score`,{data:{alert_id:"K14",fixture:"K14"}});expect(r.ok()).toBeTruthy();const b=await r.json();expect(b.investigation_action??b.investigation?.action).not.toEqual(b.action??b.surface_assessment);const t=await page.locator("main").innerText();expect(t).toContain("12%");expect(t).toContain("76%");});
+        |                                                                                                                                                                                      ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-05-llm-wrong.spec.ts:3:182
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-05-llm-wrong-DO-05-llm--8e4f8--and-K14-caption-is-visible-demo-dataops-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  26) [demo-dataops] › demo\dataops\do-06-jan-vs-now.spec.ts:3:1 › DO-06 jan-vs-now: insight shows a differentiated trust distribution 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Insight/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Insight/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-06 jan-vs-now: insight shows a differentiated trust distribution", async ({page})=>{await page.goto(`${API}/`);await expect(page.getByText(/Insight/i).first()).toBeVisible();const text=await page.locator("main").innerText();const values=[...text.matchAll(/\b\d+(?:\.\d+)?%\b/g)].map(m=>m[0]);expect(new Set(values).size).toBeGreaterThan(1);});
+        |                                                                                                                                                                          ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-06-jan-vs-now.spec.ts:3:170
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Insight/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Insight/i).first()[22m
+
+
+      1 | import { test, expect } from "@playwright/test";
+      2 | const API="http://127.0.0.1:8030";
+    > 3 | test("DO-06 jan-vs-now: insight shows a differentiated trust distribution", async ({page})=>{await page.goto(`${API}/`);await expect(page.getByText(/Insight/i).first()).toBeVisible();const text=await page.locator("main").innerText();const values=[...text.matchAll(/\b\d+(?:\.\d+)?%\b/g)].map(m=>m[0]);expect(new Set(values).size).toBeGreaterThan(1);});
+        |                                                                                                                                                                          ^
+      4 |
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo\dataops\do-06-jan-vs-now.spec.ts:3:170
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\do-06-jan-vs-now-DO-06-jan-b25f7-entiated-trust-distribution-demo-dataops-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  26 failed
+    [demo] › demo\fork\fork-01-clone-run.spec.ts:3:1 › FORK-01 clone-run: trading preseed fingerprint has ten factors 
+    [demo] › demo\machine\mach-01-through-machine.spec.ts:3:1 › MACH-01 through-machine: alert analysis returns an ordered trace and confidence 
+    [demo] › demo\machine\mach-02-reshape.spec.ts:3:1 › MACH-02 reshape: no-precedent analysis exposes an explicit path 
+    [demo] › demo\machine\mach-04-500-not-5m.spec.ts:3:1 › MACH-04 500-not-5m: geometry and compounding data are present 
+    [demo] › demo\pilot\pilot-01-first-90.spec.ts:3:1 › PILOT-01 first-90: readiness card reports ready, coverage, and not-yet fields 
+    [demo] › demo\pilot\pilot-03-three-artifacts.spec.ts:3:1 › PILOT-03 three artifacts: centroid history has timestamped mu and K 
+    [demo] › demo\platform\plat-03-five-corrections.spec.ts:3:1 › PLAT-03 five corrections: every copilot exposes an RSI indicator 
+    [demo] › demo\platform\plat-04-five-curves.spec.ts:3:1 › PLAT-04 five curves: every trajectory endpoint returns data 
+    [demo-soc] › demo\soc\soc-01-analyst-left.spec.ts:4:1 › SOC-01 analyst-left: learning state has verified evidence and weighted categories 
+    [demo-soc] › demo\soc\soc-03-rejected-35.spec.ts:3:1 › SOC-03 rejected-35: runtime evolution exposes promoted and rejected evidence 
+    [demo-soc] › demo\soc\soc-07-chained.spec.ts:3:1 › SOC-07 chained: audit verifies and export affordance is present 
+    [demo-soc] › demo\soc\soc-09-same-alert.spec.ts:4:1 › SOC-09 same alert: replay returns the same action and factors 
+    [demo-s2p] › demo\s2p\s2p-01-rule-said-no.spec.ts:3:1 › S2P-01 rule-said-no: copper invoice is accepted with contract reasoning 
+    [demo-s2p] › demo\s2p\s2p-02-day-zero.spec.ts:3:1 › S2P-02 day-zero: cold start still returns confidence and contributions 
+    [demo-s2p] › demo\s2p\s2p-04-earned-autonomy.spec.ts:3:1 › S2P-04 earned autonomy: performance conservation is green 
+    [demo-purchasing] › demo\purchasing\pur-01-new-gm.spec.ts:3:1 › PUR-01 new GM: order screen carries supplier history 
+    [demo-purchasing] › demo\purchasing\pur-02-trust-trap.spec.ts:3:1 › PUR-02 trust trap: fingerprint flags a highest-sigma factor 
+    [demo-purchasing] › demo\purchasing\pur-04-quiet-week.spec.ts:3:1 › PUR-04 quiet week: proof ledger has both curves 
+    [demo-trading] › demo\trading\trd-01-favorite-setup.spec.ts:3:1 › TRD-01 favorite setup: ten-factor trust radar flags sigma 
+    [demo-trading] › demo\trading\trd-03-certificate.spec.ts:3:1 › TRD-03 certificate: claim gate exposes detector count and outcome 
+    [demo-trading] › demo\trading\trd-06-code-free.spec.ts:3:1 › TRD-06 code-free: fingerprint has ten earned nonzero weights 
+    [demo-dataops] › demo\dataops\do-02-source-lost-trust.spec.ts:3:1 › DO-02 source-lost-trust: dashboard differentiates source scores 
+    [demo-dataops] › demo\dataops\do-03-twelve-years.spec.ts:3:1 › DO-03 twelve-years: six-factor profile and centroid checkpoints exist 
+    [demo-dataops] › demo\dataops\do-04-rule-wrong.spec.ts:3:1 › DO-04 rule-wrong: lifecycle contains a promotion and demotion 
+    [demo-dataops] › demo\dataops\do-05-llm-wrong.spec.ts:3:1 › DO-05 llm-wrong: investigation action differs and K14 caption is visible 
+    [demo-dataops] › demo\dataops\do-06-jan-vs-now.spec.ts:3:1 › DO-06 jan-vs-now: insight shows a differentiated trust distribution 
+  18 skipped
+  3 passed (8.0m)

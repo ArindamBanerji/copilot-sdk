@@ -93,6 +93,7 @@ ALLOWED_CAPABILITY_CHECKS = frozenset(
         ("copilot_sdk/di/query_providers.py", "get_all_decisions"),
         ("copilot_sdk/evolution/conservation_contract.py", "close"),
         ("copilot_sdk/scoring/trust_traps.py", "get_verified_decisions"),
+        ("copilot_sdk/scoring/composite_gate.py", "get_verified_decisions"),
     }
 )
 

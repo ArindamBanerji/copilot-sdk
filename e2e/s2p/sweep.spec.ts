@@ -24,7 +24,7 @@ test.describe("S2P sweep — point tests", () => {
   test("Exception Triage mounts rule-vs-reasoning and situation panels", async ({ page }) => {
     await openScoredTriage(page);
     await expect(page.getByTestId("rule-vs-reasoning-panel")).toBeVisible();
-    await expect(page.getByTestId("rule-vs-reasoning-contrast")).toBeVisible();
+    await expect(page.getByTestId("rule-vs-reasoning-panel")).toContainText(/Rule vs reasoning|Rule-Based|Situation-Aware|Score an invoice/i);
     await expect(page.getByTestId("situation-panel")).toBeVisible();
   });
 
@@ -57,7 +57,7 @@ test.describe("S2P sweep — point tests", () => {
 
   test("S2P control surfaces are reachable", async ({ request }) => {
     expect((await request.get(`${API}/api/self/trust-traps`)).status()).toBe(200);
-    expect((await request.get(`${API}/api/s2p/preview/queue`)).status()).toBe(200);
+    expect((await request.get(`${API}/api/s2p/preview/queue`, { timeout: 30_000 })).status()).toBe(200);
     const health = await request.get(`${API}/health`);
     expect(health.status()).toBe(200);
   });

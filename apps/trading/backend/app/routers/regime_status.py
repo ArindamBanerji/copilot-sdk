@@ -14,7 +14,6 @@ def create_regime_status_router(monitor: RegimeMonitor) -> APIRouter:
     router = APIRouter(prefix="/api/trading", tags=["trading-regime-status"])
 
     @router.get("/regime-status")
-    @cached_static("regime-status")
     def regime_status(request: Request) -> dict[str, Any]:
         status = monitor.status()
         restrictions = []

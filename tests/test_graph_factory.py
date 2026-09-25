@@ -28,7 +28,7 @@ def test_explicit_sqlite_remains_available_for_tests(tmp_path):
 def test_dual_write_missing_dsn_fails_closed(tmp_path, monkeypatch):
     for name in ("GRAPH_DSN", "AGE_DSN", "GRAPH_NAME", "AGE_GRAPH_NAME", "SHARED_GRAPH_AUTHORIZED"):
         monkeypatch.delenv(name, raising=False)
-    with pytest.raises(GraphConfigError, match="dual_write backend requires an AGE DSN"):
+    with pytest.raises(GraphConfigError, match="missing AGE DSN"):
         create_graph_store(
             backend="dual_write", domain="trading", db_path=tmp_path / "trading.db"
         )
@@ -77,6 +77,7 @@ def test_age_construction_with_valid_config(monkeypatch):
     )
     store = create_graph_store(
         backend="age",
+        profile="test",
         domain="trading",
         dsn="postgresql://example/test",
         graph_name="trading_graph",
@@ -90,6 +91,7 @@ def test_soc_graph_authorization_preserved():
     with pytest.raises(ValueError, match="soc_graph"):
         create_graph_store(
             backend="age",
+            profile="test",
             domain="trading",
             dsn="postgresql://example/test",
             graph_name="soc_graph",

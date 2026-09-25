@@ -5,6 +5,8 @@ from __future__ import annotations
 import math
 import hashlib
 import json
+import logging
+from datetime import datetime, timezone
 from collections.abc import Callable
 from typing import Any
 
@@ -22,8 +24,11 @@ from copilot_sdk.backend.models import (
     FlexibleResponse,
     SelfDecisionsResponse,
 )
+
+logger = logging.getLogger(__name__)
 from copilot_sdk.backend.evolution_router import build_evolution_summary
 from copilot_sdk.backend.coalesced_read import CoalescedRead
+from copilot_sdk.backend.historical_checkpoint import HISTORY_IMPORT_KEY, project_historical_checkpoints
 from copilot_sdk.config.tenant import current_tenant_id
 from copilot_sdk.graph import GraphStore
 from copilot_sdk.scoring.measurement_state import compute_measurement_state
@@ -113,6 +118,7 @@ def create_self_computation_router(
         decision_time_start: str | None = None,
         decision_time_end: str | None = None,
         category: str | None = None,
+        include_superseded: bool = False,
     ) -> dict[str, Any]:
         filters = {
             "checkpoint_time_start": checkpoint_time_start,
@@ -127,9 +133,26 @@ def create_self_computation_router(
         checkpoints = _gs().get_centroid_checkpoints(
             _domain(), limit=limit, include_v2=True, **active_filters
         )
+        manifest = _gs().get_governance(_domain(), HISTORY_IMPORT_KEY)
+        if manifest and active_filters:
+            manifest = dict(manifest)
+            imports = manifest.get("checkpoints", [])
+            if decision_time_start or decision_time_end:
+                imports = []  # Display observations are not decision events.
+            def epoch(value: str) -> float:
+                parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                return (parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed).timestamp()
+            manifest["checkpoints"] = [row for row in imports
+                if (category is None or row.get("category") == category)
+                and (checkpoint_time_start is None or row["metadata"]["historical_import"]["observed_at"] >= epoch(checkpoint_time_start))
+                and (checkpoint_time_end is None or row["metadata"]["historical_import"]["observed_at"] <= epoch(checkpoint_time_end))]
+        projected = project_historical_checkpoints(
+            [_json_safe(row) for row in checkpoints], manifest, include_superseded=include_superseded)
+        # Paginate by ingestion time; historical observations cannot displace
+        # the current scorer's restart checkpoint because they are view-only.
+        projected.sort(key=lambda row: float(row.get("ingested_at", row.get("created_at", 0))))
         normalized = []
-        for checkpoint in checkpoints:
-            checkpoint_dict = _json_safe(checkpoint)
+        for checkpoint_dict in projected[-limit:]:
             checkpoint_metadata = checkpoint_dict.get("metadata")
             if isinstance(checkpoint_metadata, dict):
                 checkpoint_dict.setdefault(
@@ -492,7 +515,7 @@ def create_self_computation_router(
             _verified(store)
             if verified_only
             else _merge_verified_fields(
-                store.get_all_decisions(_domain()),
+                store.get_decisions(_domain(), limit=limit),
                 _verified(store),
             )
         )
@@ -503,7 +526,11 @@ def create_self_computation_router(
                 decision, category=category, action=action, outcome=outcome
             )
         ]
-        return {"decisions": filtered[:limit], "total": len(filtered)}
+        if not verified_only and category is None and action is None and outcome is None:
+            total = int(store.count_decisions(_domain()))
+        else:
+            total = len(filtered)
+        return {"decisions": filtered[:limit], "total": total}
 
     @router.get("/rule-genealogy", response_model=FlexibleResponse)
     def rule_genealogy() -> dict[str, Any]:
@@ -530,17 +557,14 @@ def create_self_computation_router(
     ) -> dict[str, Any]:
         store = _gs()
         if decision_id:
-            decision = store.get_decision(decision_id, domain=_domain())
+            decision = store.get_decision(
+                decision_id,
+                domain=_domain(),
+                include_outcome=True,
+            )
             if decision is None:
                 return {"error": f"Decision {decision_id} not found"}
-            outcome = next(
-                (
-                    verified
-                    for verified in _verified(store)
-                    if verified.get("decision_id") == decision_id
-                ),
-                None,
-            )
+            outcome = decision if "actual_action" in decision else None
             return {
                 "decision": decision,
                 "outcome": outcome,
@@ -932,7 +956,8 @@ def _json_safe(value: Any) -> Any:
         if callable(item):
             try:
                 return _json_safe(item())
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("value item conversion unavailable: %s", exc)
+                return None
 
     return str(value)

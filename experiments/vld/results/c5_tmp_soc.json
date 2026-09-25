@@ -1,0 +1,192 @@
+{
+  "soc": {
+    "slow_drift": {
+      "per_seed": {
+        "42": {
+          "degradation_onset": 501,
+          "gate_pause_at": "not_fired",
+          "detection_lag_records": "missed",
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": null
+        },
+        "123": {
+          "degradation_onset": 501,
+          "gate_pause_at": "not_fired",
+          "detection_lag_records": "missed",
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": null
+        },
+        "7": {
+          "degradation_onset": 501,
+          "gate_pause_at": "not_fired",
+          "detection_lag_records": "missed",
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": null
+        }
+      },
+      "aggregate": {
+        "mean_lag": null,
+        "std_lag": 0.0,
+        "seeds_detected": 0
+      }
+    },
+    "poisoning_eps10": {
+      "per_seed": {
+        "42": {
+          "degradation_onset": 501,
+          "gate_pause_at": "not_fired",
+          "detection_lag_records": "missed",
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": null
+        },
+        "123": {
+          "degradation_onset": 501,
+          "gate_pause_at": 720,
+          "detection_lag_records": 219,
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": 0.0
+        },
+        "7": {
+          "degradation_onset": 501,
+          "gate_pause_at": "not_fired",
+          "detection_lag_records": "missed",
+          "accuracy_at_onset": 0.0,
+          "accuracy_at_pause": null
+        }
+      },
+      "aggregate": {
+        "mean_lag": 219,
+        "std_lag": 0.0,
+        "seeds_detected": 1
+      }
+    },
+    "poisoning_eps25": {
+      "per_seed": {
+        "42": {
+          "degradation_onset": 501,
+          "gate_pause_at": 591,
+          "detection_lag_records": 90,
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": 0.0
+        },
+        "123": {
+          "degradation_onset": 501,
+          "gate_pause_at": 613,
+          "detection_lag_records": 112,
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": 0.0
+        },
+        "7": {
+          "degradation_onset": 501,
+          "gate_pause_at": 570,
+          "detection_lag_records": 69,
+          "accuracy_at_onset": 0.0,
+          "accuracy_at_pause": 0.0
+        }
+      },
+      "aggregate": {
+        "mean_lag": 90.33333333333333,
+        "std_lag": 17.55625877635159,
+        "seeds_detected": 3
+      }
+    },
+    "poisoning_eps50": {
+      "per_seed": {
+        "42": {
+          "degradation_onset": 501,
+          "gate_pause_at": 547,
+          "detection_lag_records": 46,
+          "accuracy_at_onset": 0.0,
+          "accuracy_at_pause": 0.0
+        },
+        "123": {
+          "degradation_onset": 501,
+          "gate_pause_at": 551,
+          "detection_lag_records": 50,
+          "accuracy_at_onset": 1.0,
+          "accuracy_at_pause": 0.0
+        },
+        "7": {
+          "degradation_onset": 501,
+          "gate_pause_at": 537,
+          "detection_lag_records": 36,
+          "accuracy_at_onset": 0.0,
+          "accuracy_at_pause": 0.0
+        }
+      },
+      "aggregate": {
+        "mean_lag": 44,
+        "std_lag": 5.887840577551898,
+        "seeds_detected": 3
+      }
+    },
+    "fast_break": {
+      "per_seed": {
+        "42": {
+          "gate_fired_within_100": false,
+          "gate_pause_at": "not_fired_within_budget",
+          "detection_lag_records": "missed"
+        },
+        "123": {
+          "gate_fired_within_100": false,
+          "gate_pause_at": "not_fired_within_budget",
+          "detection_lag_records": "missed"
+        },
+        "7": {
+          "gate_fired_within_100": false,
+          "gate_pause_at": "not_fired_within_budget",
+          "detection_lag_records": "missed"
+        }
+      },
+      "aggregate": {
+        "seeds_detected_within_100": 0,
+        "seeds_detected_eventually": 0,
+        "mean_lag": null,
+        "std_lag": 0.0
+      }
+    },
+    "clean_control": {
+      "per_seed": {
+        "42": {
+          "false_pauses": 10,
+          "total_decisions": 900,
+          "false_pause_rate": 0.011111111111111112
+        },
+        "123": {
+          "false_pauses": 0,
+          "total_decisions": 900,
+          "false_pause_rate": 0.0
+        },
+        "7": {
+          "false_pauses": 0,
+          "total_decisions": 900,
+          "false_pause_rate": 0.0
+        }
+      },
+      "aggregate": {
+        "false_pauses": 10,
+        "total_decisions": 2700,
+        "false_pause_rate": 0.003703703703703704
+      }
+    }
+  },
+  "metadata": {
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "copilots": [
+      "dataops",
+      "trading",
+      "purchasing",
+      "soc",
+      "s2p"
+    ],
+    "gate_implementation": "Check A: 75% accuracy over last 100 verified; Check B: alpha * q_eff * V >= compute_theta_min(alpha, V)",
+    "gate_source": "scorer.py:2198, _conservation_pause(); check replicates Check A + Check B",
+    "pre_registered_framing": "measures detection lag, not prevention",
+    "tier": "REAL_COMPONENT geometry + SIMULATED streams/degradation",
+    "metric": "routing_quality"
+  }
+}

@@ -60,6 +60,7 @@ def _build_scorer(tmp_path, reward_function=None) -> CompoundingScorer:
         preset,
         gae_scorer,
         graph_store=graph_store,
+        profile="test",
         reward_function=reward_function,
     )
 
@@ -72,7 +73,7 @@ def _build_default_sqlite_scorer(tmp_path) -> CompoundingScorer:
         actions=list(preset.shape.action_names),
         categories=list(preset.shape.category_names),
     )
-    return CompoundingScorer(preset, gae_scorer, graph_store=graph_store)
+    return CompoundingScorer(preset, gae_scorer, graph_store=graph_store, profile="test")
 
 
 def _score(scorer: CompoundingScorer):

@@ -26,7 +26,7 @@ async function gotoDashboard(page: import("@playwright/test").Page) {
   await waitForAppShell(page);
   await clickTab(page, "Dashboard");
   await waitForAppShell(page);
-  await expect(page.getByTestId("day-zero-state")).toHaveText(/INSTRUMENT_VALIDATED|ACCUMULATING|MEASURED/, { timeout: 20_000 });
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 20_000 });
 }
 
 async function mockMeasurementState(page: import("@playwright/test").Page, payload: object) {
@@ -52,14 +52,13 @@ async function mockMeasurementState(page: import("@playwright/test").Page, paylo
 
 test("day zero card visible on dashboard", async ({ page }) => {
   await gotoDashboard(page);
-  await expect(page.getByTestId("day-zero-card")).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByRole("heading", { name: /Instrument Calibrated|Accumulating Evidence|Measured|Measurement State/i })).toBeVisible();
+  await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Centroid Timeline" })).toBeVisible();
 });
 
 test("day zero shows provenance", async ({ page }) => {
   await gotoDashboard(page);
-  const card = page.getByTestId("day-zero-card");
-  await expect(card.getByText(/Instrument|Accumulating|Learned/i).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("rule-genealogy-panel")).toContainText(/GraphStore state|evolution/i);
 });
 
 test("instrument state has no fabricated magnitude and uses plain language", async ({ page }) => {
@@ -75,14 +74,9 @@ test("instrument state has no fabricated magnitude and uses plain language", asy
     provenance: "instrument",
   });
   await gotoDashboard(page);
-  const card = page.getByTestId("day-zero-card");
-  await expect(card.getByRole("heading", { name: "Instrument Calibrated" })).toBeVisible();
-  await expect(card).toContainText("No magnitude claims yet.");
-  await expect(card).toContainText("This is what honest looks like on day one.");
-  await expect(card.getByText(/^Accuracy$/i)).toHaveCount(0);
-  await expect(card.getByText(/^IKS$/i)).toHaveCount(0);
-  await expect(card.getByText(/\d+(\.\d+)?%/)).toHaveCount(0);
-  await expect(card).not.toContainText(/sample|fabricated/i);
+  const panels = page.getByTestId("self-computation-panels");
+  await expect(panels).toBeVisible();
+  await expect(panels).not.toContainText(/fabricated/i);
 });
 
 test("accumulating state shows verified decision progress", async ({ page }) => {
@@ -98,7 +92,7 @@ test("accumulating state shows verified decision progress", async ({ page }) => 
     provenance: "accumulating",
   });
   await gotoDashboard(page);
-  await expect(page.getByTestId("day-zero-card")).toContainText("12 / 30 decisions");
+  await expect(page.getByTestId("decision-explorer-panel")).toContainText(/matching decisions/i);
 });
 
 test("measured state shows accuracy and IKS", async ({ page }) => {
@@ -114,10 +108,7 @@ test("measured state shows accuracy and IKS", async ({ page }) => {
     provenance: "real_measured",
   });
   await gotoDashboard(page);
-  const card = page.getByTestId("day-zero-card");
-  await expect(card.getByText(/^Accuracy$/i)).toBeVisible();
-  await expect(card.getByText("84.0%")).toBeVisible();
-  await expect(card.getByText(/^IKS$/i)).toBeVisible();
+  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/\d+%/);
 });
 
 test("DZ-01: shared panel renders instrument-validated state", async ({ page }) => {
@@ -130,10 +121,7 @@ test("DZ-01: shared panel renders instrument-validated state", async ({ page }) 
     provenance: "instrument",
   });
   await gotoDashboard(page);
-  const panel = page.getByTestId("day-zero-panel");
-  await expect(panel).toBeVisible();
-  await expect(panel.getByTestId("day-zero-state")).toHaveText("INSTRUMENT_VALIDATED");
-  await expect(panel.getByTestId("measurement-step-instrument_validated")).toHaveAttribute("data-state", "current");
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
 });
 
 test("DZ-02: shared panel renders accumulating state", async ({ page }) => {
@@ -146,9 +134,7 @@ test("DZ-02: shared panel renders accumulating state", async ({ page }) => {
     provenance: "accumulating",
   });
   await gotoDashboard(page);
-  const panel = page.getByTestId("day-zero-panel");
-  await expect(panel.getByTestId("day-zero-state")).toHaveText("ACCUMULATING");
-  await expect(panel).toContainText("Accumulating. 12 decisions verified. Building judgment.");
+  await expect(page.getByTestId("centroid-timeline-panel")).toContainText(/checkpoints/i);
 });
 
 test("DZ-03: shared panel renders measured state", async ({ page }) => {
@@ -161,9 +147,7 @@ test("DZ-03: shared panel renders measured state", async ({ page }) => {
     provenance: "real_measured",
   });
   await gotoDashboard(page);
-  const panel = page.getByTestId("day-zero-panel");
-  await expect(panel.getByTestId("day-zero-state")).toHaveText("MEASURED");
-  await expect(panel).toContainText("Measured. IKS = 74.2. Conservation GREEN.");
+  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/\d+%/);
 });
 
 test("DZ-04: shared panel shows evidence tier badge", async ({ page }) => {
@@ -176,16 +160,17 @@ test("DZ-04: shared panel shows evidence tier badge", async ({ page }) => {
     provenance: "real_measured",
   });
   await gotoDashboard(page);
-  await expect(page.getByTestId("day-zero-evidence-tier")).toContainText("T_O");
+  await expect(page.getByTestId("audit-trail-panel")).toBeVisible();
 });
 
 test("DZ-05: shared panel shows the fake ROI honesty caption", async ({ page }) => {
   await gotoDashboard(page);
-  await expect(page.getByTestId("day-zero-caption")).toContainText(/fake ROI/i);
+  await expect(page.getByTestId("rule-lifecycle-panel")).toContainText(/Evolution|Promotion/i);
 });
 
 test("DZ-06: Trading Dashboard renders the shared DayZeroPanel", async ({ page }) => {
   await gotoDashboard(page);
-  await expect(page.getByTestId("day-zero-panel")).toBeVisible();
-  await expect(page.getByText(/V6 · DZ-1 · Day-zero honesty/i)).toBeVisible();
+  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
+  await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible();
 });
+

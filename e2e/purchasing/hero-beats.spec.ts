@@ -72,6 +72,6 @@ test("PM-10: Purchasing hero surfaces are present across the flow", async ({ pag
   await expect(page.getByTestId("gated-signal-reliability-panel")).toBeVisible();
   await clickTab(page, "Performance");
   await waitForScreenReady(page);
-  await expect(page.getByTestId("proof-ledger-panel")).toBeVisible();
-  await expect(page.getByTestId("continuity-close-panel")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Proof Ledger" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Everything in this kitchen turns over/i })).toBeVisible();
 });

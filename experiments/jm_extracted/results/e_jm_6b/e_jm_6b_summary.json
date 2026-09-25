@@ -1,0 +1,14 @@
+{
+  "experiment": "E-JM-6b",
+  "n_trials": 20,
+  "n_bootstrap": 100,
+  "dk_late_accuracy": 0.37060000000000004,
+  "bayesian_late_accuracy": 0.3585,
+  "dk_advantage_pp": 1.2100000000000055,
+  "exponent_mean": 1.1386506740044104,
+  "exponent_ci_95": [
+    1.1386506740044107,
+    1.1386506740044107
+  ],
+  "exponent_gt_1_pct": 100.0
+}

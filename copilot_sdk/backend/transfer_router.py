@@ -50,16 +50,20 @@ def create_transfer_router(
         return _own_domain(scorer)
 
     @router.get("/status", response_model=FlexibleResponse)
-    @cached_static("transfer-status", copilot=_cache_domain)
     def transfer_status(request: Request) -> dict[str, Any]:
         info = _find_warm_start_info(scorer, warm_start_info)
         return _normalize_transfer_status(info)
 
     @router.get("/opportunities", response_model=FlexibleResponse)
-    @cached_static("transfer", copilot=_cache_domain)
     def transfer_opportunities(request: Request) -> dict[str, Any]:
         own_domain = _own_domain(scorer)
-        fingerprints, warnings = load_fingerprints_with_warnings(fingerprint_base_path)
+        graph_store = _graph_store(scorer)
+        fingerprints = {
+            str(item.get("domain")): dict(item)
+            for item in graph_store.list_fingerprints()
+            if isinstance(item, dict) and item.get("domain")
+        }
+        warnings: list[dict[str, str]] = []
         own_fingerprint = fingerprints.get(own_domain)
         other_fingerprints = {
             domain: payload
@@ -80,6 +84,7 @@ def create_transfer_router(
             "opportunities": opportunities,
             "warnings": warnings,
             "available_transfers": list_available_transfers(),
+            "source": "graph",
         }
 
     @router.get("/demo", response_model=TransferDemoResponse)
@@ -199,7 +204,7 @@ def create_transfer_router(
     return router
 
 
-def _pattern_dollar_impact(store: Any, pattern: dict[str, Any], source: str, target: str) -> float:
+def _pattern_dollar_impact(store: Any, pattern: dict[str, Any], source: str, target: str) -> float | str:
     """Sum persisted financial impact for decisions represented by an edge."""
     metadata = pattern.get("metadata")
     metadata = metadata if isinstance(metadata, dict) else {}
@@ -211,8 +216,10 @@ def _pattern_dollar_impact(store: Any, pattern: dict[str, Any], source: str, tar
         try:
             # GraphStore decision enumeration is domain-bound by protocol.
             rows = store.get_all_decisions(domain)
-        except Exception:
-            continue
+        except Exception as exc:
+            logger = __import__("logging").getLogger(__name__)
+            logger.error("Transfer impact read failed for %s: %s", domain, exc)
+            return "unknown"
         for row in rows if isinstance(rows, list) else []:
             if not isinstance(row, dict):
                 continue
@@ -630,29 +637,16 @@ def _pattern_registry(
 
 def _reset_conservation_state(scorer: Any, target_domain: str) -> bool:
     store = _store_for_domain(scorer, target_domain)
-    update = getattr(store, "update_conservation_state", None)
-    if not callable(update):
-        return False
-    try:
-        update(
-            domain=target_domain,
-            status="GREEN",
-            alpha=0.0,
-            q=0.0,
-            V=0,
-            theta_min=0.0001,
-            product=0.0,
-            categories_total=0,
-            categories_with_data=0,
-            baseline_product=0.0,
-            relative_threshold=0.0,
-            complacency_flag="false",
-            caused_by_decision_id="transfer-reset",
-            old_status=None,
-        )
-        return True
-    except Exception:
-        return False
+    atomic = getattr(store, "atomic_transfer_commit", None)
+    if callable(atomic):
+        try:
+            return bool(atomic(target_domain=target_domain))
+        except Exception:
+            return False
+    # A transfer must never manufacture a GREEN state. The AGE graph owns
+    # conservation and will recompute it from persisted evidence. Reading an
+    # existing state is not a reset, so report the operation truthfully.
+    return False
 
 
 def _log_transfer_event(
@@ -698,12 +692,11 @@ def _source_store_for_domain(scorer: Any, source_domain: str) -> Any | None:
 
 def _save_transfer_checkpoint(store: Any, domain: str, scorer: Any, metadata: dict[str, Any]) -> None:
     if not isinstance(store, GraphStore):
-        return
+        raise RuntimeError("Transfer checkpoint requires a GraphStore")
+    if not str(domain or "").strip():
+        raise ValueError("Transfer checkpoint domain is invalid")
     centroids = getattr(getattr(scorer, "gae_scorer", None), "centroids", None)
-    try:
-        store.save_centroids(domain, "transfer_event", centroids, metadata=metadata)
-    except Exception:
-        return
+    store.save_centroids(domain, "transfer_event", centroids, metadata=metadata)
 
 
 def _demo_patterns_for_mapping(
@@ -735,6 +728,7 @@ def _demo_patterns_for_mapping(
                     "source_domain": source_domain,
                     "source_fingerprint_id": f"demo-{source_domain}",
                     "factor_mapping": {"semantic_category": target_category},
+                    "provenance": "demo",
                 },
             )
         )

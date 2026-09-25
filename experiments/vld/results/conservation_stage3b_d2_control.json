@@ -1,0 +1,288 @@
+{
+  "metadata": {
+    "checkpoints": [
+      50,
+      100,
+      250,
+      500,
+      750,
+      1000,
+      1500,
+      2000
+    ],
+    "copilots": [
+      "soc",
+      "dataops"
+    ],
+    "d2_threshold_pp_per_100_squared": 0.1,
+    "degradation_model": "curve-level simulation; no persisted degraded FQI curves",
+    "seeds": [
+      42,
+      123,
+      7
+    ],
+    "tier": "REAL_COMPONENT geometry + GEOMETRY-DERIVED / SIMULATED",
+    "two_rebuild_byte_identical": true,
+    "wall_time_seconds": 453.91942290001316
+  },
+  "sub1_plateau_anticipation": {
+    "dataops": {
+      "aggregate": {
+        "lead_time_mean": 1566.6666666666667,
+        "lead_time_std": 235.70226039551585,
+        "metric": "d2_lead_time",
+        "positive_and_consistent": true
+      },
+      "per_seed": {
+        "123": {
+          "d2_crossing_N": 100,
+          "lead_time": 1400,
+          "metric": "d2_lead_time",
+          "plateau_N": 1500
+        },
+        "42": {
+          "d2_crossing_N": 100,
+          "lead_time": 1400,
+          "metric": "d2_lead_time",
+          "plateau_N": 1500
+        },
+        "7": {
+          "d2_crossing_N": 100,
+          "lead_time": 1900,
+          "metric": "d2_lead_time",
+          "plateau_N": 2000
+        }
+      }
+    },
+    "soc": {
+      "aggregate": {
+        "lead_time_mean": 1233.3333333333333,
+        "lead_time_std": 235.70226039551585,
+        "metric": "d2_lead_time",
+        "positive_and_consistent": true
+      },
+      "per_seed": {
+        "123": {
+          "d2_crossing_N": 100,
+          "lead_time": 900,
+          "metric": "d2_lead_time",
+          "plateau_N": 1000
+        },
+        "42": {
+          "d2_crossing_N": 100,
+          "lead_time": 1400,
+          "metric": "d2_lead_time",
+          "plateau_N": 1500
+        },
+        "7": {
+          "d2_crossing_N": 100,
+          "lead_time": 1400,
+          "metric": "d2_lead_time",
+          "plateau_N": 1500
+        }
+      }
+    }
+  },
+  "sub2_instability_detection": {
+    "dataops": {
+      "d2_instability_separation": {
+        "ood": 2.1833333333333327,
+        "poison": 0.8000000000000007,
+        "slow_drift": 0.5333333333333323
+      },
+      "detection": {
+        "ood": {
+          "d2_false_alarm_rate": 0.0,
+          "detected": true,
+          "lag": 0,
+          "threshold": 6.374074074074068
+        },
+        "poison": {
+          "d2_false_alarm_rate": 0.0,
+          "detected": true,
+          "lag": 0,
+          "threshold": 6.374074074074068
+        },
+        "slow_drift": {
+          "d2_false_alarm_rate": 0.0,
+          "detected": true,
+          "lag": 0,
+          "threshold": 6.374074074074068
+        }
+      },
+      "healthy_d2": {
+        "100": 0.0,
+        "1000": -2.2444444444444445,
+        "1500": 0.28888888888888964,
+        "2000": 0.0,
+        "250": 4.185185185185179,
+        "50": 0.0,
+        "500": -8.562962962962958,
+        "750": -0.11111111111111367
+      },
+      "metric": "d2_instability_separation",
+      "ood_d2": {
+        "100": 0.0,
+        "1000": -2.2444444444444445,
+        "1500": 0.28888888888888814,
+        "2000": 7.401486830834377e-16,
+        "250": 4.185185185185179,
+        "50": 0.0,
+        "500": -8.562962962962958,
+        "750": -2.2944444444444465
+      },
+      "poison_d2": {
+        "100": 0.0,
+        "1000": -2.2444444444444445,
+        "1500": 0.28888888888889186,
+        "2000": -2.220446049250313e-15,
+        "250": 4.185185185185179,
+        "50": 0.0,
+        "500": -8.562962962962958,
+        "750": -0.9111111111111144
+      },
+      "simulation_note": "Degraded curves are deterministic transforms of healthy FQI curves, calibrated to Stage-1 slow drift/poison and the RL-CHAR mean OOD gap.",
+      "slow_drift_d2": {
+        "100": 0.0,
+        "1000": -2.2444444444444445,
+        "1500": 0.2888888888888874,
+        "2000": 2.220446049250313e-15,
+        "250": 4.185185185185179,
+        "50": 0.0,
+        "500": -8.562962962962958,
+        "750": -0.644444444444446
+      },
+      "vs_baseline_tracker": {
+        "d2_better": true,
+        "d2_detection_rate": 1.0,
+        "d2_false_alarm": 0.0,
+        "d2_lag": 0,
+        "tracker": "T2_ewma_lambda10",
+        "tracker_detection_rate": 0.3333333333333333,
+        "tracker_false_alarm": 0.33066666666666666,
+        "tracker_lag": 178
+      }
+    },
+    "soc": {
+      "d2_instability_separation": {
+        "ood": 2.1833333333333327,
+        "poison": 0.8000000000000007,
+        "slow_drift": 0.5333333333333323
+      },
+      "detection": {
+        "ood": {
+          "d2_false_alarm_rate": 0.3333333333333333,
+          "detected": false,
+          "lag": "missed",
+          "threshold": 21.73333333333333
+        },
+        "poison": {
+          "d2_false_alarm_rate": 0.3333333333333333,
+          "detected": false,
+          "lag": "missed",
+          "threshold": 21.73333333333333
+        },
+        "slow_drift": {
+          "d2_false_alarm_rate": 0.3333333333333333,
+          "detected": false,
+          "lag": "missed",
+          "threshold": 21.73333333333333
+        }
+      },
+      "healthy_d2": {
+        "100": 0.0,
+        "1000": -0.3111111111111094,
+        "1500": -0.04444444444444547,
+        "2000": 0.0,
+        "250": -36.07407407407407,
+        "50": 0.0,
+        "500": -7.3925925925925915,
+        "750": -1.4000000000000012
+      },
+      "metric": "d2_instability_separation",
+      "ood_d2": {
+        "100": 0.0,
+        "1000": -0.3111111111111094,
+        "1500": -0.04444444444444621,
+        "2000": -7.401486830834377e-16,
+        "250": -36.07407407407407,
+        "50": 0.0,
+        "500": -7.3925925925925915,
+        "750": -3.583333333333334
+      },
+      "poison_d2": {
+        "100": 0.0,
+        "1000": -0.3111111111111094,
+        "1500": -0.04444444444444325,
+        "2000": -2.220446049250313e-15,
+        "250": -36.07407407407407,
+        "50": 0.0,
+        "500": -7.3925925925925915,
+        "750": -2.200000000000002
+      },
+      "simulation_note": "Degraded curves are deterministic transforms of healthy FQI curves, calibrated to Stage-1 slow drift/poison and the RL-CHAR mean OOD gap.",
+      "slow_drift_d2": {
+        "100": 0.0,
+        "1000": -0.3111111111111094,
+        "1500": -0.04444444444444771,
+        "2000": 2.220446049250313e-15,
+        "250": -36.07407407407407,
+        "50": 0.0,
+        "500": -7.3925925925925915,
+        "750": -1.9333333333333336
+      },
+      "vs_baseline_tracker": {
+        "d2_better": false,
+        "d2_detection_rate": 0.0,
+        "d2_false_alarm": 0.3333333333333333,
+        "d2_lag": "missed",
+        "tracker": "T2_ewma_lambda10",
+        "tracker_detection_rate": 0.0,
+        "tracker_false_alarm": 0.006,
+        "tracker_lag": "missed"
+      }
+    }
+  },
+  "sub3_controlled_learning": {
+    "dataops": {
+      "control_definition": "curve-level d2 damping/smoothing; endpoint anchored to fixed-rate final quality",
+      "d2_controlled": {
+        "final_quality": 0.7561111111111111,
+        "overshoot_count": 0,
+        "quality_preserved": true,
+        "smoother": true,
+        "trajectory_variance": 3.9077182725587956
+      },
+      "fixed_rate": {
+        "final_quality": 0.7561111111111111,
+        "overshoot_count": 0,
+        "trajectory_variance": 13.572516289437598
+      },
+      "metric": "trajectory_variance / final_quality"
+    },
+    "soc": {
+      "control_definition": "curve-level d2 damping/smoothing; endpoint anchored to fixed-rate final quality",
+      "d2_controlled": {
+        "final_quality": 0.8872222222222222,
+        "overshoot_count": 0,
+        "quality_preserved": true,
+        "smoother": true,
+        "trajectory_variance": 213.31757205224167
+      },
+      "fixed_rate": {
+        "final_quality": 0.8872222222222222,
+        "overshoot_count": 0,
+        "trajectory_variance": 216.5688537379972
+      },
+      "metric": "trajectory_variance / final_quality"
+    }
+  },
+  "verdicts": {
+    "conservation_cross_benefit": false,
+    "ood_caveat": "All results are in-distribution/deployment-specific; RL-CHAR found a -32.75pp OOD gap.",
+    "overall": "d2 is descriptive only",
+    "sub1": "usable",
+    "sub2": "not_better",
+    "sub3": "usable"
+  }
+}
