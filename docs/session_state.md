@@ -3126,3 +3126,20 @@ Test count: SDK root 3,833 passed, 0 failures
 GC tests: 8 passed, 0 failures
 Verdict: PASS
 Tag: v0.9.63
+
+C-0 Part 1 (B29) — Scanner, Provenance, Benchmark
+Date: 2026-09-29
+Model: sol/high
+Phase 0 findings:
+  Provenanced: exists and already complete at copilot_sdk/evidence/provenance.py (frozen Generic[T], source: str, optional label/as_of).
+  Presets found: SOC (6,4,6), S2P (5,5,8), Trading (5,4,10), Purchasing (5,4,7), DataOps (6,5,6).
+  Pre-existence: architecture_scan.py PARTIAL; run_t0.ps1 COMPLETE; integrity/__init__.py COMPLETE; generate_benchmark.py ABSENT; load_benchmark.py PARTIAL; both benchmark JSON fixtures PARTIAL; provenance.py and evidence/__init__.py COMPLETE; test_integrity_scanner.py PARTIAL; tests/integrity/__init__.py COMPLETE; benchmark and provenance test files ABSENT.
+  SDK root baseline: 3,833 collected.
+Phase 1 design: preserve the existing provenance contract and frozen 20260711/400+100 Trading fixture; extend the scanner with declarative AGE-01, AGE-02, and LANG-01 checks plus baseline-specific exemptions; add current CompoundingScorer benchmark helpers and isolated acceptance tests.
+Phase 2 implementation:
+  Files created: integrity/generate_benchmark.py, tests/integrity/test_benchmark_fixture.py, tests/test_provenance.py.
+  Files modified: integrity/architecture_scan.py, integrity/benchmark_fixture.py, integrity/load_benchmark.py, integrity/fixtures/benchmark_factors_v1.json, integrity/fixtures/benchmark_outcomes_v1.json, tests/test_integrity_scanner.py.
+  Steps skipped (pre-existing): Provenanced implementation and evidence exports; integrity package initialization; PowerShell T0 runner.
+Status: COMPLETE
+Test count: SDK root 3,851 passed, 0 failures
+Notes: scanner --check exited 0; scanner/provenance/benchmark targets each passed 9 tests; deterministic fixture hashes were stable across regeneration; mypy, banned-pattern, F-25, whitespace, and 46-test sampling gates passed. Implementation commit a8a8a8a.
