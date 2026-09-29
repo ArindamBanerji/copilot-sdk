@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import ast
 import re
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Pattern
@@ -56,6 +57,7 @@ class LiteralCheck:
     extensions: tuple[str, ...]
     skip_if_in_line: tuple[str, ...] = ()
     exempt_paths: tuple[str, ...] = ()
+    allowed_occurrences: tuple[tuple[str, str], ...] = ()
     message: str = "forbidden architecture pattern"
 
 
@@ -63,28 +65,40 @@ class LiteralCheck:
 MERGE_BASELINE_EXEMPTIONS = (
     "gen-ai-roi-demo-v4-v50/backend/app/data/alert_pool.py",
 )
-SQLITE_BASELINE_EXEMPTIONS = (
-    "copilot-sdk/copilot_sdk/backend/signal_store.py",
-    "copilot-sdk/copilot_sdk/evolution/variant_store.py",
-    "copilot-sdk/copilot_sdk/graph/outbox.py",
-    "copilot-sdk/copilot_sdk/graph/sqlite_store.py",
-    "copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py",
-    "copilot-sdk/copilot_sdk/migration/rehearsal.py",
-    "copilot-sdk/copilot_sdk/outbox/store.py",
-    "copilot-sdk/copilot_sdk/outcome/ledger.py",
-    "copilot-sdk/copilot_sdk/pilot/transfer.py",
-    "copilot-sdk/copilot_sdk/promotion/core.py",
-    "copilot-sdk/copilot_sdk/scoring/persistence_outbox.py",
-    "copilot-sdk/apps/dataops/backend/app/dataops_governance.py",
-    "copilot-sdk/apps/dataops/backend/app/main.py",
-    "copilot-sdk/apps/purchasing/backend/app/main.py",
-    "copilot-sdk/apps/purchasing/backend/app/services/purchasing_control.py",
-    "copilot-sdk/apps/trading/backend/app/main.py",
-    "copilot-sdk/apps/trading/backend/app/cli_sdk.py",
-    "s2p-copilot/backend/app/main.py",
-    "s2p-copilot/backend/app/services/proposal_service.py",
-    "gen-ai-roi-demo-v4-v50/backend/app/main.py",
-    "gen-ai-roi-demo-v4-v50/backend/app/services/authority_ladder.py",
+# Exact known SQLite boundaries. Duplicate tuples preserve the number of known
+# occurrences, so an additional identical call in the same file is still caught.
+SQLITE_ALLOWED_OCCURRENCES = (
+    # SDK local signal cache.
+    ("copilot-sdk/copilot_sdk/backend/signal_store.py", 'sqlite3.connect(":memory:", check_same_thread=False)'),
+    ("copilot-sdk/copilot_sdk/backend/signal_store.py", "db = self._memory if self._memory is not None else sqlite3.connect(self.db_path, timeout=30)"),
+    # SDK local variant, graph, outcome, pilot, promotion, and outbox stores.
+    ("copilot-sdk/copilot_sdk/evolution/variant_store.py", "self._connection = sqlite3.connect("),
+    ("copilot-sdk/copilot_sdk/graph/outbox.py", "self._connection = sqlite3.connect(self.path, check_same_thread=False, timeout=30.0)"),
+    ("copilot-sdk/copilot_sdk/graph/sqlite_store.py", "self._conn: sqlite3.Connection | None = sqlite3.connect("),
+    ("copilot-sdk/copilot_sdk/migration/rehearsal.py", "with sqlite3.connect(path) as connection:"),
+    ("copilot-sdk/copilot_sdk/outbox/store.py", "self._conn = sqlite3.connect(str(self.db_path), check_same_thread=False)"),
+    ("copilot-sdk/copilot_sdk/outcome/ledger.py", "self._connection = sqlite3.connect(self.db_path, check_same_thread=False)"),
+    ("copilot-sdk/copilot_sdk/pilot/transfer.py", "self._connection = sqlite3.connect(db_path, check_same_thread=False)"),
+    ("copilot-sdk/copilot_sdk/promotion/core.py", "self._connection = sqlite3.connect(db_path, check_same_thread=False)"),
+    ("copilot-sdk/copilot_sdk/scoring/persistence_outbox.py", "connection = sqlite3.connect(self.db_path, timeout=30.0)"),
+    # SQLite-to-AGE migration source reads (four db_path and two source connections).
+    ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as conn:"),
+    ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as conn:"),
+    ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as conn:"),
+    ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as conn:"),
+    ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as source_conn:"),
+    ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(source_db) as source_conn:"),
+    # App-local stores retained as known legacy boundaries.
+    ("copilot-sdk/apps/dataops/backend/app/dataops_governance.py", "self._db = sqlite3.connect(str(db_path), check_same_thread=False)"),
+    ("copilot-sdk/apps/dataops/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
+    ("copilot-sdk/apps/purchasing/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
+    ("copilot-sdk/apps/purchasing/backend/app/services/purchasing_control.py", "self._db = sqlite3.connect(self.path, check_same_thread=False)"),
+    ("copilot-sdk/apps/trading/backend/app/cli_sdk.py", "conn = sqlite3.connect(backup_path)"),
+    ("copilot-sdk/apps/trading/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
+    ("s2p-copilot/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
+    ("s2p-copilot/backend/app/services/proposal_service.py", "self._connection = sqlite3.connect(db_path, check_same_thread=False)"),
+    ("gen-ai-roi-demo-v4-v50/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
+    ("gen-ai-roi-demo-v4-v50/backend/app/services/authority_ladder.py", "self._audit = sqlite3.connect(self.db_path, check_same_thread=False)"),
 )
 PURCHASING_LANGUAGE_BASELINE_EXEMPTIONS = (
     "copilot-sdk/apps/purchasing/backend/app/evidence_provider.py",
@@ -117,8 +131,7 @@ LITERAL_CHECKS = (
         pattern=re.compile(r"\bsqlite3\.connect\s*\("),
         scan_dirs=("copilot-sdk/copilot_sdk", "copilot-sdk/apps/dataops/backend/app", "copilot-sdk/apps/purchasing/backend/app", "copilot-sdk/apps/trading/backend/app", "s2p-copilot/backend/app", "gen-ai-roi-demo-v4-v50/backend/app"),
         extensions=(".py",),
-        skip_if_in_line=("migration", "preseed"),
-        exempt_paths=SQLITE_BASELINE_EXEMPTIONS,
+        allowed_occurrences=SQLITE_ALLOWED_OCCURRENCES,
         message="raw sqlite3.connect bypasses the GraphStore boundary",
     ),
     LiteralCheck(
@@ -191,7 +204,11 @@ def _workspace_relative(path: Path, repos_root: Path) -> str:
         return path.as_posix()
 
 
-def scan_file(path: Path, check: LiteralCheck) -> tuple[Evidence, ...]:
+def scan_file(
+    path: Path,
+    check: LiteralCheck,
+    allowed_signatures: Counter[str] | None = None,
+) -> tuple[Evidence, ...]:
     """Scan one source file line-by-line for one literal architecture check."""
     docstrings = _docstring_line_numbers(path)
     evidence: list[Evidence] = []
@@ -202,6 +219,10 @@ def scan_file(path: Path, check: LiteralCheck) -> tuple[Evidence, ...]:
         if any(token.lower() in line.lower() for token in check.skip_if_in_line):
             continue
         if check.pattern.search(line):
+            signature = line.strip()
+            if allowed_signatures is not None and allowed_signatures[signature] > 0:
+                allowed_signatures[signature] -= 1
+                continue
             evidence.append(Evidence(path, line_number, check.message))
     return tuple(evidence)
 
@@ -216,9 +237,15 @@ def run_literal_check(check: LiteralCheck, repos_root: Path = WORKSPACE_ROOT) ->
             missing.append(relative_dir)
             continue
         for path in _iter_files(root, check.extensions):
-            if _workspace_relative(path, repos_root) in exemptions:
+            relative_path = _workspace_relative(path, repos_root)
+            if relative_path in exemptions:
                 continue
-            evidence.extend(scan_file(path, check))
+            allowed_signatures = Counter(
+                signature
+                for allowed_path, signature in check.allowed_occurrences
+                if allowed_path == relative_path
+            )
+            evidence.extend(scan_file(path, check, allowed_signatures))
     note = "missing directories skipped: " + ", ".join(missing) if missing else ""
     return CheckResult(check.code, check.title, True, tuple(evidence), note=note)
 

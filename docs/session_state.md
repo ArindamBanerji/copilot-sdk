@@ -3143,3 +3143,13 @@ Phase 2 implementation:
 Status: COMPLETE
 Test count: SDK root 3,851 passed, 0 failures
 Notes: scanner --check exited 0; scanner/provenance/benchmark targets each passed 9 tests; deterministic fixture hashes were stable across regeneration; mypy, banned-pattern, F-25, whitespace, and 46-test sampling gates passed. Implementation commit a8a8a8a.
+
+C-0 Part 1 REVIEW (B29)
+Date: 2026-09-29
+Model: terra/high
+Findings: 3
+  - P1 integrity/architecture_scan.py:202,219 — AGE-02 can miss real production sqlite3.connect calls because substring skip tokens suppress matching lines and whole-file exemptions suppress every future call in 21 production files.
+  - P2 integrity/load_benchmark.py:31 — frozen fixture validation does not enforce seed, preset, D, declared split counts across both files, factor dimensionality/range, or one-to-one outcome IDs.
+  - P2 integrity/load_benchmark.py:136 — decisions_to_threshold measures the first transient evaluation-prefix accuracy crossing without learning, so it does not count training or reconvergence decisions to a threshold.
+Test count: SDK root 3,851 passed, 0 failures
+Verdict: NEEDS_FIXER

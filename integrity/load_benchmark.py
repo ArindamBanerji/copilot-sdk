@@ -16,6 +16,8 @@ BENCHMARK = {
     "version": EXPECTED_VERSION,
     "seed": 20260711,
     "domain": "trading",
+    "preset": "trading",
+    "D": 10,
     "n_train": 400,
     "n_eval": 100,
 }
@@ -28,26 +30,101 @@ def _read_json(path: Path) -> dict[str, Any]:
     return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
-def _validate_header(data: dict[str, Any], key: str) -> None:
+def _validate_header(data: dict[str, Any], key: str, fixture_name: str) -> None:
     if data.get("version") != EXPECTED_VERSION:
         raise ValueError(f"unsupported benchmark version: {data.get('version')!r}")
     if data.get("frozen") is not True:
         raise ValueError("benchmark fixture must be frozen")
+    for field in ("seed", "preset", "D", "n_train", "n_eval"):
+        if data.get(field) != BENCHMARK[field]:
+            raise ValueError(
+                f"{fixture_name} benchmark {field} mismatch: "
+                f"{data.get(field)!r} != {BENCHMARK[field]!r}"
+            )
     if key not in data:
         raise ValueError(f"benchmark fixture missing {key!r}")
+    if not isinstance(data[key], list):
+        raise ValueError(f"{fixture_name} benchmark {key} must be a list")
+
+
+def _decision_id(row: object, fixture_name: str) -> str:
+    if not isinstance(row, dict):
+        raise ValueError(f"{fixture_name} benchmark row must be an object")
+    decision_id = row.get("decision_id")
+    if not isinstance(decision_id, str) or not decision_id:
+        raise ValueError(f"{fixture_name} benchmark row has invalid decision_id")
+    return decision_id
+
+
+def _validate_decisions(rows: list[object]) -> dict[str, dict[str, Any]]:
+    decisions: dict[str, dict[str, Any]] = {}
+    counts = {"train": 0, "eval": 0}
+    expected_dimension = cast(int, BENCHMARK["D"])
+    for raw_row in rows:
+        decision_id = _decision_id(raw_row, "factors")
+        if decision_id in decisions:
+            raise ValueError(f"duplicate factor decision_id: {decision_id}")
+        row = cast(dict[str, Any], raw_row)
+        split = row.get("split")
+        if split not in counts:
+            raise ValueError(f"invalid factor split for {decision_id}: {split!r}")
+        factors = row.get("factors")
+        if not isinstance(factors, dict) or len(factors) != expected_dimension:
+            actual = len(factors) if isinstance(factors, dict) else "not-a-mapping"
+            raise ValueError(
+                f"factor dimension mismatch for {decision_id}: "
+                f"{actual} != {expected_dimension}"
+            )
+        for name, value in factors.items():
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ValueError(f"factor {name!r} for {decision_id} is not numeric")
+            if not 0.0 <= float(value) <= 1.0:
+                raise ValueError(f"factor {name!r} for {decision_id} is outside [0, 1]")
+        counts[cast(str, split)] += 1
+        decisions[decision_id] = row
+    if counts["train"] != BENCHMARK["n_train"]:
+        raise ValueError(
+            f"actual train count mismatch: {counts['train']} != {BENCHMARK['n_train']}"
+        )
+    if counts["eval"] != BENCHMARK["n_eval"]:
+        raise ValueError(
+            f"actual eval count mismatch: {counts['eval']} != {BENCHMARK['n_eval']}"
+        )
+    return decisions
+
+
+def _validate_outcomes(
+    rows: list[object],
+    decisions: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    outcomes: dict[str, dict[str, Any]] = {}
+    for raw_row in rows:
+        decision_id = _decision_id(raw_row, "outcomes")
+        if decision_id in outcomes:
+            raise ValueError(f"duplicate outcome decision_id: {decision_id}")
+        row = cast(dict[str, Any], raw_row)
+        if decision_id not in decisions:
+            raise ValueError(f"outcome has no factor row: {decision_id}")
+        if row.get("split") != decisions[decision_id].get("split"):
+            raise ValueError(f"split mismatch for decision_id: {decision_id}")
+        if not isinstance(row.get("actual_action"), str) or not row["actual_action"]:
+            raise ValueError(f"outcome has invalid actual_action: {decision_id}")
+        outcomes[decision_id] = row
+    missing = set(decisions).difference(outcomes)
+    if missing:
+        raise ValueError(f"missing outcome for {min(missing)}")
+    return outcomes
 
 
 def load_benchmark() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     factors = _read_json(FACTORS_PATH)
     outcomes = _read_json(OUTCOMES_PATH)
-    _validate_header(factors, "decisions")
-    _validate_header(outcomes, "outcomes")
-    outcome_by_id = {
-        str(row["decision_id"]): row
-        for row in outcomes["outcomes"]
-    }
+    _validate_header(factors, "decisions", "factors")
+    _validate_header(outcomes, "outcomes", "outcomes")
+    decisions_by_id = _validate_decisions(factors["decisions"])
+    outcome_by_id = _validate_outcomes(outcomes["outcomes"], decisions_by_id)
     combined: list[dict[str, Any]] = []
-    for row in factors["decisions"]:
+    for row in decisions_by_id.values():
         decision_id = str(row["decision_id"])
         outcome = outcome_by_id.get(decision_id)
         if outcome is None:
@@ -55,8 +132,6 @@ def load_benchmark() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         combined.append({**row, "outcome": outcome})
     train = [row for row in combined if row.get("split") == "train"]
     eval_rows = [row for row in combined if row.get("split") == "eval"]
-    if len(train) != int(factors["n_train"]) or len(eval_rows) != int(factors["n_eval"]):
-        raise ValueError("benchmark split counts do not match header")
     return train, eval_rows
 
 
@@ -135,19 +210,28 @@ def measure_accuracy_with_weights(
 
 def decisions_to_threshold(
     scorer: CompoundingScorer,
+    learn_data: list[dict[str, Any]],
     eval_data: list[dict[str, Any]],
     threshold: float,
 ) -> int:
-    """Return the first held-out prefix whose cumulative accuracy reaches threshold."""
+    """Count additional verified learning updates needed on full held-out accuracy."""
     if not 0.0 <= float(threshold) <= 1.0:
         raise ValueError("threshold must be in [0, 1]")
-    correct = 0
-    for count, row in enumerate(eval_data, start=1):
-        result = scorer.score_read_only(row["factors"], str(row["category"]))
-        correct += int(result.action == str(row["outcome"]["actual_action"]))
-        if correct / count >= threshold:
+    if measure_accuracy(scorer, eval_data) >= threshold:
+        return 0
+    for count, row in enumerate(learn_data, start=1):
+        result = scorer.score(row["factors"], str(row["category"]))
+        learned = scorer.learn(
+            result.decision_id,
+            str(row["outcome"]["actual_action"]),
+            context={"benchmark": True, "fixture_decision_id": row["decision_id"]},
+            persist_artifacts=False,
+        )
+        if isinstance(learned, dict):
+            raise RuntimeError(f"benchmark threshold learning paused at {count}: {learned}")
+        if measure_accuracy(scorer, eval_data) >= threshold:
             return count
-    return len(eval_data)
+    return len(learn_data)
 
 
 def inject_disruption(scorer: CompoundingScorer, magnitude: float) -> None:

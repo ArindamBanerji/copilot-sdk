@@ -90,6 +90,29 @@ def test_missing_directory_is_skipped_cleanly(tmp_path: Path) -> None:
     assert "not-cloned" in result.note
 
 
+def test_age02_catches_new_sqlite_in_formerly_exempt_file(tmp_path: Path) -> None:
+    target = tmp_path / "copilot-sdk" / "copilot_sdk" / "backend" / "signal_store.py"
+    target.parent.mkdir(parents=True)
+    target.write_text(
+        "extra_connection = sqlite3.connect('unexpected.db')\n",
+        encoding="utf-8",
+    )
+    check = replace(
+        architecture_scan.LITERAL_CHECKS[1],
+        scan_dirs=("copilot-sdk/copilot_sdk",),
+    )
+
+    result = architecture_scan.run_literal_check(check, repos_root=tmp_path)
+
+    assert result.passed is False
+    assert len(result.evidence) == 1
+
+
+def test_age02_allows_known_legitimate_uses() -> None:
+    result = architecture_scan.check_raw_sqlite()
+    assert result.passed is True
+
+
 def test_check_exit_code_is_one_for_enforced_violation(monkeypatch: pytest.MonkeyPatch) -> None:
     failed = architecture_scan.CheckResult(
         "TEST",
