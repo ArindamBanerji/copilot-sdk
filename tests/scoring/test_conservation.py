@@ -48,7 +48,7 @@ def _add_verified(
         )
 
 
-def test_conservation_snapshot_written_when_paused(mock_preset):
+def test_conservation_rejection_performs_no_graph_writes(mock_preset):
     store = InMemoryGraphStore(domain="mock")
     _add_verified(store, "mock", "alpha", 10, correct=False)
     scorer = _make_scorer(mock_preset, store)
@@ -58,15 +58,11 @@ def test_conservation_snapshot_written_when_paused(mock_preset):
 
     assert learned["status"] == "paused"
     assert learned["reason"] == "conservation_red"
-    snapshot = store._conservation_snapshots[f"mock:conservation:{result.decision_id}"]
-    assert snapshot["status"] == "RED"
-    assert snapshot["V"] == 10
-    assert snapshot["q"] == 0.0
-    assert snapshot["alpha"] == 1 / 3
+    assert f"mock:conservation:{result.decision_id}" not in store._conservation_snapshots
     assert store.count_verified("mock") == 10
     assert not store._evidence_receipts
-    assert store._protocol_centroid_checkpoints
-    assert store._fingerprints
+    assert not store._protocol_centroid_checkpoints
+    assert not store._fingerprints
 
 
 def test_conservation_alpha_is_category_coverage(mock_preset):
@@ -112,7 +108,7 @@ class _FailingConservationStore(InMemoryGraphStore):
         raise RuntimeError("snapshot unavailable")
 
 
-def test_conservation_outbox_on_snapshot_failure(mock_preset, tmp_path):
+def test_conservation_rejection_does_not_enqueue_snapshot(mock_preset, tmp_path):
     store = _FailingConservationStore(domain="mock")
     _add_verified(store, "mock", "alpha", 10, correct=False)
     scorer = _make_scorer(mock_preset, store)
@@ -122,7 +118,7 @@ def test_conservation_outbox_on_snapshot_failure(mock_preset, tmp_path):
     learned = scorer.learn(result.decision_id, result.action)
 
     assert learned["status"] == "paused"
-    assert scorer._outbox.pending_count() == 1
+    assert scorer._outbox.pending_count() == 0
 
 
 def test_all_five_domains_conservation_status(mock_preset):

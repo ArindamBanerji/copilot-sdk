@@ -16,6 +16,7 @@ class VerificationResult:
     is_correct: bool
     source: str
     days_elapsed: int
+    price_source_available: bool = True
 
 
 _SEED_CACHE: dict[str, tuple[float, int]] = {
@@ -43,8 +44,8 @@ def verify_trade(
     normalized = ticker.upper()
     entry = float(entry_price)
     if use_live:
-        current = _fetch_live_price(normalized)
-        source = "live" if current > 0.0 else "unknown_ticker"
+        current, live_available = _fetch_live_price(normalized)
+        source = "live" if live_available else ("cached_seed" if current > 0.0 else "unknown_ticker")
         days_elapsed = 0
     elif normalized in _SEED_CACHE:
         current, days_elapsed = _SEED_CACHE[normalized]
@@ -58,6 +59,7 @@ def verify_trade(
             is_correct=False,
             source="unknown_ticker",
             days_elapsed=0,
+            price_source_available=False,
         )
 
     return VerificationResult(
@@ -68,6 +70,7 @@ def verify_trade(
         is_correct=_is_correct(entry, float(current), direction),
         source=source,
         days_elapsed=days_elapsed,
+        price_source_available=live_available if use_live else True,
     )
 
 
@@ -81,13 +84,13 @@ def _is_correct(entry: float, current: float, direction: str) -> bool:
     return False
 
 
-def _fetch_live_price(ticker: str) -> float:
+def _fetch_live_price(ticker: str) -> tuple[float, bool]:
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=1d&interval=1d"
     try:
         with urllib.request.urlopen(url, timeout=5) as response:
             payload = json.loads(response.read().decode("utf-8"))
         result = payload["chart"]["result"][0]
-        return float(result["meta"]["regularMarketPrice"])
-    except Exception:
+        return float(result["meta"]["regularMarketPrice"]), True
+    except (OSError, TimeoutError, ConnectionError):
         cached = _SEED_CACHE.get(ticker)
-        return float(cached[0]) if cached else 0.0
+        return (float(cached[0]), False) if cached else (0.0, False)

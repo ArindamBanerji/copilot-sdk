@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+import logging
+from typing import Any, cast
 
 from fastapi import APIRouter
 
@@ -12,6 +13,7 @@ from copilot_sdk.scoring.presets import PurchasingPreset
 
 
 DOMAIN = "purchasing"
+LOGGER = logging.getLogger(__name__)
 _SHAPE = PurchasingPreset().shape
 VALID_CATEGORIES = set(_SHAPE.category_names)
 VALID_ACTIONS = set(_SHAPE.action_names)
@@ -26,16 +28,26 @@ def create_evidence_router(state_provider: Any) -> APIRouter:
         graph_store = _graph_store(state_provider)
         decisions = _all_decisions(graph_store)
         verified = _verified_decisions(graph_store)
+        decisions_available = decisions is not None
+        verified_available = verified is not None
+        decisions = decisions or []
+        verified = verified or []
         verified_count = len(verified)
         decision_count = len(decisions)
         correct_count = sum(1 for decision in verified if decision.get("is_correct") is True)
         trajectory = _trajectory(state_provider)
+        iks = _trajectory_iks(trajectory)
+        trajectory_available = trajectory is not None
+        iks_available = trajectory_available and iks is not None
+        degraded = not decisions_available or not verified_available or not iks_available
+        conservation_status = "UNAVAILABLE" if degraded else _conservation_status(verified_count, correct_count)
 
-        return _json_safe(
+        payload = cast(dict[str, Any], _json_safe(
             {
                 "domain": DOMAIN,
-                "iks_score": _trajectory_iks(trajectory),
-                "conservation_status": _conservation_status(verified_count, correct_count),
+                "iks_score": iks if iks is not None else 0.0,
+                "iks_available": iks_available,
+                "conservation_status": conservation_status,
                 "decision_count": decision_count,
                 "verified_count": verified_count,
                 "verification_rate": _ratio(verified_count, decision_count),
@@ -48,30 +60,54 @@ def create_evidence_router(state_provider: Any) -> APIRouter:
                 },
                 "source": "graphstore",
             }
-        )
+        ))
+        if degraded:
+            payload.update(
+                data_available=False,
+                degraded=True,
+                decisions_available=decisions_available,
+                verified_available=verified_available,
+                trajectory_available=trajectory_available,
+            )
+        else:
+            payload.update(
+                data_available=True,
+                degraded=False,
+                decisions_available=True,
+                verified_available=True,
+                trajectory_available=True,
+            )
+        return payload
 
     @router.get("/evidence/decisions")
     def evidence_decisions() -> dict[str, Any]:
         graph_store = _graph_store(state_provider)
+        verified = _verified_decisions(graph_store)
+        degraded = verified is None
         verified = [
-            decision for decision in _verified_decisions(graph_store)
+            decision for decision in (verified or [])
             if _valid_decision_terms(decision)
         ]
         rows = [_decision_payload(decision) for decision in verified[-25:]]
-        return _json_safe(
+        payload = cast(dict[str, Any], _json_safe(
             {
                 "domain": DOMAIN,
                 "decisions": rows,
                 "count": len(rows),
                 "source": "graphstore",
             }
-        )
+        ))
+        if degraded:
+            payload.update(data_available=False, degraded=True, verified_available=False)
+        return payload
 
     @router.get("/evidence/audit-trail")
     def audit_trail() -> dict[str, Any]:
         graph_store = _graph_store(state_provider)
+        verified = _verified_decisions(graph_store)
+        degraded = verified is None
         verified = [
-            decision for decision in _verified_decisions(graph_store)
+            decision for decision in (verified or [])
             if _valid_decision_terms(decision)
         ]
         chain = [
@@ -85,42 +121,75 @@ def create_evidence_router(state_provider: Any) -> APIRouter:
             }
             for index, decision in enumerate(verified[-25:])
         ]
-        return {
+        payload = {
             "domain": DOMAIN,
             "integrity_status": "fixture" if chain else "unavailable",
             "hash_chain_available": False,
             "chain": chain,
             "source": "fixture",
         }
+        if degraded:
+            payload.update(data_available=False, degraded=True, verified_available=False)
+        return payload
 
     @router.get("/evidence/conservation-proof")
     def conservation_proof() -> dict[str, Any]:
         graph_store = _graph_store(state_provider)
         verified_count = _count(graph_store, "count_verified")
         correct_count = _count(graph_store, "count_correct")
-        q = _ratio(correct_count, verified_count) if verified_count else None
+        verified_count_available = verified_count is not None
+        correct_count_available = correct_count is not None
+        verified_count = verified_count or 0
+        correct_count = correct_count or 0
+        q = _ratio(correct_count, verified_count) if verified_count else 0.0
+        q_available = verified_count_available and correct_count_available and verified_count > 0
         checkpoints = _centroid_checkpoints(graph_store)
-        return _json_safe(
+        checkpoints_available = checkpoints is not None
+        checkpoints = checkpoints or []
+        degraded = not verified_count_available or not correct_count_available or not checkpoints_available
+        payload = cast(dict[str, Any], _json_safe(
             {
                 "domain": DOMAIN,
-                "status": _conservation_status(verified_count, correct_count),
+                "status": "UNAVAILABLE" if degraded else _conservation_status(verified_count, correct_count),
                 "q": q,
+                "q_available": q_available,
                 "theta_min": 0.5,
-                "days_in_green": None,
+                "days_in_green": 0,
+                "days_in_green_available": False,
                 "trajectory": [
                     {
-                        "checkpoint_id": checkpoint.get("id"),
-                        "decision_id": checkpoint.get("decision_id"),
-                        "category": checkpoint.get("category"),
-                        "iks": _finite_float(checkpoint.get("iks")),
-                        "created_at": _timestamp(checkpoint.get("created_at")),
+                        "checkpoint_id": str(checkpoint.get("id") or ""),
+                        "decision_id": str(checkpoint.get("decision_id") or ""),
+                        "category": str(checkpoint.get("category") or ""),
+                        "iks": _finite_float(checkpoint.get("iks")) or 0.0,
+                        "iks_available": _finite_float(checkpoint.get("iks")) is not None,
+                        "created_at": _timestamp(checkpoint.get("created_at")) or "",
                     }
                     for checkpoint in checkpoints
                 ],
                 "status_transitions": [],
                 "source": "computed" if verified_count else "graphstore",
             }
-        )
+        ))
+        if degraded:
+            payload.update(
+                data_available=False,
+                degraded=True,
+                count_verified_available=verified_count_available,
+                count_correct_available=correct_count_available,
+                checkpoints_available=checkpoints_available,
+                q_available=q_available,
+            )
+        else:
+            payload.update(
+                data_available=True,
+                degraded=False,
+                count_verified_available=True,
+                count_correct_available=True,
+                checkpoints_available=True,
+                q_available=q_available,
+            )
+        return payload
 
     @router.get("/health")
     def purchasing_health() -> dict[str, Any]:
@@ -163,35 +232,38 @@ def _graph_store(state_provider: Any):
     return None
 
 
-def _all_decisions(graph_store: Any) -> list[dict[str, Any]]:
+def _all_decisions(graph_store: Any) -> list[dict[str, Any]] | None:
     get_all = getattr(graph_store, "get_all_decisions", None)
     if not callable(get_all):
-        return []
+        return None
     try:
         return [row for row in get_all(DOMAIN) if isinstance(row, dict)]
-    except Exception:
-        return []
+    except Exception as exc:
+        LOGGER.warning("Purchasing evidence decision read failed: %s", exc)
+        return None
 
 
-def _verified_decisions(graph_store: Any) -> list[dict[str, Any]]:
+def _verified_decisions(graph_store: Any) -> list[dict[str, Any]] | None:
     get_verified = getattr(graph_store, "get_verified_decisions", None)
     if not callable(get_verified):
-        return []
+        return None
     try:
         return [row for row in get_verified(DOMAIN) if isinstance(row, dict)]
-    except Exception:
-        return []
+    except Exception as exc:
+        LOGGER.warning("Purchasing evidence verified-decision read failed: %s", exc)
+        return None
 
 
-def _centroid_checkpoints(graph_store: Any) -> list[dict[str, Any]]:
+def _centroid_checkpoints(graph_store: Any) -> list[dict[str, Any]] | None:
     try:
         return [
             row
             for row in graph_store.get_centroid_checkpoints(DOMAIN, limit=25)
             if isinstance(row, dict)
         ]
-    except Exception:
-        return []
+    except Exception as exc:
+        LOGGER.warning("Purchasing evidence checkpoint read failed: %s", exc)
+        return None
 
 
 def _trajectory(state_provider: Any) -> Any | None:
@@ -200,7 +272,8 @@ def _trajectory(state_provider: Any) -> Any | None:
         return None
     try:
         return trajectory()
-    except Exception:
+    except Exception as exc:
+        LOGGER.warning("Purchasing evidence trajectory read failed: %s", exc)
         return None
 
 
@@ -211,14 +284,15 @@ def _trajectory_iks(trajectory: Any | None) -> float | None:
     return _finite_float(value)
 
 
-def _count(graph_store: Any, method_name: str) -> int:
+def _count(graph_store: Any, method_name: str) -> int | None:
     method = getattr(graph_store, method_name, None)
     if not callable(method):
-        return 0
+        return None
     try:
         return max(int(method(DOMAIN)), 0)
-    except Exception:
-        return 0
+    except Exception as exc:
+        LOGGER.warning("Purchasing evidence counter read failed: method=%s error=%s", method_name, exc)
+        return None
 
 
 def _conservation_status(verified_count: int, correct_count: int) -> str:
@@ -270,11 +344,16 @@ def _recommended_action(decision: dict[str, Any]) -> str:
 
 
 def _decision_factors(decision: dict[str, Any]) -> dict[str, float]:
-    factors = decision.get("factors") if isinstance(decision.get("factors"), dict) else {}
-    metadata = factors.get("metadata") if isinstance(factors.get("metadata"), dict) else {}
-    decision_metadata = decision.get("metadata") if isinstance(decision.get("metadata"), dict) else {}
-    scored = metadata.get("scored_factors") if isinstance(metadata.get("scored_factors"), dict) else {}
-    vector = decision.get("factor_vector") if isinstance(decision.get("factor_vector"), list) else []
+    factors = decision.get("factors")
+    factors = factors if isinstance(factors, dict) else {}
+    metadata = factors.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    decision_metadata = decision.get("metadata")
+    decision_metadata = decision_metadata if isinstance(decision_metadata, dict) else {}
+    scored = metadata.get("scored_factors")
+    scored = scored if isinstance(scored, dict) else {}
+    vector = decision.get("factor_vector")
+    vector = vector if isinstance(vector, list) else []
     result: dict[str, float] = {}
     for index, factor in enumerate(FACTOR_NAMES):
         raw = factors.get(factor)
@@ -302,7 +381,8 @@ def _factor_context(
     for source in (decision, decision_metadata, factor_metadata):
         context.update({key: value for key, value in source.items() if value is not None})
 
-    outcome = context.get("outcome") if isinstance(context.get("outcome"), dict) else {}
+    outcome = context.get("outcome")
+    outcome = outcome if isinstance(outcome, dict) else {}
     mapped = {
         "forecast_demand": context.get("forecast_demand") or context.get("expected_demand"),
         "par_level": context.get("par_level"),
@@ -367,7 +447,8 @@ def _timestamp(value: Any) -> str | None:
     return str(number) if number is not None else None
 
 
-def _json_safe(value: Any) -> Any:
+def _json_safe(value: object) -> object:
+    """Sanitize nested values; dictionary inputs always remain dictionaries."""
     if isinstance(value, dict):
         return {str(key): _json_safe(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):

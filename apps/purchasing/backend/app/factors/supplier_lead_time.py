@@ -21,6 +21,6 @@ def compute(context: dict) -> float:
     if not isinstance(context, dict) or "lead_time_days" not in context:
         return 0.5
     try:
-        return _clamp(1.0 - (float(context.get("lead_time_days")) / 7.0))
+        return _clamp(1.0 - (float(context["lead_time_days"]) / 7.0))
     except (TypeError, ValueError):
         return 0.5

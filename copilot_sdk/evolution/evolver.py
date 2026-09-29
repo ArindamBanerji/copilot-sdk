@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from copy import copy
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.ledger import InMemoryEvolutionLedger
@@ -39,6 +39,7 @@ class AgentEvolver:
         self._active_rules: dict[str, Any] = {}
         self._plateau_cooldowns: dict[str, int] = {}
         self._plateau_event_counts: dict[str, int] = {}
+        self.warnings: list[str] = []
 
     def register_rule(self, rule: Any) -> None:
         self._active_rules[self._rule_name(rule)] = rule
@@ -54,6 +55,7 @@ class AgentEvolver:
         seed: Any | None = None,
         decision_id: str | None = None,
     ) -> dict[str, Any]:
+        self.warnings = []
         baseline = self._active_rules.get(rule_name)
         if baseline is None:
             return {
@@ -102,6 +104,7 @@ class AgentEvolver:
             "variant_id": variant_id,
             "shadow_results": shadow_results,
             "gate_result": gate_result,
+            "warnings": list(self.warnings),
         }
 
     def get_evolution_history(
@@ -109,10 +112,10 @@ class AgentEvolver:
         rule_name: str | None = None,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
-        return self.ledger.get_events(rule_name=rule_name, limit=limit)
+        return cast(list[dict[str, Any]], self.ledger.get_events(rule_name=rule_name, limit=limit))
 
     def get_promoted_rules(self) -> list[str]:
-        return self.ledger.get_promoted_rules()
+        return cast(list[str], self.ledger.get_promoted_rules())
 
     def reset(self) -> None:
         self.ledger.reset()
@@ -132,9 +135,11 @@ class AgentEvolver:
             metadata=metadata or {},
         )
         if decision_id is None:
-            self.ledger.append(event)
+            persisted = self.ledger.append(event)
         else:
-            self.ledger.append(event, decision_id=decision_id)
+            persisted = self.ledger.append(event, decision_id=decision_id)
+        if persisted is False:
+            self.warnings.append("evolution_ledger_write_failed")
 
     def _rule_name(self, rule: Any) -> str:
         name = getattr(rule, "name", None)

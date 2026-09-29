@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-import inspect
+import threading
 from pathlib import Path
-from typing import Any
-from unittest.mock import MagicMock
+from typing import Any, cast
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 
 from apps.trading.backend.app.services.trading_evolver import TradingAgentEvolver
 from copilot_sdk.ae.gate import PromotionGate as AEPromotionGate
 from copilot_sdk.conservation.global_gate import GlobalConservationGate
+from copilot_sdk.backend.scoring_router import _persist_dk_state_l5
 from copilot_sdk.evolution import (
+    AgentEvolver,
     ConservationSafety,
     DefaultPromotionGate,
     PromptEvolverConfig,
@@ -19,6 +21,7 @@ from copilot_sdk.evolution import (
     evaluate_conservation_safety,
 )
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.scoring.dk_persistence import DKWelfordTracker
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
@@ -96,6 +99,10 @@ def test_red_blocks_centroid_mutation() -> None:
     before_verified = store.count_verified_decisions("trading")
     red = evaluate_conservation_safety("RED")
     scorer._capture_conservation_safety = lambda: (red, _pause())
+    scorer._last_conflict = "unchanged"
+    scorer._persist_conservation_snapshot = MagicMock()
+    scorer._save_centroids_checkpoint = MagicMock()
+    scorer._persist_fingerprint = MagicMock()
 
     result = scorer.learn(
         decision.decision_id,
@@ -107,6 +114,10 @@ def test_red_blocks_centroid_mutation() -> None:
     assert np.array_equal(before, scorer._scorer.centroids)
     assert store.count_verified_decisions("trading") == before_verified
     assert store.get_decision(decision.decision_id, domain="trading").get("outcome") is None
+    assert scorer._last_conflict == "unchanged"
+    scorer._persist_conservation_snapshot.assert_not_called()
+    scorer._save_centroids_checkpoint.assert_not_called()
+    scorer._persist_fingerprint.assert_not_called()
 
 
 def test_red_preserves_dk_weights() -> None:
@@ -146,6 +157,11 @@ def test_prompt_promotion_all_paths() -> None:
     red_result = red.check_for_promotion("family")
     assert red_result["reason"] == "conservation_gate_red"
     assert red.store.get_variant("candidate").status == "shadow"
+
+    amber = _prompt_evolver(lambda: {"status": "AMBER"})
+    amber_result = amber.check_for_promotion("family")
+    assert amber_result["reason"] == "conservation_gate_unsafe"
+    assert amber.store.get_variant("candidate").status == "shadow"
 
     green = _prompt_evolver(lambda: {"status": "GREEN"})
     green_result = green.check_for_promotion("family")
@@ -204,9 +220,16 @@ def test_missing_state_fails_closed_all_levels() -> None:
     )["promoted"] is False
     assert AEPromotionGate(min_n=1).should_promote([1.0], [0.0]) is False
 
-    scorer, _store = _scorer()
+    scorer, store = _scorer()
+    decision = _decision(scorer)
+    before_centroids = np.asarray(scorer._scorer.centroids).copy()
+    before_verified = store.count_verified_decisions("trading")
     before = np.asarray(scorer._scorer._dk_weights).copy() if scorer._scorer._dk_weights is not None else None
     scorer._capture_conservation_safety = lambda: (missing, _pause("UNKNOWN", "conservation_unavailable"))
+    learned = scorer.learn(decision.decision_id, decision.action)
+    assert learned["status"] == "paused"
+    assert np.array_equal(before_centroids, scorer._scorer.centroids)
+    assert store.count_verified_decisions("trading") == before_verified
     assert scorer.reestimate_dk_if_due() is False
     assert scorer.get_dk_weights() is None if before is None else np.array_equal(before, scorer._scorer._dk_weights)
 
@@ -217,7 +240,10 @@ def test_missing_state_fails_closed_all_levels() -> None:
 
 
 def test_provider_exception_fails_closed_all_levels() -> None:
-    scorer, _store = _scorer()
+    scorer, store = _scorer()
+    decision = _decision(scorer)
+    before_centroids = np.asarray(scorer._scorer.centroids).copy()
+    before_verified = store.count_verified_decisions("trading")
 
     def failed_read() -> Any:
         raise ConnectionError("graph unavailable")
@@ -227,6 +253,10 @@ def test_provider_exception_fails_closed_all_levels() -> None:
     assert safety.available is False
     assert safety.learning_allowed is False
     assert pause is not None and pause["reason"] == "conservation_unavailable"
+    learned = scorer.learn(decision.decision_id, decision.action)
+    assert learned["status"] == "paused"
+    assert np.array_equal(before_centroids, scorer._scorer.centroids)
+    assert store.count_verified_decisions("trading") == before_verified
     assert scorer.reestimate_dk_if_due() is False
 
     class RaisingMapping(dict[str, object]):
@@ -239,14 +269,97 @@ def test_provider_exception_fails_closed_all_levels() -> None:
         _promotable_shadow(), conservation_state=RaisingMapping()
     )["promoted"] is False
 
+    baseline_rule = MagicMock()
+    baseline_rule.name = "rule"
+    candidate_rule = MagicMock()
+    candidate_rule.variant_id = "candidate-rule"
+    baseline_rule.generate_variant.return_value = candidate_rule
+    shadow_runner = MagicMock()
+    shadow_runner.run_shadow.return_value = _promotable_shadow()
+    l2 = AgentEvolver(shadow_runner=shadow_runner)
+    l2.register_rule(baseline_rule)
+    l2_result = l2.evolve("rule", [{}], conservation_state=RaisingMapping())
+    assert l2_result["promoted"] is False
+    assert l2.get_active_rules()["rule"] is baseline_rule
+
     prompt = _prompt_evolver(lambda: (_ for _ in ()).throw(ConnectionError("down")))
     result = prompt.check_for_promotion("family")
     assert result["reason"] == "conservation_gate_unavailable"
+
+    trading = TradingAgentEvolver(
+        baseline_scorer=MagicMock(),
+        store_factory=MagicMock(return_value=object()),
+        conservation_provider=lambda: {"status": "GREEN"},
+    )
+    trading._results["candidate"] = [
+        {
+            "improvement_pp": 12.0,
+            "decisions_tested": 1_000,
+            "variant_accuracy": 0.82,
+            "baseline_accuracy": 0.70,
+        }
+        for _ in range(3)
+    ]
+    trading_result = trading.check_for_promotion(
+        "candidate",
+        conservation_state={"status": "RED"},
+    )
+    assert trading_result["promotable"] is False
+    assert trading_result["reason"] == "conservation_not_green"
 
 
 def test_single_snapshot_per_transaction() -> None:
     green = evaluate_conservation_safety("GREEN")
     assert evaluate_conservation_safety(green) is green
+
+    l1, _l1_store = _scorer()
+    l1_decision = _decision(l1)
+    l1_reads = 0
+    original_l1_pause = l1._conservation_pause
+
+    def counted_l1_pause() -> dict[str, Any] | None:
+        nonlocal l1_reads
+        l1_reads += 1
+        return cast(dict[str, Any] | None, original_l1_pause())
+
+    l1._conservation_pause = counted_l1_pause
+    l1.learn(l1_decision.decision_id, l1_decision.action, persist_artifacts=False)
+    assert l1_reads == 1
+
+    l1b, _l1b_store = _scorer()
+    l1b_reads = 0
+    original_l1b_pause = l1b._conservation_pause
+
+    def counted_l1b_pause() -> dict[str, Any] | None:
+        nonlocal l1b_reads
+        l1b_reads += 1
+        return cast(dict[str, Any] | None, original_l1b_pause())
+
+    l1b._conservation_pause = counted_l1b_pause
+    l1b._scorer.reestimate_dk = MagicMock()
+    l1b.reestimate_dk_if_due()
+    assert l1b_reads == 1
+
+    l2, _l2_store = _scorer()
+    l2_reads = 0
+
+    def counted_l2_state() -> dict[str, str]:
+        nonlocal l2_reads
+        l2_reads += 1
+        return {"status": "GREEN"}
+
+    l2._evolution_conservation_state = counted_l2_state
+    l2._graph_store.get_verified_decisions = MagicMock(
+        return_value=[{"decision_id": f"d-{index}"} for index in range(10)]
+    )
+    l2_evolver = MagicMock()
+    l2_evolver.get_active_rules.return_value = {"rule": object()}
+    l2._evolver = l2_evolver
+    assert l2._run_evolution() is True
+    assert l2_reads == 1
+    l2_snapshot = l2_evolver.evolve.call_args.kwargs["conservation_state"]
+    assert isinstance(l2_snapshot, ConservationSafety)
+    assert l2_snapshot.promotion_allowed is True
 
     prompt_reads = 0
 
@@ -259,6 +372,17 @@ def test_single_snapshot_per_transaction() -> None:
     assert prompt.check_for_promotion("family")["promoted_id"] == "candidate"
     assert prompt_reads == 1
 
+    multi_prompt = _prompt_evolver(prompt_provider)
+    multi_prompt.register_variants(
+        [
+            VariantSpec(id="other-active", family="other", status="active"),
+            VariantSpec(id="other-shadow", family="other", status="shadow"),
+        ]
+    )
+    prompt_reads = 0
+    multi_prompt.check_for_promotion()
+    assert prompt_reads == 1
+
     global_store = MagicMock()
     global_store.get_latest_conservation_statuses.return_value = [
         {"domain": "soc", "status": "GREEN", "verified_count": 10},
@@ -266,6 +390,13 @@ def test_single_snapshot_per_transaction() -> None:
     ]
     transfer = GlobalConservationGate(global_store, domains=("soc", "s2p"))
     assert transfer.check_transfer("soc", "s2p")["allowed"] is True
+    global_store.get_latest_conservation_statuses.assert_called_once()
+    global_store.get_latest_conservation_statuses.reset_mock()
+    global_store.get_latest_conservation_statuses.return_value = [
+        {"domain": "soc", "status": "GREEN", "verified_count": 10},
+        {"domain": "s2p", "status": "COLD_START", "verified_count": 0},
+    ]
+    assert transfer.check_transfer("soc", "s2p")["allowed"] is False
     global_store.get_latest_conservation_statuses.assert_called_once()
 
     trading_reads = 0
@@ -293,10 +424,25 @@ def test_single_snapshot_per_transaction() -> None:
     assert trading.promote("candidate")["promoted"] is True
     assert trading_reads == 1
 
-    router_source = inspect.getsource(
-        __import__(
-            "copilot_sdk.backend.scoring_router",
-            fromlist=["_persist_dk_state_l5"],
-        )._persist_dk_state_l5
-    )
-    assert 'if "dk_refresh" not in payload' in router_source
+    router_scorer = MagicMock()
+    router_scorer.get_dk_weights.return_value = np.ones((1, 2))
+    router_scorer.graph_store = MagicMock()
+    with patch(
+        "copilot_sdk.backend.scoring_router.persist_dk_after_reestimate",
+        return_value=True,
+    ):
+        persisted = _persist_dk_state_l5(
+            domain="trading",
+            scorer=router_scorer,
+            explicit_learning_store=router_scorer.graph_store,
+            decision={
+                "factor_vector": [0.5, 0.5],
+                "recommended_action": "hold",
+            },
+            actual_action="hold",
+            payload={},
+            welford_tracker=DKWelfordTracker(2),
+            persistence_lock=threading.RLock(),
+        )
+    assert persisted is True
+    router_scorer.reestimate_dk_if_due.assert_not_called()

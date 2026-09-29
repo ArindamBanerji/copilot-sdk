@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from fastapi import APIRouter, HTTPException, Request
@@ -99,4 +99,4 @@ def _chain_stores(request: Request) -> dict[str, LocationStore]:
     if stores is None:
         reset_chain_state(request.app.state)
         stores = request.app.state.purchasing_chain_stores
-    return stores
+    return cast(dict[str, LocationStore], stores)

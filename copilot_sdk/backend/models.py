@@ -110,6 +110,7 @@ class FingerprintResponse(FlexibleResponse):
     per_category_precision: dict[str, float]
     decisions_analyzed: int
     engine: dict[str, str]
+    persistence_failed: bool = False
 
 
 class TrajectoryPointResponse(BaseModel):
@@ -145,9 +146,12 @@ class MeasurementStateResponse(BaseModel):
     decisions_needed: int
     arms_measured: int
     arms_total: int
-    accuracy: float | None
-    iks: float | None
+    accuracy: float = 0.0
+    accuracy_available: bool = True
+    iks: float = 0.0
     message: str
+    iks_available: bool = True
+    degraded: bool = False
     provenance: str
     engine: dict[str, str]
 
@@ -231,6 +235,8 @@ class EvolutionVariantsResponse(BaseModel):
     promoted_rules: list[Any]
     total_active: int
     total_promoted: int
+    data_available: bool | None = None
+    degraded: bool | None = None
 
 
 class EvolutionHistoryResponse(BaseModel):

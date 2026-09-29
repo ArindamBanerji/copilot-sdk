@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import time
 from typing import Any, Callable, cast
 
 from app import context_router
-from app.analytics.dispersion_follow import compute_dispersion_follow_rate
 from app.analytics.regime_vrp import compute_regime_vrp
-from app.analytics.vol_sharpe import compute_clustering_adjusted_sharpe
-from app.analytics.vrp_attribution import compute_vrp_attribution
 from app.routers.evolution_router import _load_persisted_rejection_summary
 from app.routers.journal import _journal_records
 from app.routers.regime_analytics import _read_decisions
@@ -20,7 +16,6 @@ from app.services.regime_analytics import RegimeAnalytics
 from app.services.regime_monitor import RegimeMonitor
 from app.services.trust_analysis import TrustAnalyzer
 from app.state.compute_helpers import (
-    compute_accuracy_summary,
     compute_all_decisions,
     compute_archetypes_summary,
     compute_counterfactual_default,
@@ -36,49 +31,37 @@ from app.state.compute_helpers import (
 )
 from app.state.key_manifest import TRADING_STATIC_KEYS, TradingKey
 from app.state.schemas.trading import TRADING_SCHEMA_BY_KEY
-from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload
+from copilot_sdk.backend.response_materializer import ResponseMaterializer
 from copilot_sdk.backend.transfer_router import _normalize_transfer_status
-from copilot_sdk.scoring.measurement_state import compute_measurement_state
 from copilot_sdk.state import TabStateCache, register_tab_state_cache
 
 
 GraphStoreFactory = Callable[[], Any]
 ScorerProvider = Callable[[], Any]
 
+
+def _iks_state(scorer_provider: ScorerProvider) -> dict[str, Any]:
+    value, available = safe_call(
+        lambda: scorer_provider()._compute_iks(),
+        0.0,
+        with_status=True,
+    )
+    return {"iks": float(value) if available else 0.0, "iks_available": bool(available)}
+
 def create_trading_tab_state_cache(
     *,
     scorer_provider: ScorerProvider,
     graph_store_factory: GraphStoreFactory,
     regime_monitor: RegimeMonitor,
+    materializer_provider: Callable[[], ResponseMaterializer],
 ) -> TabStateCache:
     cache = TabStateCache("trading", ttl_seconds=5.0)
-
-    decision_cache: dict[str, Any] = {"data": None, "expires": 0.0, "store": None}
-
-    class _SharedDecisionStore:
-        def __init__(self, store: Any) -> None:
-            self._store = store
-
-        def get_all_decisions(self, domain: str = "trading") -> list[dict[str, Any]]:
-            now = time.time()
-            if decision_cache["data"] is None or now >= decision_cache["expires"]:
-                decision_cache["data"] = list(self._store.get_all_decisions(domain))
-                decision_cache["expires"] = now + 5.0
-            return cast(list[dict[str, Any]], decision_cache["data"])
-
-        def __getattr__(self, name: str) -> Any:
-            return getattr(self._store, name)
 
     def scorer() -> Any:
         return scorer_provider()
 
     def graph_store() -> Any:
-        now = time.time()
-        if decision_cache["store"] is None or now >= decision_cache["expires"]:
-            decision_cache["store"] = _SharedDecisionStore(graph_store_factory())
-            decision_cache["data"] = None
-            decision_cache["expires"] = now + 5.0
-        return decision_cache["store"]
+        return graph_store_factory()
 
     def verified() -> list[dict[str, Any]]:
         return cast(list[dict[str, Any]], compute_verified_decisions(graph_store))
@@ -92,10 +75,13 @@ def create_trading_tab_state_cache(
         rows = verified()[:20]
         return {"trails": json_safe(rows), "total": len(rows)}
 
-    def measurement_state() -> dict[str, Any]:
-        payload = compute_measurement_state(scorer()).to_dict()
-        payload["engine"] = "copilot_sdk.scoring.CompoundingScorer"
-        return cast(dict[str, Any], payload)
+    def materialized(key: str) -> Any:
+        payload = materializer_provider().get_or_refresh(key)
+        if payload is None:
+            raise RuntimeError(f"Materialized response unavailable: {key}")
+        if isinstance(payload, dict) and payload.get("status") == "unavailable" and "error" in payload:
+            raise RuntimeError(f"Materialized response failed: {key}: {payload['error']}")
+        return payload
 
     def regime_status() -> dict[str, Any]:
         status = regime_monitor.status()
@@ -153,28 +139,28 @@ def create_trading_tab_state_cache(
         return cast(dict[str, Any], json_safe(ExecutionAnalyzer().analyze(_journal_records(graph_store, "trading"))))
 
     compute: dict[TradingKey, Callable[[], Any]] = {
-        TradingKey.ANALYTICS: lambda: context_router._analytics_from_store(graph_store()),
+        TradingKey.ANALYTICS: lambda: materialized("analytics"),
         TradingKey.HISTORY_SUMMARY: lambda: compute_history_summary(graph_store),
         TradingKey.TRADE_METADATA: context_router.get_trade_metadata,
         TradingKey.MARKET_SNAPSHOT: context_router.market_snapshot,
         TradingKey.TRANSFER_STATUS: transfer_status,
         TradingKey.ARCHETYPES: compute_archetypes_summary,
-        TradingKey.MEASUREMENT_STATE: measurement_state,
+        TradingKey.MEASUREMENT_STATE: lambda: materialized("measurement_state"),
         TradingKey.REGIME: regime_status,
         TradingKey.PATTERNS: context_router.behavioral_patterns,
-        TradingKey.ACCURACY: lambda: compute_accuracy_summary(graph_store),
-        TradingKey.FINGERPRINT: lambda: json_safe(scorer().fingerprint()),
+        TradingKey.ACCURACY: lambda: materialized("accuracy_by_category"),
+        TradingKey.FINGERPRINT: lambda: materialized("fingerprint"),
         TradingKey.TRUST_ANALYSIS: trust_analysis,
         TradingKey.DECISIONS_SUMMARY: lambda: compute_decisions_summary(graph_store),
-        TradingKey.VOL_SHARPE: lambda: compute_clustering_adjusted_sharpe(verified()),
-        TradingKey.VRP_ATTRIBUTION: lambda: compute_vrp_attribution(verified()),
+        TradingKey.VOL_SHARPE: lambda: materialized("vol_sharpe"),
+        TradingKey.VRP_ATTRIBUTION: lambda: materialized("vrp_attribution"),
         TradingKey.REGIME_VRP: lambda: compute_regime_vrp(verified()),
-        TradingKey.DISPERSION_FOLLOW: lambda: compute_dispersion_follow_rate(verified()),
+        TradingKey.DISPERSION_FOLLOW: lambda: materialized("dispersion_follow"),
         TradingKey.CORRELATION: correlation,
         TradingKey.COUNTERFACTUAL_DEFAULT: lambda: compute_counterfactual_default(scorer()),
         TradingKey.EVOLUTION: lambda: compute_evolution_summary(rejection_summary),
-        TradingKey.TRAJECTORY: lambda: json_safe(scorer().trajectory()),
-        TradingKey.CONSERVATION: lambda: compute_conservation_status_payload("trading", scorer()),
+        TradingKey.TRAJECTORY: lambda: materialized("trajectory"),
+        TradingKey.CONSERVATION: lambda: materialized("conservation"),
         TradingKey.CENTROID_HISTORY_SUMMARY: centroid_history_summary,
         TradingKey.AUDIT_TRAIL_SUMMARY: audit_trail_summary,
         TradingKey.REGIME_STATUS: regime_status,
@@ -192,34 +178,34 @@ def create_trading_tab_state_cache(
         TradingKey.REGIME_HISTORY: lambda: {"history": [], "bounded": True},
         TradingKey.CORRELATION_CONFIG: lambda: {"window": 20},
         TradingKey.REGIME_ANALYTICS_SUMMARY: regime_analytics,
-        TradingKey.IKS: lambda: {"iks": safe_call(lambda: scorer()._compute_iks(), 0.0)},
+        TradingKey.IKS: lambda: _iks_state(scorer),
         TradingKey.REGIME_CURRENT: regime_status,
         TradingKey.REGIME_PERFORMANCE: regime_analytics,
         TradingKey.EVOLUTION_PROMOTED: lambda: {"promoted": []},
     }
     service_fns: dict[TradingKey, Callable[..., Any]] = {
-        TradingKey.ANALYTICS: lambda: context_router._analytics_from_store(graph_store()),
+        TradingKey.ANALYTICS: lambda: materialized("analytics"),
         TradingKey.HISTORY_SUMMARY: lambda: compute_history_summary(graph_store),
         TradingKey.TRADE_METADATA: context_router.get_trade_metadata,
         TradingKey.MARKET_SNAPSHOT: context_router.market_snapshot,
         TradingKey.TRANSFER_STATUS: transfer_status,
         TradingKey.ARCHETYPES: compute_archetypes_summary,
-        TradingKey.MEASUREMENT_STATE: measurement_state,
+        TradingKey.MEASUREMENT_STATE: lambda: materialized("measurement_state"),
         TradingKey.REGIME: regime_status,
         TradingKey.PATTERNS: context_router.behavioral_patterns,
-        TradingKey.ACCURACY: lambda: compute_accuracy_summary(graph_store),
-        TradingKey.FINGERPRINT: lambda: json_safe(scorer().fingerprint()),
+        TradingKey.ACCURACY: lambda: materialized("accuracy_by_category"),
+        TradingKey.FINGERPRINT: lambda: materialized("fingerprint"),
         TradingKey.TRUST_ANALYSIS: trust_analysis,
         TradingKey.DECISIONS_SUMMARY: lambda: compute_decisions_summary(graph_store),
-        TradingKey.VOL_SHARPE: lambda: compute_clustering_adjusted_sharpe(verified()),
-        TradingKey.VRP_ATTRIBUTION: lambda: compute_vrp_attribution(verified()),
+        TradingKey.VOL_SHARPE: lambda: materialized("vol_sharpe"),
+        TradingKey.VRP_ATTRIBUTION: lambda: materialized("vrp_attribution"),
         TradingKey.REGIME_VRP: lambda: compute_regime_vrp(verified()),
-        TradingKey.DISPERSION_FOLLOW: lambda: compute_dispersion_follow_rate(verified()),
+        TradingKey.DISPERSION_FOLLOW: lambda: materialized("dispersion_follow"),
         TradingKey.CORRELATION: correlation,
         TradingKey.COUNTERFACTUAL_DEFAULT: lambda: compute_counterfactual_default(scorer()),
         TradingKey.EVOLUTION: lambda: compute_evolution_summary(rejection_summary),
-        TradingKey.TRAJECTORY: lambda: json_safe(scorer().trajectory()),
-        TradingKey.CONSERVATION: lambda: compute_conservation_status_payload("trading", scorer()),
+        TradingKey.TRAJECTORY: lambda: materialized("trajectory"),
+        TradingKey.CONSERVATION: lambda: materialized("conservation"),
         TradingKey.CENTROID_HISTORY_SUMMARY: centroid_history_summary,
         TradingKey.AUDIT_TRAIL_SUMMARY: audit_trail_summary,
         TradingKey.REGIME_STATUS: regime_status,
@@ -237,7 +223,7 @@ def create_trading_tab_state_cache(
         TradingKey.REGIME_HISTORY: lambda: {"history": [], "bounded": True},
         TradingKey.CORRELATION_CONFIG: lambda: {"window": 20},
         TradingKey.REGIME_ANALYTICS_SUMMARY: regime_analytics,
-        TradingKey.IKS: lambda: {"iks": safe_call(lambda: scorer()._compute_iks(), 0.0)},
+        TradingKey.IKS: lambda: _iks_state(scorer),
         TradingKey.REGIME_CURRENT: regime_status,
         TradingKey.REGIME_PERFORMANCE: regime_analytics,
         TradingKey.EVOLUTION_PROMOTED: lambda: {"promoted": []},

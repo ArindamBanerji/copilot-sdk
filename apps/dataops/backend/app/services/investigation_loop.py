@@ -8,7 +8,7 @@ from typing import Any, Literal
 import numpy as np
 
 from app.models.investigation import InvestigationResult, InvestigationStep
-from app.services.investigation_patterns import FACTOR_NAMES
+from app.services.investigation_patterns import FACTOR_NAMES, InvestigationDataUnavailable
 from app.services.investigation_router import InvestigationRouter
 
 RESIDUAL_THRESHOLD = 0.05
@@ -66,6 +66,7 @@ class InvestigationLoop:
         investigated_category: str | None = None
         admitted_vectors: list[np.ndarray] = []
         halt_reason = "budget_exhausted"
+        failed_patterns: list[str] = []
 
         for step_index in range(self.L_max):
             route = self.router.route_decision(
@@ -78,7 +79,12 @@ class InvestigationLoop:
                 halt_reason = "no_pattern_available"
                 break
 
-            evidence = await route.pattern.execute(alert_context, graph_store)
+            try:
+                evidence = await route.pattern.execute(alert_context, graph_store)
+            except InvestigationDataUnavailable:
+                failed_patterns.append(route.pattern.category_name)
+                investigated.add(route.pattern.category_name)
+                continue
             investigated.add(route.pattern.category_name)
             investigated_category = route.pattern.category_name
             admitted_vectors.append(route.pattern.evidence_vector(evidence))
@@ -149,6 +155,8 @@ class InvestigationLoop:
             agreement=final_score.action == single_pass_score.action,
             fixture_source=_fixture_source(alert_context),
             halt_reason=halt_reason,
+            degraded=bool(failed_patterns),
+            failed_patterns=failed_patterns,
         )
 
 

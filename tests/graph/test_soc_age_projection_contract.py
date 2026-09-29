@@ -166,7 +166,7 @@ def query_triggered_evolution_edges(
 
 
 def _node(row: dict[str, Any], key: str) -> dict[str, Any]:
-    return normalize_projection_node(row.get(key))
+    return cast(dict[str, Any], normalize_projection_node(row.get(key)))
 
 
 def _repo_root() -> Path:
@@ -215,7 +215,11 @@ def test_soc_factor_schema_source_of_truth_is_stable():
 def test_soc_decision_projection_returns_canonical_decision(soc_projection_client):
     """Current SOC Decision rows can be read as canonical Decision projections."""
     rows = soc_projection_client.query(
-        "MATCH (d:Decision) WHERE d.domain = 'soc' RETURN d LIMIT 1"
+        "MATCH (d:Decision) "
+        "WHERE d.domain = 'soc' "
+        "AND (d.created_at IS NOT NULL OR d.timestamp IS NOT NULL "
+        "OR d.timestamp_epoch IS NOT NULL) "
+        "RETURN d LIMIT 1"
     )
     assert rows, "soc_graph has no Decision rows to project"
 

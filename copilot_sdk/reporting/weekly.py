@@ -59,6 +59,7 @@ class WeeklyReport:
     supplier_changes: list[SupplierChange]
     iks_current: float
     iks_delta: float
+    iks_available: bool = True
 
 
 CostExtractor = Callable[[dict[str, Any], dict[str, Any], Any], dict[str, Any]]
@@ -111,7 +112,8 @@ class WeeklyReportGenerator:
         categories = self._compute_categories(category_rows)
         cost_impact = self._compute_cost_impact(verified)
         cons_status, cons_q, cons_alpha = self._read_conservation()
-        iks_current, iks_delta = self._compute_iks(period_start, period_end)
+        iks_current_raw, iks_delta_raw = self._compute_iks(period_start, period_end)
+        iks_available = iks_current_raw is not None and iks_delta_raw is not None
 
         return WeeklyReport(
             domain=self._domain,
@@ -127,8 +129,9 @@ class WeeklyReportGenerator:
             categories=categories,
             cost_impact=cost_impact,
             supplier_changes=self._compute_supplier_changes(verified),
-            iks_current=iks_current,
-            iks_delta=iks_delta,
+            iks_current=iks_current_raw if iks_current_raw is not None else 0.0,
+            iks_delta=iks_delta_raw if iks_delta_raw is not None else 0.0,
+            iks_available=iks_available,
         )
 
     def _empty_report(self) -> WeeklyReport:
@@ -149,6 +152,7 @@ class WeeklyReportGenerator:
             supplier_changes=[],
             iks_current=0.0,
             iks_delta=0.0,
+            iks_available=False,
         )
 
     def _window_verified(self, period_start: float) -> list[dict[str, Any]]:
@@ -267,7 +271,7 @@ class WeeklyReportGenerator:
         except Exception:
             return "UNKNOWN", 0.0, 0.0
 
-    def _compute_iks(self, period_start: float, period_end: float) -> tuple[float, float]:
+    def _compute_iks(self, period_start: float, period_end: float) -> tuple[float | None, float | None]:
         try:
             del period_end
             result = self._scorer.trajectory()
@@ -283,7 +287,7 @@ class WeeklyReportGenerator:
                 iks_prior = float(getattr(prior_points[-1], "iks", 0.0) or 0.0)
             return iks_current, iks_current - iks_prior
         except Exception:
-            return 0.0, 0.0
+            return None, None
 
     @staticmethod
     def _verified_by_id(verified: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:

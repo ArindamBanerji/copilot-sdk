@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from fastapi import APIRouter, Request
 
 from app.services.multi_unit import MultiUnitManager, chain_demo_locations
@@ -13,7 +15,7 @@ def create_multi_unit_router() -> APIRouter:
 
     @router.get("/dashboard")
     def dashboard(request: Request) -> dict:
-        return service.dashboard(_locations(request)).to_dict()
+        return cast(dict, service.dashboard(_locations(request)).to_dict())
 
     @router.get("/compare")
     def compare(request: Request, metric: str = "accuracy") -> dict:
@@ -27,4 +29,4 @@ def create_multi_unit_router() -> APIRouter:
 
 
 def _locations(request: Request) -> list[dict]:
-    return chain_demo_locations(getattr(request.app.state, "purchasing_chain_demo", None))
+    return cast(list[dict], chain_demo_locations(getattr(request.app.state, "purchasing_chain_demo", None)))

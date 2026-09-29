@@ -14,6 +14,7 @@ from copilot_sdk.scoring.polarity import Polarity
 
 
 class PurchasingPreset:
+    bootstrap_degraded: bool = False
     factor_polarities = {
         "expected_demand": Polarity.POSITIVE,
         "day_of_week": Polarity.NEUTRAL,
@@ -109,13 +110,15 @@ def _load_bootstrap(preset: PurchasingPreset) -> np.ndarray:
         data = json.loads(path.read_text(encoding="utf-8"))
         centroids = np.asarray(data["centroids"], dtype=np.float64)
         if centroids.shape == (5, 4, 6) and expected_shape == (5, 4, 7):
+            preset.bootstrap_degraded = False
             return _migrate_legacy_centroids(centroids)
         if centroids.shape != expected_shape:
-            raise ValueError(
-                f"purchasing bootstrap shape {centroids.shape} != {expected_shape}"
-            )
+            preset.bootstrap_degraded = True
+            return cast(np.ndarray, np.full(expected_shape, 0.5, dtype=np.float64))
+        preset.bootstrap_degraded = False
         return cast(np.ndarray, centroids)
-    except Exception:
+    except (OSError, json.JSONDecodeError, RuntimeError):
+        preset.bootstrap_degraded = True
         return cast(np.ndarray, np.full(expected_shape, 0.5, dtype=np.float64))
 
 

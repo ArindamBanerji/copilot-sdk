@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.substantiation.cohort_day_zero import (
     ACCUMULATING,
@@ -29,6 +29,10 @@ STATE_VALUES = frozenset(STATES)
 REAL_PROVENANCE = "real"
 SAMPLE_PROVENANCE = "sample"
 ORACLE_PROVENANCE = "oracle"
+
+
+class CohortReadError(RuntimeError):
+    """Raised when a configured Purchasing cohort store cannot be read."""
 
 POSITIVE_ACTIONS = frozenset(
     {
@@ -69,7 +73,7 @@ def evaluate_v7_gate(cohort_status: dict[str, Any]) -> dict[str, Any]:
     records = cohort_status.get("records") or real.get("records")
     if records is not None:
         gate_input["records"] = records
-    return _sdk_evaluate_v7_gate(gate_input, threshold_k)
+    return cast(dict[str, Any], _sdk_evaluate_v7_gate(gate_input, threshold_k))
 
 
 class PurchasingCohortStatus(BaseCohortDayZeroState):
@@ -195,17 +199,25 @@ class PurchasingCohortStatus(BaseCohortDayZeroState):
         if self._graph_store is None:
             return []
 
+        attempted = False
+        failures: list[Exception] = []
         for method_name in ("get_verified_decisions", "get_all_decisions", "get_decisions"):
             method = getattr(self._graph_store, method_name, None)
             if method is None:
                 continue
+            attempted = True
             try:
                 if method_name == "get_decisions":
                     return list(method("purchasing", limit=10000))
                 return list(method("purchasing"))
-            except Exception:
+            except Exception as exc:
+                failures.append(exc)
                 continue
-        return []
+        if attempted:
+            raise CohortReadError(
+                f"unable to read {self.DOMAIN} cohort decisions after {len(failures)} attempts"
+            ) from (failures[-1] if failures else None)
+        raise CohortReadError(f"{self.DOMAIN} graph store has no cohort decision reader")
 
 
 def _extract_experiments(data: Any) -> list[dict[str, Any]]:

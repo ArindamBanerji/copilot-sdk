@@ -14,6 +14,7 @@ class MeasurementState(str, Enum):
     INSTRUMENT_VALIDATED = "instrument_validated"
     ACCUMULATING = "accumulating"
     MEASURED = "measured"
+    DEGRADED = "degraded"
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,8 @@ class MeasurementStatus:
     iks: float | None
     message: str
     provenance: str
+    iks_available: bool = True
+    degraded: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -61,6 +64,7 @@ def compute_measurement_state(
             iks=None,
             message="Instrument calibrated. Awaiting first verified decision.",
             provenance="instrument",
+            iks_available=False,
         )
 
     if decisions_needed > 0:
@@ -77,10 +81,25 @@ def compute_measurement_state(
                 f"Magnitude will be available when every arm reaches {threshold} verified decisions."
             ),
             provenance="accumulating",
+            iks_available=False,
         )
 
     accuracy = _accuracy(decisions)
-    iks = _current_iks(scorer)
+    iks, iks_failed = _read_current_iks(scorer)
+    if iks_failed:
+        return MeasurementStatus(
+            state=MeasurementState.DEGRADED,
+            decisions_verified=verified,
+            decisions_needed=0,
+            arms_measured=arms_measured,
+            arms_total=arms_total,
+            accuracy=accuracy,
+            iks=None,
+            message="Measured accuracy is available, but IKS is unavailable while graph history is recovering.",
+            provenance="iks_unavailable",
+            iks_available=False,
+            degraded=True,
+        )
     return MeasurementStatus(
         state=MeasurementState.MEASURED,
         decisions_verified=verified,
@@ -91,6 +110,7 @@ def compute_measurement_state(
         iks=iks,
         message=f"Measured: {accuracy * 100:.1f}% accuracy across {verified} decisions.",
         provenance="real_measured",
+        iks_available=iks is not None,
     )
 
 
@@ -170,17 +190,22 @@ def _accuracy(decisions: list[dict[str, Any]]) -> float:
 
 
 def _current_iks(scorer: Any) -> float | None:
+    value, _failed = _read_current_iks(scorer)
+    return value
+
+
+def _read_current_iks(scorer: Any) -> tuple[float | None, bool]:
     trajectory = getattr(scorer, "trajectory", None)
     if not callable(trajectory):
-        return None
+        return None, False
     try:
         result = trajectory()
     except Exception:
-        return None
+        return None, True
     if isinstance(result, dict):
         value = result.get("current_iks")
     else:
         value = getattr(result, "current_iks", None)
     if value is None:
-        return None
-    return float(value)
+        return None, False
+    return float(value), False

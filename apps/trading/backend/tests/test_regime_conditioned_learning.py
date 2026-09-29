@@ -5,6 +5,7 @@ from typing import Any
 
 from app.services.regime_monitor import RegimeMonitor
 from app.services.regime_scoring import TradingRegimeScorerProxy
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 def _factors() -> dict[str, float]:
@@ -165,14 +166,6 @@ def test_public_conservation_adjuster_reflects_adjusted_threshold(client: Any) -
     assert payload["passed"] is False
 
 
-class _FakeGraphStore:
-    def __init__(self, regime: str) -> None:
-        self.regime = regime
-
-    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any]:
-        return {"decision_id": decision_id, "domain": domain, "metadata": {"regime_tag": self.regime}}
-
-
 class _FakeScorer:
     def __init__(self, conservation_state: dict[str, Any]) -> None:
         self._preset = SimpleNamespace(eta_confirm=0.05, eta_override=0.05)
@@ -202,7 +195,11 @@ class _FakeScorer:
 class _FakeScorerProxy:
     def __init__(self, scorer: _FakeScorer, regime: str) -> None:
         self._scorer_instance = scorer
-        self.graph_store = _FakeGraphStore(regime)
+        self.graph_store = InMemoryGraphStore(domain="trading")
+        self.graph_store.write_decision(
+            "trading", "trend_following", "enter_long", 0.8, {},
+            metadata={"decision_id": "decision-1", "regime_tag": regime},
+        )
 
     def _scorer(self) -> _FakeScorer:
         return self._scorer_instance

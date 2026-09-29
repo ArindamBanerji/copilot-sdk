@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import math
+import logging
 from dataclasses import asdict, is_dataclass
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 import numpy as np
 
@@ -19,6 +20,7 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 GraphStoreFactory = Callable[[], Any]
+LOGGER = logging.getLogger(__name__)
 
 
 def compute_all_decisions(graph_store_factory: GraphStoreFactory, limit: int = 50) -> list[dict[str, Any]]:
@@ -35,7 +37,7 @@ def compute_all_decisions(graph_store_factory: GraphStoreFactory, limit: int = 5
 
 
 def compute_verified_decisions(graph_store_factory: GraphStoreFactory) -> list[dict[str, Any]]:
-    return _verified_decisions(graph_store_factory, "trading")
+    return cast(list[dict[str, Any]], _verified_decisions(graph_store_factory, "trading"))
 
 
 def compute_history_summary(graph_store_factory: GraphStoreFactory) -> dict[str, Any]:
@@ -206,13 +208,13 @@ def _conservation_label(raw: dict[str, Any]) -> str:
 
 def compute_promotion_dashboard(graph_store_factory: GraphStoreFactory) -> list[dict[str, Any]]:
     preset = TradingPreset()
-    return PromotionEngine(
+    return cast(list[dict[str, Any]], PromotionEngine(
         graph_store_factory(),
         preset,
         _conservation_status(graph_store_factory, "trading"),
         state_store=_STATE_STORE,
         domain="trading",
-    ).dashboard()
+    ).dashboard())
 
 
 def compute_journal_trades_summary(graph_store_factory: GraphStoreFactory) -> dict[str, Any]:
@@ -233,7 +235,7 @@ def compute_journal_analytics(graph_store_factory: GraphStoreFactory, group_by: 
 
 
 def get_journal_analytics_rows(graph_store_factory: GraphStoreFactory, group_by: str) -> list[dict[str, Any]]:
-    rows = _journal_records(graph_store_factory, "trading")
+    rows = cast(list[dict[str, Any]], _journal_records(graph_store_factory, "trading"))
     if group_by == "subcategory":
         rows = [trade for trade in rows if trade.get("category") == "event_driven"]
     return rows
@@ -284,11 +286,18 @@ def grouped_accuracy(field: str, decisions: list[dict[str, Any]]) -> dict[str, A
     return {"groups": rows, "total_groups": len(rows)}
 
 
-def safe_call(func: Callable[[], Any], default: Any) -> Any:
+def safe_call(
+    func: Callable[[], Any],
+    default: Any,
+    *,
+    with_status: bool = False,
+) -> Any:
     try:
-        return func()
-    except Exception:
-        return default
+        value = func()
+        return (value, True) if with_status else value
+    except Exception as exc:
+        LOGGER.warning("Trading compute helper failed: %s", exc)
+        return (default, False) if with_status else default
 
 
 def json_safe(value: Any) -> Any:

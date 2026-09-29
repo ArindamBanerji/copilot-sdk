@@ -3,13 +3,28 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 import numpy as np
 
 from app.services.economic_model import PurchasingEconomicModel
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 from copilot_sdk.transfer.chain_transfer import ChainTransfer, LocationStore
+
+
+class _LocationPrice(TypedDict):
+    location: object
+    price: float
+
+
+class _LocationWaste(TypedDict):
+    location: object
+    waste_rate: float
+
+
+class _LocationSupplier(TypedDict):
+    location: object
+    otif: float
 
 
 @dataclass
@@ -81,7 +96,8 @@ class MultiUnitManager:
     def group_purchasing_power(self, locations: list[dict[str, Any]]) -> dict[str, Any]:
         supplier_totals: dict[str, float] = {}
         for location in locations:
-            spend = location.get("supplier_spend") if isinstance(location.get("supplier_spend"), dict) else {}
+            spend = location.get("supplier_spend")
+            spend = spend if isinstance(spend, dict) else {}
             for supplier, amount in spend.items():
                 supplier_totals[str(supplier)] = supplier_totals.get(str(supplier), 0.0) + float(amount or 0.0)
         best_supplier, total = max(supplier_totals.items(), key=lambda item: item[1], default=("Sysco", 0.0))
@@ -99,10 +115,11 @@ class MultiUnitManager:
             reverse=True,
         )
 
-    def cross_location_price(self, locations: list[dict[str, Any]], item: str | None = "salmon") -> dict[str, Any]:
-        prices = []
+    def cross_location_price(self, locations: list[dict[str, Any]], item: str = "salmon") -> dict[str, Any]:
+        prices: list[_LocationPrice] = []
         for location in locations:
-            price_map = location.get("item_prices") if isinstance(location.get("item_prices"), dict) else {}
+            price_map = location.get("item_prices")
+            price_map = price_map if isinstance(price_map, dict) else {}
             price = price_map.get(item or "") or location.get("salmon_price")
             if price is not None:
                 prices.append({"location": location.get("name"), "price": float(price)})
@@ -120,7 +137,7 @@ class MultiUnitManager:
         }
 
     def cross_location_waste(self, locations: list[dict[str, Any]]) -> dict[str, Any]:
-        rows = [
+        rows: list[_LocationWaste] = [
             {"location": row.get("name"), "waste_rate": float(row.get("waste_rate") or 0.0)}
             for row in locations
             if row.get("waste_rate") is not None
@@ -137,9 +154,10 @@ class MultiUnitManager:
         }
 
     def cross_location_supplier(self, locations: list[dict[str, Any]], supplier: str | None = "Sysco") -> dict[str, Any]:
-        rows = []
+        rows: list[_LocationSupplier] = []
         for location in locations:
-            supplier_perf = location.get("supplier_otif") if isinstance(location.get("supplier_otif"), dict) else {}
+            supplier_perf = location.get("supplier_otif")
+            supplier_perf = supplier_perf if isinstance(supplier_perf, dict) else {}
             otif = supplier_perf.get(supplier or "")
             if otif is not None:
                 rows.append({"location": location.get("name"), "otif": float(otif)})

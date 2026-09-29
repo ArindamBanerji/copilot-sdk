@@ -25,8 +25,8 @@ class InvestigationResponse(BaseModel):
     decision_id: str
     category: str
     budget_used: int
-    situation: str | None
-    situation_confidence: float | None
+    situation: str = ""
+    situation_confidence: float = 0.0
     surface_action: int
     surface_margin: float
     final_action: int
@@ -34,8 +34,11 @@ class InvestigationResponse(BaseModel):
     action_changed: bool
     steps: list[dict[str, Any]]
     contrast: dict[str, Any]
-    snapshot: dict[str, Any] | None = None
-    halt_reason: str | None = None
+    snapshot: dict[str, Any] = Field(default_factory=dict)
+    halt_reason: str = ""
+    evidence_available: bool = True
+    degraded: bool = False
+    failed_providers: list[str] = Field(default_factory=list)
 
 
 def create_investigation_router(
@@ -112,17 +115,32 @@ def create_investigation_router(
                 "decision_id": trace.decision_id,
                 "category": trace.category,
                 "budget_used": trace.budget,
-                "situation": situation,
-                "situation_confidence": situation_confidence,
+                "situation": situation or "",
+                "situation_confidence": float(situation_confidence or 0.0),
                 "surface_action": trace.surface_action,
                 "surface_margin": trace.surface_margin,
                 "final_action": trace.final_action,
                 "final_margin": trace.final_margin,
                 "action_changed": action_changed,
-                "steps": [asdict(step) for step in trace.steps],
+                "steps": [
+                    {
+                        **asdict(step),
+                        "evidence_value": float(step.evidence_value or 0.0),
+                        "halt_reason": step.halt_reason or "",
+                    }
+                    for step in trace.steps
+                ],
                 "contrast": contrast,
-                "snapshot": trace.snapshot.public_dict() if trace.snapshot is not None else None,
-                "halt_reason": trace.halt_reason,
+                "snapshot": (
+                    {**trace.snapshot.public_dict(), "k_weights": (
+                        trace.snapshot.public_dict().get("k_weights") or []
+                    )}
+                    if trace.snapshot is not None else {}
+                ),
+                "halt_reason": trace.halt_reason or "",
+                "evidence_available": trace.evidence_available,
+                "degraded": trace.degraded,
+                "failed_providers": list(trace.failed_providers),
             }
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

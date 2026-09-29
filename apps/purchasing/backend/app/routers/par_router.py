@@ -24,15 +24,18 @@ def create_par_router(
     connector = connector or MockQBOConnector()
     router = APIRouter(prefix="/api/purchasing/par", tags=["par"])
 
-    def _orders() -> list[dict[str, Any]]:
+    def _orders() -> tuple[list[dict[str, Any]], bool]:
         """QBO-only order history. If QBO is unavailable, return no pars."""
 
         try:
             orders = qbo_bills_for_spend(connector)
-        except Exception:
-            return []
+        except (ConnectionError, TimeoutError, OSError, RuntimeError):
+            return [], False
 
-        return [order for order in orders if not is_sample_data(order)]
+        if not isinstance(orders, list):
+            return [], False
+
+        return [order for order in orders if isinstance(order, dict) and not is_sample_data(order)], True
 
     def _recommendations(
         category: str | None = None, service_level: float = 0.95
@@ -40,7 +43,7 @@ def create_par_router(
         if category and category not in CATEGORIES:
             raise HTTPException(status_code=404, detail=f"Unknown category: {category}")
 
-        orders = _orders()
+        orders, _qbo_available = _orders()
         if not orders:
             return []
 
@@ -76,13 +79,14 @@ def create_par_router(
 
     @router.get("/status")
     def get_status() -> dict[str, Any]:
-        orders = _orders()
+        orders, qbo_available = _orders()
         items = _items_from_orders(orders)
         categories = sorted({item["category"] for item in items})
         return {
             "total_items": len(items),
             "categories": categories,
-            "data_source": "quickbooks_online",
+            "data_source": "quickbooks_online" if qbo_available else "unavailable",
+            "qbo_available": qbo_available,
             "provenance_tier": SCRAPED_EXTERNAL_PROVENANCE if orders else "sample",
         }
 

@@ -19,6 +19,10 @@ FACTOR_NAMES = (
     "business_criticality",
 )
 
+
+class InvestigationDataUnavailable(RuntimeError):
+    """Raised when a live investigation graph read fails."""
+
 DATAOPS_PATTERN_CATEGORIES = (
     "source_failure",
     "schema_impact",
@@ -349,8 +353,12 @@ async def _pipelines(graph_store: Any, data_dir: Path) -> dict[str, dict[str, An
             rows = payload.get("pipelines", payload) if isinstance(payload, dict) else payload
             if isinstance(rows, list):
                 return {str(row.get("name") or row.get("system")): dict(row) for row in rows if isinstance(row, dict)}
-        except Exception:
-            pass
+            return {}
+        except Exception as exc:
+            if not _fixture_fallback_allowed(graph_store):
+                raise InvestigationDataUnavailable("pipeline graph read failed") from exc
+    if not _fixture_fallback_allowed(graph_store):
+        raise InvestigationDataUnavailable("graph store has no pipeline reader")
     payload = _load_json(data_dir / "fallback" / "pipelines.json", {"pipelines": []})
     return {str(row.get("name") or row.get("system")): dict(row) for row in payload.get("pipelines", [])}
 
@@ -360,10 +368,13 @@ async def _blast_radius(graph_store: Any, alert: dict[str, Any], data_dir: Path)
     if hasattr(graph_store, "get_blast_radius"):
         try:
             payload = await _maybe_await(graph_store.get_blast_radius(alert_id))
-            if isinstance(payload, dict) and payload:
+            if isinstance(payload, dict):
                 return payload
-        except Exception:
-            pass
+        except Exception as exc:
+            if not _fixture_fallback_allowed(graph_store):
+                raise InvestigationDataUnavailable("blast-radius graph read failed") from exc
+    if not _fixture_fallback_allowed(graph_store):
+        raise InvestigationDataUnavailable("graph store has no blast-radius reader")
     payload = _load_json(data_dir / "fallback" / "blast_radius.json", {"systems": {}, "alerts": {}})
     tree_ref = payload.get("alerts", {}).get(alert_id, {}).get("tree_ref") or _system(alert)
     return {"tree": payload.get("systems", {}).get(tree_ref, {"system": tree_ref, "children": []})}
@@ -373,10 +384,13 @@ async def _recurrence(graph_store: Any, alert: dict[str, Any], data_dir: Path) -
     if hasattr(graph_store, "get_recurrence"):
         try:
             payload = await _maybe_await(graph_store.get_recurrence(_alert_id(alert)))
-            if isinstance(payload, dict) and payload:
+            if isinstance(payload, dict):
                 return payload
-        except Exception:
-            pass
+        except Exception as exc:
+            if not _fixture_fallback_allowed(graph_store):
+                raise InvestigationDataUnavailable("recurrence graph read failed") from exc
+    if not _fixture_fallback_allowed(graph_store):
+        raise InvestigationDataUnavailable("graph store has no recurrence reader")
     return {
         "source": "fixture",
         "system": _system(alert),
@@ -385,6 +399,15 @@ async def _recurrence(graph_store: Any, alert: dict[str, Any], data_dir: Path) -
         "recurrence_frequency": float(_factors(alert).get("recurrence_frequency") or 0.0),
         "last_occurrence": "2026-05-17T23:45:00Z",
     }
+
+
+def _fixture_fallback_allowed(graph_store: Any) -> bool:
+    """Allow fixtures only when the caller explicitly marks demo mode."""
+
+    return bool(
+        getattr(graph_store, "demo_mode", False)
+        or getattr(graph_store, "is_demo_mode", False)
+    )
 
 
 def _schema_change_for_alert(alert: dict[str, Any], data_dir: Path) -> dict[str, Any]:

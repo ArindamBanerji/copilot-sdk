@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import logging
 import os
 import sqlite3
 import sys
-import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, cast
@@ -81,6 +81,7 @@ from .connectors.commodity_provider import CommodityDataProvider  # noqa: E402
 from .investigation_config import INVESTIGATION_CONFIG, create_evidence_provider  # noqa: E402
 from .vld_preseed import seed_vld_purchasing_showcase  # noqa: E402
 from copilot_sdk.backend.investigation_router import create_investigation_router  # noqa: E402
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
 from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
@@ -98,7 +99,8 @@ from copilot_sdk.backend import (  # noqa: E402
 from copilot_sdk.outbox import OutboxStore  # noqa: E402
 from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, create_variant_store  # noqa: E402
 from .evolution.evolver_config import PURCHASING_EVOLVER_CONFIG  # noqa: E402
-from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
+from copilot_sdk.backend.conservation_router import build_conservation_status  # noqa: E402
+from copilot_sdk.backend.response_materializer import ResponseMaterializer  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
 from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
@@ -158,6 +160,47 @@ def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
 
 def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
     return {"k_store": _create_vld_k_store(path, dimensions)}
+
+
+async def _materializer_refresh_loop(app: FastAPI) -> None:
+    while True:
+        await asyncio.sleep(5)
+        materializer = getattr(app.state, "materializer", None)
+        refresh = getattr(materializer, "refresh", None)
+        if callable(refresh):
+            try:
+                await asyncio.to_thread(refresh)
+            except Exception:
+                logger.exception("Purchasing materializer background refresh failed")
+
+
+def _invalidate_materializer(app: FastAPI) -> None:
+    materializer = getattr(app.state, "materializer", None)
+    if materializer is not None:
+        materializer.invalidate()
+
+
+def _accuracy_by_category_payload(verified: list[dict[str, Any]], threshold: float = 0.70) -> dict[str, Any]:
+    grouped: dict[str, dict[str, int]] = {}
+    for decision in verified:
+        category = str(decision.get("category") or "uncategorized")
+        bucket = grouped.setdefault(category, {"total": 0, "correct": 0})
+        bucket["total"] += 1
+        if decision.get("is_correct") is True:
+            bucket["correct"] += 1
+    categories = []
+    for category in sorted(grouped):
+        total = grouped[category]["total"]
+        correct = grouped[category]["correct"]
+        accuracy = round(correct / total, 4) if total else 0.0
+        categories.append({
+            "category": category,
+            "accuracy": accuracy,
+            "total": total,
+            "correct": correct,
+            "alert": accuracy < threshold,
+        })
+    return {"categories": categories, "threshold": threshold, "overall_verified": len(verified)}
 OUTBOX_DB_FILENAME = "purchasing_outbox.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
@@ -312,18 +355,21 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
         entries = json.loads(SEED_FIXTURE_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         print(f"[{DOMAIN}] auto-seed fixture unavailable: {exc}")
-        return {"decisions_seeded": 0, "outcomes_seeded": 0}
+        return {"total": 0, "decisions_seeded": 0, "outcomes_seeded": 0, "failed": 0}
     if not isinstance(entries, list):
         print(f"[{DOMAIN}] auto-seed fixture is not a list")
-        return {"decisions_seeded": 0, "outcomes_seeded": 0}
+        return {"total": 0, "decisions_seeded": 0, "outcomes_seeded": 0, "failed": 0}
 
     decisions_seeded = 0
     outcomes_seeded = 0
+    failed = 0
     for sequence, entry in enumerate(entries):
         if not isinstance(entry, dict):
+            failed += 1
             continue
         category = entry.get("category")
         if not category:
+            failed += 1
             continue
         try:
             factors = _build_seed_context(entry)
@@ -361,13 +407,19 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
                 )
                 outcomes_seeded += 1
         except Exception as exc:
+            failed += 1
             print(f"[{DOMAIN}] auto-seed skipped entry {sequence}: {exc}")
     if entries and decisions_seeded == 0:
         print(f"[{DOMAIN}] warning: auto-seed wrote no decisions")
     expected_outcomes = sum(1 for entry in entries if isinstance(entry, dict) and "is_correct" in entry)
     if expected_outcomes > 0 and outcomes_seeded == 0:
         print(f"[{DOMAIN}] warning: auto-seed wrote no fixture outcomes")
-    return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
+    return {
+        "total": len(entries),
+        "decisions_seeded": decisions_seeded,
+        "outcomes_seeded": outcomes_seeded,
+        "failed": failed,
+    }
 
 
 def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None) -> int:
@@ -386,11 +438,34 @@ def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None)
         profile=profile or _resolve_profile(),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
+    total = int(seeded.get("total", seeded["decisions_seeded"] + seeded.get("failed", 0)))
+    failed = int(seeded.get("failed", 0))
     print(
-        f"[{DOMAIN}] auto-seeded {seeded['decisions_seeded']} decisions "
-        f"and {seeded['outcomes_seeded']} outcomes"
+        f"[{DOMAIN}] Seeded {seeded['decisions_seeded']} of {total} "
+        f"decisions ({failed} failed); outcomes seeded: {seeded['outcomes_seeded']}"
     )
+    if total and failed / total > 0.5:
+        logger.warning("[%s] auto-seed failure rate is high: %d of %d entries failed", DOMAIN, failed, total)
     return seeded["decisions_seeded"]
+
+
+def _alert_conservation_status_payload(
+    materializer: Any, scorer_proxy: Any, override: Any = None
+) -> dict[str, Any]:
+    if override is not None:
+        return override if isinstance(override, dict) else {"state": str(override)}
+    try:
+        payload = materializer.get("conservation")
+        if not isinstance(payload, dict):
+            payload = build_conservation_status(DOMAIN, scorer_proxy)
+    except Exception as exc:
+        logger.warning("Purchasing alert conservation read unavailable: %s", exc)
+        return {"state": "conservation_unavailable", "status": "UNAVAILABLE", "category": "all"}
+    status = payload.get("status") or payload.get("state")
+    if not status:
+        logger.warning("Purchasing alert conservation payload had no status")
+        return {"state": "conservation_unavailable", "status": "UNAVAILABLE", "category": "all"}
+    return {"state": str(status), "category": "all"}
 
 
 def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
@@ -413,18 +488,22 @@ def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
     return variant
 
 
-def _evolution_variants(store: Any) -> list[dict[str, Any]]:
+def _evolution_variants(store: Any) -> list[dict[str, Any]] | None:
+    if store is None:
+        return []
     try:
         events = store.get_evolution_events(domain=DOMAIN, limit=500)
     except Exception:
-        return []
+        return None
     variants = [_variant_from_event(event) for event in events if isinstance(event, dict)]
     return _filter_variants_by_query(variants, None)
 
 
-def _purchasing_variants_with_config(store: Any) -> list[dict[str, Any]]:
+def _purchasing_variants_with_config(store: Any) -> list[dict[str, Any]] | None:
     configured = get_purchasing_variants()
     persisted = _evolution_variants(store)
+    if persisted is None:
+        return None
     seen: set[str] = set()
     merged: list[dict[str, Any]] = []
     for variant in configured + persisted:
@@ -622,17 +701,47 @@ def create_app(
     app.state.entity_context_cache = entity_context_cache
     auto_order_gate = AutoOrderGate()
 
-    # Purchasing has a large AGE decision history. Reuse one bounded snapshot
-    # across the read-only waste/conservation endpoints instead of rescanning
-    # the graph for every parallel dashboard request.
-    decision_snapshot: dict[str, Any] = {"rows": None, "expires": 0.0}
-    conservation_snapshot: dict[str, Any] = {"payload": None, "expires": 0.0}
+    app.state.materializer = ResponseMaterializer(
+        domain=DOMAIN,
+        store_provider=lambda: selected_graph_store_factory(scoring_db),
+        computations={
+            "order_rows": lambda s: list(cast(list[dict[str, Any]], s["decisions"])),
+            "waste_analysis": lambda s: [
+                profile.to_dict()
+                for profile in WasteTracker(cast(list[dict[str, Any]], s["decisions"])).analyze_all()
+            ],
+            "waste_summary": lambda s: WasteTracker(cast(list[dict[str, Any]], s["decisions"])).weekly_waste_cost(),
+            "conservation": lambda s: build_conservation_status(
+                DOMAIN,
+                scorer_proxy,
+                lambda count: modeled_projection(
+                    selected_graph_store_factory(scoring_db).get_governance(DOMAIN, "demo:roi_projection"),
+                    count,
+                ),
+            ),
+            "accuracy_by_category": lambda s: _accuracy_by_category_payload(cast(list[dict[str, Any]], s["verified"])),
+        },
+        ttl=5.0,
+    )
 
     @app.get("/api/health")
     def api_health() -> Any:
         payload = build_graph_health(app.state.purchasing_selected_graph_store, app.state.purchasing_active_graph_config, DOMAIN)
+        phase, alpha = None, None
+        if payload["graph_connected"]:
+            try:
+                phase, alpha = scorer_proxy.get_phase(), scorer_proxy.get_alpha()
+            except GRAPH_CONNECTION_ERRORS:
+                logger.exception("Purchasing health scoring read failed")
+                payload = build_graph_health(None, app.state.purchasing_active_graph_config, DOMAIN)
         cache_stats = entity_cache.stats()
         payload.update(
+            phase=phase,
+            alpha=alpha,
+            engine={
+                "scoring": "copilot_sdk.scoring.CompoundingScorer",
+                "gae": "gae.profile_scorer.ProfileScorer",
+            },
             cache_hits=cache_stats.hits,
             cache_misses=cache_stats.misses,
             cache_size=cache_stats.size,
@@ -640,13 +749,10 @@ def create_app(
         return JSONResponse(payload, status_code=health_status_code(payload))
 
     def _graph_order_rows() -> list[dict[str, Any]]:
-        now = time.monotonic()
-        if decision_snapshot["rows"] is None or now >= float(decision_snapshot["expires"]):
-            decision_snapshot["rows"] = list(
-                app.state.purchasing_selected_graph_store.get_all_decisions(domain=DOMAIN)
-            )
-            decision_snapshot["expires"] = now + 5.0
-        return cast(list[dict[str, Any]], decision_snapshot["rows"])
+        materialized = app.state.materializer.get("order_rows")
+        if isinstance(materialized, list):
+            return cast(list[dict[str, Any]], materialized)
+        return list(app.state.purchasing_selected_graph_store.get_all_decisions(domain=DOMAIN))
 
     def _graph_par_items() -> list[dict[str, Any]]:
         decisions = _graph_order_rows()
@@ -673,54 +779,47 @@ def create_app(
         if override:
             return str(override).upper()
         try:
-            now = time.monotonic()
-            if conservation_snapshot["payload"] is None or now >= float(conservation_snapshot["expires"]):
-                conservation_snapshot["payload"] = compute_conservation_status_payload(DOMAIN, scorer_proxy)
-                conservation_snapshot["expires"] = now + 5.0
-            payload = conservation_snapshot["payload"]
+            payload = app.state.materializer.get("conservation")
+            if not isinstance(payload, dict):
+                payload = build_conservation_status(DOMAIN, scorer_proxy)
         except Exception:
             return "UNKNOWN"
         return str(payload.get("status") or payload.get("state") or "UNKNOWN").upper()
 
-    def _alert_conservation_status() -> dict[str, Any] | None:
+    def _alert_conservation_status() -> dict[str, Any]:
         override = getattr(app.state, "purchasing_alert_conservation_status", None)
-        if override is not None:
-            return override if isinstance(override, dict) else {"state": str(override)}
-        try:
-            now = time.monotonic()
-            if conservation_snapshot["payload"] is None or now >= float(conservation_snapshot["expires"]):
-                conservation_snapshot["payload"] = compute_conservation_status_payload(DOMAIN, scorer_proxy)
-                conservation_snapshot["expires"] = now + 5.0
-            payload = conservation_snapshot["payload"]
-        except Exception:
-            return None
-        status = payload.get("status") or payload.get("state")
-        if not status:
-            return None
-        return {"state": str(status), "category": "all"}
+        return _alert_conservation_status_payload(app.state.materializer, scorer_proxy, override)
 
     @app.get("/api/purchasing/waste/analysis")
     def waste_analysis(request: Request) -> list[dict[str, Any]]:
+        materialized = request.app.state.materializer.get("waste_analysis")
+        if isinstance(materialized, list):
+            return cast(list[dict[str, Any]], materialized)
         decisions = _graph_order_rows()
         tracker = WasteTracker(decisions)
         return [profile.to_dict() for profile in tracker.analyze_all()]
 
     @app.get("/api/purchasing/waste/summary")
     def waste_summary(request: Request) -> dict[str, Any]:
+        materialized = request.app.state.materializer.get("waste_summary")
+        if isinstance(materialized, dict):
+            return cast(dict[str, Any], materialized)
         tracker = WasteTracker(_graph_order_rows())
         return cast(dict[str, Any], tracker.weekly_waste_cost())
 
     @app.get("/api/purchasing/par/predict")
     def predictive_par(request: Request, item: str = "salmon", category: str = "protein", date: str = "2026-06-26") -> dict[str, Any]:
         service = PredictivePar(optimizer=_par_optimizer())
-        base = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
-        return cast(dict[str, Any], service.predict(
+        base, par_available = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
+        payload = service.predict(
             item,
             category,
             date,
             base_par=base,
             conservation_status=_conservation_status(category),
-        ).to_dict())
+        ).to_dict()
+        payload["par_available"] = par_available
+        return cast(dict[str, Any], payload)
 
     @app.get("/api/purchasing/par/predict-week")
     def predictive_par_week(request: Request) -> dict[str, Any]:
@@ -730,7 +829,9 @@ def create_app(
             item = str(row.get("item") or "salmon")
             category = str(row.get("category") or "protein")
             with_base = dict(row)
-            with_base["base_par"] = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
+            base_par, par_available = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
+            with_base["base_par"] = base_par
+            with_base["par_available"] = par_available
             with_base["conservation_status"] = _conservation_status(category)
             items.append(with_base)
         return cast(dict[str, Any], service.predict_week(items))
@@ -824,6 +925,7 @@ def create_app(
             outcome_recorder=record_purchasing_outcome,
             variant_selector=select_purchasing_variant,
             entity_context_cache=entity_context_cache,
+            query_cache_invalidator=lambda: _invalidate_materializer(app),
         ),
         prefix="/api",
     )
@@ -964,6 +1066,8 @@ def create_app(
         _run_startup_seed_once()
         reset_chain_state(app.state)
         reset_event_state(app.state)
+        await asyncio.to_thread(app.state.materializer.refresh)
+        asyncio.create_task(_materializer_refresh_loop(app))
 
     @app.middleware("http")
     async def direct_testclient_autoseed(request, call_next):

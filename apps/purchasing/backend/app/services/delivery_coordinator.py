@@ -33,7 +33,7 @@ class DeliveryCoordinator:
         orders = list(pending_orders or DEMO_PENDING_ORDERS)
         supplier_rows = suppliers or DEMO_SUPPLIER_SCHEDULES
         weekday = target.strftime("%a")
-        deliveries = []
+        deliveries: list[dict[str, Any]] = []
         unknown = []
         for order in orders:
             supplier_id = str(order.get("supplier") or "")

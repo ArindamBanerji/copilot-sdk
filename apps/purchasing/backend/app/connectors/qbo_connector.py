@@ -202,7 +202,8 @@ class QBOConnector:
 
     @staticmethod
     def _normalize_supplier(row: dict[str, Any]) -> dict:
-        metadata = row.get("MetaData") if isinstance(row.get("MetaData"), dict) else {}
+        metadata = row.get("MetaData")
+        metadata = metadata if isinstance(metadata, dict) else {}
         return {
             "record_type": "supplier",
             "supplier_id": str(row.get("Id") or ""),
@@ -216,7 +217,8 @@ class QBOConnector:
 
     @staticmethod
     def _normalize_invoice(row: dict[str, Any]) -> dict:
-        supplier = row.get("VendorRef") if isinstance(row.get("VendorRef"), dict) else {}
+        supplier = row.get("VendorRef")
+        supplier = supplier if isinstance(supplier, dict) else {}
         invoice_id = str(row.get("Id") or "")
         return {
             "record_type": "invoice",
@@ -233,7 +235,8 @@ class QBOConnector:
 
     @staticmethod
     def _normalize_order(row: dict[str, Any]) -> dict:
-        supplier = row.get("VendorRef") if isinstance(row.get("VendorRef"), dict) else {}
+        supplier = row.get("VendorRef")
+        supplier = supplier if isinstance(supplier, dict) else {}
         return {
             "record_type": "order",
             "order_id": str(row.get("Id") or ""),
@@ -247,7 +250,8 @@ class QBOConnector:
 
     @staticmethod
     def _normalize_payment(row: dict[str, Any]) -> dict:
-        supplier = row.get("VendorRef") if isinstance(row.get("VendorRef"), dict) else {}
+        supplier = row.get("VendorRef")
+        supplier = supplier if isinstance(supplier, dict) else {}
         return {
             "record_type": "payment",
             "payment_id": str(row.get("Id") or ""),
@@ -261,10 +265,13 @@ class QBOConnector:
 
 def _line_items(row: dict[str, Any]) -> list[dict]:
     items: list[dict] = []
-    lines = row.get("Line") if isinstance(row.get("Line"), list) else []
+    lines = row.get("Line")
+    lines = lines if isinstance(lines, list) else []
     for line in lines:
         detail = line.get("ItemBasedExpenseLineDetail") if isinstance(line, dict) else {}
         item_ref = detail.get("ItemRef") if isinstance(detail, dict) else {}
+        if item_ref is None:
+            item_ref = {}
         quantity = _float(detail.get("Qty"), 0.0) if isinstance(detail, dict) else 0.0
         amount = _float(line.get("Amount"), 0.0) if isinstance(line, dict) else 0.0
         unit_price = round(amount / quantity, 2) if quantity else 0.0
@@ -280,7 +287,8 @@ def _line_items(row: dict[str, Any]) -> list[dict]:
 
 
 def _linked_order_id(row: dict[str, Any]) -> str | None:
-    linked = row.get("LinkedTxn") if isinstance(row.get("LinkedTxn"), list) else []
+    linked = row.get("LinkedTxn")
+    linked = linked if isinstance(linked, list) else []
     for item in linked:
         if isinstance(item, dict) and item.get("TxnType") == "PurchaseOrder":
             return str(item.get("TxnId") or "")
@@ -288,7 +296,8 @@ def _linked_order_id(row: dict[str, Any]) -> str | None:
 
 
 def _currency(row: dict[str, Any]) -> str:
-    currency = row.get("CurrencyRef") if isinstance(row.get("CurrencyRef"), dict) else {}
+    currency = row.get("CurrencyRef")
+    currency = currency if isinstance(currency, dict) else {}
     return str(currency.get("value") or "USD")
 
 

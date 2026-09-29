@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+from unittest.mock import MagicMock
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -9,6 +10,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.routers.par_router import create_par_router
+from app.routers.cohort_status_router import create_cohort_status_router
+from copilot_sdk.graph import InMemoryGraphStore
 from app.services.cohort_status import (
     ACCUMULATING,
     INSTRUMENT_VALIDATED,
@@ -242,8 +245,51 @@ def test_endpoint_returns_200(client):
 
     assert response.status_code == 200
     data = response.json()
-    assert sorted(data.keys()) == ["instrument", "real", "state", "structure"]
+    assert {"instrument", "real", "state", "structure", "data_available", "degraded"} <= set(data)
     assert data["state"] in STATE_VALUES
+
+
+def test_cohort_factory_connection_failure_is_degraded() -> None:
+    factory = MagicMock(side_effect=ConnectionError("offline"))
+    app = FastAPI()
+    app.include_router(create_cohort_status_router(factory))
+
+    payload = TestClient(app).get("/api/purchasing/cohort-status").json()
+
+    assert payload["data_available"] is False
+    assert payload["degraded"] is True
+    assert payload["real"]["magnitude"] == 0.0
+    assert payload["real"]["magnitude_available"] is False
+
+
+def test_cohort_factory_none_is_degraded() -> None:
+    app = FastAPI()
+    app.include_router(create_cohort_status_router(MagicMock(return_value=None)))
+    payload = TestClient(app).get("/api/purchasing/cohort-status").json()
+    assert payload["degraded"] is True
+    assert payload["data_available"] is False
+
+
+def test_cohort_query_failure_is_degraded() -> None:
+    store = MagicMock()
+    store.get_verified_decisions.side_effect = ConnectionError("offline")
+    store.get_all_decisions.side_effect = ConnectionError("offline")
+    store.get_decisions.side_effect = ConnectionError("offline")
+    app = FastAPI()
+    app.include_router(create_cohort_status_router(MagicMock(return_value=store)))
+    payload = TestClient(app).get("/api/purchasing/cohort-status").json()
+    assert payload["degraded"] is True
+    assert payload["data_available"] is False
+
+
+def test_cohort_factory_success_is_available() -> None:
+    store = InMemoryGraphStore(domain="purchasing")
+    app = FastAPI()
+    app.include_router(create_cohort_status_router(MagicMock(return_value=store)))
+    payload = TestClient(app).get("/api/purchasing/cohort-status").json()
+    assert payload["degraded"] is False
+    assert payload["data_available"] is True
+    assert isinstance(payload["real"]["magnitude"], float)
 
 
 def test_state_machine_values():

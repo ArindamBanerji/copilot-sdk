@@ -6,7 +6,7 @@ import os
 import logging
 from collections.abc import Callable
 from datetime import date, timedelta
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException
 
@@ -120,7 +120,7 @@ def create_pos_router(
         if _demo_mode():
             payload["source"] = "demo_fixture"
             payload["provenance"] = "demo_fixture"
-        return payload
+        return cast(dict[str, Any], payload)
 
     return router
 

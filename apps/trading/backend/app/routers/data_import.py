@@ -83,9 +83,9 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
     trade_store: list[NormalizedTrade] = []
 
     # Demo in-memory storage. Production should replace this with GraphStore-backed persistence.
-    @router.post("/import/csv")
+    @router.post("/import/csv", response_model=None)
     @serialize_mutation("trading", event="reset")
-    def import_csv(payload: Any = Body(..., media_type="text/csv")) -> dict[str, Any]:
+    def import_csv(payload: Any = Body(..., media_type="text/csv")) -> dict[str, Any] | JSONResponse:
         text, options = _decode_csv_payload(payload)
         preset = options.get("preset") or options.get("broker_preset")
         if preset:
@@ -114,9 +114,9 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
             "trades": [_trade_to_dict(trade) for trade in trades],
         }
 
-    @router.post("/import/broker")
+    @router.post("/import/broker", response_model=None)
     @serialize_mutation("trading", event="reset")
-    def import_broker(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+    def import_broker(payload: dict[str, Any] = Body(...)) -> dict[str, Any] | JSONResponse:
         broker_name = str(payload.get("broker") or "").strip().lower()
         if broker_name not in {"ibkr", "alpaca"}:
             raise HTTPException(status_code=400, detail="broker must be 'ibkr' or 'alpaca'")
@@ -174,18 +174,23 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
         interval: str = "1d",
     ) -> dict[str, Any]:
         result = _market_provider().get_ohlcv(ticker.upper(), period=period)
-        rows = result.value or []
+        rows = result.value if isinstance(result.value, list) else []
+        provider_available = isinstance(result.value, list) and str(result.source).lower() in {"live", "scraped_external"}
         return {
             "ticker": ticker.upper(),
             "rows": rows,
             "count": len(rows),
+            "provider_source": str(result.source) if provider_available else "fallback",
+            "provider_available": provider_available,
         }
 
     @router.get("/market/vix")
     def get_vix() -> dict[str, Any]:
         rows_result = _market_provider().get_ohlcv("^VIX")
         current_result = _market_provider().get_vix_current()
-        rows = rows_result.value or []
+        rows = rows_result.value if isinstance(rows_result.value, list) else []
+        rows_available = isinstance(rows_result.value, list) and str(rows_result.source).lower() in {"live", "scraped_external"}
+        current_available = isinstance(current_result.value, (int, float)) and str(current_result.source).lower() in {"live", "scraped_external"}
         current = float(rows[-1]["close"]) if rows else None
         if current_result.value is not None:
             current = float(current_result.value)
@@ -194,6 +199,8 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
             "current": current,
             "rows": rows,
             "count": len(rows),
+            "provider_source": str(current_result.source) if rows_available and current_available else "fallback",
+            "provider_available": rows_available and current_available,
         }
 
     @router.post("/market/refresh")

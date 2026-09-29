@@ -6,7 +6,7 @@ from dataclasses import asdict
 import time
 from typing import Any
 
-from copilot_sdk.outbox import OutboxEventType, SupplierReliabilitySignal
+from copilot_sdk.outbox import OutboxEvent, OutboxEventType, SupplierReliabilitySignal
 
 DOMAIN = "purchasing"
 SIGNAL_TTL_DAYS = 7
@@ -65,7 +65,7 @@ def active_supplier_signals(outbox_store: Any, supplier_name: str, now: float | 
     target = _supplier_key(supplier_name)
     # NOTE: Full scan is acceptable for demo-scale outbox (< 1000 events).
     # Production would use indexed DB query with TTL filter.
-    rows = getattr(outbox_store, "replay_from", lambda _offset=0: [])(0)
+    rows: list[OutboxEvent] = getattr(outbox_store, "replay_from", lambda _offset=0: [])(0)
     signals: list[dict[str, Any]] = []
     for row in rows or []:
         if getattr(row, "event_type", None) != OutboxEventType.SUPPLIER_RELIABILITY_SIGNAL:
@@ -84,7 +84,7 @@ def signal_stats(outbox_store: Any, now: float | None = None) -> dict[str, int]:
     current = time.time() if now is None else float(now)
     # NOTE: Full scan is acceptable for demo-scale outbox (< 1000 events).
     # Production would use indexed DB query with TTL filter.
-    rows = getattr(outbox_store, "replay_from", lambda _offset=0: [])(0)
+    rows: list[OutboxEvent] = getattr(outbox_store, "replay_from", lambda _offset=0: [])(0)
     total = 0
     expired = 0
     for row in rows or []:
@@ -109,7 +109,7 @@ def _supplier_key(value: Any) -> str:
 
 def _latest_supplier_signal(outbox_store: Any, supplier_name: str) -> dict[str, Any] | None:
     target = _supplier_key(supplier_name)
-    rows = getattr(outbox_store, "replay_from", lambda _offset=0: [])(0)
+    rows: list[OutboxEvent] = getattr(outbox_store, "replay_from", lambda _offset=0: [])(0)
     matches: list[dict[str, Any]] = []
     for row in rows or []:
         if getattr(row, "event_type", None) != OutboxEventType.SUPPLIER_RELIABILITY_SIGNAL:

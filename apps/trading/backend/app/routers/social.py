@@ -28,8 +28,9 @@ def create_social_router(scorer_proxy: Any) -> APIRouter:
 
     @router.get("/traders")
     def list_traders() -> dict[str, Any]:
-        traders = service().list_traders()
-        return cast(dict[str, Any], _json_safe({"traders": traders, "count": len(traders), "source": "graphstore"}))
+        profile_service = service()
+        traders = profile_service.list_traders()
+        return cast(dict[str, Any], _json_safe({"traders": traders, "count": len(traders), "source": "graphstore", "data_available": profile_service.data_available}))
 
     @router.get("/traders/compare")
     def compare_traders(ids: str = Query("")) -> dict[str, Any]:
@@ -48,8 +49,9 @@ def create_social_router(scorer_proxy: Any) -> APIRouter:
 
     @router.get("/social/leaderboard")
     def leaderboard(metric: str = "accuracy") -> dict[str, Any]:
-        ranking = service().leaderboard(metric)
-        return cast(dict[str, Any], _json_safe({"metric": metric, "ranking": ranking, "source": "graphstore"}))
+        profile_service = service()
+        ranking = profile_service.leaderboard(metric)
+        return cast(dict[str, Any], _json_safe({"metric": metric, "ranking": ranking, "source": "graphstore", "data_available": profile_service.data_available}))
 
     @router.get("/social")
     def social_summary() -> dict[str, Any]:
@@ -64,7 +66,7 @@ def create_social_router(scorer_proxy: Any) -> APIRouter:
 
     @router.get("/trader/{trader_id}")
     def legacy_trader_profile(trader_id: str) -> dict[str, Any]:
-        return trader_profile(trader_id)
+        return cast(dict[str, Any], trader_profile(trader_id))
 
     @router.post("/score-as")
     @serialize_mutation("trading", event="score")

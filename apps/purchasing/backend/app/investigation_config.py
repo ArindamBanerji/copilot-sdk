@@ -30,7 +30,7 @@ def decision_attachment(decision: dict[str, Any]) -> dict[str, Any]:
             "resolved": any(bool(fields.get(key)) for key in ["order_id","entity_id","sku","supplier_id"])}
 
 
-INVESTIGATION_CONFIG = {
+INVESTIGATION_CONFIG: dict[str, Any] = {
     "copilot_name": "purchasing",
     "factor_names": list(_SHAPE.factor_names),
     "category_names": list(_SHAPE.category_names),

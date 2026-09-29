@@ -6,6 +6,8 @@ import math
 from collections import defaultdict
 from typing import Any
 
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
+
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -20,6 +22,7 @@ STRONG_ACTION = "strong_execution"
 class TraderProfileService:
     def __init__(self, graph_store: Any):
         self._store = graph_store
+        self.data_available = True
 
     def list_traders(self) -> list[dict[str, Any]]:
         profiles = [
@@ -79,11 +82,18 @@ class TraderProfileService:
     def _verified_decisions(self) -> list[dict[str, Any]]:
         get_verified = getattr(self._store, "get_verified_decisions", None)
         if not callable(get_verified):
+            self.data_available = False
             return []
         try:
-            return [row for row in get_verified(DOMAIN) if isinstance(row, dict)]
-        except Exception:
+            raw = get_verified(DOMAIN)
+        except (*GRAPH_CONNECTION_ERRORS, RuntimeError):
+            self.data_available = False
             return []
+        if not isinstance(raw, list):
+            self.data_available = False
+            return []
+        self.data_available = True
+        return [row for row in raw if isinstance(row, dict)]
 
     def _profile_from_decisions(self, trader_id: str, decisions: list[dict[str, Any]]) -> dict[str, Any]:
         verified_count = len(decisions)
@@ -118,7 +128,8 @@ def _valid_decision(decision: dict[str, Any]) -> bool:
 def _decision_trader(decision: dict[str, Any]) -> str:
     value = decision.get("entity_id")
     if not value:
-        metadata = decision.get("metadata") if isinstance(decision.get("metadata"), dict) else {}
+        raw_metadata = decision.get("metadata")
+        metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
         value = metadata.get("entity_id") or metadata.get("trader_id")
     return _normalize_trader(value)
 
@@ -170,10 +181,14 @@ def _factor_strengths(decisions: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _decision_factors(decision: dict[str, Any]) -> dict[str, Any]:
-    factors = decision.get("factors") if isinstance(decision.get("factors"), dict) else {}
-    metadata = factors.get("metadata") if isinstance(factors.get("metadata"), dict) else {}
-    scored = metadata.get("scored_factors") if isinstance(metadata.get("scored_factors"), dict) else {}
-    vector = decision.get("factor_vector") if isinstance(decision.get("factor_vector"), list) else []
+    raw_factors = decision.get("factors")
+    factors: dict[str, Any] = raw_factors if isinstance(raw_factors, dict) else {}
+    raw_metadata = factors.get("metadata")
+    metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
+    raw_scored = metadata.get("scored_factors")
+    scored: dict[str, Any] = raw_scored if isinstance(raw_scored, dict) else {}
+    raw_vector = decision.get("factor_vector")
+    vector: list[Any] = raw_vector if isinstance(raw_vector, list) else []
     result: dict[str, Any] = {}
     for index, factor in enumerate(FACTOR_NAMES):
         value = factors.get(factor)

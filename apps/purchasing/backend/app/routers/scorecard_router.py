@@ -68,8 +68,11 @@ def build_iks_summary(graph_store_factory: GraphStoreFactory | None) -> dict[str
             shape=PurchasingPreset().shape,
             categories=CATEGORIES,
         ).summary()
-    except Exception:
-        return _empty_iks_summary()
+    except Exception as exc:
+        return _empty_iks_summary(
+            unavailable_reason=f"graph_unavailable: {exc}",
+            degraded=True,
+        )
 
     return {
         "iks_score": _bounded(float(raw.get("iks", 0.0)), 0.0, 100.0),
@@ -128,8 +131,10 @@ def _verified_decisions(graph_store_factory: GraphStoreFactory | None) -> list[d
     return [row for row in rows if isinstance(row, dict)]
 
 
-def _empty_iks_summary() -> dict[str, Any]:
-    return {
+def _empty_iks_summary(
+    *, unavailable_reason: str | None = None, degraded: bool = False
+) -> dict[str, Any]:
+    payload = {
         "iks_score": 0.0,
         "per_category": {category: 0.0 for category in CATEGORIES},
         "verified_count": 0,
@@ -138,6 +143,13 @@ def _empty_iks_summary() -> dict[str, Any]:
         "substantiation_tier": "real_measured",
         "d_max": D_MAX,
     }
+    if degraded:
+        payload.update(
+            data_available=False,
+            degraded=True,
+            unavailable_reason=unavailable_reason or "graph_unavailable",
+        )
+    return payload
 
 
 def _bounded(value: float, low: float, high: float) -> float:

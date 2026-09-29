@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
+
 from app.factors.base import clamp
 from app.factors.emotional_indicator import EmotionalIndicatorFactor
 from app.factors.market_regime import MarketRegimeFactor
@@ -74,12 +76,32 @@ def get_factor_registry() -> dict[str, Any]:
     return dict(_FALLBACK_FACTOR_COMPUTERS)
 
 
-def compute_factors(context: dict[str, Any]) -> dict[str, float]:
+class FactorComputation(dict[str, float]):
+    def __init__(self, values: dict[str, float], degraded_factors: list[str]) -> None:
+        super().__init__(values)
+        self.degraded_factors = list(degraded_factors)
+        self.factor_availability = {
+            name: name not in degraded_factors for name in values
+        }
+
+
+_FACTOR_ERRORS = (*GRAPH_CONNECTION_ERRORS, RuntimeError)
+
+
+def compute_factors(context: dict[str, Any]) -> FactorComputation:
     payload = context if isinstance(context, dict) else {}
     values = {name: 0.5 for name in ALL_FACTOR_NAMES}
+    degraded_factors: list[str] = []
     for name, computer in TRADING_FACTOR_COMPUTERS.items():
         try:
-            values[name] = clamp(computer.compute(payload))
-        except Exception:
+            raw_value = computer.compute(payload)
+        except _FACTOR_ERRORS:
             values[name] = 0.5
-    return values
+            degraded_factors.append(name)
+            continue
+        if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+            values[name] = 0.5
+            degraded_factors.append(name)
+            continue
+        values[name] = clamp(raw_value)
+    return FactorComputation(values, degraded_factors)

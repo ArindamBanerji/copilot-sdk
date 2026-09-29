@@ -73,7 +73,10 @@ export default function TrustRadarPanel() {
         if (active) {
           setWeights(nextWeights);
           setExpected(nextExpected);
-          setInsights(nextInsights);
+          setInsights(nextInsights.insights);
+          if (!nextInsights.trustAvailable) {
+            setError("Trust insights are temporarily unavailable");
+          }
           const firstCategory = Object.keys(nextWeights.weights ?? {})[0] ?? "protein";
           setSelectedCategory(firstCategory);
         }

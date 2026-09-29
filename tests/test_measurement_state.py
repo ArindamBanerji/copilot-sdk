@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from unittest.mock import patch
 
 from copilot_sdk.backend.scoring_router import create_scoring_router
 from copilot_sdk.scoring.measurement_state import MeasurementState, compute_measurement_state
@@ -131,6 +132,44 @@ def test_measurement_endpoint_returns_200():
     assert payload["state"] == "instrument_validated"
     assert payload["decisions_verified"] == 0
     assert payload["provenance"] == "instrument"
+    assert payload["iks"] == 0.0
+    assert payload["iks_available"] is False
+    assert payload["accuracy"] == 0.0
+    assert payload["accuracy_available"] is False
+
+
+def test_measurement_endpoint_iks_failure_is_numeric_and_degraded():
+    scorer = _trading_scorer()
+    scorer._measurement_k_min = 1
+    _feed_all_arms(scorer, 1)
+    app = FastAPI()
+    app.include_router(create_scoring_router("trading", scorer_factory=lambda: scorer), prefix="/api")
+
+    with patch.object(scorer, "trajectory", side_effect=RuntimeError("history unavailable")):
+        payload = TestClient(app).get("/api/trading/measurement-state").json()
+
+    assert payload["state"] == "degraded"
+    assert payload["iks"] == 0.0
+    assert isinstance(payload["iks"], float)
+    assert payload["iks_available"] is False
+    assert payload["accuracy"] > 0.0
+    assert payload["accuracy_available"] is True
+    assert payload["degraded"] is True
+    assert all(value is not None for value in payload.values())
+
+
+def test_measurement_endpoint_measured_iks_remains_available():
+    scorer = _trading_scorer()
+    scorer._measurement_k_min = 1
+    _feed_all_arms(scorer, 1)
+    app = FastAPI()
+    app.include_router(create_scoring_router("trading", scorer_factory=lambda: scorer), prefix="/api")
+
+    payload = TestClient(app).get("/api/trading/measurement-state").json()
+
+    assert isinstance(payload["iks"], float)
+    assert payload["iks_available"] is True
+    assert payload["accuracy_available"] is True
 
 
 def test_measurement_provenance_correct():

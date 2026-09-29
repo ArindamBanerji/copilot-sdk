@@ -1,7 +1,14 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, cast
+from types import SimpleNamespace
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from app.routers.evidence import create_evidence_router
 
 
 PURCHASING_FACTORS = {
@@ -46,7 +53,7 @@ def _score_and_learn(client, *, category: str = "protein") -> dict[str, Any]:
         },
     )
     assert learn.status_code == 200
-    return scored
+    return cast(dict[str, Any], scored)
 
 
 def test_evidence_summary_empty_store_returns_defaults(client):
@@ -62,6 +69,54 @@ def test_evidence_summary_empty_store_returns_defaults(client):
     assert payload["verification_rate"] == 0.0
     assert isinstance(payload["top_contributing_factors"], list)
     assert_json_safe(payload)
+
+
+@pytest.mark.parametrize(
+    ("endpoint", "broken_method"),
+    [
+        ("/api/purchasing/evidence/summary", "get_all_decisions"),
+        ("/api/purchasing/evidence/summary", "get_verified_decisions"),
+        ("/api/purchasing/evidence/conservation-proof", "get_centroid_checkpoints"),
+        ("/api/purchasing/evidence/summary", "trajectory"),
+        ("/api/purchasing/evidence/conservation-proof", "count_verified"),
+    ],
+)
+def test_evidence_read_failures_are_degraded(endpoint, broken_method):
+    class BrokenGraph:
+        def get_all_decisions(self, domain):
+            if broken_method == "get_all_decisions":
+                raise RuntimeError("graph unavailable")
+            return []
+
+        def get_verified_decisions(self, domain):
+            if broken_method == "get_verified_decisions":
+                raise RuntimeError("graph unavailable")
+            return []
+
+        def get_centroid_checkpoints(self, domain, limit):
+            if broken_method == "get_centroid_checkpoints":
+                raise RuntimeError("graph unavailable")
+            return []
+
+        def count_verified(self, domain):
+            if broken_method == "count_verified":
+                raise RuntimeError("graph unavailable")
+            return 0
+
+        def count_correct(self, domain):
+            return 0
+
+    def trajectory():
+        if broken_method == "trajectory":
+            raise RuntimeError("graph unavailable")
+        return {}
+
+    state = SimpleNamespace(graph_store=BrokenGraph(), trajectory=trajectory)
+    app = FastAPI()
+    app.include_router(create_evidence_router(state))
+    payload = TestClient(app).get(endpoint).json()
+    assert payload["degraded"] is True
+    assert payload["data_available"] is False
 
 
 def test_evidence_decisions_empty_store_returns_list(client):
@@ -145,7 +200,8 @@ def test_audit_and_conservation_reflect_verified_decision_without_overclaim(clie
     assert any(row["decision_id"] == scored["decision_id"] for row in audit["chain"])
     assert proof["q"] is not None
     assert proof["theta_min"] is not None
-    assert proof["days_in_green"] is None
+    assert proof["days_in_green"] == 0
+    assert proof["days_in_green_available"] is False
     assert_json_safe(audit)
     assert_json_safe(proof)
 

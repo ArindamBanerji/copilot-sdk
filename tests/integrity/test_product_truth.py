@@ -5,6 +5,7 @@ import math
 import subprocess
 import sys
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -18,6 +19,7 @@ def _scorer() -> CompoundingScorer:
         "trading",
         graph_store=InMemoryGraphStore(domain="trading"),
         enable_rl=False,
+        profile="test",
     )
 
 
@@ -36,7 +38,8 @@ def test_scorer_state_survives_process_restart(tmp_path: Path) -> None:
     scorer.export(export_path)
     before = scorer.score(factors, shape.category_names[0])
     script = (
-        "import json; "
+        "import json, os; "
+        "os.environ['COPILOT_PROFILE']='test'; "
         "from copilot_sdk.scoring.scorer import CompoundingScorer; "
         f"s=CompoundingScorer.load({str(export_path)!r}); "
         f"r=s.score(json.loads({json.dumps(factors)!r}), {shape.category_names[0]!r}); "
@@ -92,10 +95,10 @@ def test_displayed_factor_matches_computed() -> None:
 def test_sample_value_rejected_from_metric() -> None:
     scorer = _scorer()
     shape = scorer._preset.shape
-    factors: dict[str, object] = _base_factors(scorer, 0.5)
+    factors = cast(dict[str, object], _base_factors(scorer, 0.5))
     factors[shape.factor_names[0]] = Provenanced(0.5, "sample")
     try:
-        scorer.score(factors, shape.category_names[0])  # type: ignore[arg-type]
+        scorer.score(cast(dict[str, float], factors), shape.category_names[0])
     except (TypeError, ValueError) as exc:
         message = str(exc).lower()
         if "provenance" in message and "provenanced" not in message:

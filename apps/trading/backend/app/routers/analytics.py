@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from itertools import combinations
 from statistics import mean
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, Request
 
@@ -89,25 +89,43 @@ def create_analytics_router(
 
     @router.get("/analytics/vol-sharpe")
     def vol_sharpe(request: Request) -> dict[str, Any]:
+        materialized = _materialized_response(request, "vol_sharpe")
+        if materialized is not None:
+            return materialized
         decisions = _verified_decisions(graph_store_factory, domain)
-        return compute_clustering_adjusted_sharpe(decisions)
+        return cast(dict[str, Any], compute_clustering_adjusted_sharpe(decisions))
 
     @router.get("/analytics/vrp-attribution")
     def vrp_attribution(request: Request) -> dict[str, Any]:
+        materialized = _materialized_response(request, "vrp_attribution")
+        if materialized is not None:
+            return materialized
         decisions = _verified_decisions(graph_store_factory, domain)
-        return compute_vrp_attribution(decisions)
+        return cast(dict[str, Any], compute_vrp_attribution(decisions))
 
     @router.get("/analytics/regime-vrp")
     def regime_vrp(request: Request) -> dict[str, Any]:
         decisions = _verified_decisions(graph_store_factory, domain)
-        return compute_regime_vrp(decisions)
+        return cast(dict[str, Any], compute_regime_vrp(decisions))
 
     @router.get("/analytics/dispersion-follow")
     def dispersion_follow(request: Request) -> dict[str, Any]:
+        materialized = _materialized_response(request, "dispersion_follow")
+        if materialized is not None:
+            return materialized
         decisions = _verified_decisions(graph_store_factory, domain)
-        return compute_dispersion_follow_rate(decisions)
+        return cast(dict[str, Any], compute_dispersion_follow_rate(decisions))
 
     return router
+
+
+def _materialized_response(request: Request, key: str) -> dict[str, Any] | None:
+    materializer = getattr(request.app.state, "materializer", None)
+    get = getattr(materializer, "get", None)
+    if not callable(get):
+        return None
+    result = get(key)
+    return result if isinstance(result, dict) else None
 
 
 def _verified_decisions(
@@ -177,6 +195,8 @@ def _factor_value(decision: dict[str, Any], factor: str) -> float | None:
     value = factors.get(factor) if isinstance(factors, dict) else None
     if value is None:
         vector = decision.get("factor_vector")
+        if not isinstance(vector, (list, tuple)):
+            return None
         try:
             value = vector[_FACTORS.index(factor)]
         except (TypeError, IndexError, ValueError):

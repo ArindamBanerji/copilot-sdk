@@ -6,6 +6,8 @@ from typing import Any
 
 from fastapi import APIRouter
 
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
+
 
 _DOMAIN_METRICS: tuple[dict[str, float | str], ...] = (
     {"name": "soc", "conditional_fraction": 0.341, "chain_length": 1.2},
@@ -24,7 +26,10 @@ TENSOR_SHAPES: dict[str, tuple[int, int, int]] = {
 }
 
 
-def _verified_decisions(scorer: Any) -> int:
+_READ_ERRORS = (*GRAPH_CONNECTION_ERRORS, RuntimeError)
+
+
+def _verified_decisions(scorer: Any) -> tuple[int, bool]:
     for method_name in (
         "get_verified_count",
         "count_verified_decisions",
@@ -34,28 +39,38 @@ def _verified_decisions(scorer: Any) -> int:
         method = getattr(scorer, method_name, None)
         if callable(method):
             try:
-                return max(int(method()), 0)
-            except (TypeError, ValueError):
-                continue
-    return 0
+                raw = method()
+            except _READ_ERRORS:
+                return 0, False
+            if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+                return 0, False
+            return max(int(raw), 0), True
+    return 0, False
 
 
-def _compounding_gain_pp(scorer: Any) -> float:
+def _compounding_gain_pp(scorer: Any) -> tuple[float, bool]:
     trajectory = getattr(scorer, "trajectory", None)
     if not callable(trajectory):
-        return 0.0
+        return 0.0, False
     try:
         result = trajectory()
+    except _READ_ERRORS:
+        return 0.0, False
+    if result is None:
+        return 0.0, False
+    try:
         current = _result_value(result, "current_win_rate")
         points = _result_value(result, "points")
         if current is None or not isinstance(points, (list, tuple)) or not points:
-            return 0.0
+            return 0.0, False
         baseline = _result_value(points[0], "win_rate")
         if baseline is None:
-            return 0.0
-        return round((float(current) - float(baseline)) * 100.0, 3)
+            return 0.0, False
+        if not isinstance(current, (int, float)) or not isinstance(baseline, (int, float)):
+            return 0.0, False
+        return round((float(current) - float(baseline)) * 100.0, 3), True
     except (TypeError, ValueError):
-        return 0.0
+        raise
 
 
 def _result_value(result: Any, name: str) -> Any:
@@ -71,8 +86,9 @@ def create_platform_router(scorer: Any, *, current_domain: str | None = None) ->
 
     @router.get("/platform/domain-applicability")
     def domain_applicability() -> dict[str, Any]:
-        verified = _verified_decisions(scorer)
-        gain = _compounding_gain_pp(scorer)
+        verified, verified_available = _verified_decisions(scorer)
+        gain, gain_available = _compounding_gain_pp(scorer)
+        data_available = verified_available and gain_available
         domains: list[dict[str, Any]] = []
         for metric in _DOMAIN_METRICS:
             name = str(metric["name"])
@@ -85,6 +101,7 @@ def create_platform_router(scorer: Any, *, current_domain: str | None = None) ->
                     "verified_decisions": verified if name == current_domain else 0,
                     "compounding_gain_pp": gain if name == current_domain else 0.0,
                     "metric_tier": "EXPLORATORY",
+                    "data_available": data_available if name == current_domain else True,
                 }
             )
         return {
@@ -98,6 +115,7 @@ def create_platform_router(scorer: Any, *, current_domain: str | None = None) ->
                 ),
             },
             "metric_tier": "EXPLORATORY",
+            "data_available": data_available,
         }
 
     return router

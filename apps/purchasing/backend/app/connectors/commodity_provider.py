@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import threading
 import time
-from typing import Any
+from typing import Any, cast
 
 from app.connectors.mock_commodity import MockCommoditySource
 from copilot_sdk.evidence.provenance import Provenanced
@@ -142,7 +142,7 @@ class CommodityDataProvider:
         if self._live_source is None:
             return None
         if category == "all":
-            prices = []
+            prices: list[dict[str, Any]] = []
             for item in COMMODITY_CATEGORIES:
                 rows = self._live_source.fetch_category_prices(item)
                 if rows:
@@ -154,6 +154,7 @@ class CommodityDataProvider:
         return {"prices": [dict(row) for row in rows], "category": category}
 
     def _fetch_with_single_flight(self, category: str) -> dict[str, Any] | None:
+        event: threading.Event | None
         with self._flight_guard:
             lock = self._flight_locks.setdefault(category, threading.Lock())
             acquired = lock.acquire(blocking=False)
@@ -186,7 +187,8 @@ class CommodityDataProvider:
             self._flight_results[category] = None
             return None
         finally:
-            event.set()
+            # Waiters return above; only the owner that created the event reaches here.
+            cast(threading.Event, event).set()
             lock.release()
 
     def _live_payload(self, live: dict[str, Any]) -> dict[str, Any]:
@@ -225,7 +227,7 @@ class CommodityDataProvider:
 
     def _load_fixture(self, category: str) -> dict[str, Any]:
         if category == "all":
-            prices = []
+            prices: list[dict[str, Any]] = []
             for item in COMMODITY_CATEGORIES:
                 prices.extend(dict(row, category=item) for row in self._fixture.get(item, []))
         else:

@@ -497,6 +497,39 @@ def test_learn_conservation_pause_skips_rl(mock_preset, store):
     assert credit.calls == [(1.0, ["amount", "risk", "history"])]
 
 
+def test_learn_conservation_pause_skips_artifact_persistence(monkeypatch, mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=1, correct=0)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    result = scorer.score(sample_factors(), "alpha")
+    monkeypatch.setattr(
+        scorer,
+        "_conservation_pause",
+        lambda: {"status": "RED", "verified_count": 1, "q": 0.0, "alpha": 0.0, "theta_min": 0.5},
+    )
+    artifact_calls: list[str] = []
+    monkeypatch.setattr(
+        scorer,
+        "_persist_conservation_snapshot",
+        lambda *args, **kwargs: artifact_calls.append("conservation"),
+    )
+    monkeypatch.setattr(
+        scorer,
+        "_save_centroids_checkpoint",
+        lambda *args, **kwargs: artifact_calls.append("centroids"),
+    )
+    monkeypatch.setattr(
+        scorer,
+        "_persist_fingerprint",
+        lambda *args, **kwargs: artifact_calls.append("fingerprint"),
+    )
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn["status"] == "RED"
+    assert artifact_calls == []
+
+
 def test_learn_result_serializable(mock_preset, store):
     scorer = build_compounding_scorer(
         mock_preset,

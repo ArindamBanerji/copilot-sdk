@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import Field, RootModel
 
-from app.state.key_manifest import TradingKey
+from ..key_manifest import TradingKey
 from copilot_sdk.state.schemas.shared import (
     AnalyticsResponse,
     CohortStatusResponse,
@@ -85,6 +85,9 @@ class MeasurementStateResponse(FlexibleModel):
     arms_measured: int | None = None
     arms_total: int | None = None
     provenance: str | None = None
+    accuracy_available: bool = True
+    iks_available: bool = True
+    degraded: bool = False
 
 
 class RegimeResponse(FlexibleModel):
@@ -135,6 +138,7 @@ class TrustAnalysisResponse(FlexibleModel):
     hero_insight: str | None = None
     per_category: Any = None
     decisions_until_dk: int | None = None
+    dk_readiness_available: bool = True
     total_trades: int | None = None
 
 
@@ -373,6 +377,7 @@ class RegimeAnalyticsSummaryResponse(RegimeAnalyticsResponse):
 
 class IksResponse(FlexibleModel):
     iks: float | None = None
+    iks_available: bool = True
     evidence_tier: str | None = None
     evidence_label: str | None = None
     evidence_gate: str | None = None

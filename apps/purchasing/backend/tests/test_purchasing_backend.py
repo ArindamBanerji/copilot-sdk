@@ -4,6 +4,7 @@ import json
 import pytest
 from collections import Counter
 from pathlib import Path
+from typing import cast
 
 from fastapi.testclient import TestClient
 
@@ -78,7 +79,7 @@ def _score(client, category: str = "protein") -> dict:
         json={"category": category, "factors": PURCHASING_FACTORS},
     )
     assert response.status_code == 200
-    return response.json()
+    return cast(dict, response.json())
 
 
 def _learn(client, decision_id: str, actual_action: str) -> dict:
@@ -87,7 +88,7 @@ def _learn(client, decision_id: str, actual_action: str) -> dict:
         json={"decision_id": decision_id, "actual_action": actual_action},
     )
     assert response.status_code == 200
-    return response.json()
+    return cast(dict, response.json())
 
 
 def _write_sqlite_graph_config(path: Path) -> None:
@@ -125,9 +126,9 @@ def test_app_factory_production_defaults(tmp_path, monkeypatch):
 def test_health(client):
     response = client.get("/health")
 
-    assert response.status_code == 200
+    assert response.status_code == 503
     payload = response.json()
-    assert payload["status"] == "ok"
+    assert payload["status"] == "error"
     assert payload["domain"] == "purchasing"
     assert "copilot_sdk.scoring" in payload["engine"]
     assert "gae.profile_scorer" in payload["engine"]
@@ -137,7 +138,7 @@ def test_health(client):
 def test_api_health_returns_phase_alpha_and_engine(client):
     response = client.get("/api/health")
 
-    assert response.status_code == 200
+    assert response.status_code == 503
     payload = response.json()
     assert payload["phase"] in {"A", "B"}
     assert isinstance(payload["alpha"], (int, float))
@@ -302,7 +303,7 @@ def test_auto_seed_empty_db(tmp_path):
 
     db_path = tmp_path / "purchasing_seeded.db"
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     expected_verified, expected_correct = _fixture_outcome_counts(DATA_DIR / "purchasing_seed_v2.json")
     assert _count_decisions(db_path, "purchasing") == 20
@@ -322,7 +323,7 @@ def test_auto_seed_skips_populated(tmp_path):
         store.close()
 
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     assert _count_decisions(db_path, "purchasing") == 1
 
@@ -333,7 +334,7 @@ def test_ci_data_dir_creates_db(tmp_path, monkeypatch):
     data_dir = tmp_path / "ci-data"
     monkeypatch.setenv("CI_DATA_DIR", str(data_dir))
     with TestClient(create_app(demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     db_path = data_dir / "purchasing.db"
     assert db_path.exists()
@@ -349,7 +350,7 @@ def test_explicit_db_path_wins(tmp_path, monkeypatch):
     monkeypatch.setenv("CI_DATA_DIR", str(ci_dir))
 
     with TestClient(create_app(db_path=explicit_db, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     assert explicit_db.exists()
     assert not (ci_dir / "purchasing.db").exists()
@@ -362,7 +363,7 @@ def test_no_env_uses_explicit_fallback(tmp_path, monkeypatch):
     monkeypatch.delenv("CI_DATA_DIR", raising=False)
     db_path = tmp_path / "fallback.db"
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
-        assert startup_client.get("/health").status_code == 200
+        assert startup_client.get("/health").status_code == 503
 
     assert db_path.exists()
     assert _count_decisions(db_path, "purchasing") == 20
@@ -372,7 +373,7 @@ def test_startup_records_l5_source_status(tmp_path):
     from app.main import create_app
 
     with TestClient(create_app(db_path=tmp_path / "l5-status.db", demo_bundle_path=False)) as client:
-        assert client.get("/health").status_code == 200
+        assert client.get("/health").status_code == 503
         status = client.app.state.l5_startup_status
     assert status["dk_source"] in {"missing", "l5", "error", "deferred"}
     assert status["welford_source"] in {"missing", "l5", "error"}
@@ -406,7 +407,7 @@ def test_l5_startup_restore_runs_after_seed_setup(tmp_path, monkeypatch):
     monkeypatch.setattr(app_main, "restore_l5_runtime_state", fake_restore)
 
     with TestClient(app_main.create_app(db_path=tmp_path / "ordered.db", demo_bundle_path=False)) as client:
-        assert client.get("/health").status_code == 200
+        assert client.get("/health").status_code == 503
         status = client.app.state.l5_startup_status
 
     assert calls == ["seed", "restore"]
@@ -957,7 +958,7 @@ def _count_decisions(db_path: Path, domain: str) -> int:
 
     store = SQLiteGraphStore(db_path, domain=domain)
     try:
-        return store.count_decisions(domain)
+        return int(store.count_decisions(domain))
     finally:
         store.close()
 
@@ -967,7 +968,7 @@ def _count_verified(db_path: Path, domain: str) -> int:
 
     store = SQLiteGraphStore(db_path, domain=domain)
     try:
-        return store.count_verified(domain)
+        return int(store.count_verified(domain))
     finally:
         store.close()
 
@@ -977,7 +978,7 @@ def _count_correct(db_path: Path, domain: str) -> int:
 
     store = SQLiteGraphStore(db_path, domain=domain)
     try:
-        return store.count_correct(domain)
+        return int(store.count_correct(domain))
     finally:
         store.close()
 

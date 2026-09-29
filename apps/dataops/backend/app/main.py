@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import logging
 import os
 import sqlite3
@@ -75,6 +76,8 @@ from copilot_sdk.backend import (  # noqa: E402
 from copilot_sdk.backend.discovery_router import create_discovery_router  # noqa: E402
 from copilot_sdk.backend.investigation_router import create_investigation_router  # noqa: E402
 from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
+from copilot_sdk.backend.conservation_router import build_conservation_status  # noqa: E402
+from copilot_sdk.backend.response_materializer import ResponseMaterializer  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
@@ -110,6 +113,7 @@ from copilot_sdk.scoring.situation_classifier import SituationClassifier  # noqa
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
+from .context_router import _context_accuracy_by_category, _pipelines_from_decisions  # noqa: E402
 
 
 DOMAIN = "dataops"
@@ -126,6 +130,47 @@ def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
 
 def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
     return {"k_store": _create_vld_k_store(path, dimensions)}
+
+
+async def _materializer_refresh_loop(app: FastAPI) -> None:
+    while True:
+        await asyncio.sleep(5)
+        materializer = getattr(app.state, "materializer", None)
+        refresh = getattr(materializer, "refresh", None)
+        if callable(refresh):
+            try:
+                await asyncio.to_thread(refresh)
+            except Exception:
+                logger.exception("DataOps materializer background refresh failed")
+
+
+def _invalidate_materializer(app: FastAPI) -> None:
+    materializer = getattr(app.state, "materializer", None)
+    if materializer is not None:
+        materializer.invalidate()
+
+
+def _accuracy_by_category_payload(verified: list[dict[str, Any]], threshold: float = 0.70) -> dict[str, Any]:
+    grouped: dict[str, dict[str, int]] = {}
+    for decision in verified:
+        category = str(decision.get("category") or "uncategorized")
+        bucket = grouped.setdefault(category, {"total": 0, "correct": 0})
+        bucket["total"] += 1
+        if decision.get("is_correct") is True:
+            bucket["correct"] += 1
+    categories = []
+    for category in sorted(grouped):
+        total = grouped[category]["total"]
+        correct = grouped[category]["correct"]
+        accuracy = round(correct / total, 4) if total else 0.0
+        categories.append({
+            "category": category,
+            "accuracy": accuracy,
+            "total": total,
+            "correct": correct,
+            "alert": accuracy < threshold,
+        })
+    return {"categories": categories, "threshold": threshold, "overall_verified": len(verified)}
 
 DATAOPS_QUERY_SOURCE_ID_MAP = {
     "compounding_scorer": "snowflake",
@@ -444,18 +489,21 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
         entries = json.loads(SEED_FIXTURE_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         print(f"[{DOMAIN}] auto-seed fixture unavailable: {exc}")
-        return {"decisions_seeded": 0, "outcomes_seeded": 0}
+        return {"total": 0, "decisions_seeded": 0, "outcomes_seeded": 0, "failed": 0}
     if not isinstance(entries, list):
         print(f"[{DOMAIN}] auto-seed fixture is not a list")
-        return {"decisions_seeded": 0, "outcomes_seeded": 0}
+        return {"total": 0, "decisions_seeded": 0, "outcomes_seeded": 0, "failed": 0}
 
     decisions_seeded = 0
     outcomes_seeded = 0
+    failed = 0
     for sequence, entry in enumerate(entries):
         if not isinstance(entry, dict):
+            failed += 1
             continue
         category = entry.get("category")
         if not category:
+            failed += 1
             continue
         try:
             factors = _build_seed_context(entry)
@@ -496,13 +544,19 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
                 )
                 outcomes_seeded += 1
         except Exception as exc:
+            failed += 1
             print(f"[{DOMAIN}] auto-seed skipped entry {sequence}: {exc}")
     if entries and decisions_seeded == 0:
         print(f"[{DOMAIN}] warning: auto-seed wrote no decisions")
     expected_outcomes = sum(1 for entry in entries if isinstance(entry, dict) and "is_correct" in entry)
     if expected_outcomes > 0 and outcomes_seeded == 0:
         print(f"[{DOMAIN}] warning: auto-seed wrote no fixture outcomes")
-    return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
+    return {
+        "total": len(entries),
+        "decisions_seeded": decisions_seeded,
+        "outcomes_seeded": outcomes_seeded,
+        "failed": failed,
+    }
 
 
 def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None) -> int:
@@ -522,21 +576,31 @@ def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None)
         profile=resolve_profile(profile, domain=DOMAIN),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
+    total = int(seeded.get("total", seeded["decisions_seeded"] + seeded.get("failed", 0)))
+    failed = int(seeded.get("failed", 0))
     print(
-        f"[{DOMAIN}] auto-seeded {seeded['decisions_seeded']} decisions "
-        f"and {seeded['outcomes_seeded']} outcomes"
+        f"[{DOMAIN}] Seeded {seeded['decisions_seeded']} of {total} "
+        f"decisions ({failed} failed); "
+        f"outcomes seeded: {seeded['outcomes_seeded']}"
     )
+    if total and failed / total > 0.5:
+        logger.warning(
+            "[%s] auto-seed failure rate is high: %d of %d entries failed",
+            DOMAIN,
+            failed,
+            total,
+        )
     return seeded["decisions_seeded"]
 
 
-def _seed_demo_evolution_events_if_needed(graph_store: GraphStore) -> None:
+def _seed_demo_evolution_events_if_needed(graph_store: GraphStore) -> dict[str, int | bool]:
     try:
         existing = graph_store.get_evolution_events(domain=DOMAIN, rule_name="resource_quality_scheduling_signal", limit=1)
     except Exception as exc:
-        print(f"[{DOMAIN}] demo evolution seed check failed: {exc}")
-        return
+        print(f"[{DOMAIN}] demo evolution seed check failed; existing events are unknown: {exc}")
+        return {"checked": False, "seeded": 0, "failed": 1}
     if existing:
-        return
+        return {"checked": True, "seeded": 0, "failed": 0}
     try:
         graph_store.save_evolution_event(
             domain=DOMAIN,
@@ -564,6 +628,8 @@ def _seed_demo_evolution_events_if_needed(graph_store: GraphStore) -> None:
         )
     except Exception as exc:
         print(f"[{DOMAIN}] demo evolution seed failed: {exc}")
+        return {"checked": True, "seeded": 0, "failed": 1}
+    return {"checked": True, "seeded": 1, "failed": 0}
 
 
 def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
@@ -792,6 +858,22 @@ def create_app(
     app.state.l5_startup_status = l5_startup_status
     app.state.entity_cache = entity_cache
     app.state.entity_context_cache = entity_context_cache
+
+    def _dataops_query_and_materializer_invalidator() -> None:
+        di_query_service.invalidate_cache()
+        _invalidate_materializer(app)
+
+    app.state.materializer = ResponseMaterializer(
+        domain=DOMAIN,
+        store_provider=lambda: selected_graph_store,
+        computations={
+            "conservation": lambda s: build_conservation_status(DOMAIN, scorer_proxy),
+            "accuracy_by_category": lambda s: _accuracy_by_category_payload(cast(list[dict[str, Any]], s["verified"])),
+            "context_accuracy_by_category": lambda s: _context_accuracy_by_category(cast(list[dict[str, Any]], s["decisions"])),
+            "pipelines": lambda s: _pipelines_from_decisions(cast(list[dict[str, Any]], s["decisions"])),
+        },
+        ttl=5.0,
+    )
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -800,7 +882,7 @@ def create_app(
             dk_welford_tracker=dk_welford_tracker,
             outcome_recorder=record_dataops_outcome,
             variant_selector=select_dataops_variant,
-            query_cache_invalidator=di_query_service.invalidate_cache,
+            query_cache_invalidator=_dataops_query_and_materializer_invalidator,
             entity_context_cache=entity_context_cache,
             score_payload_enricher=lambda payload: {
                 **payload,
@@ -1025,6 +1107,8 @@ def create_app(
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:
         _run_startup_seed_once()
+        await asyncio.to_thread(app.state.materializer.refresh)
+        asyncio.create_task(_materializer_refresh_loop(app))
 
     @app.middleware("http")
     async def direct_testclient_autoseed(request, call_next):

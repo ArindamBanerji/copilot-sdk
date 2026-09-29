@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
 def seed_vld_purchasing_showcase(data_source: dict[str, Any] | str | Path | None = None) -> dict[str, Any]:
@@ -43,7 +43,7 @@ def seed_vld_purchasing_showcase(data_source: dict[str, Any] | str | Path | None
 
 def showcase_order(order_id: str) -> dict[str, Any] | None:
     """Return one showcase order fixture by id."""
-    return deepcopy(_showcase_data()["orders"].get(order_id))
+    return cast(dict[str, Any] | None, deepcopy(_showcase_data()["orders"].get(order_id)))
 
 
 def _merge_showcase(target: dict[str, Any], showcase: dict[str, Any]) -> None:

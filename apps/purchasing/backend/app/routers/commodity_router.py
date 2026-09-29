@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -22,17 +22,17 @@ def create_commodity_router(provider: CommodityDataProvider | None = None) -> AP
     def get_prices(category: str) -> dict[str, Any]:
         if category not in COMMODITY_CATEGORIES:
             raise HTTPException(status_code=404, detail=f"Unknown commodity category: {category}")
-        return jsonable_encoder(provider.get_category_prices(category))
+        return cast(dict[str, Any], jsonable_encoder(provider.get_category_prices(category)))
 
     @router.get("/index/{category}")
     def get_index(category: str) -> dict[str, Any]:
         if category not in COMMODITY_CATEGORIES:
             raise HTTPException(status_code=404, detail=f"Unknown commodity category: {category}")
-        return jsonable_encoder(provider.get_price_index(category))
+        return cast(dict[str, Any], jsonable_encoder(provider.get_price_index(category)))
 
     @router.get("/indices")
     def get_all_indices() -> dict[str, Any]:
-        return jsonable_encoder(provider.get_all_indices())
+        return cast(dict[str, Any], jsonable_encoder(provider.get_all_indices()))
 
     @router.get("/status")
     def get_status() -> dict[str, Any]:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copilot_sdk.graph import InMemoryGraphStore
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -127,16 +129,12 @@ def test_execution_with_journal_normalized_records():
     assert max(broker.avg_slippage for broker in comparison.brokers) > 0
 
 
-class _Store:
-    def get_all_decisions(self, domain: str):
-        assert domain == "trading"
-        return [
-            {"metadata": {"broker": "alpaca", "fill_price": 100.10, "mid_price": 100.00}},
-            {"metadata": {"broker": "ibkr", "fill_price": 100.01, "mid_price": 100.00}},
-        ]
-
-    def close(self) -> None:
-        return None
+class _Store(InMemoryGraphStore):
+    def __init__(self) -> None:
+        super().__init__(domain="trading")
+        for broker, fill_price in [("alpaca", 100.10), ("ibkr", 100.01)]:
+            self.write_decision("trading", "trend_following", "enter_long", 0.8, {},
+                                metadata={"broker": broker, "fill_price": fill_price, "mid_price": 100.00})
 
 
 def _client() -> TestClient:

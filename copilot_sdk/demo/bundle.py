@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import time
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -17,7 +18,26 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_MIN_DECISIONS_TO_SKIP = 180
 
 
-def restore_bundle_if_empty(store: Any, bundle_path: Path, *, domain: str) -> bool:
+@dataclass(frozen=True)
+class RestoreReport:
+    stores_restored: int = 0
+    stores_failed: int = 0
+    failed_stores: list[str] = field(default_factory=list)
+    fully_restored: bool = False
+    restored_count: int = 0
+    skipped_count: int = 0
+
+    @property
+    def success(self) -> bool:
+        """Backward-compatible success meaning: at least one row was restored."""
+
+        return self.restored_count > 0
+
+    def __bool__(self) -> bool:
+        return self.success
+
+
+def restore_bundle_if_empty(store: Any, bundle_path: Path, *, domain: str) -> RestoreReport:
     """Restore a demo bundle into ``store`` when the requested domain is cold."""
     path = Path(bundle_path)
     try:
@@ -25,22 +45,65 @@ def restore_bundle_if_empty(store: Any, bundle_path: Path, *, domain: str) -> bo
             bundle = json.load(handle)
     except FileNotFoundError:
         LOGGER.warning("Demo bundle file does not exist: %s", path)
-        return False
+        return _failed_report("bundle")
     except OSError:
         LOGGER.exception("Unable to read demo bundle: %s", path)
-        return False
+        return _failed_report("bundle")
     except json.JSONDecodeError:
         LOGGER.exception("Unable to decode demo bundle JSON: %s", path)
-        return False
+        return _failed_report("bundle")
 
     if not isinstance(bundle, dict):
         LOGGER.error("Demo bundle must contain a JSON object: %s", path)
-        return False
+        return _failed_report("bundle")
 
-    return bool(_restore(store, bundle, domain))
+    result = _restore(store, bundle, domain)
+    store_names = _bundle_store_names(bundle)
+    if isinstance(result, dict):
+        restored_count = max(int(result.get("restored_count", 0)), 0)
+        skipped_count = max(int(result.get("skipped_count", 0)), 0)
+        failed_stores = ["decisions"] if skipped_count > 0 else []
+        stores_restored = 1 if restored_count > 0 else 0
+        if restored_count == 0 and store_names:
+            failed_stores = list(store_names)
+        return RestoreReport(
+            stores_restored=stores_restored,
+            stores_failed=len(failed_stores),
+            failed_stores=failed_stores,
+            fully_restored=restored_count > 0 and not failed_stores,
+            restored_count=restored_count,
+            skipped_count=skipped_count,
+        )
+    if result:
+        restored_stores = len(store_names) or 1
+        return RestoreReport(
+            stores_restored=restored_stores,
+            stores_failed=0,
+            fully_restored=True,
+            restored_count=1,
+        )
+    return RestoreReport(fully_restored=not store_names)
 
 
-def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
+def _failed_report(store_name: str) -> RestoreReport:
+    return RestoreReport(
+        stores_failed=1,
+        failed_stores=[store_name],
+        fully_restored=False,
+    )
+
+
+def _bundle_store_names(bundle: dict[str, Any]) -> list[str]:
+    sections = (
+        ("decisions", bundle.get("decisions")),
+        ("centroid_checkpoints", bundle.get("centroid_checkpoints")),
+        ("rl_state", bundle.get("rl_state")),
+        ("evolution_events", bundle.get("evolution_events")),
+    )
+    return [name for name, value in sections if bool(value)]
+
+
+def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | dict[str, int] | None:
     bundle_domain = bundle.get("domain")
     if bundle_domain != domain:
         LOGGER.error("Demo bundle domain mismatch: expected %s, got %s", domain, bundle_domain)
@@ -60,6 +123,7 @@ def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
             return False
         decisions = list(_items(bundle.get("decisions")))
         written = 0
+        skipped = 0
         for decision in decisions:
             metadata = dict(decision.get("metadata") or {})
             metadata["provenance"] = "synthetic"
@@ -81,8 +145,13 @@ def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
                 )
                 written += 1
             except Exception as exc:
-                LOGGER.warning("AGE bundle decision skipped: %s", exc)
-        return written > 0
+                skipped += 1
+                LOGGER.warning(
+                    "AGE bundle decision skipped: decision_id=%s error=%s",
+                    decision.get("decision_id"),
+                    exc,
+                )
+        return {"restored_count": written, "skipped_count": skipped}
 
     sqlite_store = _sqlite_restore_store(store)
     threshold = int(bundle.get("min_decisions_to_skip", DEFAULT_MIN_DECISIONS_TO_SKIP))

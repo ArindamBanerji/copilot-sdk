@@ -73,7 +73,7 @@ def test_configured_provider_overrides_explicit_green():
     result = evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     assert result["promoted"] is False
-    assert result["reason"] == "conservation_gate_unavailable"
+    assert result["reason"] == "conservation_gate_unsafe"
 
 
 def test_provider_error_ignores_explicit_green():

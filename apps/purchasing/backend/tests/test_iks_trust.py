@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copilot_sdk.graph import InMemoryGraphStore
+
 from typing import Any
 
 from fastapi import FastAPI
@@ -11,12 +13,14 @@ from app.routers.iks import create_iks_router
 from app.routers.trust import DISPLAY_NAMES, EXPECTED_WEIGHT, create_trust_router
 
 
-class Store:
-    def __init__(self, decisions: list[dict[str, Any]] | None = None) -> None:
-        self._decisions = list(decisions or [])
-
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
-        return list(self._decisions)
+class Store(InMemoryGraphStore):
+    def __init__(self, decisions=None) -> None:
+        super().__init__(domain="purchasing")
+        for row in decisions or []:
+            metadata = {**row.get("metadata", {}), "decision_id": row["decision_id"],
+                        "created_at": row["created_at"]}
+            decision_id = self.write_decision("purchasing", row["category"], "accept", 0.8, {}, metadata=metadata)
+            self.write_outcome(decision_id, "accept", row["is_correct"], domain="purchasing")
 
 
 class Scorer:

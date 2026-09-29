@@ -51,6 +51,7 @@ class WeeklyReportResponse(BaseModel):
     supplier_changes: list[SupplierChangeResponse]
     iks_current: float
     iks_delta: float
+    iks_available: bool = True
 
 
 def create_report_router(domain: str, report_factory: Any, prefix: str | None = None) -> APIRouter:

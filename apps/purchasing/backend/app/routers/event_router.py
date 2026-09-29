@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
@@ -26,11 +26,11 @@ def create_event_router() -> APIRouter:
 
     @router.get("/history")
     def history(request: Request) -> list[dict[str, Any]]:
-        return _planner(request).history()
+        return cast(list[dict[str, Any]], _planner(request).history())
 
     @router.post("/record")
     def record(payload: EventOutcomeRequest, request: Request) -> dict[str, Any]:
-        return _planner(request).record_outcome(payload.plan, payload.actual_usage, payload.actual_waste)
+        return cast(dict[str, Any], _planner(request).record_outcome(payload.plan, payload.actual_usage, payload.actual_waste))
 
     return router
 

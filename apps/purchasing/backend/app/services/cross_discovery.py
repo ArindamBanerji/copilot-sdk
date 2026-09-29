@@ -106,7 +106,8 @@ def _strength(value: float) -> str:
 def _has_coupled_demo_signal(decisions: list[dict[str, Any]]) -> bool:
     values: dict[str, set[float]] = {}
     for decision in decisions:
-        factors = decision.get("factors") if isinstance(decision.get("factors"), dict) else {}
+        factors = decision.get("factors")
+        factors = factors if isinstance(factors, dict) else {}
         for name, value in factors.items():
             try:
                 values.setdefault(str(name), set()).add(float(value))

@@ -9,11 +9,9 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Mapping, cast
+from typing import Any, Mapping
 
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
+from starlette.datastructures import MutableHeaders
 
 from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
 from copilot_sdk.promotion import (
@@ -71,6 +69,8 @@ class TradingClaimRegistry:
         self.gate = EvidenceGate()
         self._claims = {claim.claim_id: claim for claim in _CLAIMS}
         self.register_all()
+        self.last_refresh_available = False
+        self.stale = True
 
     def register_all(self) -> None:
         for claim in self._claims.values():
@@ -94,8 +94,16 @@ class TradingClaimRegistry:
         """Upgrade only claims backed by at least one verified observation."""
         try:
             verified = graph_store.get_verified_decisions(domain="trading")
-        except Exception:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError):
+            self.last_refresh_available = False
+            self.stale = True
             return
+        if not isinstance(verified, list):
+            self.last_refresh_available = False
+            self.stale = True
+            return
+        self.last_refresh_available = True
+        self.stale = False
         if not verified:
             return
         self.mark_observed(
@@ -155,29 +163,50 @@ def _route_claim(registry: TradingClaimRegistry, path: str) -> str | None:
     return registry.claim_for_path(path)
 
 
-class TradingEvidenceMiddleware(BaseHTTPMiddleware):
+class TradingEvidenceMiddleware:
     """Attach evidence headers and annotate successful JSON claim responses."""
 
     def __init__(self, app: Any, registry: TradingClaimRegistry, context: str = "demo") -> None:
-        super().__init__(app)
+        self.app = app
         self.registry = registry
         self.context = context
 
-    async def dispatch(self, request: Request, call_next: Any) -> Response:
-        response = cast(Response, await call_next(request))
-        claim_id = _route_claim(self.registry, request.url.path)
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        claim_id = _route_claim(self.registry, str(scope.get("path", "")))
         effective_claim = claim_id or CLAIM_TRD_GENERAL
         result = self.registry.gate.check(effective_claim, self.context)
-        response.headers["X-Evidence-Tier"] = result.tier.name
-        response.headers["X-Evidence-Label"] = result.label.replace("—", "-")
-        response.headers["X-Evidence-Gate"] = "passed" if result.passed else "blocked"
-        if claim_id is None or response.status_code >= 400 or "application/json" not in response.headers.get("content-type", ""):
-            return response
-        body = b"".join([chunk async for chunk in response.body_iterator])
+        messages: list[dict[str, Any]] = []
+
+        async def capture(message: dict[str, Any]) -> None:
+            messages.append(message)
+
+        await self.app(scope, receive, capture)
+        if not messages:
+            return
+        start = messages[0]
+        headers = MutableHeaders(scope=start)
+        headers["X-Evidence-Tier"] = result.tier.name
+        headers["X-Evidence-Label"] = result.label.replace("—", "-")
+        headers["X-Evidence-Gate"] = "passed" if result.passed else "blocked"
+        should_annotate = (
+            claim_id is not None
+            and int(start.get("status", 500)) < 400
+            and "application/json" in headers.get("content-type", "")
+        )
+        if not should_annotate:
+            for message in messages:
+                await send(message)
+            return
+        body = b"".join(bytes(message.get("body", b"")) for message in messages[1:] if message["type"] == "http.response.body")
         try:
             payload = json.loads(body.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
-            return Response(body, response.status_code, dict(response.headers), response.media_type)
+            for message in messages:
+                await send(message)
+            return
         metadata = {
             "evidence_tier": result.tier.name,
             "evidence_label": result.label,
@@ -189,7 +218,10 @@ class TradingEvidenceMiddleware(BaseHTTPMiddleware):
         elif isinstance(payload, list):
             payload = [{**item, **metadata} if isinstance(item, dict) else item for item in payload]
         else:
-            return Response(body, response.status_code, dict(response.headers), response.media_type)
-        headers = dict(response.headers)
-        headers.pop("content-length", None)
-        return Response(json.dumps(payload, allow_nan=False), response.status_code, headers, "application/json")
+            for message in messages:
+                await send(message)
+            return
+        encoded = json.dumps(payload, allow_nan=False).encode("utf-8")
+        headers["content-length"] = str(len(encoded))
+        await send(start)
+        await send({"type": "http.response.body", "body": encoded})

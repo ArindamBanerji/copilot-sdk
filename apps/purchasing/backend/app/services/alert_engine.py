@@ -32,6 +32,7 @@ class PurchasingAlert:
     recommendation: str
     scenario: str
     provenance: str = "demo"
+    available: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -65,17 +66,40 @@ class PurchasingAlertEngine:
     ) -> list[dict[str, Any]]:
         order_rows = demo_orders() if orders is None else orders
         supplier_rows = demo_suppliers() if suppliers is None else suppliers
-        rows = []
-        rows.extend(self._price_spikes(order_rows))
-        rows.extend(self._supplier_degradation(supplier_rows))
-        rows.extend(self._waste_alerts(order_rows))
-        rows.extend(self._stockout_risk(order_rows))
-        rows.extend(self._conservation(conservation_status))
-        rows.extend(self._delivery_conflicts())
-        rows.extend(self._margin_alerts())
+        rows: list[PurchasingAlert] = []
+        evaluations = (
+            ("price_spike", lambda: self._price_spikes(order_rows)),
+            ("supplier_degradation", lambda: self._supplier_degradation(supplier_rows)),
+            ("waste_threshold", lambda: self._waste_alerts(order_rows)),
+            ("stockout_risk", lambda: self._stockout_risk(order_rows)),
+            ("conservation_amber", lambda: self._conservation(conservation_status)),
+            ("delivery_conflict", self._delivery_conflicts),
+            ("margin_erosion", self._margin_alerts),
+        )
+        for alert_type, evaluator in evaluations:
+            try:
+                evaluated = evaluator()
+            except (ConnectionError, TimeoutError, OSError, RuntimeError):
+                evaluated = None
+            if not isinstance(evaluated, list):
+                rows.append(self._degraded_alert(alert_type))
+                continue
+            rows.extend(item for item in evaluated if isinstance(item, PurchasingAlert))
         unique = _dedupe(rows)
         unique.sort(key=lambda item: {"critical": 0, "warning": 1, "info": 2}.get(item.severity, 9))
         return [item.to_dict() for item in unique]
+
+    @staticmethod
+    def _degraded_alert(alert_type: str) -> PurchasingAlert:
+        return PurchasingAlert(
+            alert_type=alert_type,
+            severity="info",
+            title=f"{alert_type.replace('_', ' ').title()} unavailable",
+            recommendation="Retry after the data source is available.",
+            scenario="unavailable",
+            provenance="unavailable",
+            available=False,
+        )
 
     def _default_rules(self) -> list[str]:
         return list(ALERT_TYPES)
@@ -91,7 +115,7 @@ class PurchasingAlertEngine:
                 alerts.append(PurchasingAlert("price_spike", "warning", f"Price alert: {item} up {pct}% from 30-day average", "Check the last quoted rate before approving.", "I2"))
         return alerts
 
-    def _supplier_degradation(self, suppliers: list[dict[str, Any]]) -> list[PurchasingAlert]:
+    def _supplier_degradation(self, suppliers: list[dict[str, Any]]) -> list[PurchasingAlert] | None:
         alerts = []
         service = self.scorecard_service
         if service is None:
@@ -100,10 +124,9 @@ class PurchasingAlertEngine:
                 _supplier_scorecard_vendors(suppliers),
                 verified_decisions=[],
             )
-        try:
-            scorecards = service.build_all(min_orders=1)
-        except Exception:
-            scorecards = []
+        scorecards = service.build_all(min_orders=1)
+        if not isinstance(scorecards, list):
+            return None
         for card in scorecards:
             reliability = float(getattr(card, "reliability_pct", 100.0))
             trend = str(getattr(card, "trend", "")).lower()
@@ -127,10 +150,7 @@ class PurchasingAlertEngine:
 
     def _stockout_risk(self, orders: list[dict[str, Any]]) -> list[PurchasingAlert]:
         alerts = []
-        try:
-            recommendations = self.par_optimizer.recommend_all(_par_items_from_orders(orders), orders)
-        except Exception:
-            recommendations = []
+        recommendations = self.par_optimizer.recommend_all(_par_items_from_orders(orders), orders)
         for rec in recommendations:
             current = float(getattr(rec, "current_par", 0.0) or 0.0)
             recommended = float(getattr(rec, "recommended_par", 0.0) or 0.0)

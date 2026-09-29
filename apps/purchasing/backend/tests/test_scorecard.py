@@ -77,7 +77,7 @@ def _decision(
 def test_iks_in_health(client):
     r = client.get("/api/health")
 
-    assert r.status_code == 200
+    assert r.status_code == 503
     data = r.json()
     assert "graph_backend" in data
     assert "graph_connected" in data

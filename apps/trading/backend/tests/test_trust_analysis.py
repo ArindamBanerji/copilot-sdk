@@ -39,20 +39,17 @@ def _trade(**overrides):
     return payload
 
 
-class FakeStore:  # MOCK-OK: read-only analyzer input, no score/learn calls
-    def __init__(self, total: int = 0):
-        self._total = total
-
-    def get_decisions(self, domain: str = "trading", limit: int = 10000):
-        return [{"decision_id": f"d-{idx}"} for idx in range(self._total)]
-
-
 class FakeScorer:  # MOCK-OK: read-only analyzer input, no score/learn calls
     def __init__(self, phase: str = "A", weights: list[list[float]] | None = None, total: int = 0):
         self._preset = TradingPreset()
         self.phase = phase
         self._weights = weights
-        self.graph_store = FakeStore(total=total)
+        self.graph_store = InMemoryGraphStore(domain="trading")
+        for index in range(total):
+            self.graph_store.write_decision(
+                "trading", "trend_following", "enter_long", 0.8, {},
+                metadata={"decision_id": f"d-{index}"},
+            )
 
     def get_phase(self) -> str:
         return self.phase

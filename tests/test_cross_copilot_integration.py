@@ -94,9 +94,9 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
     calls = []
 
     class Consumer:
-        def fetch_supplier_signals(self, supplier_name):
+        def fetch_supplier_signals(self, supplier_name, *, return_status=False):
             assert supplier_name == "Sysco"
-            return [
+            signals = [
                 {
                     "supplier_name": "Sysco",
                     "reliability_pct": 74.0,
@@ -110,6 +110,7 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
                     "provenance": "signal",
                 }
             ]
+            return (signals, True) if return_status else signals
 
     class Scorer:
         graph_store = InMemoryGraphStore(domain="s2p")

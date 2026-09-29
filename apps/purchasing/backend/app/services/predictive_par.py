@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 from app.services.par_optimizer import ParLevelOptimizer
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
@@ -138,12 +138,19 @@ class PredictivePar:
             "summary": "Two-tier par saves about $180/week in protein waste.",
         }
 
-    def base_from_optimizer(self, item: str, category: str, orders: list[dict[str, Any]]) -> float:
+    def base_from_optimizer(self, item: str, category: str, orders: list[dict[str, Any]]) -> tuple[float, bool]:
+        if not isinstance(orders, list):
+            return 40.0, False
+        if not orders and isinstance(self.optimizer, ParLevelOptimizer):
+            return 40.0, False
         try:
             rec = self.optimizer.recommend(item, category, orders, current_par=40, unit_cost=8)
-            return rec.recommended_par
-        except Exception:
-            return 40.0
+        except (ConnectionError, TimeoutError, OSError, RuntimeError):
+            return 40.0, False
+        value = getattr(rec, "recommended_par", None)
+        if not isinstance(value, (int, float)):
+            return 40.0, False
+        return float(value), True
 
 
 def demo_par_items() -> list[dict[str, Any]]:

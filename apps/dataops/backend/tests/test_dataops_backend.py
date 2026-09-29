@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from fastapi.testclient import TestClient
+from fastapi import FastAPI
 
 
 DATAOPS_FACTORS = {
@@ -17,6 +18,54 @@ DATAOPS_FACTORS = {
     "business_criticality": 0.9,
 }
 DATAOPS_SEED_PATH = Path(__file__).resolve().parents[4] / "copilot_sdk" / "scoring" / "presets" / "dataops_seed.json"
+
+
+def test_ae_events_failure_is_degraded() -> None:
+    from app.ae_router import create_ae_router
+
+    class BrokenStore:
+        def get_evolution_events(self, **kwargs: Any) -> list[dict[str, Any]]:
+            raise RuntimeError("graph unavailable")
+
+    app = FastAPI()
+    app.include_router(create_ae_router(lambda: BrokenStore()), prefix="/api/ae")
+    payload = TestClient(app).get("/api/ae/impact").json()
+    assert payload["active_rules"] == []
+    assert payload["data_available"] is False
+    assert payload["degraded"] is True
+
+
+def test_startup_seed_reports_partial_failure(tmp_path: Path, monkeypatch, capsys) -> None:
+    from app import main
+
+    fixture = tmp_path / "seed.json"
+    fixture.write_text(
+        json.dumps([
+            {"category": "freshness_violation", "is_correct": True, "action_taken": "investigate"},
+            {"category": "freshness_violation", "is_correct": True, "action_taken": "investigate"},
+        ]),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(main, "SEED_FIXTURE_PATH", fixture)
+
+    class Scorer:
+        calls = 0
+
+        def score(self, factors, category, metadata):
+            self.calls += 1
+            if self.calls == 2:
+                raise RuntimeError("seed write failed")
+            return {"decision_id": "DOPS-SEED-1", "action": "investigate"}
+
+    class Store:
+        def write_outcome(self, *args, **kwargs):
+            return None
+
+    result = main._seed_from_fixtures(Scorer(), Store())
+    assert result["decisions_seeded"] == 1
+    assert result["failed"] == 1
+    assert result["total"] == 2
+    assert "auto-seed skipped entry 1" in capsys.readouterr().out
 
 
 def _score(client: TestClient) -> dict:
@@ -48,8 +97,10 @@ def test_health(client: TestClient) -> None:
     payload = response.json()
     assert payload["status"] == "error"
     assert payload["domain"] == "dataops"
-    assert payload["graph_connected"] is False
-    assert payload["graph_source"] == "unavailable"
+    assert payload["graph_backend"] == "sqlite"
+    assert payload["graph_connected"] is True
+    assert payload["ready"] is False
+    assert payload["graph_source"] == "graph"
     assert "gae.evolution" in payload["engine"]
 
 
@@ -74,7 +125,9 @@ def test_api_health_returns_phase_alpha_and_engine(client: TestClient) -> None:
     root_payload["graph_status"].pop("checked_at")
     assert payload == root_payload
     assert payload["domain"] == "dataops"
-    assert payload["graph_connected"] is False
+    assert payload["graph_backend"] == "sqlite"
+    assert payload["graph_connected"] is True
+    assert payload["ready"] is False
     assert "engine" in payload
     assert payload["engine"]
 

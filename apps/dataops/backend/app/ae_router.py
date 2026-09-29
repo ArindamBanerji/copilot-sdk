@@ -43,14 +43,16 @@ def _factor(alert: dict[str, Any], name: str) -> float:
         return 0.0
 
 
-def _events(evolution_store_factory: EvolutionStoreFactory | None, domain: str) -> list[dict[str, Any]]:
+def _events(
+    evolution_store_factory: EvolutionStoreFactory | None, domain: str
+) -> list[dict[str, Any]] | None:
     if evolution_store_factory is None:
         return []
     try:
         store = evolution_store_factory()
         events = store.get_evolution_events(domain=domain, limit=500)
     except Exception:
-        return []
+        return None
     return [event for event in events if isinstance(event, dict)]
 
 
@@ -72,10 +74,15 @@ def _event_to_variant(event: dict[str, Any]) -> dict[str, Any]:
     return variant
 
 
-def _variants(evolution_store_factory: EvolutionStoreFactory | None, domain: str) -> list[dict[str, Any]]:
+def _variants(
+    evolution_store_factory: EvolutionStoreFactory | None, domain: str
+) -> list[dict[str, Any]] | None:
     # Synthetic lifecycle imports are displayed by rule-lifecycle, but must
     # never activate operational recommendations or contribute measured wins.
-    variants = [_event_to_variant(event) for event in _events(evolution_store_factory, domain)]
+    events = _events(evolution_store_factory, domain)
+    if events is None:
+        return None
+    variants = [_event_to_variant(event) for event in events]
     return [variant for variant in variants if variant.get("planted") is not True]
 
 
@@ -230,7 +237,10 @@ def _normalize_rule_lifecycle(variant: dict[str, Any]) -> dict[str, Any]:
 def _persisted_rule_lifecycles(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Group stored events; never infer an earlier promotion from current status."""
     def event_time(event: dict[str, Any]) -> float:
-        value = event.get("timestamp", event.get("created_at"))
+        parsed = _parse_event_time(event.get("timestamp", event.get("created_at")))
+        return parsed if parsed is not None else float("inf")
+
+    def _parse_event_time(value: Any) -> float | None:
         try:
             return float(value)
         except (TypeError, ValueError):
@@ -238,7 +248,7 @@ def _persisted_rule_lifecycles(events: list[dict[str, Any]]) -> list[dict[str, A
                 date = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
                 return date.replace(tzinfo=date.tzinfo or timezone.utc).timestamp()
             except ValueError:
-                return 0.0
+                return None
 
     groups: dict[str, list[dict[str, Any]]] = {}
     for event in sorted(events, key=event_time):
@@ -259,7 +269,9 @@ def _persisted_rule_lifecycles(events: list[dict[str, Any]]) -> list[dict[str, A
                     "variant_proposed": "proposed"}.get(kind, kind)
             metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
             metadata = cast(dict[str, Any], metadata)
-            transitions.append({"type": kind, "date": event.get("timestamp", event.get("created_at")),
+            raw_timestamp = event.get("timestamp", event.get("created_at"))
+            transitions.append({"type": kind, "date": str(raw_timestamp or ""),
+                                "timestamp_available": _parse_event_time(raw_timestamp) is not None,
                                 "event_id": event.get("event_id", event.get("id")),
                                 "detail": metadata.get("reason") or metadata.get("reject_reason") or metadata.get("description"),
                                 "planted": metadata.get("planted", False)})
@@ -380,7 +392,7 @@ def create_ae_router(
 ) -> APIRouter:
     router = APIRouter()
 
-    def store_variants() -> list[dict[str, Any]]:
+    def store_variants() -> list[dict[str, Any]] | None:
         return _variants(evolution_store_factory, domain)
 
     @router.get("/recommendation/{alert_id}")
@@ -397,8 +409,20 @@ def create_ae_router(
                 "engine": ENGINE_EVOLUTION,
             }
 
+        variants = await run_in_threadpool(store_variants)
+        if variants is None:
+            return {
+                "alert_id": alert_id,
+                "has_recommendation": False,
+                "recommendations": [],
+                "count": 0,
+                "source": "evolution_store",
+                "engine": ENGINE_EVOLUTION,
+                "data_available": False,
+                "degraded": True,
+            }
         recommendations = []
-        for variant in await run_in_threadpool(store_variants):
+        for variant in variants:
             if _normalize_variant_status(variant) != "promoted":
                 continue
             matched, reason = match_ae_rule(alert, variant)
@@ -426,11 +450,17 @@ def create_ae_router(
 
     @router.get("/impact")
     def impact() -> dict[str, Any]:
-        return _impact_payload(store_variants())
+        variants = store_variants()
+        payload = _impact_payload(variants or [])
+        if variants is None:
+            payload.update(data_available=False, degraded=True)
+        return payload
 
     @router.get("/pattern-origin")
     def pattern_origin() -> dict[str, Any]:
         variants = store_variants()
+        data_available = variants is not None
+        variants = variants or []
         promoted = [variant for variant in variants if _normalize_variant_status(variant) == "promoted"]
         rejected = [variant for variant in variants if _normalize_variant_status(variant) == "rejected"]
         source_backed = [
@@ -454,7 +484,7 @@ def create_ae_router(
             if origin_variants else
             "No evolution data yet."
         )
-        return {
+        payload: dict[str, Any] = {
             "engine": ENGINE_EVOLUTION,
             "source": "evolution_store",
             "narrative": narrative,
@@ -479,11 +509,16 @@ def create_ae_router(
                 for variant in rejected
             ],
         }
+        if not data_available:
+            payload.update(data_available=False, degraded=True)
+        return payload
 
     @router.get("/rule-lifecycle")
     def rule_lifecycle(variant_id: str | None = None, status: str | None = None) -> dict[str, Any]:
         normalized_status = status.strip().lower() if status else None
-        rules = _persisted_rule_lifecycles(_events(evolution_store_factory, domain))
+        events = _events(evolution_store_factory, domain)
+        data_available = events is not None
+        rules = _persisted_rule_lifecycles(events or [])
         if variant_id:
             rules = [
                 rule for rule in rules
@@ -495,16 +530,21 @@ def create_ae_router(
         for rule in rules:
             rule_status = str(rule.get("status") or "proposed")
             summary[rule_status] = summary.get(rule_status, 0) + 1
-        return {
+        payload = {
             "source": "evolution_store",
             "rules": rules,
             "total": len(rules),
             "summary": summary,
             "engine": ENGINE_EVOLUTION,
         }
+        if not data_available:
+            payload.update(data_available=False, degraded=True)
+        return payload
 
     @router.get("/operational-rules")
     def operational_rules() -> dict[str, Any]:
+        variants = store_variants()
+        data_available = variants is not None
         rules = [
             {
                 "id": _rule_identifier(variant),
@@ -516,20 +556,23 @@ def create_ae_router(
                 "recommendation": variant.get("recommendation") or variant.get("description"),
                 "expected_impact": variant.get("expected_impact") or variant.get("impact"),
             }
-            for variant in store_variants()
+            for variant in (variants or [])
         ]
         summary = {"proposed": 0, "shadow": 0, "promoted": 0, "rejected": 0}
         for rule in rules:
             status = str(rule.get("status") or "proposed")
             if status in summary:
                 summary[status] += 1
-        return {
+        payload = {
             "source": "evolution_store",
             "rules": rules,
             "summary": summary,
             "total": len(rules),
             "engine": ENGINE_EVOLUTION,
         }
+        if not data_available:
+            payload.update(data_available=False, degraded=True)
+        return payload
 
     @router.get("/incident")
     def incident() -> dict[str, Any]:

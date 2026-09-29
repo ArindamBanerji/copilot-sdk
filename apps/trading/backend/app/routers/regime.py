@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, Request
 
@@ -55,7 +55,14 @@ def create_regime_router(
         }
 
     @router.get("/regime/detail")
-    def regime_detail(previous_regime: str | None = None) -> dict[str, Any]:
+    def regime_detail(request: Request, previous_regime: str | None = None) -> dict[str, Any]:
+        if previous_regime is None:
+            materializer = getattr(request.app.state, "materializer", None)
+            get = getattr(materializer, "get", None)
+            if callable(get):
+                result = get("regime_detail")
+                if isinstance(result, dict):
+                    return result
         service = service_factory()
         trades = _journal_records(graph_store_factory, domain)
         current = service.get_current_regime()
@@ -81,7 +88,7 @@ def create_regime_router(
                     "paused": True,
                     "reason": "regime_break_active",
                 }
-        return payload
+        return cast(dict[str, Any], payload)
 
     return router
 

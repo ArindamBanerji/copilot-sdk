@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter
 
 from app.routers.journal import _journal_records
 from app.services.promotion import PromotionService, _metrics, strategy_key
-from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
+from copilot_sdk.backend.conservation_router import _check_payload
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -28,7 +28,7 @@ def create_promotion_router(
         return PromotionService(config_dir=config_dir)
 
     def _records() -> list[dict[str, Any]]:
-        return _journal_records(graph_store_factory, domain)
+        return cast(list[dict[str, Any]], _journal_records(graph_store_factory, domain))
 
     @router.get("/promotion")
     def promotion_state() -> dict[str, Any]:
@@ -62,7 +62,8 @@ def _strategy_rows(trades: list[dict[str, Any]], service: PromotionService) -> l
         if not category:
             continue
         tag = trade.get("strategy_tag")
-        metadata = trade.get("metadata") if isinstance(trade.get("metadata"), dict) else {}
+        raw_metadata = trade.get("metadata")
+        metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
         tag = tag or metadata.get("strategy_tag") or trade.get("thesis_type") or metadata.get("thesis_type")
         key = strategy_key(str(category), str(tag) if tag else None)
         groups.setdefault(key, []).append(trade)
@@ -87,10 +88,25 @@ def _conservation_status(
     domain: str = "trading",
 ) -> dict[str, Any]:
     if graph_store_factory is None:
-        return {"status": "GREEN", "passed": True}
+        return {"status": "GREEN", "passed": True, "conservation_available": True}
     try:
         store = graph_store_factory()
-        counts = _state_counts(store)
+        count_verified = getattr(store, "count_verified", None)
+        count_correct = getattr(store, "count_correct", None)
+        count_total = getattr(store, "count_verified_decisions", None)
+        if not callable(count_verified) or not callable(count_correct) or not callable(count_total):
+            return {"status": "RED", "passed": False, "conservation_available": False}
+        raw_verified = count_verified(domain)
+        raw_correct = count_correct(domain)
+        raw_total = count_total(domain)
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in (raw_verified, raw_correct, raw_total)):
+            return {"status": "RED", "passed": False, "conservation_available": False}
+        counts = {
+            "verified_count": max(int(raw_verified), 0),
+            "correct_count": max(int(raw_correct), 0),
+            "total_decisions": max(int(raw_total), 0),
+            "penalty_ratio": float(getattr(store, "penalty_ratio", 1.0) or 1.0),
+        }
         from gae.calibration import conservation_status
 
         check = conservation_status(
@@ -101,6 +117,6 @@ def _conservation_status(
             categories_with_data=store.count_categories_with_n(domain, 1),
             total_categories=len(TradingPreset().shape.category_names),
         )
-        return {**counts, **_check_payload(check)}
-    except Exception:
-        return {"status": "RED", "passed": False}
+        return {**counts, **_check_payload(check), "conservation_available": True}
+    except (ConnectionError, TimeoutError, RuntimeError):
+        return {"status": "RED", "passed": False, "conservation_available": False}

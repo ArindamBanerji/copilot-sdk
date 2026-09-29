@@ -21,7 +21,7 @@ def compute(context: dict) -> float:
     if not isinstance(context, dict) or "waste_pct" not in context:
         return 0.5
     try:
-        waste_pct = float(context.get("waste_pct"))
+        waste_pct = float(context["waste_pct"])
     except (TypeError, ValueError):
         return 0.5
     return _clamp(waste_pct / 0.20)

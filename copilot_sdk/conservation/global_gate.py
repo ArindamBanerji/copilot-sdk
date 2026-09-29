@@ -51,13 +51,15 @@ class GlobalConservationGate:
             domain: str(by_domain.get(domain, {}).get("status") or "UNKNOWN").upper()
             for domain in self.domains
         }
-        values = list(statuses.values())
-        if any(status == "RED" for status in values):
-            status = "RED"
-        elif any(status in {"AMBER", "UNKNOWN"} for status in values):
-            status = "AMBER"
-        else:
+        decisions = [evaluate_conservation_safety(value) for value in statuses.values()]
+        if decisions and all(decision.promotion_allowed for decision in decisions):
             status = "GREEN"
+        elif any(not decision.available for decision in decisions):
+            status = "CONSERVATION_UNAVAILABLE"
+        elif any(decision.status == "RED" for decision in decisions):
+            status = "RED"
+        else:
+            status = "AMBER"
         thresholds = [float(str(by_domain[domain].get("theta_min") or 0.0)) for domain in by_domain]
         return GlobalConservationSnapshot(
             status=status,
@@ -92,10 +94,14 @@ class GlobalConservationGate:
     ) -> bool:
         if source_domain == target_domain:
             return False
-        return (
+        return bool(
             evaluate_conservation_safety(snapshot.to_dict()).promotion_allowed
-            and snapshot.statuses.get(str(source_domain)) == "GREEN"
-            and snapshot.statuses.get(str(target_domain)) == "GREEN"
+            and evaluate_conservation_safety(
+                snapshot.statuses.get(str(source_domain))
+            ).promotion_allowed
+            and evaluate_conservation_safety(
+                snapshot.statuses.get(str(target_domain))
+            ).promotion_allowed
         )
 
     def status(self) -> str:

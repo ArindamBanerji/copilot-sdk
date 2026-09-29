@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import sys
 import os
 import sqlite3
@@ -62,6 +63,7 @@ from .routers.volatility_router import create_volatility_router  # noqa: E402
 from .routers.volatility_beats import create_volatility_beats_router  # noqa: E402
 from .routers.webhook import create_webhook_router  # noqa: E402
 from .services.journal_query import JournalQueryService  # noqa: E402
+from .services.trading_materialization import create_trading_materializer  # noqa: E402
 from .services.regime_monitor import RegimeMonitor  # noqa: E402
 from .services.regime_scoring import TradingRegimeScorerProxy, build_regime_context  # noqa: E402
 from .services.trading_evolver import TradingAgentEvolver  # noqa: E402
@@ -86,6 +88,7 @@ from copilot_sdk.backend import (  # noqa: E402
     create_switching_cost_router,
     mount_self_computation_router,
 )
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
 from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
 from copilot_sdk.backend.traversal_router import create_traversal_router  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
@@ -150,6 +153,26 @@ def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore
 
 def _vld_classifier_router_kwargs() -> dict[str, SituationClassifier]:
     return {"classifier": SituationClassifier()}
+
+
+async def _materializer_refresh_loop(app: FastAPI) -> None:
+    while True:
+        await asyncio.sleep(5)
+        materializer = getattr(app.state, "materializer", None)
+        refresh = getattr(materializer, "refresh", None)
+        if callable(refresh):
+            try:
+                await asyncio.to_thread(refresh)
+            except Exception:
+                logger.exception("Trading materializer background refresh failed")
+
+
+def _invalidate_materializer(app: FastAPI) -> None:
+    materializer = getattr(app.state, "materializer", None)
+    if materializer is not None:
+        materializer.invalidate()
+
+
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173,"
     "http://localhost:5174,"
@@ -426,6 +449,7 @@ def create_app(
         scorer_provider=lambda: scorer_proxy,
         graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
         regime_monitor=regime_monitor,
+        materializer_provider=lambda: app.state.materializer,
     )
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
@@ -525,6 +549,10 @@ def create_app(
     app.state.l5_startup_status = l5_startup_status
     app.state.entity_cache = entity_cache
     app.state.entity_context_cache = entity_context_cache
+
+    app.state.materializer = create_trading_materializer(
+        scorer_proxy, trading_store_factory, regime_monitor,
+    )
     app.middleware("http")(create_invalidation_header_middleware(DOMAIN))
     app.include_router(
         create_scoring_router(
@@ -535,6 +563,7 @@ def create_app(
             outcome_recorder=record_trading_outcome,
             variant_selector=select_trading_variant,
             entity_context_cache=entity_context_cache,
+            query_cache_invalidator=lambda: _invalidate_materializer(app),
         ),
         prefix="/api",
     )
@@ -706,15 +735,41 @@ def create_app(
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:
         _run_startup_seed_once()
+        await asyncio.to_thread(app.state.materializer.refresh)
+        asyncio.create_task(_materializer_refresh_loop(app))
 
     @app.middleware("http")
     async def direct_testclient_autoseed(request, call_next):
         return await call_next(request)
 
+    # The shared scoring router also exposes /health under the /api prefix.
+    # Keep one canonical graph-health handler per public alias.
+    app.router.routes[:] = [
+        route for route in app.router.routes
+        if not (getattr(route, "path", None) == "/api/health"
+                and "GET" in (getattr(route, "methods", None) or set()))
+    ]
+
     @app.get("/health")
     @app.get("/api/health")
-    def health() -> Any:
+    def health(request: Request) -> Any:
         payload = build_graph_health(app.state.trading_selected_graph_store, app.state.trading_active_graph_config, DOMAIN)
+        if request.url.path == "/api/health":
+            payload.update(
+                phase=None, alpha=None,
+                engine={"scoring": "copilot_sdk.scoring.CompoundingScorer",
+                        "gae": "gae.profile_scorer.ProfileScorer"},
+            )
+            if payload["graph_connected"]:
+                try:
+                    payload.update(phase=scorer_proxy.get_phase(), alpha=scorer_proxy.get_alpha())
+                except GRAPH_CONNECTION_ERRORS:
+                    logger.exception("Trading health scoring read failed")
+                    payload.update(build_graph_health(None, app.state.trading_active_graph_config, DOMAIN))
+                    payload.update(phase=None, alpha=None, engine={
+                        "scoring": "copilot_sdk.scoring.CompoundingScorer",
+                        "gae": "gae.profile_scorer.ProfileScorer",
+                    })
         cache_stats = entity_cache.stats()
         payload.update(
             cache_hits=cache_stats.hits,

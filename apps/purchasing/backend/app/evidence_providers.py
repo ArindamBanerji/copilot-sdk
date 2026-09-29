@@ -6,6 +6,7 @@ a labeled neutral fallback; fixture records retain their sample provenance.
 from __future__ import annotations
 
 import json
+import logging
 import math
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from app.evidence_provider import PurchasingEvidenceProvider as LegacyEvidencePr
 FACTOR_NAMES = ["expected_demand","day_of_week","weather_forecast","event_flag","historical_waste","supplier_lead_time","price_memory_index"]
 POLICY_VERSION = "tier5d-purchasing-providers-v1"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+LOGGER = logging.getLogger(__name__)
 
 def _number(value: Any) -> float | None:
     try:
@@ -81,10 +83,11 @@ def _domain_context(entity_id, data_source, fixture_data, decision_id=None):
                 context = reader(entity_id) or {}
             elif callable(getter):
                 context = getter(decision_id or entity_id, "purchasing") or {}
-        except Exception:
-            return {}, False
+        except Exception as exc:
+            LOGGER.warning("Purchasing domain context read failed for %s: %s", entity_id, exc)
+            return None
     if not isinstance(context, dict):
-        return {}, False
+        return {}, False, True
     if not fixture_match and not isinstance(data_source, dict):
         root = Path(source) if isinstance(source, (str, Path)) else DATA_DIR
         if root.is_file():
@@ -108,7 +111,7 @@ def _domain_context(entity_id, data_source, fixture_data, decision_id=None):
         if key not in context and key in supplier:
             context[key] = supplier[key]
     sample = fixture_match or from_file or context.get("provenance") in {"sample", "synthetic"}
-    return context, sample
+    return context, sample, True
 
 
 def _fixture_read(entity_id, dimension, factor_name, source):
@@ -151,8 +154,13 @@ class FactorEvidenceProvider:
     def read_payload(self, entity_id: str, data_source: Any = None, *,
                      fixture_data: Any = None, seed_entity_id: str | None = None,
                      decision_id: str | None = None):
+        source: object
         if self.dimension_index >= 4:
-            context, sample = _domain_context(entity_id, data_source, fixture_data, decision_id)
+            context_result = _domain_context(entity_id, data_source, fixture_data, decision_id)
+            if context_result is None:
+                context, sample, context_available = {}, False, False
+            else:
+                context, sample, context_available = context_result
             try:
                 computed = self._compute(context)
             except (TypeError, ValueError, OverflowError, ZeroDivisionError):
@@ -160,10 +168,17 @@ class FactorEvidenceProvider:
             missing = _number(computed) is None
             tier = "MISSING_DATA" if missing else "SYNTHETIC" if sample else "DOMAIN_DATA"
             source = ("MISSING_DATA:neutral:" if missing else "SYNTHETIC:fixture:" if sample else "computed:")
-            return {"value": _bounded(computed), "confidence": 0.0 if missing else 1.0,
+            result = {"value": _bounded(computed), "confidence": 0.0 if missing else 1.0,
                     "source": source + self.factor_name,
                     "evidence_tier": tier, "missing_data": missing,
                     "input_entity_id": entity_id}
+            if not context_available:
+                result.update(
+                    data_available=False,
+                    degraded=True,
+                    failure_reason="Purchasing domain context unavailable",
+                )
+            return result
         payload = None
         graph_read = False
         reader = getattr(data_source, "get_vld_evidence", None)

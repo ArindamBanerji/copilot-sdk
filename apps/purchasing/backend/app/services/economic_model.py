@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from copilot_sdk.reporting.weekly import CostImpact
@@ -60,6 +60,8 @@ class EconomicModelResult:
     unlocks: list[dict[str, Any]]
     weekly_report: dict[str, float | str]
     provenance: str = "demo"
+    cost_source_available: bool = True
+    degraded_sources: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -96,7 +98,7 @@ class PurchasingEconomicModel:
         cost_impacts: list[dict[str, Any]] | None = None,
     ) -> EconomicModelResult:
         count = len(decisions) if isinstance(decisions, list) else max(int(decisions or 0), 0)
-        service_impacts, live_sources = self._service_impacts()
+        service_impacts, live_sources, degraded_sources = self._service_impacts()
         merged_impacts = list(cost_impacts or []) + service_impacts
         projected = round(count * self._benchmark * CONSERVATIVE_FACTOR, 2)
         actual = round(_actual_savings(merged_impacts), 2)
@@ -118,7 +120,9 @@ class PurchasingEconomicModel:
             sources=sources,
             unlocks=_unlock_breakdown(actual or projected),
             weekly_report=_weekly_report(merged_impacts),
-            provenance="live" if live_sources else "demo",
+            provenance="degraded" if degraded_sources else ("live" if live_sources else "demo"),
+            cost_source_available="cost_impact_source" not in degraded_sources,
+            degraded_sources=degraded_sources,
         )
 
     def annual_benchmark(self) -> float:
@@ -152,11 +156,14 @@ class PurchasingEconomicModel:
             annual = 180000.0
         return {"annual_savings": round(annual, 2), "low": low, "high": high}
 
-    def _service_impacts(self) -> tuple[list[dict[str, Any]], bool]:
+    def _service_impacts(self) -> tuple[list[dict[str, Any]], bool, list[str]]:
         impacts: list[dict[str, Any]] = []
         live = False
+        degraded_sources: list[str] = []
         if self._cost_source is not None:
-            impact = self._read_cost_source()
+            impact, available = self._read_cost_source()
+            if not available:
+                degraded_sources.append("cost_impact_source")
             if impact:
                 impacts.append(impact)
                 live = True
@@ -172,30 +179,30 @@ class PurchasingEconomicModel:
         if self._alerts is not None:
             impacts.append({"price_variance_flagged": self._alert_savings()})
             live = True
-        return impacts, live
+        return impacts, live, degraded_sources
 
-    def _read_cost_source(self) -> dict[str, float]:
+    def _read_cost_source(self) -> tuple[dict[str, float], bool]:
         source = self._cost_source
         try:
             impact = source() if callable(source) else source
-        except Exception:
-            return {}
+        except (ConnectionError, TimeoutError, OSError, RuntimeError):
+            return {}, False
         if isinstance(impact, CostImpact):
             return {
                 "dollars_found": float(impact.dollars_found),
                 "waste_prevented": float(impact.waste_prevented),
                 "price_variance_flagged": float(impact.price_variance_flagged),
-            }
+            }, True
         if isinstance(impact, dict):
-            return dict(impact)
-        return {}
+            return dict(impact), True
+        return {}, False
 
     def _par_savings(self) -> float:
-        recommendations = self._par.recommend_all([], []) if hasattr(self._par, "recommend_all") else []
+        recommendations = self._par.recommend_all([], []) if self._par is not None and hasattr(self._par, "recommend_all") else []
         return sum(float(getattr(rec, "weekly_savings_estimate", 0.0) or 0.0) for rec in recommendations) * 52.0
 
     def _alert_savings(self) -> float:
-        alerts = self._alerts.evaluate() if hasattr(self._alerts, "evaluate") else []
+        alerts = self._alerts.evaluate() if self._alerts is not None and hasattr(self._alerts, "evaluate") else []
         return 230.0 * len(alerts)
 
 

@@ -1,10 +1,10 @@
 {
   "trend_following": {
     "accuracy_in_stage": 0.0,
-    "current_stage": "small_live",
+    "current_stage": "paper",
     "decisions_in_stage": 0,
-    "demoted_at": null,
-    "promoted_at": "2026-09-24T22:10:32.054026+00:00",
+    "demoted_at": "2026-09-26T22:29:18.449080+00:00",
+    "promoted_at": "2026-09-26T19:26:02.626784+00:00",
     "promotion_history": [
       {
         "action": "promote",
@@ -309,8 +309,56 @@
         "from_stage": "paper",
         "timestamp": "2026-09-24T22:10:32.054026+00:00",
         "to_stage": "small_live"
+      },
+      {
+        "action": "demote",
+        "category": "trend_following",
+        "evidence": {
+          "accuracy_in_stage": 0.0,
+          "conservation_status": "RED",
+          "decisions_in_stage": 0,
+          "max_sizing_pct": 2.0,
+          "min_accuracy": 0.58,
+          "min_decisions": 100
+        },
+        "from_stage": "small_live",
+        "reason": "conservation RED",
+        "timestamp": "2026-09-25T21:35:50.345734+00:00",
+        "to_stage": "paper"
+      },
+      {
+        "action": "promote",
+        "category": "trend_following",
+        "confirmed_by": "e2e",
+        "evidence": {
+          "accuracy_in_stage": 0.8548,
+          "conservation_status": "GREEN",
+          "decisions_in_stage": 1040,
+          "max_sizing_pct": 0.0,
+          "min_accuracy": 0.55,
+          "min_decisions": 50
+        },
+        "from_stage": "paper",
+        "timestamp": "2026-09-26T19:26:02.626784+00:00",
+        "to_stage": "small_live"
+      },
+      {
+        "action": "demote",
+        "category": "trend_following",
+        "evidence": {
+          "accuracy_in_stage": 0.0,
+          "conservation_status": "RED",
+          "decisions_in_stage": 0,
+          "max_sizing_pct": 2.0,
+          "min_accuracy": 0.58,
+          "min_decisions": 100
+        },
+        "from_stage": "small_live",
+        "reason": "conservation RED",
+        "timestamp": "2026-09-26T22:29:18.449080+00:00",
+        "to_stage": "paper"
       }
     ],
-    "stage_start_count": 1040
+    "stage_start_count": 0
   }
 }

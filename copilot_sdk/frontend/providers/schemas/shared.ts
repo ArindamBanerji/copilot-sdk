@@ -63,6 +63,7 @@ export interface CohortStatusResponse {
   real?: Record<string, unknown>;
   instrument?: Record<string, unknown>;
   structure?: Record<string, unknown>;
+  dataAvailable?: boolean;
   [key: string]: unknown;
 }
 
@@ -72,6 +73,7 @@ export interface FingerprintResponse {
   decisionsAnalyzed?: number;
   overallWinRate?: unknown;
   skippedDecisions?: number;
+  persistenceFailed?: boolean;
   engine?: unknown;
   [key: string]: unknown;
 }

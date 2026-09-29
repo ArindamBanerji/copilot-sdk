@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -44,15 +44,15 @@ def create_auto_order_router(
     @router.post("/enable")
     def enable() -> dict[str, Any]:
         conservation = _conservation(scorer_provider)
-        return gate.enable(str(conservation["status"]))
+        return cast(dict[str, Any], gate.enable(str(conservation["status"])))
 
     @router.post("/disable")
     def disable() -> dict[str, Any]:
-        return gate.disable()
+        return cast(dict[str, Any], gate.disable())
 
     @router.get("/audit")
     def get_audit() -> list[dict[str, Any]]:
-        return gate.audit()
+        return cast(list[dict[str, Any]], gate.audit())
 
     @router.post("/evaluate")
     def evaluate_order(request: EvaluateRequest) -> dict[str, Any]:
@@ -87,7 +87,7 @@ def create_auto_order_router(
             except (KeyError, AssertionError, ValueError) as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             result["learning_applied"] = True
-        return result
+        return cast(dict[str, Any], result)
 
     return router
 
@@ -173,8 +173,10 @@ def _decision_allowed_for_metric(decision: dict[str, Any]) -> bool:
 
 
 def _decision_category(decision: dict[str, Any]) -> str:
-    metadata = decision.get("metadata") if isinstance(decision.get("metadata"), dict) else {}
-    context = decision.get("context") if isinstance(decision.get("context"), dict) else {}
+    metadata = decision.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    context = decision.get("context")
+    context = context if isinstance(context, dict) else {}
     return str(decision.get("category") or metadata.get("category") or context.get("category") or "")
 
 

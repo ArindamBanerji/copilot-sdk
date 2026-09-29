@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copilot_sdk.graph import InMemoryGraphStore
+
 import re
 import subprocess
 import sys
@@ -22,20 +24,12 @@ class _Preset:
     penalty_ratio = 1.0
 
 
-class _MetricStore:
-    domain = "test"
-
-    def count_verified(self, domain: str) -> int:
-        return 20
-
-    def count_correct(self, domain: str) -> int:
-        return 15
-
-    def count_verified_decisions(self, domain: str) -> int:
-        return 20
-
-    def count_categories_with_n(self, domain: str, n: int) -> int:
-        return 2
+class _MetricStore(InMemoryGraphStore):
+    def __init__(self) -> None:
+        super().__init__(domain="test")
+        for index in range(20):
+            decision_id = self.write_decision("test", str(index % 2), "accept", 0.8, {})
+            self.write_outcome(decision_id, "accept", index < 15, domain="test")
 
 
 class _MetricState:

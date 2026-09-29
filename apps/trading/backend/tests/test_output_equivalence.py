@@ -8,6 +8,7 @@ from app.state.trading_registry import create_trading_tab_state_cache
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from app.services.trading_materialization import create_trading_materializer
 from app.services.regime_monitor import RegimeMonitor
 
 
@@ -24,10 +25,13 @@ async def maybe_await(value):
 def build_cache():
     store = InMemoryGraphStore(domain="trading")
     scorer = CompoundingScorer.from_preset("trading", graph_store=store, enable_rl=False, profile="test")
+    monitor = RegimeMonitor(config=TradingPreset())
+    materializer = create_trading_materializer(scorer, lambda: store, monitor)
     return create_trading_tab_state_cache(
         scorer_provider=lambda: scorer,
         graph_store_factory=lambda: store,
-        regime_monitor=RegimeMonitor(config=TradingPreset()),
+        regime_monitor=monitor,
+        materializer_provider=lambda: materializer,
     )
 
 

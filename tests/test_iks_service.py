@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copilot_sdk.graph import InMemoryGraphStore
+
 from copilot_sdk import IKSService
 
 
@@ -7,12 +9,14 @@ class Shape:
     category_names = ("protein", "produce")
 
 
-class Store:
-    def __init__(self, decisions):
-        self._decisions = decisions
-
-    def get_verified_decisions(self, domain):
-        return list(self._decisions)
+class Store(InMemoryGraphStore):
+    def __init__(self, decisions=None) -> None:
+        super().__init__(domain="purchasing")
+        for row in decisions or []:
+            metadata = {**row.get("metadata", {}), "decision_id": row["decision_id"],
+                        "created_at": row["created_at"]}
+            decision_id = self.write_decision("purchasing", row["category"], "accept", 0.8, {}, metadata=metadata)
+            self.write_outcome(decision_id, "accept", row["is_correct"], domain="purchasing")
 
 
 def test_iks_service_importable_from_sdk_root():

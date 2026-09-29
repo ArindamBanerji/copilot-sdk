@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
+
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
 
 from copilot_sdk.substantiation.cohort_day_zero import (
     STATES,
@@ -47,7 +49,7 @@ def evaluate_v7_gate(cohort_status: dict[str, Any]) -> dict[str, Any]:
     records = cohort_status.get("records") or real.get("records")
     if records is not None:
         gate_input["records"] = records
-    return _sdk_evaluate_v7_gate(gate_input, threshold_k)
+    return cast(dict[str, Any], _sdk_evaluate_v7_gate(gate_input, threshold_k))
 
 
 class TradingCohortStatus(BaseCohortDayZeroState):
@@ -64,6 +66,7 @@ class TradingCohortStatus(BaseCohortDayZeroState):
     ) -> None:
         self._graph_store = graph_store
         self._decision_records = decision_records
+        self._decisions_available = True
         self._oracle_artifact_path = (
             Path(oracle_artifact_path)
             if oracle_artifact_path is not None
@@ -146,18 +149,33 @@ class TradingCohortStatus(BaseCohortDayZeroState):
         if self._decision_records is not None:
             return [dict(record) for record in self._decision_records]
         if self._graph_store is None:
+            self._decisions_available = False
             return []
         for method_name in ("get_verified_decisions", "get_all_decisions", "get_decisions"):
             method = getattr(self._graph_store, method_name, None)
             if method is None:
                 continue
             try:
-                if method_name == "get_decisions":
-                    return list(method(self.DOMAIN, limit=10000))
-                return list(method(self.DOMAIN))
-            except Exception:
+                rows = (
+                    method(self.DOMAIN, limit=10000)
+                    if method_name == "get_decisions"
+                    else method(self.DOMAIN)
+                )
+            except (*GRAPH_CONNECTION_ERRORS, RuntimeError):
                 continue
+            if not isinstance(rows, list):
+                self._decisions_available = False
+                return []
+            self._decisions_available = True
+            return [dict(row) for row in rows if isinstance(row, dict)]
+        self._decisions_available = False
         return []
+
+    def get_status(self) -> dict[str, Any]:
+        self._decisions_available = True
+        payload = cast(dict[str, Any], super().get_status())
+        payload["data_available"] = self._decisions_available
+        return payload
 
 
 def _extract_experiments(data: Any) -> list[dict[str, Any]]:

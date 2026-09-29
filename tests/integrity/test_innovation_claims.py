@@ -135,6 +135,7 @@ def test_conservation_fires_on_degradation() -> None:
             domain="trading",
             metadata={"benchmark_noise": True},
         )
+    scorer._verified_decisions_cache = None
     degraded_status = _status(scorer)
     if degraded_status == "GREEN":
         pytest.fail("current conservation gate does not fire after 200 stable + 100 noisy decisions")
@@ -160,6 +161,7 @@ def test_reconvergence_after_disruption() -> None:
             domain="trading",
             metadata={"benchmark_noise": True},
         )
+    scorer._verified_decisions_cache = None
     degraded_status = _status(scorer)
     if degraded_status == "GREEN":
         pytest.fail("current conservation gate does not fire after 200 stable + 100 noisy decisions")
@@ -175,6 +177,7 @@ def test_reconvergence_after_disruption() -> None:
             metadata={"benchmark_recovery": True, "fixture_decision_id": row["decision_id"]},
         )
         recovery_count += 1
+    scorer._verified_decisions_cache = None
     assert recovery_count == 100
     assert _status(scorer) == "GREEN"
 

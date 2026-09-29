@@ -108,12 +108,15 @@ def create_prescore_router(
             "warnings": warnings,
             "evidence": engine.render(trade_dict, factors, action, confidence, context),
             "category": category,
+            "degraded_factors": list(getattr(factors, "degraded_factors", [])),
+            "factors_available": not bool(getattr(factors, "degraded_factors", [])),
         }
         if subcategory:
             response["subcategory"] = subcategory
         if options_factors:
             response["options_factors"] = options_factors
             response["options_analytics_only"] = True
+            response["options_available"] = bool(getattr(options_factors, "options_available", True))
         return response
 
     return router
@@ -361,7 +364,8 @@ def _trade_sort_key(trade: dict[str, Any]) -> str:
 
 
 def _trade_size_pct(trade: dict[str, Any]) -> float | None:
-    metadata = trade.get("metadata") if isinstance(trade.get("metadata"), dict) else {}
+    raw_metadata = trade.get("metadata")
+    metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
     for key in ("size_pct", "position_size_pct", "exposure_pct", "size"):
         value = trade.get(key) if key in trade else metadata.get(key)
         number = _number(value)
@@ -371,7 +375,8 @@ def _trade_size_pct(trade: dict[str, Any]) -> float | None:
 
 
 def _trade_pnl(trade: dict[str, Any]) -> float | None:
-    metadata = trade.get("metadata") if isinstance(trade.get("metadata"), dict) else {}
+    raw_metadata = trade.get("metadata")
+    metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
     for key in ("pnl", "pnl_dollars"):
         value = trade.get(key) if key in trade else metadata.get(key)
         number = _number(value)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copilot_sdk.graph import InMemoryGraphStore
+
 from typing import Any, cast
 
 from fastapi import FastAPI
@@ -11,25 +13,12 @@ from app.routers.trust_perturbation_router import (  # type: ignore[import]
 )
 
 
-class _Store:
-    domain = "dataops"
-
-    def count_verified(self, domain: str) -> int:
-        assert domain == self.domain
-        return 40
-
-    def count_verified_decisions(self, domain: str) -> int:
-        assert domain == self.domain
-        return 40
-
-    def count_correct(self, domain: str) -> int:
-        assert domain == self.domain
-        return 36
-
-    def count_categories_with_n(self, domain: str, n: int = 1) -> int:
-        assert domain == self.domain
-        assert n == 1
-        return 5
+class _Store(InMemoryGraphStore):
+    def __init__(self) -> None:
+        super().__init__(domain="dataops")
+        for index in range(40):
+            decision_id = self.write_decision("dataops", str(index % 5), "accept", 0.8, {})
+            self.write_outcome(decision_id, "accept", index < 36, domain="dataops")
 
 
 class _Scorer:

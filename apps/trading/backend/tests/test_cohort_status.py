@@ -180,7 +180,8 @@ def test_endpoint_returns_200(client):
 
     assert response.status_code == 200
     data = response.json()
-    assert sorted(data.keys()) == ["instrument", "real", "state", "structure"]
+    assert sorted(data.keys()) == ["data_available", "instrument", "real", "state", "structure"]
+    assert data["data_available"] is True
     assert data["state"] in STATE_VALUES
 
 

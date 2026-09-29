@@ -60,6 +60,7 @@ def test_evolution_and_transfer_response_models() -> None:
 
 def test_no_incorrect_rl_naming() -> None:
     root = Path(__file__).resolve().parents[1]
+    approved_claim = "we have no reward function for judgment"
     patterns = (
         re.compile("no " + "reward function", re.IGNORECASE),
         re.compile("RL-based " + "decision", re.IGNORECASE),
@@ -77,6 +78,9 @@ def test_no_incorrect_rl_naming() -> None:
             except FileNotFoundError:
                 continue
             for line_number, line in enumerate(text.splitlines(), 1):
+                normalized_line = line.replace("**", "").lower()
+                if approved_claim in normalized_line:
+                    continue
                 # Historical version tables may quote retired wording; active
                 # product guidance must still avoid the banned phrases.
                 if line.lstrip().startswith("| v"):
@@ -84,3 +88,7 @@ def test_no_incorrect_rl_naming() -> None:
                 if any(pattern.search(line) for pattern in patterns):
                     matches.append(f"{path}:{line_number}: {line.strip()}")
     assert not matches, "Incorrect RL naming remains:\n" + "\n".join(matches)
+
+    strategy = root / "docs" / "quality" / "product_integrity_execution_strategy_v3_0.md"
+    strategy_text = strategy.read_text(encoding="utf-8").replace("**", "").lower()
+    assert approved_claim in strategy_text

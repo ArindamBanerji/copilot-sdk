@@ -67,6 +67,7 @@ def _domain_context(entity_id, data_source, fixture_data, decision_id=None):
     context = {}
     fixture_match = False
     from_file = False
+    graph_available = True
     if isinstance(source, dict):
         context = _record(source.get("trades", source), entity_id, "trade_id")
         if not context and any(key in source for key in ("metadata", "options", "actual_risk_reward", "delta", "gamma", "iv_percentile")):
@@ -80,10 +81,10 @@ def _domain_context(entity_id, data_source, fixture_data, decision_id=None):
                 context = reader(entity_id) or {}
             elif callable(getter):
                 context = getter(decision_id or entity_id, "trading") or {}
-        except Exception:
-            return {}, False
+        except (ConnectionError, TimeoutError, RuntimeError):
+            return {}, False, False
     if not isinstance(context, dict):
-        return {}, False
+        return {}, False, False
     if not fixture_match and not isinstance(data_source, dict):
         root = Path(source) if isinstance(source, (str, Path)) else DATA_DIR
         if root.is_file():
@@ -100,7 +101,7 @@ def _domain_context(entity_id, data_source, fixture_data, decision_id=None):
         context = {**local, **_flatten(context)}
     context = _flatten(context)
     sample = fixture_match or from_file or context.get("provenance") in {"sample", "synthetic"}
-    return context, sample
+    return context, sample, graph_available
 
 
 def _fixture_read(entity_id, dimension, factor_name, source):
@@ -143,7 +144,7 @@ class FactorEvidenceProvider:
                      fixture_data: Any = None, seed_entity_id: str | None = None,
                      decision_id: str | None = None):
         if self.dimension_index >= 4:
-            context, sample = _domain_context(entity_id, data_source, fixture_data, decision_id)
+            context, sample, graph_available = _domain_context(entity_id, data_source, fixture_data, decision_id)
             try:
                 computed = self._compute(context)
             except (TypeError, ValueError, OverflowError, ZeroDivisionError):
@@ -154,6 +155,7 @@ class FactorEvidenceProvider:
             return {"value": _bounded(computed), "confidence": 0.0 if missing else 1.0,
                     "source": source + self.factor_name,
                     "evidence_tier": tier, "missing_data": missing,
+                    "graph_available": graph_available,
                     "input_entity_id": entity_id}
         payload = None
         graph_read = False
@@ -161,12 +163,12 @@ class FactorEvidenceProvider:
         if callable(reader):
             payload = _valid_payload(reader(entity_id, self.dimension_index, self.factor_name))
             graph_read = payload is not None
-        source = fixture_data if fixture_data is not None else data_source
-        if callable(reader) and fixture_data is None and not isinstance(source, dict):
-            source = None
+        fallback_source: Any = fixture_data if fixture_data is not None else data_source
+        if callable(reader) and fixture_data is None and not isinstance(fallback_source, dict):
+            fallback_source = None
         if payload is None:
-            payload = _valid_payload(_fixture_read(entity_id, self.dimension_index, self.factor_name, source))
-        if payload is not None and not graph_read and (fixture_data is not None or isinstance(source, dict) or bool(get_showcase_evidence(entity_id))):
+            payload = _valid_payload(_fixture_read(entity_id, self.dimension_index, self.factor_name, fallback_source))
+        if payload is not None and not graph_read and (fixture_data is not None or isinstance(fallback_source, dict) or bool(get_showcase_evidence(entity_id))):
             payload = {**payload, "source": "SYNTHETIC:fixture:" + str(payload.get("source", "fixture")),
                        "evidence_tier": "SYNTHETIC"}
         return payload

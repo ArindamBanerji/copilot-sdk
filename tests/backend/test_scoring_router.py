@@ -648,6 +648,46 @@ def build_client(
     return TestClient(app)
 
 
+def test_score_and_learn_rebuild_tab_state_from_invalidated_materializer(monkeypatch):
+    from copilot_sdk.backend.response_materializer import ResponseMaterializer
+    from copilot_sdk.state import TabStateCache, register_tab_state_cache
+    from copilot_sdk.state import invalidation
+    from copilot_sdk.state.schemas.shared import FlexibleModel
+
+    class Summary(FlexibleModel):
+        total: int
+        learned: int
+
+    scorer = FakeScorer()
+    mat = ResponseMaterializer(
+        "dataops", lambda: scorer.graph_store,
+        {"summary": lambda s: {
+            "total": len(s["decisions"]), "learned": len(scorer.learn_contexts),
+        }},
+    )
+    mat.refresh()
+    assert mat.get("summary") == {"total": 0, "learned": 0}
+    cache = TabStateCache("dataops")
+    compute = lambda: mat.get_or_refresh("summary")
+    cache.register(
+        "summary", compute, schema=Summary, service_fn=compute,
+        url="/api/summary", critical=True, invalidated_by=("score", "learn"),
+    )
+    monkeypatch.setattr(invalidation, "_CACHES", {})
+    register_tab_state_cache(cache)
+    client = build_client(scorer=scorer, query_cache_invalidator=mat.invalidate)
+    response = client.post("/score", json={
+        "category": "pipeline_failure", "factors": {"impact_scope": 0.5},
+    })
+    assert response.status_code == 200
+    assert cache.get_entry("summary").data == {"total": 1, "learned": 0}
+    response = client.post("/learn", json={
+        "decision_id": "dec-1", "actual_action": "auto_approve",
+    })
+    assert response.status_code == 200
+    assert cache.get_entry("summary").data == {"total": 1, "learned": 1}
+
+
 def test_factory_creates_apirouter():
     router = create_scoring_router("dataops", scorer_factory=FakeScorer)
 
@@ -1150,7 +1190,7 @@ def test_learn_persists_dk_weights_to_l5_after_phase_transition():
 
     assert response.status_code == 200
     LearnResponse.model_validate(response.json())
-    assert scorer.reestimate_calls == 1
+    assert scorer.reestimate_calls == 0
     assert len(_updates(learning_store, "update_dk_weights")) == 1
     update = _updates(learning_store, "update_dk_weights")[0]
     assert update["domain"] == "test"
@@ -1195,7 +1235,7 @@ def test_learn_dk_includes_welford_state_and_confirmed_overridden_split():
     assert update["n_overridden"] == 1
 
 
-def test_learn_dk_no_store_still_reestimates_runtime_dk():
+def test_learn_dk_no_store_does_not_reestimate_during_persistence():
     scorer = DKRuntimeScorer(weights=[[0.2, 0.8]])
     client = build_client(domain="test", scorer=scorer)
     decision_id = client.post(
@@ -1209,7 +1249,7 @@ def test_learn_dk_no_store_still_reestimates_runtime_dk():
     )
 
     assert response.status_code == 200
-    assert scorer.reestimate_calls == 1
+    assert scorer.reestimate_calls == 0
 
 
 def test_learn_dk_persist_failure_is_non_fatal():
@@ -1264,7 +1304,7 @@ def test_learn_dk_not_written_before_variance_phase():
     )
 
     assert response.status_code == 200
-    assert scorer.reestimate_calls == 1
+    assert scorer.reestimate_calls == 0
     assert _updates(learning_store, "update_dk_weights") == []
 
 
@@ -1383,7 +1423,7 @@ def test_get_centroid_copy_safe_and_phase_accessor():
     assert scorer.get_category_phase("pipeline_failure") == "MEAN_CONVERGENCE"
 
 
-def test_l5_dk_persistence_serializes_tracker_reestimate_and_write():
+def test_l5_dk_persistence_never_reestimates_during_concurrent_writes():
     scorer = BlockingDKRuntimeScorer()
     learning_store = _learning_store()
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
@@ -1400,17 +1440,12 @@ def test_l5_dk_persistence_serializes_tracker_reestimate_and_write():
     second = threading.Thread(target=learn, args=("dk-block-2",))
 
     first.start()
-    assert scorer.first_reestimate_entered.wait(5)
     second.start()
-    assert not scorer.second_reestimate_entered.wait(0.25)
-    assert _updates(learning_store, "update_dk_weights") == []
-
-    scorer.release_first_reestimate.set()
     first.join(5)
     second.join(5)
 
     assert responses == {"dk-block-1": 200, "dk-block-2": 200}
-    assert scorer.reestimate_calls == 2
+    assert scorer.reestimate_calls == 0
     assert len(_updates(learning_store, "update_dk_weights")) == 2
 
 

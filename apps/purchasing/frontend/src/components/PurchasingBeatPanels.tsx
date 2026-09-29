@@ -57,7 +57,7 @@ export function MirrorOpenPanel() {
 export function GatedSignalReliabilityPanel() {
   const [weights, setWeights] = useState<Data | null>(null);
   const [insights, setInsights] = useState<unknown[]>([]);
-  useEffect(() => { let active = true; Promise.all([getTrustWeights(), getTrustInsights()]).then(([nextWeights, nextInsights]) => { if (active) { setWeights(nextWeights as unknown as Data); setInsights(nextInsights as unknown as unknown[]); } }).catch(() => undefined); return () => { active = false; }; }, []);
+  useEffect(() => { let active = true; Promise.all([getTrustWeights(), getTrustInsights()]).then(([nextWeights, nextInsights]) => { if (active) { setWeights(nextWeights as unknown as Data); setInsights(nextInsights.insights as unknown[]); } }).catch(() => undefined); return () => { active = false; }; }, []);
   const rows = Object.entries((pick(weights, "weights") as Data | undefined) || {}).slice(0, 7);
   return <Panel id="gated-signal-reliability-panel" beat="PUR-GATE" title="Kitchen signal reliability"><p className="purchase-muted">Supplier, weather, delivery, and waste signals are shown only after an evidence floor and an out-of-sample check.</p><div className="mt-4 grid gap-2">{rows.length ? rows.map(([name, weight]) => <div key={name} data-testid={`reliability-${name}`} className="flex items-center justify-between rounded-md border border-white/10 px-3 py-2"><span>{name.replace(/([A-Z])/g, " $1")}</span><strong>{typeof weight === "number" ? weight.toFixed(2) : display({ weight }, "weight")}</strong></div>) : <p className="purchase-muted">No supplier signal has cleared the kitchen evidence floor yet.</p>}</div><p className="purchase-muted mt-3">{insights.length} kitchen observations are available for review.</p></Panel>;
 }

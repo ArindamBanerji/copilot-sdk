@@ -23,6 +23,10 @@ from app.services.investigation_patterns import (
     FACTOR_NAMES,
     PATTERN_REGISTRY,
     build_default_investigation_patterns,
+    InvestigationDataUnavailable,
+    _blast_radius,
+    _pipelines,
+    _recurrence,
 )
 from app.services.investigation_router import InvestigationRouter
 from apps.dataops.backend.scripts.measure_rho_dataops import measure
@@ -37,6 +41,30 @@ class StaticDataOpsScorer:
         self.categories = list(preset.shape.category_names)
         self.actions = list(preset.shape.action_names)
         self.tau = 0.1
+
+
+class BrokenGraph:
+    async def get_pipelines(self):
+        raise RuntimeError("graph unavailable")
+
+    async def get_blast_radius(self, alert_id: str):
+        raise RuntimeError("graph unavailable")
+
+    async def get_recurrence(self, alert_id: str):
+        raise RuntimeError("graph unavailable")
+
+
+@pytest.mark.asyncio
+async def test_graph_failures_never_substitute_investigation_fixtures(dataops_data_dir: Path) -> None:
+    alert = _fixture_alert(dataops_data_dir, "ALERT-TIRE-001")
+    graph = BrokenGraph()
+    for reader in (
+        lambda: _pipelines(graph, dataops_data_dir),
+        lambda: _blast_radius(graph, alert, dataops_data_dir),
+        lambda: _recurrence(graph, alert, dataops_data_dir),
+    ):
+        with pytest.raises(InvestigationDataUnavailable):
+            await reader()
 
 
 def test_patterns_instantiate_with_expected_categories(dataops_data_dir: Path) -> None:

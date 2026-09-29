@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from copilot_sdk.backend.transfer_router import create_transfer_router
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 class FakeScorer:  # MOCK-OK: transfer router reads centroids only
@@ -10,14 +11,6 @@ class FakeScorer:  # MOCK-OK: transfer router reads centroids only
             self._warm_start_info = warm_start_info
         self.graph_store = store
         self._domain = "test"
-
-
-class FakeStore:  # MOCK-OK: transfer router history fixture
-    def __init__(self, checkpoints):
-        self._checkpoints = checkpoints
-
-    def get_centroid_checkpoints(self, domain="test", limit=50):
-        return self._checkpoints[-limit:]
 
 
 def _client(scorer=None, warm_start_info=None) -> TestClient:
@@ -90,19 +83,13 @@ def test_zero_applied_returns_inactive() -> None:
 
 
 def test_recent_warm_start_checkpoint_metadata_is_used() -> None:
-    store = FakeStore(
-        [
-            {"metadata": {"source": "manual", "applied": 4}, "created_at": "old"},
-            {
-                "metadata": {
-                    "source": "warm_start",
-                    "source_copilots": ["dataops"],
-                    "applied": 1,
-                },
-                "created_at": "2026-05-15T13:00:00Z",
-            },
-        ]
+    store = InMemoryGraphStore(domain="test")
+    store.save_centroids("test", "category", [[0.5]], metadata={"source": "manual", "applied": 4})
+    store.save_centroids(
+        "test", "category", [[0.6]],
+        metadata={"source": "warm_start", "source_copilots": ["dataops"], "applied": 1},
     )
+    transferred_at = str(store.get_centroid_checkpoints("test")[-1]["created_at"])
 
     payload = _client(FakeScorer(store=store)).get("/api/transfer/status").json()
 
@@ -110,5 +97,5 @@ def test_recent_warm_start_checkpoint_metadata_is_used() -> None:
         "warm_started": True,
         "source_copilot": "dataops",
         "patterns_transferred": 1,
-        "transferred_at": "2026-05-15T13:00:00Z",
+        "transferred_at": transferred_at,
     }

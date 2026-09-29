@@ -191,7 +191,7 @@ def test_capture_existing_state_insufficient_factors(mock_preset):
         store.close()
 
 
-def test_pause_path_writes_fingerprint(mock_preset):
+def test_pause_path_performs_no_artifact_writes(mock_preset):
     store = InMemoryGraphStore(domain="mock")
     _seed_capture_decisions(store, mock_preset, 10, correct=False)
     scorer = _scorer(mock_preset, store)
@@ -204,9 +204,9 @@ def test_pause_path_writes_fingerprint(mock_preset):
         learned = scorer.learn(score_result.decision_id, score_result.action)
 
         assert learned["status"] == "paused"
-        assert store._conservation_snapshots
-        assert store._protocol_centroid_checkpoints
-        assert store._fingerprints
+        assert not store._conservation_snapshots
+        assert not store._protocol_centroid_checkpoints
+        assert not store._fingerprints
         assert not store._evidence_receipts
     finally:
         store.close()

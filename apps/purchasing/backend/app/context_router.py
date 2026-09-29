@@ -73,14 +73,14 @@ def _variant_from_evolution_event(event: dict[str, Any]) -> dict[str, Any]:
     return variant
 
 
-def _evolution_variants() -> list[dict[str, Any]]:
+def _evolution_variants() -> list[dict[str, Any]] | None:
     if _evolution_store_factory is None:
         return []
     try:
         store = _evolution_store_factory()
         events = store.get_evolution_events(domain="purchasing", limit=500)
     except Exception:
-        return []
+        return None
     return [_variant_from_evolution_event(event) for event in events if isinstance(event, dict)]
 
 
@@ -302,7 +302,7 @@ def get_order_metadata() -> dict[str, Any]:
 
 @router.get("/analytics")
 def analytics() -> dict[str, Any]:
-    return _load_data_json(
+    return cast(dict[str, Any], _load_data_json(
         "analytics_cache.json",
         {
             "source": "default",
@@ -315,7 +315,7 @@ def analytics() -> dict[str, Any]:
             "ae_impact": {},
             "portfolio_summary": {},
         },
-    )
+    ))
 
 
 @router.get("/similar")
@@ -390,8 +390,10 @@ def item_profile(name: str) -> dict[str, Any]:
     waste_payload = _load_data_json("waste_history.json", {})
     waste_values = waste_payload.get(item["name"], [])
     waste_avg = round(sum(waste_values) / len(waste_values), 4) if waste_values else None
-    ae_rules = [rule for rule in _evolution_variants() if _rule_matches_item(rule, item)]
-    return {
+    variants = _evolution_variants()
+    unavailable = variants is None
+    ae_rules = [rule for rule in (variants or []) if _rule_matches_item(rule, item)]
+    payload = {
         "item": item,
         "waste_history": waste_values,
         "waste_avg": waste_avg,
@@ -399,3 +401,6 @@ def item_profile(name: str) -> dict[str, Any]:
         "ae_rules": ae_rules,
         "ae_managed": bool(ae_rules),
     }
+    if unavailable:
+        payload.update(ae_rules_available=False, degraded=True)
+    return payload

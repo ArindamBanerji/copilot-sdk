@@ -116,13 +116,14 @@ def test_insights_endpoint(tmp_path):
     ).get("/api/purchasing/trust-weights/insights")
 
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    assert isinstance(response.json()["insights"], list)
+    assert response.json()["trust_available"] is True
 
 
 def test_insights_kitchen_language(tmp_path):
     payload = _client(
         _scorer(tmp_path, verified_count=LEARNING_THRESHOLD, load_weights=True)
-    ).get("/api/purchasing/trust-weights/insights").json()
+    ).get("/api/purchasing/trust-weights/insights").json()["insights"]
 
     text = " ".join(item["insight"] for item in payload)
     assert any(label in text for label in FACTOR_LABELS.values())
@@ -133,7 +134,7 @@ def test_insights_kitchen_language(tmp_path):
 def test_insights_gap_threshold(tmp_path):
     payload = _client(
         _scorer(tmp_path, verified_count=LEARNING_THRESHOLD, load_weights=True)
-    ).get("/api/purchasing/trust-weights/insights").json()
+    ).get("/api/purchasing/trust-weights/insights").json()["insights"]
 
     assert payload
     assert all(item["gap"] > 0.15 for item in payload)
@@ -144,7 +145,7 @@ def test_insights_empty_pre_transition(tmp_path):
         "/api/purchasing/trust-weights/insights"
     ).json()
 
-    assert payload == []
+    assert payload == {"insights": [], "trust_available": True}
 
 
 def test_trust_endpoint_200(client):

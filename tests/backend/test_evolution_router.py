@@ -6,17 +6,7 @@ import pytest
 
 from copilot_sdk.backend.evolution_router import create_evolution_router
 from copilot_sdk.evolution import PromptVariantEvolver, VariantSpec
-
-
-class RecordingGraphStore:
-    def __init__(self) -> None:
-        self.events: list[tuple[object, ...]] = []
-
-    def save_evolution_event(self, domain, event_type, rule_name="", variant_id="", metadata=None):
-        self.events.append((domain, event_type, rule_name, variant_id, metadata or {}))
-
-    def get_evolution_events(self, domain, rule_name=None, limit=100):
-        return []
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 def build_client(graph_store_factory=None, domain="dataops") -> TestClient:
@@ -83,7 +73,7 @@ def test_graph_store_factory_called_lazily():
     calls = []
 
     def factory():
-        calls.append(RecordingGraphStore())
+        calls.append(InMemoryGraphStore(domain="dataops"))
         return calls[-1]
 
     client = build_client(graph_store_factory=factory)
@@ -115,7 +105,7 @@ def test_graph_store_factory_called_once_per_router_instance():
     calls = []
 
     def factory():
-        calls.append(RecordingGraphStore())
+        calls.append(InMemoryGraphStore(domain="dataops"))
         return calls[-1]
 
     client = build_client(graph_store_factory=factory)
@@ -132,11 +122,11 @@ def test_two_router_instances_have_distinct_evolver_closures():
     calls_b = []
 
     def factory_a():
-        calls_a.append(RecordingGraphStore())
+        calls_a.append(InMemoryGraphStore(domain="dataops"))
         return calls_a[-1]
 
     def factory_b():
-        calls_b.append(RecordingGraphStore())
+        calls_b.append(InMemoryGraphStore(domain="dataops"))
         return calls_b[-1]
 
     client_a = build_client(graph_store_factory=factory_a, domain="a")

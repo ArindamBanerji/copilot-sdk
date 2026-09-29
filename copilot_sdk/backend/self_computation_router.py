@@ -120,6 +120,18 @@ def create_self_computation_router(
         category: str | None = None,
         include_superseded: bool = False,
     ) -> dict[str, Any]:
+        if (
+            limit == 50
+            and checkpoint_time_start is None
+            and checkpoint_time_end is None
+            and decision_time_start is None
+            and decision_time_end is None
+            and category is None
+            and include_superseded is False
+        ):
+            materialized = _materialized_response(request, "centroid_history")
+            if materialized is not None:
+                return materialized
         filters = {
             "checkpoint_time_start": checkpoint_time_start,
             "checkpoint_time_end": checkpoint_time_end,
@@ -203,6 +215,9 @@ def create_self_computation_router(
 
     @router.get("/evolution/summary", response_model=EvolutionSummaryResponse)
     def evolution_summary(request: Request) -> dict[str, Any]:
+        materialized = _materialized_response(request, "evolution_summary")
+        if materialized is not None:
+            return materialized
         provider = evolver_provider
         if provider is None:
             provider = lambda: getattr(request.app.state, "evolver", None)
@@ -447,6 +462,10 @@ def create_self_computation_router(
         request: Request,
         threshold: float = Query(0.70, ge=0.0, le=1.0),
     ) -> dict[str, Any]:
+        if threshold == 0.70:
+            materialized = _materialized_response(request, "accuracy_by_category")
+            if materialized is not None:
+                return materialized
         verified = _verified(_gs())
         grouped: dict[str, dict[str, int]] = {}
         for decision in verified:
@@ -615,6 +634,15 @@ def create_self_computation_router(
         )
 
     return router
+
+
+def _materialized_response(request: Request, key: str) -> dict[str, Any] | None:
+    materializer = getattr(request.app.state, "materializer", None)
+    get = getattr(materializer, "get", None)
+    if not callable(get):
+        return None
+    result = get(key)
+    return result if isinstance(result, dict) else None
 
 
 def mount_self_computation_router(

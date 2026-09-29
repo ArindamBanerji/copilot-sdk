@@ -1987,3 +1987,1099 @@ Root cause: Triage score requests dropped graph queue factor fields, so real /ap
 Fix: TriageScreen now forwards selected invoice factors to the real score endpoint; invoice selector keys include row identity to avoid duplicate graph-id React warnings; S2P score tests wait for graph-backed queue readiness and accept missing process-detail context when graph rows have none.
 Files updated: apps/s2p/frontend/src/screens/TriageScreen.tsx, apps/s2p/frontend/src/types.ts, e2e/helpers/ui.ts, e2e/s2p/helpers.ts, e2e/s2p/active-age-smoke.spec.ts, e2e/s2p/flows.spec.ts, e2e/s2p/new-surfaces.spec.ts, e2e/s2p/phase1.spec.ts, e2e/s2p/rule-vs-reasoning.spec.ts, e2e/s2p/shadow-smoke.spec.ts, e2e/s2p/situation-analyzer.spec.ts, e2e/s2p/triage.spec.ts.
 Validation: npx playwright test --project=s2p --reporter=line => 218 passed; npm run build in apps/s2p/frontend => passed.
+
+## PERF-MATERIALIZER (2026-09-25)
+ResponseMaterializer: created in copilot_sdk/backend/.
+Wired into: Trading, Purchasing, DataOps.
+Prewarm: on startup after preseed.
+Background refresh: every 5s.
+Mutation invalidation: on learn/score via scoring router invalidation hook.
+Measured: round 1=0.08s, round 2=0.06s, round 3=0.14s.
+
+## MATERIALIZER-VERIFY (2026-09-25)
+Code audit: 4/6 checks passed.
+Live probes: Trading=0.07s, Purchasing=0.01s, DataOps=0.29s, S2P=0.06s.
+Mutation invalidation: FAIL.
+Verdict: NEEDS FIXER.
+
+## MATERIALIZER-VERIFY (2026-09-25)
+Code audit: 4/6 checks passed (fresh audit; supersedes prior verification).
+Live probes: Trading=18.9798s (R2 connection reset, FAIL), Purchasing=0.0189s, DataOps=0.0168s, S2P=0.0404s (R2 full-body parallel bursts).
+Mutation invalidation: FAIL. Valid score a604ca0c0eaf returned 200; analytics remained 3750 after 0.5s, later reached 3751. SDK in-flight refresh/invalidation race reproduced with in-memory stores; S2P generation guard passed.
+R1 warmth: all fast; restart/prewarm behavior not live-tested. Named local caches removed; overlapping tab-state caches remain. DataOps pipelines now wired.
+Verdict: NEEDS FIXER.
+Report: docs/materializer_verification_v2.md. No implementation changes or restarts; one confirmed new Trading decision from the live probe.
+
+## MATERIALIZER-FIXER-V2 (2026-09-25)
+SDK ResponseMaterializer: Condition-based refresh joining, generation capture/check, discard of invalidated builds, lazy invalidation clearing prior payloads, bounded rebuild retries, and explicit domain-scoped verified-decision access.
+Trading/Purchasing/DataOps mutation callbacks now invalidate; startup prewarm and background refresh remain. Shared score/learn invalidates materializer before tab-state recomputation.
+Trading: nine overlapping tab-state computations now read the shared materializer; all 43 static keys and non-overlapping computations retained. Existing builders moved to services/trading_materialization.py.
+Final backend tests: SDK=3725 passed; Trading=1473 passed; Purchasing=833 passed, 1 existing AGE skip; DataOps=434 passed. No test-count decrease against stated baselines.
+Concurrency reproduction: PASS. Focused concurrency/enforcement/ordering checks: 13 passed. SDK materializer and Trading factory/registry mypy: PASS.
+Report: docs/materializer_fixer_v2_report.md. Prior verification renamed to docs/materializer_verification_v2.md.
+No live-stack restart or live score mutation performed for this coding task.
+
+
+## S2P-DASHBOARD-UNIQUE-QUEUE (2026-09-26)
+
+Root cause: apps/s2p/frontend/src/screens/DashboardScreen.tsx renders queue.exceptions with invoice_id as the React key. getPreviewQueue() fetches one /api/s2p/preview/queue response; no frontend concatenation occurs. The backend score_pending() selected the latest 50 pending DECISIONS, including distinct scoring attempts for the same invoice. Live diagnosis found 33 occurrences of STRESS-CONC-S2P-7ba967-009 among 50 rows, each with a distinct decision_id. JM phase_8 generates distinct event IDs; subsequent triage scoring preserves the selected invoice/event identity and adds decision history.
+
+Fix: s2p-copilot/backend/app/routers/s2p_preview.py now uses one invoice-identity helper (invoice_id, source_invoice_id, entity_id, then decision_id fallback), retains the newest pending decision per invoice using existing timestamp/decision-ID ordering, and deduplicates BEFORE the 50-invoice limit and confidence ranking. The total field counts unique pending invoices. Both direct requests and materializer builds use score_pending(), so both response paths share the fix. Historical graph decisions are preserved.
+
+Regression: added exactly one backend test, test_queue_returns_unique_invoice_ids_after_repeated_scoring. It seeds 60 re-scores of one invoice using all three identity aliases, plus a decision without an invoice ID. It checks unique IDs in BOTH invoices/exceptions arrays at limits 5 and 50, latest pending row selection, full response windows, unique total, decision-ID fallback, unchanged stored decision count, and direct/materialized paths. The test failed before the fix (111 pending rows versus 51 unique invoices) and passed afterward.
+
+Validation:
+
+- Actual backend in this workspace is s2p-copilot/backend; baseline was 2104 passed (194.13s), rather than the historical 280 in the task.
+- Focused preview/materializer tests: 58 passed.
+- Final python -m pytest tests/ -q --timeout=120: 2105 passed, 0 failed, 0 skipped (209.17s).
+- Router mypy with project config: clean. Requested full-app mypy: 23 pre-existing diagnostics before and after; identical apart from line shifts, no new errors.
+- npx tsc --noEmit: PASS in copilot-sdk/apps/s2p/frontend and copilot-sdk/e2e.
+- Restarted only S2P using its existing command/environment and approved outbox access.
+- Live full-body JSON checks: limit=5 returned 5 unique IDs; limit=50 returned 50 unique IDs. Both response arrays were unique; the offending stress invoice appeared once. Unique pending-invoice total was 25,695 at verification.
+- Unchanged active-age-smoke.spec.ts:79 passed THREE consecutive runs, retries disabled: npx playwright test s2p/active-age-smoke.spec.ts --project=s2p --repeat-each=3 --retries=0 --reporter=line (3 passed in 45.6s). Its existing score/learn flows executed.
+- DashboardScreen.tsx, TriageScreen.tsx, e2e/helpers/ui.ts, and the smoke spec were unchanged (SHA-256 verified). No key-index workaround or warning suppression was introduced.
+- Logs: s2p-copilot/.codex_tmp/dashboard_keys_baseline.log, dashboard_keys_regression_before.log, dashboard_keys_focused.log, dashboard_keys_full_suite.log, and dashboard_keys_mypy_before/after.log.
+
+## VERIFY-ITEMS-3-4 (2026-09-26)
+
+Verification only: audited the current working tree and running services; no production code or test files were edited. Full suites ran once each with `-q --timeout=120`. Read-only live GETs and isolated in-process fault injection supplemented the code audit.
+
+Item 3 (Purchasing health-contract): NOT DONE
+- Evidence: Purchasing registers its graph-aware `/api/health` before the scoring router at `apps/purchasing/backend/app/main.py:690-705`; `/health` uses the same builder at `:1039-1048`. Live port 8020 returned HTTP 200, `graph_backend=age`, `graph_connected=true`, and nested graph status. It has all graph fields in the shared contract used by Trading and DataOps, but none of those graph-health responses contains a node count.
+- Remaining work: Add a read-only node-count field with defined graph/domain scope to `copilot_sdk/backend/health_builder.py:80-97`. Report the actual configured backend instead of hardcoding `age` at `:88`; Purchasing passes `PurchasingActiveGraphConfig`, whose field is `requested_backend` (`apps/purchasing/backend/app/graph_status.py:103`), while the helper reads `backend` with an AGE default at `:17`.
+- Remaining work: Make connectivity reflect a bounded availability probe. At `health_builder.py:24-42`, a callable `get_all_decisions` can establish connectivity without being called when no explicit health probe/property exists. An isolated store whose read raises ConnectionError still produced `ready=true, graph_connected=true`, with zero read calls. A Purchasing config specifying SQLite with an in-memory probe store also reported AGE/connected. Preserve production AGE-only readiness policy while accurately describing the selected backend and actual availability.
+- Comparison finding: Trading live `/api/health` returns only phase/alpha/engine. Its scoring router is registered at `apps/trading/backend/app/main.py:556-568`, including `copilot_sdk/backend/scoring_router.py:405`, ahead of the graph-health route at `main.py:745`. Resolve that duplicate-route shadowing to make its aliases agree. DataOps explicitly removes the old route at `apps/dataops/backend/app/main.py:1105`; both DataOps aliases return graph health. Trading `/health` does return graph health.
+
+Item 4 (DataOps crash root cause): NOT DONE
+- Evidence: All 434 DataOps backend tests passed, including fixture-closure and graph-config tests; no remaining fixture-contract failures were observed. No TODO/FIXME/HACK/LIVE VERIFY markers were found under `apps/dataops/backend/app/`. Healthy live GETs for all five vulnerable routes below returned HTTP 200 with valid JSON.
+- Startup behavior: `apps/dataops/backend/app/main.py:699-717` constructs and installs the selected store/topology before serving; startup awaits restoration/prewarm at `:1086-1090`. Production graph validation deliberately fails closed when AGE is unreachable (`copilot_sdk/graph/factory.py:162`; `apps/dataops/backend/app/graph_status.py:343`; `copilot_sdk/graph/production.py:63-68,102-110`). This is intentional startup refusal, not evidence that requests normally run with a None store.
+- Remaining work: Five context handlers bypass the guarded decision-read helpers and let store failures escape as HTTP 500. Isolated FastAPI probes with the actual router reproduced ConnectionError for an unavailable store and AttributeError for a None dependency at every location below. Pipelines was probed with no materialized payload, matching its cold/expired/invalidated fallback path. The None scenario demonstrates incomplete-wiring behavior, not a reproduced race in normal ASGI startup.
+
+| Endpoint (under /api/context) | Unguarded read in apps/dataops/backend/app/context_router.py |
+|---|---|
+| /pipelines | line 795 |
+| /transformations/{system} | line 1150 |
+| /schema-impact/{system} | line 1208 |
+| /process-timeline | line 1236 |
+| /audit-trail/{alert_id} | line 1540 |
+
+- Required fix: Centralize these reads through validated store access and consistent fail-closed HTTP 503 handling, including single-decision reads for audit trail, and add outage/missing-dependency regressions. The existing helpers at `context_router.py:104-126` already protect decision-list reads; `graph_queries.py:564-582` protects topology queries. Under the same injected outage, decisions, accuracy-by-category, alerts, and alert detail returned controlled 503s instead of unhandled 500s.
+- Live caveat: `/alert/DI-ABSTENTION-001` returned 503, while the ID is absent from the live alerts list and actual listed alert `DQ-001` returned 200. `graph_queries.py:221-226` maps an AGE alert miss to `AGE unavailable`; this is a separate missing-record/status-contract limitation, not proof of graph disconnection. If distinguishing absent records is required, preserve the distinction between an empty successful query (not found) and query failure (503), without enabling fixture fallback.
+
+Test counts:
+- SDK root: 3725 passed, 0 failed (980.93s).
+- Purchasing BE: 833 passed, 1 skipped, 0 failed (443.83s).
+- DataOps BE: 434 passed, 0 failed (151.49s).
+- Trading BE: 1473 passed, 0 failed (281.43s).
+
+mypy: issues
+- Purchasing: 132 errors in 34 files (82 source files checked), exit 1.
+- DataOps: clean, 41 source files checked, exit 0.
+- These are observed baseline results; no fixes were made. Full Purchasing diagnostics, including exact file/line references, are in `.codex_tmp/verify34_purchasing_mypy.log`.
+
+Evidence logs: `.codex_tmp/verify34_{sdk,purchasing,dataops,trading}_tests.log`, `verify34_{purchasing,dataops}_mypy.log`, `verify34_live_gets.log`, `verify34_live_alert_detail.log`, `verify34_fault_probes.log`, and `verify34_health_{contract,connectivity}_probe.log`. Health-related Python inventory: `.codex_tmp/verify34_health_file_inventory.txt` (110 files); the shared graph-health module is `copilot_sdk/backend/health_builder.py`.
+
+## FIX-ITEMS-3-4 (2026-09-26)
+
+Fix A (health_builder):
+
+- What changed: Resolve the actual primary store implementation (AGE, SQLite, or memory), following declared wrappers and SOC's PosteriorStore ownership. Perform a fresh count_decisions(domain) read for connectivity on every health request; callable-method presence and configured backend labels no longer establish connectivity. Add node_count and node_count_scope="domain_decisions"; the count covers this domain's Decision inventory, not all graph labels. An unavailable store reports graph_connected=false and node_count=null rather than a misleading zero.
+- Readiness policy: A reachable local SQLite/memory store reports its true backend/connectivity but remains ready=false/HTTP 503 for the production AGE/soc_graph contract. Cutover/product claims still require AGE and the existing evidence gates. Existing local-store health assertions were updated to distinguish connectivity from production readiness.
+- Files modified: copilot_sdk/backend/health_builder.py; apps/trading/backend/app/main.py; apps/purchasing/backend/app/main.py. Shared exception classification lives in copilot_sdk/backend/graph_access.py.
+- Trading shadow: fixed. Remove the scoring router's earlier /api/health registration before mounting canonical graph health. Each health alias now has one handler; legacy API phase/alpha/engine fields remain. Trading/Purchasing legacy scoring fields are not read after a failed graph probe, and connection loss during those reads produces unavailable health.
+- Five-service verification: PASS after reloading all five verified listeners with their existing commands/environments (approved outbox access). Both /health and /api/health returned HTTP 200, AGE, connected=true, ready=true, and matching graph fields. Node counts: Trading 3766; Purchasing 2880; DataOps 2657; S2P 28247; SOC 7851. Measured 2026-09-26 17:07 PDT (2026-09-27 00:07 UTC). All ten health responses completed in 0.031-0.203s. Live SDK history reads on ports 8010/8020/8030 and all five original DataOps routes also returned HTTP 200 with fully decoded JSON; no score/learn mutations were used for these live probes.
+
+Fix B (DataOps context_router guards):
+
+- Sites guarded: Seven store I/O sites in apps/dataops/backend/app/context_router.py: decision-list read (116), evolution events (192), pipelines (782), transformations (1137), schema impact (1195), process timeline (1223), audit trail (1527). Store-factory construction is also guarded at line 108; absent request state is checked centrally at line 112.
+- Guard pattern: graph_call plus require_graph_store from copilot_sdk/backend/graph_access.py. Translate psycopg OperationalError/InterfaceError, connection/timeout errors, pool availability failures, and AGE GraphUnavailableError into logged HTTP 503 {"detail":"Graph store unavailable"}. No automatic retries, empty substitutes, or exception-type blanket catches in the new guard. ValueError, TypeError, and psycopg ProgrammingError propagate.
+- Regression coverage: All five original crash paths plus decisions/accuracy fallbacks return 503 on injected OperationalError. Missing dependencies return 503; programming errors are not hidden. Cache invalidation in the probes ensures the materializer fallback is exercised.
+
+Fix C (scoring_router guards):
+
+- Sites guarded: Nine graph_call sites in copilot_sdk/backend/scoring_router.py: fingerprint (391), trajectory (401), phase (409), alpha (410), history (435), measurement computation (440), standalone measurement computation/factory (two calls on 498), and decision lookup (581).
+- Connection-only boundaries also protect scorer construction (176), stable-context loading (218), score (238), learn (293), diagnostics (427), and L5 graph-dependent reads/writes (629, 636, 662, 740, 754, 780, 803, 869). Existing explicit non-connection partial-persistence results are preserved; connection failure is not converted to a successful partial response.
+- Copilots affected: Trading, Purchasing, and DataOps are the current create_scoring_router application consumers. Other SDK factory consumers receive the same guard; S2P-domain factory behavior is covered by regression tests. S2P/SOC health receive Fix A through the shared builder.
+- History regressions verify the exact successful response before and after an outage, 503 with a clear detail during the outage, and unchanged propagation of programming errors. No healthy response shape was changed outside the additive health contract.
+
+Tests added: 52 collected cases across 18 test functions in five new test files:
+
+- tests/backend/test_graph_access_health.py
+- tests/backend/test_scoring_graph_outages.py
+- apps/dataops/backend/tests/test_graph_access_outages.py
+- apps/trading/backend/tests/test_health_route_contract.py
+- apps/purchasing/backend/tests/test_health_outage_contract.py
+
+Test counts after:
+
+- SDK root: 3759 passed, 1 skipped, 0 failed (1033.52s). The skipped external FRED integration test (tests/test_preseed.py::test_fred_freeze_integration_matches_live_baseline) passed on an isolated rerun: 1 passed (17.20s).
+- DataOps BE: 447 passed, 0 failed (163.84s).
+- Purchasing BE: 835 passed, 1 existing AGE skip, 0 failed (397.33s).
+- Trading BE: 1475 passed, 0 failed (288.27s).
+
+mypy:
+
+- Requested individual checks for health_builder.py, scoring_router.py, and DataOps context_router.py: PASS.
+- All six changed production files plus five new test files: PASS using repository configuration.
+- Six edited existing test files: 12 existing diagnostics in four files; exact diagnostic messages unchanged after normalizing line shifts.
+- Purchasing whole-app baseline remains exactly 132 errors in 34 files; no changes to that separate work item.
+- Additional check without the SDK backend ignore_errors override: the new guard and health builder are clean; scoring_router retains nine pre-existing no-any-return diagnostics also present in HEAD. HEAD additionally had an undefined logger in the diagnostics failure branch, removed by the connection-only error handling change.
+
+Frontend typechecks: PASS (Trading, Purchasing, DataOps).
+E2E typecheck: PASS.
+Evidence: .codex_tmp/fix34_* logs, including full suites, mypy comparisons, frontend checks, server reload logs, and live health results. No frontend source files were changed.
+
+
+## PURCHASING-MYPY-BATCH1 (2026-09-26)
+
+Files fixed / errors fixed (individual baseline -> final):
+
+- apps/purchasing/backend/app/services/multi_unit.py: 23 -> 0.
+- apps/purchasing/backend/app/connectors/qbo_connector.py: 12 -> 0.
+- apps/purchasing/backend/app/routers/evidence.py: 12 -> 0.
+- apps/purchasing/backend/app/services/spend_dashboard.py: 11 -> 0.
+- apps/purchasing/backend/app/routers/iks.py: 10 -> 0.
+
+Errors fixed: 68 total. Remaining in these files: 0.
+
+Fix patterns used:
+
+- Narrow dictionary/list values after a single lookup so existing isinstance checks carry through to subsequent accesses.
+- Use TypedDict records for location price, waste, and supplier comparisons, preserving float-valued sort keys and arithmetic. Correct cross_location_price's item annotation to str, matching its existing title() requirement and all actual callers; no runtime assertion or new fallback added.
+- Give the evidence JSON sanitizer an object input/output contract; cast dictionary call results to their guaranteed dictionary shape. Preserve all sanitization branches, including heterogeneous values.
+- Cast IKSService.summary() to its actual declared dict[str, Any] return contract (the skipped SDK import is Any under repository mypy settings). Add overloads to _finite_float so a float default yields float and a None default retains float | None.
+- Narrow optional dates, covers, and seasons before comparison/summing. Use key access after existing membership checks. Explicitly return None for a missing quantity, preserving the previous caught-TypeError result.
+- User-approved behavior exception: QBO expense lines with missing or null ItemRef now use the existing Description fallback instead of raising AttributeError. No other runtime behavior changes intended; no type-ignore suppressions, new production assertions, or test-file edits.
+
+Baseline:
+
+- Purchasing whole app: 132 errors in 34 files (82 source files checked).
+- Purchasing BE: 835 passed, 1 skipped, 0 failed (507.36s).
+
+Test counts after:
+
+- Purchasing BE: 835 passed, 1 skipped, 0 failed (404.28s); existing skip retained.
+- SDK root: 3760 passed, 0 skipped, 0 failed (935.71s).
+- Before/after behavior probe: 31 cases; 29 outputs unchanged, 2 approved QBO cases changed from AttributeError to the expected Description fallback with unchanged quantity/amount/unit-price calculations.
+
+mypy status:
+
+- multi_unit.py: clean.
+- qbo_connector.py: clean.
+- evidence.py: clean.
+- spend_dashboard.py: clean.
+- iks.py: clean.
+- Requested individual checks and combined five-file check: PASS with --ignore-missing-imports and repository configuration.
+- Full Purchasing app after: 64 errors in 29 files (82 source files checked).
+
+Cascade notes: none. Exact full-app diagnostic comparison confirms that all 64 remaining diagnostics already existed before this batch; no new errors outside the five target files. Production edits are confined to the five requested files. git diff --check on those files passed.
+
+Evidence: .codex_tmp/mypy_batch1_* logs and before/after JSON snapshots, including individual baseline diagnostics, full-app diagnostic comparisons, the combined mypy check, Purchasing baseline/final suites, SDK final suite, and behavior probes.
+
+
+## PURCHASING-MYPY-BATCH2 (2026-09-26)
+
+Files fixed: 29.
+Errors fixed: 64.
+Remaining: 0.
+
+Directory breakdown (files / errors resolved):
+
+- routers/: 12 / 36.
+- services/: 7 / 14.
+- connectors/: 3 / 7.
+- factors/: 3 / 3.
+- App root modules: 4 / 4 (context_router.py, evidence_providers.py, investigation_config.py, vld_preseed.py).
+- models/: no baseline errors; no edits needed.
+
+Baseline error categories: no-any-return 34, union-attr 13, arg-type 7, var-annotated 6, assignment 2, index 1, misc 1. The 64 errors matched the remaining Batch 1 baseline; no additional cascade errors were present.
+
+Fix patterns:
+
+- Narrow optional dictionary/list values after one lookup; filter optional queue recommendations with explicit narrowing.
+- Annotate outbox rows with OutboxEvent, delivery/price collections with their record types, heterogeneous configuration/source values explicitly, and commodity fixture rows with a TypedDict.
+- Preserve the commodity refresh owner/waiter logic: annotate the optional event and express the existing owner-only cleanup invariant with a precise cast.
+- Add casts at service, JSON, and library boundaries after checking the actual return contracts. Repository follow_imports=skip makes many imported services Any; these casts preserve the returned objects without conversion or new runtime validation.
+- Access factor values after existing key-membership checks; retain the existing neutral-value handling for invalid or missing inputs. Explicit None narrowing preserves the economic-model fallback behavior.
+
+No runtime behavior changes, new assertions, type-ignore suppressions, mypy configuration changes, shared SDK edits, or test-file edits in this batch. All 29 changed files passed individual mypy checks. Diff review found identical executable AST in 21 files after removing typing-only constructs; the other eight contain reviewed behavior-preserving narrowing edits. git diff --check passed for the batch files.
+
+Purchasing baseline: 835 passed, 1 skipped, 0 failed (491.17s).
+
+Test counts after:
+
+- Purchasing BE: 835 passed, 1 existing skip, 0 failed (536.85s).
+- SDK root: 3760 passed, 0 skipped, 0 failed (1143.72s).
+- Trading BE: 1475 passed, 0 skipped, 0 failed (489.31s).
+- DataOps BE: 447 passed, 0 skipped, 0 failed (243.46s).
+
+Full Purchasing mypy: clean. `python -m mypy apps/purchasing/backend/app/ --ignore-missing-imports` reports `Success: no issues found in 82 source files`. Both batches together resolved all 132 original diagnostics.
+
+Unfixable errors (if any):
+
+- None.
+
+Evidence: .codex_tmp/mypy_batch2_before.log, mypy_batch2_individual_after.log, mypy_batch2_full_after.log, mypy_batch2_sources_before.json, mypy_batch2_structural_review.json, and mypy_batch2_{purchasing,sdk,trading,dataops}_after.log. The separate Purchasing baseline is mypy_batch2_purchasing_before.log.
+
+## SS-04 (2026-09-26)
+
+Findings fixed: P1-007, P1-009, P1-010, P1-011, P1-012, P2-002, P2-003
+Files modified: [apps/dataops/backend/app/ae_router.py, apps/dataops/backend/app/services/cohort_status.py, apps/dataops/backend/app/routers/cohort_status_router.py, apps/dataops/backend/app/services/investigation_patterns.py, apps/dataops/backend/app/services/investigation_loop.py, apps/dataops/backend/app/models/investigation.py, apps/dataops/backend/app/main.py, apps/dataops/backend/tests/test_dataops_backend.py, apps/dataops/backend/tests/test_cohort_status.py, apps/dataops/backend/tests/test_investigation_patterns.py]
+Fix patterns: failed reads now remain distinguishable from empty data; degraded HTTP responses preserve typed defaults and add availability flags; live investigation graph failures are reported as failed patterns while explicit demo mode retains fixture fallback; startup seeding reports totals and failures, including distinct evolution-event check failures.
+Tests added: 4
+Test counts after:
+- DataOps BE: 451 passed
+- SDK root: 3759 passed, 1 unrelated failure in tests/test_rl_evolution_matrix.py::test_t_startup[purchasing]
+mypy: Success: no issues found in 4 source files
+
+## SS-02 (2026-09-27)
+
+Findings fixed: P1-038, P1-039, P1-040, P1-041
+Files modified: [copilot_sdk/backend/transfer_router.py, tests/test_transfer_router_observability.py]
+Fix pattern: Checkpoint lookup failures now return an unavailable marker and transfer status exposes it; conservation fallbacks are annotated as graph-unavailable and therefore cannot satisfy the exact GREEN transfer gate; source-store provider failures are warning-logged with the source domain. Healthy graph reads retain their existing values and response shapes.
+Tests added: 4
+Test counts after:
+- SDK focused transfer tests: 28 passed; full root run reached 51% before interruption after stale graph-test workers accumulated (prior root baseline: 3,759)
+- Trading BE: 1,475 passed
+- Purchasing BE: 841 passed, 1 failed, 1 skipped (pre-existing evidence outage case: test_evidence.py::test_evidence_read_failures_are_degraded[...trajectory])
+- DataOps BE: 451 passed
+mypy: Success: no issues found in copilot_sdk/backend/transfer_router.py
+
+## SS-03 (2026-09-27)
+
+Findings fixed: P2-016, P2-019, P2-024, P2-011, P2-009, P1-052, P1-055
+Files modified: [copilot_sdk/scoring/scorer.py, copilot_sdk/scoring/fingerprint.py, copilot_sdk/evolution/ledger.py, copilot_sdk/evolution/protocol.py, copilot_sdk/demo/bundle.py, copilot_sdk/reporting/weekly.py, copilot_sdk/backend/report_router.py, copilot_sdk/scoring/measurement_state.py, copilot_sdk/backend/models.py, copilot_sdk/state/schemas/shared.py, apps/trading/backend/app/state/schemas/trading.py, tests/scoring/test_scorer.py, tests/test_ss03_observability.py]
+Fix patterns: Learning pause responses now include artifact warnings; fingerprint persistence and evolution failures are observable without changing accepted outcomes; ledger append returns persistence success while retaining the in-memory event; AGE bundle restore reports restored/skipped counts and logs skipped records; weekly reports retain typed IKS fields with an `iks_available` flag; measurement state uses a degraded state for failed IKS reads and preserves typed response fields.
+Tests added: 7
+Test counts after:
+- SDK root: full run reached 51% before interruption due a long-running graph test; focused SS-03 tests: 7 passed, related scorer/measurement/weekly/bundle/ledger tests: 121 passed
+- Purchasing BE: 850 passed, 1 skipped
+- Trading BE: affected schema/registry tests rerun serially: 3 passed; parallel full run had 3 shared-resource failures
+- DataOps BE: 451 passed
+mypy: Success: no issues found in all 11 changed Python modules
+Frontend typechecks: Trading, Purchasing, and DataOps passed
+
+## SS-05 (2026-09-27)
+
+Findings fixed: P1-017, P1-018, P1-019, P1-020, P1-021, P1-022, P1-023
+Files modified: [apps/purchasing/backend/app/routers/evidence.py, apps/purchasing/backend/app/routers/learning_beats.py, apps/purchasing/backend/tests/test_evidence.py, apps/purchasing/backend/tests/test_learning_beats.py]
+Fix pattern: Evidence and learning helpers now return None for failed reads; HTTP handlers preserve typed defaults and add degraded/data_available flags only on outage paths; conservation and learning status report UNAVAILABLE instead of BOOTSTRAP when reads fail. Happy-path response shapes remain unchanged.
+Tests added: 7
+Test counts after:
+- Purchasing BE: 842 passed, 1 skipped
+- SDK root: 3764 passed, 1 infrastructure error during AGE teardown
+mypy: Success: no issues found in 2 source files
+
+## SS-06 (2026-09-27)
+
+Findings fixed: P1-013, P1-014, P1-015, P1-016, P1-025, P1-026, P1-027, P1-028, P2-004
+Files modified: [apps/purchasing/backend/app/context_router.py, apps/purchasing/backend/app/evidence_providers.py, apps/purchasing/backend/app/main.py, apps/purchasing/backend/app/routers/scorecard_router.py, apps/purchasing/backend/app/routers/trust_router.py, apps/purchasing/backend/app/routers/cohort_status_router.py, apps/purchasing/backend/app/services/cohort_status.py, apps/purchasing/backend/app/services/purchasing_control.py, copilot_sdk/backend/evolution_router.py, copilot_sdk/backend/models.py, apps/purchasing/backend/tests/test_ss06_silent_substitution.py]
+Fix patterns: Failed graph and history reads now return explicit unavailable states; HTTP handlers preserve typed defaults and add degraded/data_available or cause fields; conservation alert enrichment reports UNAVAILABLE; claim refresh logs unmeasured qualification; startup seeding reports total and failed records. Demo and configured no-data paths retain their existing behavior.
+Tests added: 9
+Test counts after:
+- Purchasing BE: 851 passed, 1 skipped
+- SDK root: 3769 passed, 2 unrelated failures (generated TypeScript currency and nondeterministic Purchasing variant wiring; the latter passed on targeted rerun)
+mypy: Success: no issues found in 7 source files
+
+## SS-07 (Lane B last) — 2026-09-27
+
+- Findings fixed: P1-014, P1-017, P1-018, P1-019, P1-020, P1-021, P1-022, P1-023, P1-036, P1-037
+- Tests added: 10 focused degraded-path tests (7 Purchasing, 3 Trading)
+- Purchasing BE: 858 passed, 1 skipped
+- Trading BE: 1478 passed
+- SDK root: 3770 passed in the full run; the run reported 1 stale-generated-TypeScript failure, then `test_schema_currency.py` passed after regenerating the two generated files
+- mypy: clean on all 7 changed Python modules
+- Frontend typecheck: Trading pass, Purchasing pass
+- Regressions: The initial Trading run had 3 schema-validation failures because new `dk_readiness_available`/`iks_available` fields were not yet present in Pydantic/generated TypeScript schemas. Added those fields and regenerated schemas; the three affected tests and schema-currency test pass.
+
+## DIAG-SDK — Full diagnostic sweep — 2026-09-27
+
+SS pre-check: SS-02 through SS-07 are recorded as completed. SS-01 has no dedicated heading in this session state; the materializer work is recorded under PERF-MATERIALIZER/MATERIALIZER-FIXER entries.
+
+### SDK root pytest (by chunk)
+- scoring: 285/0/0
+- backend: 196/0/0
+- graph: 339/0/0
+- other: interrupted at approximately 36% with no failure output before interruption; no final totals available
+- TOTAL: 820 passed/0 failed/0 skipped for completed chunks; other incomplete
+- Failures: none observed in completed chunks; other was interrupted before a result.
+
+### Per-app backend pytest
+- Trading: 1478/0/0
+- Purchasing: 858/0/1
+- DataOps: 451/0/0
+- Failures: none.
+
+### Frontend typechecks
+- Trading: pass
+- Purchasing: pass
+- DataOps: pass
+- S2P: pass
+- Errors: none.
+
+### E2E typecheck
+- Result: pass
+- Errors: none.
+
+### Generated TypeScript schemas
+- Status: no generator found
+- Details: no `scripts/generate_schemas.py` and no `generated_*.ts` files found.
+
+### Mypy
+- Result: fail (one path/configuration error)
+- Errors: `apps/trading/backend/app/state/schemas/trading.py:9` — cannot find implementation or library stub for `app.state.key_manifest`.
+
+### Summary
+- Total backend failures: 0 in completed root chunks and per-app suites; incomplete SDK-root `other` chunk has no final status.
+- Total typecheck failures: 0.
+- Total mypy errors: 1.
+- Schema status: no generator found.
+- Known pre-existing: missing `app.state.key_manifest` resolution when checking the Trading schema from SDK root; the interrupted `other` chunk.
+- Potentially new: none identified.
+
+
+## FIX-SDK — Post-diagnostic fixes — 2026-09-27 20:57:59 UTC
+
+Pre-check: DIAG-SDK recorded scoring 285/0/0, backend 196/0/0, graph 339/0/0; other interrupted near 36%; one Trading schema import-resolution error. This FIX run preserved existing workspace changes.
+
+### Interrupted chunk re-run
+- Sub-chunks run: tests/evolution/ **217/0/0**; tests/ excluding scoring/backend/graph/evolution/frontend/integration **2734/0/0**.
+- Requested tests/frontend/ and tests/integration/ paths do not exist. Both exact commands were attempted and reported “file or directory not found” (no tests collected); they are not counted as skipped tests. Actual frontend/integration tests elsewhere under tests/ were included by the remainder command.
+- Total from re-run: **2951 passed / 0 failed / 0 skipped**.
+- Grand total (all SDK root chunks): **3771 passed / 0 failed / 0 skipped**.
+- Coverage reconciliation: root --collect-only found 3771 unique cases; backend 196 + evolution 217 + graph 339 + scoring 285 + remainder 2734 = 3771. No collection gaps. The remainder completed in 1268.25s without further splitting.
+
+### Mock graph store cleanup
+- Category A (test mocks replaced): **13 store implementations in 13 files**, seeded through InMemoryGraphStore public APIs:
+  - `tests/test_gate_enforced_scorer.py`
+  - `tests/test_response_models.py`
+  - `tests/test_transfer_router.py`
+  - `tests/test_di_enrichment.py`
+  - `tests/test_demo_truth_guards.py`
+  - `tests/test_iks_service.py`
+  - `tests/backend/test_evolution_router.py`
+  - `apps/trading/backend/tests/test_trust_analysis.py`
+  - `apps/trading/backend/tests/test_regime_conditioned_learning.py`
+  - `apps/trading/backend/tests/test_execution_analysis.py`
+  - `apps/purchasing/backend/tests/test_iks_trust.py`
+  - `apps/purchasing/backend/tests/test_ss07_evidence_degraded.py`
+  - `apps/dataops/backend/tests/test_trust_perturbation.py`
+- Category B (production mocks removed): **0**; no production mock GraphStore fallback found.
+- Category C (kept, exact requested-pattern scan): **12 graph-test sites in 6 files**:
+  - `apps/dataops/backend/tests/test_graph_access_outages.py`
+  - `apps/purchasing/backend/tests/test_health_outage_contract.py`
+  - `apps/trading/backend/tests/test_health_route_contract.py`
+  - `apps/trading/backend/tests/test_trading_registry.py`
+  - `tests/backend/test_graph_access_health.py`
+  - `tests/scoring/test_scorer.py`
+- The pattern superset found 48 hits: those 12 deliberate error-path/forbidden-read/AGE-boundary sites plus 36 false positives (mocked presets with real stores, IBKR clients, and real connection state assignments). False positives are not counted as graph mocks.
+- Supplemental class/assignment/patch scans found the 13 replaced fixtures and legitimate protocol, read/write-spy, malformed-state, outage, compatibility, and concurrency doubles. File-level reasons and every requested-pattern hit are recorded in [fix_sdk_graph_audit.md](fix_sdk_graph_audit.md). The Trading materialized-snapshot adapter and explicit offline evaluation/fixture modes are not production mock fallbacks.
+
+### Mypy
+- app.state.key_manifest import: fixed `apps/trading/backend/app/state/schemas/trading.py` to use `from ..key_manifest import TradingKey`. This resolves in SDK-root typechecking and the app package without creating a second package identity.
+- Requested individual schema check: PASS.
+- All 15 changed Python files: individual checks PASS. App tests with existing `app.*` imports require their own backend directory on MYPYPATH; initial SDK-root checks exposed those existing resolution issues, and checks with the correct app import context passed. No mypy suppressions or configuration edits were added.
+- SDK: `python -m mypy copilot_sdk/ --config-file pyproject.toml` PASS, 292 source files.
+
+### Full validation
+- SDK root pytest: **3771/0/0** (passed/failed/skipped).
+- Final scoring: **285/0/0**; backend: **196/0/0**; graph: **339/0/0**; evolution: **217/0/0**; remainder: **2734/0/0**.
+- Per-app pytest: Trading **1478/0/0**, Purchasing **858/0/1**, DataOps **451/0/0**. All match DIAG-SDK baselines.
+- All root and per-app suites combined: **6558 passed / 0 failed / 1 skipped**.
+- Mypy: **PASS**.
+- E2E typecheck: **PASS**, `npx tsc --noEmit` from e2e/ (exit 0).
+- Regressions: **none remaining**. The first scoring rerun reported 284 passed / 1 failed in `test_periodic_drain_fires`; it passed immediately in isolation. Replaced the fixed 0.5-second sleep with a bounded wait for actual queue drain (5-second deadline), asserted the replay occurred, and guaranteed timer cleanup in finally. No production timer behavior changed. The entire scoring suite then passed 285/0/0.
+- Focused changed SDK fixture checks: 22 + 21 passed; evolution-router check 14 passed. These reruns are not added twice to the grand total. App fixture changes were verified by their full suites.
+- Evidence: `.codex_tmp/fix_sdk_*.log`, `fix_sdk_final_counts.json`, `fix_sdk_collection.log`, and `fix_sdk_changed_mypy.json`. Initial scoring failure is retained in `fix_sdk_scoring.log`; final scoring success is in `fix_sdk_scoring_final.log`.
+
+## ASTRA-SWEEP-SDK — Review of SS-02→SS-07 + FIX-SDK — 2026-09-27 22:14:56 UTC
+
+Review-only. No production code or test files edited. Permanent report: [astra_sweep_sdk_report.md](astra_sweep_sdk_report.md).
+
+### Findings
+- P1: **5** — R01: Purchasing investigation loses degraded evidence flags and can change the action using neutral failed-read data; R02: healthy Purchasing conservation is marked unavailable; R03: Purchasing outage responses emit null/omit numeric fields; R04: measurement-state HTTP exposes null IKS on outage; R05: Purchasing/DataOps cohort store-factory failures bypass degraded handling and return 500.
+- P2: **11** — R06: pause-artifact exception warnings missing; R07: evolution callers discard ledger persistence status; R08: public bundle restore discards partial counts; R09: learning-beats sibling endpoints lose availability flags; R10: trust insights hides counter failure; R11: healthy DK threshold is labeled unavailable; R12: Trading domain-context outage still looks missing; R13: Trading trader profiles silently empty; R14: Trading cohort reads silently empty; R15: claim refresh has no stale/unavailable qualification state; R16: Trading promotion reports failed conservation reads as actual RED.
+- P3: **1** — R17: availability/degraded model fields remain nullable booleans.
+- Scope note: the session records SS-05/06 as Purchasing and SS-07 as Purchasing evidence plus Trading trust/IKS. The broader Trading files listed in the review prompt were also inspected; R12–R16 identify remaining gaps, with unchanged Trading files explicitly distinguished from campaign regressions.
+- Tier 1 P1-054: graph exceptions propagate at GateEnforcedScorer; fault injection confirmed the wrapped learn was not called.
+- FIX-SDK: all 13 normal graph-fixture replacements use initialized InMemoryGraphStore instances. Requested mock regex found 39 lines: 12 legitimate failure/adapter/sentinel sites and 27 false positives.
+
+### Validation
+- SDK root pytest: **3771/0/0** (passed/failed/skipped).
+- Trading pytest: **1478/0/0**.
+- Purchasing pytest: **858/0/1**.
+- DataOps pytest: **451/0/0**.
+- Total: **6558 passed / 0 failed / 1 skipped**. All passed counts match baseline; Purchasing skip matches the existing baseline.
+- Mypy: **PASS**, no issues in 292 SDK source files.
+- Mypy scope caveat: existing configuration uses follow_imports=skip and ignores errors for copilot_sdk.backend.* and copilot_sdk.framework.*.
+- Evidence: `.codex_tmp/astra_sweep_root.txt`, `astra_sweep_trading.txt`, `astra_sweep_purchasing.txt`, `astra_sweep_dataops.txt`, `astra_sweep_mypy.txt`, `astra_sweep_mock_scan.txt`, and `astra_sweep_collection.txt` (all under `.codex_tmp/`).
+- Test regressions: **none observed**. Review findings remain despite passing tests; missing end-to-end degraded-path coverage is documented per finding.
+
+### Verdict: FINDINGS — details above
+
+== FIX-ASTRA-SDK ==
+Date: 2026-09-27T21:31:44.2578700-07:00
+
+R01 (investigation evidence admission): FIXED
+  Files changed: copilot_sdk/scoring/investigation.py, copilot_sdk/backend/investigation_router.py, apps/purchasing/backend/app/evidence_providers.py
+  Tests added: 4
+  Notes: Explicit degraded/unavailable provider payloads are recorded but not admitted; healthy empty reads remain distinct and available. Mixed-provider investigations continue using independent healthy evidence, and HTTP responses propagate aggregate/step availability metadata with typed defaults.
+R02 (conservation availability): FIXED
+  Files changed: apps/purchasing/backend/app/routers/learning_beats.py
+  Tests added: 2
+  Notes: Successful graph reads now set conservation_available=true and pass the domain as ["purchasing"].
+R03 (numeric null at HTTP): FIXED
+  Files changed: apps/purchasing/backend/app/routers/evidence.py, apps/purchasing/backend/app/routers/learning_beats.py
+  Tests added: 0 (existing degraded-contract tests updated)
+  Notes: Evidence summary, conservation proof, hero, and ramp emit numeric/list defaults plus explicit availability flags; unavailable values are no longer null or omitted.
+R04 (measurement-state IKS null): FIXED
+  Files changed: copilot_sdk/backend/models.py, copilot_sdk/backend/scoring_router.py, apps/trading/backend/app/state/schemas/trading.py, apps/trading/frontend/src/state/schemas/trading.ts, copilot_sdk/frontend/providers/schemas/shared.ts
+  Tests added: 2
+  Notes: HTTP serialization normalizes internal nullable accuracy/IKS sentinels to 0.0 with availability flags. Trading live-response and generated TypeScript schemas were updated.
+R05 (cohort factory outside guard): FIXED
+  Files changed: apps/purchasing/backend/app/routers/cohort_status_router.py, apps/dataops/backend/app/routers/cohort_status_router.py
+  Tests added: 8
+  Notes: Store acquisition, None factories, and query connection failures share the existing degraded response path; unrelated programming errors are not swallowed.
+
+Validation:
+  SDK root: 3777 passed, 0 failed, 0 skipped
+  Trading: 1478 passed, 0 failed, 0 skipped
+  Purchasing: 864 passed, 0 failed, 1 skipped
+  DataOps: 455 passed, 0 failed, 0 skipped
+  Mypy: PASS (copilot_sdk 292 files; Purchasing 82 files; DataOps 41 files)
+  Frontend TSC: PASS (Trading, Purchasing, DataOps)
+  Generated schemas: PASS (test_schema_currency.py)
+  git diff --check: PASS (line-ending notices only)
+  Supporting config: pyproject.toml now treats untyped intuitlib/quickbooks packages like the existing third-party missing-stub exemptions.
+
+== VERIFY-ASTRA-SDK ==
+Date: 2026-09-28
+
+R01 (investigation evidence admission): PASS
+  Evidence: VLDInvestigator rejects explicit degraded/unavailable provider payloads before vector mutation, records evidence_available=false/evidence_admitted=false with unchanged v_after, continues to independent providers, and propagates degraded/failed_providers through the typed HTTP response. Focused investigation tests: 59 passed.
+R02 (conservation availability): FAIL
+  Evidence: Successful graph fallback sets conservation_available=true and calls get_latest_conservation_statuses([DOMAIN]), but learning_beats._stats marks a callable get_conservation_status() returning None as available. The graph fallback also marks None/malformed statuses available and reports BOOTSTRAP. Exception-path tests pass, but silent-return mode is untested and violates C-6.
+R03 (numeric null at HTTP): FAIL
+  Evidence: Evidence, hero, and ramp HTTP numeric fields are normalized to typed defaults with availability flags, and focused evidence/learning tests pass (78 passed). However, learning_beats._stats sets trajectory_available=true whenever trajectory() returns normally, including None or malformed data, before coercing it to {}. iks becomes 0.0/iks_available=false, but the trajectory availability flag is incorrect; the required silent-return test is missing.
+R04 (measurement-state IKS null): PASS
+  Evidence: Internal MeasurementState retains nullable sentinels; scoring_router._measurement_http_payload converts HTTP iks/accuracy None values to 0.0 with availability=false, and the HTTP response model uses non-null floats. Focused measurement tests: 14 passed.
+R05 (cohort factory outside guard): PASS
+  Evidence: Purchasing and DataOps construct the store and execute the query inside the same narrow guard, explicitly reject a None factory, catch connection/read errors, and leave TypeError/ValueError uncaught. Focused cohort tests: Purchasing 18 passed; DataOps 16 passed.
+
+Structural audits:
+  C-5 (no new fixtures): PASS
+  C-6 (both failure modes): FAIL -- 7 guards checked; learning_beats conservation and trajectory guards do not reject None/malformed normal returns. Raw None evidence in VLDInvestigator is an explicit healthy-empty provider protocol path and is not admitted into the vector.
+  C-1 (no None at HTTP): PASS
+  C-2 (guard includes construction): PASS
+  C-7 (trace-before-fix): FAIL -- correct boundaries were used for investigation, measurement serialization, and cohort construction, but the two learning_beats silent-return points were missed.
+
+Trading regression: FAIL
+  Evidence: Trading tests remain exactly at baseline (1478 passed), and git log shows no later committed Trading change than 560447d. However, the FIX-ASTRA-SDK record explicitly lists apps/trading/backend/app/state/schemas/trading.py and apps/trading/frontend/src/state/schemas/trading.ts as R04 changes; both are modified in the working tree, violating the verification requirement that FIX-ASTRA-SDK modify no Trading files.
+
+SDK root: 3776 passed, 0 failed, 1 skipped (recorded FIX baseline: 3777/0/0; the quiet full run did not identify the transient skip, and targeted reruns of environment-dependent skip candidates passed)
+Trading: 1478 passed, 0 failed, 0 skipped
+Purchasing: 864 passed, 0 failed, 1 skipped
+DataOps: 455 passed, 0 failed, 0 skipped
+Mypy: PASS (copilot_sdk 292 files; Purchasing 82 files; DataOps 41 files)
+Frontend TSC: PASS (Trading, Purchasing, DataOps)
+git diff --check: PASS (line-ending notices only)
+
+Overall verdict: FAIL
+Gaps (if any): Add explicit None/malformed validation and tests for both trajectory() and conservation reads in learning_beats._stats; ensure availability is set true only after validating the returned shape/state. Resolve or explicitly revise the no-Trading-change requirement for the R04 schema propagation. Re-run the SDK root suite with skip reporting to restore or explain the 3777/0/0 baseline.
+
+== FIX-ASTRA-SDK-V2 ==
+Date: 2026-09-28
+
+R02 (conservation silent-return validation): FIXED
+  Files changed: apps/purchasing/backend/app/routers/learning_beats.py, apps/purchasing/backend/tests/test_learning_beats.py
+  Tests added: 4 test functions / 8 collected cases for scorer None, graph None/malformed, healthy empty bootstrap, and GREEN/AMBER/RED states
+R03 (trajectory silent-return validation): FIXED
+  Files changed: apps/purchasing/backend/app/routers/learning_beats.py, apps/purchasing/backend/tests/test_learning_beats.py
+  Tests added: 2 test functions / 3 collected cases for None, non-dict, and healthy empty-dict trajectory results; the existing exception test now also asserts trajectory_available=false
+
+C-6 resolution: Both failure modes now covered for conservation
+  and trajectory guards (derived from R02/R03 fixes)
+C-7 resolution: Silent-return paths now traced and tested
+  (derived from R02/R03 fixes)
+
+Trading schema note: apps/trading/backend/app/state/schemas/
+  trading.py and apps/trading/frontend/src/state/schemas/
+  trading.ts were changed by FIX-ASTRA-SDK as expected R04
+  contract propagation. Trading is a consumer of the shared
+  measurement response. No Trading runtime defect. Suite
+  unchanged at 1,478 passed.
+
+Validation:
+  SDK root: 3777 passed, 0 failed, 0 skipped
+  Trading: 1478 passed, 0 failed, 0 skipped
+  Purchasing: 875 passed, 0 failed, 1 skipped
+  DataOps: 455 passed, 0 failed, 0 skipped
+  Focused Purchasing learning selection: 20 passed
+  Mypy: PASS (copilot_sdk 292 files; Purchasing 82 files; DataOps 41 files)
+  git diff --check: PASS (line-ending notices only)
+  Skip follow-up: the VERIFY-ASTRA-SDK root skip did not reproduce under -rs; the suite restored 3777/0/0, so there was no skipped test or reason to report in this run.
+
+== VERIFY-ASTRA-SDK-V2 ==
+Date: 2026-09-28
+
+R02 (conservation silent-return validation): PASS
+  Evidence: _stats initializes conservation as unavailable, validates scorer states against the recognized state set, validates the graph result as a list, treats only a valid empty list as available BOOTSTRAP, rejects None/wrong-type/malformed status rows, and still calls get_latest_conservation_statuses([DOMAIN]). Focused conservation tests: 10 passed.
+R03 (trajectory silent-return validation): FAIL
+  Evidence: Production validation is correct: trajectory_available is derived only from isinstance(raw_payload, dict), invalid results are replaced with {}, and downstream iks=0.0/iks_available=false/degraded=true. Focused trajectory tests passed 3/3. Test coverage is incomplete against the verification contract: only list is exercised as a non-dict return (string and int are absent), the healthy empty-dict test omits degraded, and the populated-dict test does not explicitly assert trajectory_available=true.
+
+Structural audits:
+  C-6 (both failure modes): PASS -- 3 guards checked; trajectory, scorer conservation, and graph conservation each handle exceptions plus None/malformed normal returns.
+  C-7 (trace-before-fix): FAIL -- value checks are correctly placed before consumption, but all three dependency calls use except Exception. A direct trajectory TypeError probe was swallowed and converted into a degraded response, contrary to the requirement that programming TypeError/ValueError propagate.
+  Old behavior equivalence: PASS -- valid populated trajectory and recognized conservation states preserve the existing response fields and values; V2 added no response fields, removed/retyped none, and added no writes or side effects.
+  C-1 (no None at HTTP): PASS -- _stats normalizes internal absence to typed numeric/string/bool values, and the Pydantic response fields remain non-null at the HTTP boundary.
+
+Scope check: FAIL (the two V2 implementation/test files are the only V2 code files recorded, plus the required docs/session_state.md append, but V2 was not committed; HEAD remains 560447d and the cumulative dirty worktree prevents the requested commit-range proof)
+Trading regression: PASS (1478 unchanged)
+DataOps regression: PASS (455 unchanged)
+
+Validation:
+  SDK root: 3777 passed, 0 skipped
+  Trading: 1478 passed
+  Purchasing: 875 passed, 1 skipped
+  DataOps: 455 passed
+  Mypy: PASS (copilot_sdk 292 files; Purchasing 82 files; DataOps 41 files)
+  git diff --check: PASS (line-ending notices only)
+
+Overall verdict: FAIL
+Gaps (if any): Narrow the three _stats dependency catches to recognized graph/read availability exceptions so TypeError and ValueError programming defects propagate. Add explicit trajectory tests for string and integer returns, assert degraded on the healthy-empty case, and assert trajectory_available on the populated success case. Commit or otherwise isolate the V2 two-file change so the requested commit-range scope audit is reproducible.
+== FIX-ASTRA-SDK-V3 ==
+Date: 2026-09-28
+
+C-7 (narrow exception handling): FIXED
+  Exception tuple: (*GRAPH_CONNECTION_ERRORS, RuntimeError); excludes TypeError, ValueError, AttributeError, and KeyError
+  Files changed: apps/purchasing/backend/app/routers/learning_beats.py
+  Guards narrowed: 3
+
+R03 (test completeness): FIXED
+  Tests added/expanded: 5 cases (3 propagation tests and 2 malformed-return parameters)
+  Parameterize values: None, list, string, integer
+  Missing assertions added: empty-dict degraded=True; populated-dict trajectory_available=True
+
+TypeError propagation tests: 3 added
+  trajectory: PASS
+  conservation scorer: PASS
+  conservation graph: PASS
+
+Validation:
+  SDK root: 3,777 passed, 0 skipped; one external AGE fixture teardown error after PostgreSQL closed the session unexpectedly. Immediate tests/graph retry: 339 passed, 0 failed, 0 skipped.
+  Trading: 1,478 passed
+  Purchasing: 880 passed, 1 skipped
+  DataOps: 455 passed
+  Mypy: PASS
+  git diff --check: PASS
+
+
+== VERIFY-ASTRA-SDK-V3 ==
+Date: 2026-09-28
+
+C-7 (narrow exception handling): PASS
+  Exception tuple: (*GRAPH_CONNECTION_ERRORS, RuntimeError); GRAPH_CONNECTION_ERRORS contains ConnectionError, TimeoutError, optional psycopg OperationalError/InterfaceError, optional pool errors, and optional GraphUnavailableError. TypeError, ValueError, AttributeError, and KeyError are excluded.
+  Guards narrowed: 3 of 3
+  TypeError propagation: PASS -- all three focused tests passed and an independent direct trajectory probe propagated TypeError.
+  Evidence: trajectory, scorer conservation, and graph conservation each catch _INFRA_ERRORS; their existing warning/degraded bodies are preserved. Additional direct probes confirmed ValueError, AttributeError, and KeyError also propagate.
+
+R03 (test completeness): PASS
+  Malformed types covered: None, list, string, integer
+  Downstream assertions: complete
+  Success-path assertions: complete
+  Evidence: malformed cases assert trajectory_available=false, iks=0.0, iks_available=false, degraded=true; empty dict and populated dict assert their complete availability contracts. Focused trajectory tests: 6 passed.
+
+Prior fixes preserved:
+  R02 (conservation validation): PASS -- focused conservation tests: 12 passed
+  R03 production code (isinstance): PASS
+  C-6 (both failure modes): PASS
+
+Structural audits:
+  C-1 (no None at HTTP): PASS
+  Old behavior equivalence: PASS
+  Scope check: PASS with process caveat -- V3 has no commit boundary and the worktree contains many pre-existing SS/V2 changes. V3-specific content is confined to learning_beats.py, test_learning_beats.py, and this session-state append; no other dirty file contains V3 exception/test changes.
+
+Regressions:
+  Trading: PASS (1,478 unchanged)
+  DataOps: PASS (455 unchanged)
+
+Validation:
+  SDK root: 3,776 passed, 1 transient FRED API skip in the full run; the skipped test passed immediately on isolated retry, restoring all 3,777 test outcomes
+  Trading: 1,478 passed
+  Purchasing: 880 passed, 1 skipped
+  DataOps: 455 passed
+  Mypy: PASS (SDK 292 files; Purchasing 82 files; DataOps 41 files)
+  git diff --check: PASS (line-ending notices only)
+
+Overall verdict: PASS
+Gaps (if any): No implementation gaps. V3 remains uncommitted in a cumulative dirty worktree, so commit-range scope proof is unavailable; the external FRED test skipped once and passed immediately on retry.
+
+
+== P2-DIAG-SDK ==
+Date: 2026-09-28
+Baseline: 3,777 passed, 0 failed, 0 skipped
+Report: docs/p2_diagnostic_report.md
+
+New findings: 16 P2, 6 P3, 1 P4
+Files scanned: 320
+Known excluded: 17 (R01 through R17)
+Status: COMPLETE
+
+
+== SDK-FIX-ALL ==
+Date: 2026-09-28
+Baseline: SDK root 3,777 passed; Trading 1,478 passed; Purchasing 880 passed, 1 skipped; DataOps 455 passed
+Exit: SDK root 3,792 passed; Trading 1,498 passed; Purchasing 898 passed, 1 skipped; DataOps 459 passed
+
+Fixed: SDK-P2-N01, SDK-P2-N02, SDK-P2-N03, SDK-P2-N04, SDK-P2-N05,
+       R07, R08, SDK-P2-N06, SDK-P2-N07, SDK-P2-N08, R09, R10, R11,
+       R12, R14 (Trading conservation), SDK-P2-N09, SDK-P2-N10,
+       SDK-P2-N11, SDK-P2-N12, SDK-P2-N13, SDK-P2-N14, SDK-P2-N15,
+       SDK-P2-N16, R13, R14 (Purchasing/Trading freshness), R15
+Skipped: R06 — scorer pause-artifact handlers already appended snapshot,
+         checkpoint, and fingerprint persistence warnings, with existing tests
+New tests: 57
+Validation: per-project mypy PASS; Trading/Purchasing/DataOps frontend typechecks PASS;
+            banned-pattern scan PASS; git diff --check PASS
+Status: COMPLETE
+
+
+C-GOV (B27) — Conservation Gate Unification
+Date: 2026-09-28
+Model: terra/high
+Phase 0 findings: Current tag is v0.9.61 and the previous session entry is SDK-FIX-ALL. SDK root collection found 3,792 tests. The prompt premise is stale: no ConservationGate class or check() interface exists. L2 uses DefaultPromotionGate.evaluate(shadow_results, conservation_state), and PromptVariantEvolver already uses the same DefaultPromotionGate conservation predicate before sample-count and improvement checks. Prompt promotion already fails closed for RED, missing state, and provider exceptions. Existing coverage is in tests/evolution/test_prompt_promotion_gate.py, tests/test_conservation_gate_coverage.py, and tests/test_rl_evolution_matrix.py. Downstream PromptVariantEvolver consumers are copilot_sdk/backend/evolution_router.py, apps/s2p_differentiation/engine.py, apps/dataops/backend/app/main.py, and apps/purchasing/backend/app/main.py, plus SDK tests.
+Phase 1 design: Reuse DefaultPromotionGate and preserve the existing pre-sample conservation check; do not create a duplicate PromptConservationGate or ConservationGate. The requested constructor injection and check() call cannot match L2 because that interface does not exist. GC-02 also cannot truthfully assert that ConservationGate is the only gate class because AutonomousPromotionGate and other gate abstractions exist. The target v0.7.74 predates the current v0.9.61 tag.
+Phase 2 implementation: Not started. No production or test files changed.
+Status: DESIGN_BLOCKED
+Test count: SDK root 3,792 collected; last recorded full run 3,792 passed, 0 failures
+Tag target: SDK v0.7.74 (stale relative to current v0.9.61)
+Notes: Halted at the explicit Phase 1 complication gate. Implementing the prompt literally would invent a duplicate gate abstraction or require a broader public-interface redesign outside the authorized two-file scope.
+
+
+DIAGNOSTIC SCAN: C-GOV (B27) + C-0 (B29) Status Check
+Date: 2026-09-28
+Model: spark/high
+Current tag: v0.9.61
+SDK root tests: 3,791 passed, 1 failed (3,792 collected; test_no_incorrect_rl_naming failed on active wording in docs/quality/product_integrity_execution_strategy_v3_0.md)
+
+C-GOV (B27): PARTIAL
+  GC coverage: 3/8
+  Gate classes: PromotionGate protocol, DefaultPromotionGate, ae.PromotionGate, AutonomousPromotionGate, GlobalConservationGate, CompositeGate, EvidenceGate, QualificationGate
+  Prompt verdict: UPDATE
+
+C-0 Part 1 (B29): partial implementation with changed interfaces
+  Step 1: PARTIAL
+  Step 2: PARTIAL
+  Step 3: PARTIAL
+  Prompt verdict: UPDATE
+
+C-0 Part 2 (B29): partial implementation in different paths and with failing standalone integrity tests
+  Step 4: PARTIAL
+  Step 6: PARTIAL
+  Step 7a: PARTIAL
+  Step 7b: PARTIAL
+  Prompt verdict: UPDATE
+
+Interface changes: 12 found
+Stale references: 23 found
+Recommendations: Update all six implementation/review prompts for v0.9.61. Reuse DefaultPromotionGate and the conservation-state provider contract instead of inventing ConservationGate; target the current GraphStore, scorer, preset, provenance, benchmark, and integrity-test APIs; move or explicitly collect the standalone integrity tests; and resolve their 7 current failures before treating C-0 as complete.
+
+
+EXECUTION PLAN: C-GOV + C-0 Update Specification
+Date: 2026-09-28
+Model: sol/high
+Sections completed: 1-8
+
+Pre-check:
+  Current tag: v0.9.61
+  Previous entry: DIAGNOSTIC SCAN: C-GOV (B27) + C-0 (B29) Status Check
+  C-GOV history: one DESIGN_BLOCKED entry; the v0.7.74 prompt assumed a ConservationGate/check() API that does not exist at v0.9.61.
+  C-0 history: no implementation entry; the diagnostic classified Parts 1 and 2 as PARTIAL with changed interfaces.
+  Other failed history: older VERIFY-ASTRA-SDK/V2 verification failures were superseded by V3 PASS. No active implementation Status: FAILED entry was found.
+  Diagnostic baseline: 3,791 passed, 1 failed (3,792 collected). The failure is test_no_incorrect_rl_naming.
+
+SECTION 1 FINDINGS (Gate Architecture):
+  Gate classes found:
+    - copilot_sdk.evolution.protocol.PromotionGate: evaluate(shadow_results, conservation_state=None).
+    - copilot_sdk.evolution.gate.DefaultPromotionGate: evaluate(shadow_results, conservation_state=None); combines sample, significance, practical-superiority, accuracy-floor, conservation, and variance checks. Its private _is_conservation_safe(state) accepts GREEN/VERIFIED/ACTIVE or a true overallSafe marker and rejects missing/malformed state.
+    - copilot_sdk.evolution.autonomous_promotion.AutonomousPromotionGate: evaluate(variant, conservation_status, shadow_results) -> PromotionDecision.
+    - copilot_sdk.ae.gate.PromotionGate: evaluate(candidate, baseline, conservation_state="GREEN"); its default is currently fail-open.
+    - copilot_sdk.scoring.composite_gate.CompositeGate: evaluate(*, alpha_q_v, theta_min, rolling_accuracy, baseline, verified_outcomes=(), base_status="GREEN").
+    - copilot_sdk.conservation.global_gate.GlobalConservationGate: snapshot/transfer_allowed/check_transfer for cross-domain transfer.
+    - EvidenceGate and QualificationGate govern evidence and pilot qualification; they are not promotion-gate duplicates.
+  Prompt promotion:
+    - PromptVariantEvolver.check_for_promotion(family=None, conservation_state=None) is the public entry point.
+    - _check_family_for_promotion() contains the single status-changing promotion point.
+    - It resolves conservation before sample-count and improvement checks and calls DefaultPromotionGate._is_conservation_safe().
+    - RED returns conservation_gate_red. Missing, malformed, or provider error returns conservation_gate_unavailable. GREEN retains the old sample/improvement/promotion behavior.
+    - Injection is PromptEvolverConfig.conservation_state_provider, accepting a callable or ConservationStateProvider. There is no gate constructor parameter.
+  Conservation state flow:
+    - ConservationState is a TypedDict normalized by conservation_contract.py. ScorerBackedProvider reads a scorer snapshot; CachedAsyncProvider can cache one snapshot for a TTL.
+    - DataOps and Purchasing inject ScorerBackedProvider into PromptVariantEvolver. Trading uses a provider in its custom evolver. S2P differentiation passes explicit state in an experiment.
+    - CompoundingScorer.learn() obtains its own conservation state. _run_evolution() obtains another. Prompt evolution and transfer paths also read independently. A shared adapter exists, but there is no operation-wide snapshot coordinator.
+  GC coverage map:
+    GC-01: COVERED — tests/test_gate_enforced_scorer.py blocks the wrapped learn call on RED; strengthen it to assert the centroid tensor is byte-for-byte unchanged.
+    GC-02: MISSING — no focused test proves DK weights stay unchanged when learning is blocked. The ordinary learn path returns before _refresh_dk_after_learn(), but public reestimate_dk_if_due() is not independently guarded.
+    GC-03: COVERED — tests/evolution/test_gate.py verifies DefaultPromotionGate rejects RED.
+    GC-04: COVERED — tests/evolution/test_prompt_promotion_gate.py covers RED, GREEN, missing state, and provider exception.
+    GC-05: MISSING — current introspection checks shared predicate names, not one public conservation contract. Multiple gate classes correctly exist for distinct concerns, so gate-class uniqueness is the wrong invariant.
+    GC-06: MISSING — fail-closed behavior is not proven across every loop; copilot_sdk.ae.gate.PromotionGate still defaults omitted conservation to GREEN, and direct DK re-estimation is unguarded.
+    GC-07: MISSING — exception behavior is tested for prompt promotion and parts of scorer reads, but no all-loop matrix exists.
+    GC-08: MISSING — no test supplies one normalized snapshot to every governed loop. Current production loops independently re-read state.
+
+SECTION 2 FINDINGS (Scorer/Store):
+  Import path: copilot_sdk.scoring.scorer.CompoundingScorer
+  Constructor: CompoundingScorer(preset, scorer, graph_store, reward_function=None, credit_assigner=None, exploration_policy=None, evolve=False, consolidation_enabled=False, governed_writes=None, profile=None)
+  from_preset() signature: from_preset(domain, db_path=None, graph_store=None, reward_function=None, credit_assigner=None, exploration_policy=None, evolve=False, consolidation_enabled=False, enable_rl=True, governed_writes=None, profile=None, graph_config=None)
+  score() signature: score(factors: dict[str, float], category: str, metadata=None) -> ScoreResult
+  learn() signature: learn(decision_id, actual_action, outcome="confirmed", *, consolidate=False, context=None, persist_artifacts=True) -> LearnResult | dict
+  Centroids access: scorer.gae_scorer.centroids through the public gae_scorer property; internal code uses _scorer.centroids.
+  DK weights access: get_dk_weights(); ordinary learn calls _refresh_dk_after_learn() and reestimate_dk_if_due().
+  IKS computation: _compute_iks(persist_artifacts=...) is the operational composite; _compute_checkpoint_iks() uses canonical centroid drift. IKSService.summary() and trajectory code expose separate presentation summaries.
+  Persistence: export(path) and load(path, db_path=None). load restores centroids; it does not restore DK weights or GraphStore decisions. Restart tests must compare centroids and probe-score behavior, not claim full-store restoration.
+  Store: DecisionStore no longer exists. copilot_sdk.graph.protocol.GraphStore defines write_decision(...)->str, write_outcome(...)->None, get_decisions(domain, category=None, limit=400), count_verified(domain), and count_correct(domain), with memory/SQLite/AGE-compatible implementations.
+  Preset shapes: SOC(6,4,6), S2P(5,5,8), Trading(5,4,10), Purchasing(5,4,7), DataOps(6,5,6).
+  theta_min: compute_theta_min(alpha, V) = 23.53 / (alpha * V); alpha is category coverage and V is verified count. A deterministic RED fixture can use at least 100 recent incorrect verified outcomes across all categories, producing q=0 and violating both the formula and rolling-accuracy guard.
+
+SECTION 3 FINDINGS (Integrity Infrastructure):
+  integrity/ file count: 12 non-cache files (21 including __pycache__ artifacts).
+  Existing tests:
+    - integrity/test_innovation_claims.py: 9 tests for accuracy at 50/200/400, DK convergence/nonuniformity, conservation RED/GREEN, reconvergence, DefaultPromotionGate RED, and scorer reload.
+    - integrity/test_innovation_incremental.py: incremental checks included in the standalone run.
+    - integrity/test_product_truth.py: restart, two broad counterfactual checks, displayed-factor equality, and sample-provenance rejection.
+  Standalone result: 13 passed, 7 failed.
+  7 failing tests root causes:
+    - Five test_product_truth failures construct InMemoryGraphStore without profile="test". resolve_profile defaults to production, so production correctly rejects a memory store. GRAPH_BACKEND does not select the profile.
+    - Two conservation failures write outcomes directly to GraphStore after the scorer populated _verified_decisions_cache. The out-of-band writes do not invalidate that cache. Clearing it yields the expected RED state, so this is a fixture-design defect rather than a conservation-formula defect.
+  Shared state: test_innovation_claims.py has module-level _SCORER_CACHE but returns deep copies. New comparative tests should create a fresh scorer per test and remove this hidden coupling.
+  pytest collection mechanism: pyproject.toml has no testpaths. integrity/ has __init__.py and no conftest.py. The tests are omitted because the gate explicitly runs `pytest tests/`; adding testpaths would not change that explicit path. Move tests to tests/integrity/ or change every gate to `pytest tests/ integrity/`. Moving them is the safer durable choice.
+  Architecture scanner: current checks are AGE-01 raw SQL in copilot_sdk, AGE-02 MERGE in copilot_sdk literals, LANG-01 Purchasing raw internal identifiers, F-25 naming, ARCH-20 centroid access, and PROV-01 badge inventory. It supports --check/--report, and run_t0.ps1 invokes --check. The old three check definitions do not match exactly, and run_t0.sh is absent.
+  Loader functions available: load_benchmark() -> tuple[list[dict], list[dict]] plus private _read_json and _validate_header. The six old helper names are otherwise absent.
+  Benchmark seed: 20260711
+  Benchmark split: 400 train + 100 held-out evaluation rows; factor dimension is Trading D=10 and values lie in [0.05, 0.95). Both frozen JSON fixtures exist and have decision_id, split, category/factors or outcome fields.
+
+SECTION 4 FINDINGS (Evidence/IKS):
+  Evidence construction: there is no single build_evidence API. ScoreResult echoes normalized factors; scorer persists graph evidence receipts; EvidenceProvider/VLDInvestigator build investigation evidence; situation evidence_chain is structured caller input; EvidenceGate evaluates evidence tiers.
+  Top factor access: no public top_factor accessor exists. Fingerprint weight is learned precision and must not be mislabeled as local influence. A faithful test should compute local sensitivity by flipping each input with score_read_only(), or use VLDInvestigator.compute_Q when testing its precision/discrimination/leverage ranking.
+  IKS API for tests: use scorer._compute_iks(persist_artifacts=False) for the current operational composite and _compute_checkpoint_iks() only for centroid-drift claims. Do not compare the trajectory service's simplified summary as if it were the same metric.
+  Provenanced interface: @dataclass(frozen=True) Provenanced(Generic[T]) with value: T, source: str, label: str | None = None, as_of: str | None = None.
+  Provenance decision: retain str at v0.9.61. Production emits more sources than the old Literal["learned", "graph_store", "fixture"], so narrowing to that Literal would reject current valid provenance.
+
+SECTION 5 FINDINGS (Cross-Loop):
+  Compounding loops found:
+    - L1 scorer learning: CompoundingScorer.learn(); RED/error pauses before centroid mutation.
+    - L1b DK update: normal refresh runs only after L1 passes, but public reestimate_dk_if_due() has no independent conservation guard.
+    - L2 scorer/rule promotion: AgentEvolver plus DefaultPromotionGate; missing state blocks. Scorer _run_evolution() reads conservation independently.
+    - L2b prompt promotion: PromptVariantEvolver plus DefaultPromotionGate predicate; RED/missing/provider errors block.
+    - Trading custom agent evolution: provider is consulted at several stages; those calls can observe different snapshots.
+    - Autonomous promotion: AutonomousPromotionGate requires an explicit status and blocks non-GREEN.
+    - Legacy AE promotion: copilot_sdk.ae.gate.PromotionGate defaults missing state to GREEN and needs correction or deprecation.
+    - Cross-domain transfer: GlobalConservationGate protects transfer, but check_transfer() currently takes more than one live snapshot.
+  Conservation gating per loop: the common state vocabulary exists, but checks are split between scorer logic, DefaultPromotionGate, CompositeGate, GlobalConservationGate, and private predicates.
+  Shared snapshot: NO. Scorer learning, scorer evolution, prompt evolution, Trading evolution, and transfer read independently. CachedAsyncProvider can stabilize reads inside its TTL but is not a universal coordinator.
+
+SECTION 6: UPDATE SPECIFICATION
+
+  Prompt: cgov_impl
+    A. VERDICT: UPDATE.
+    B. STALE REFERENCES TO FIX:
+      - Old: create/inject ConservationGate and call check(). New: reuse ConservationState, ConservationStateProvider, normalize_conservation_state, and DefaultPromotionGate. Replacement: "Establish one public conservation-safety contract in conservation_contract.py and make every governed loop delegate to it; do not create another gate class."
+      - Old: modify prompt_evolver.py at v0.7.74 line 225. New: v0.9.61 PromptVariantEvolver is already gated. Replacement: preserve and verify its pre-sample gate; replace its call to a private predicate with the public contract if that contract is added.
+      - Old: only prompt_evolver.py plus one new test. New: GC-02/05/06/07/08 span scorer, promotion gates, providers, and tests.
+      - Old: assert ConservationGate is the only gate class. New: assert all state-mutating learning/promotion loops use one normalized conservation safety predicate; unrelated EvidenceGate/QualificationGate remain valid.
+    C. MISSING WORK TO ADD:
+      - Publish one side-effect-free conservation safety function in conservation_contract.py and delegate DefaultPromotionGate to it.
+      - Capture one normalized snapshot at the start of a scorer learn operation and thread it through centroid, DK, and any triggered evolution work.
+      - Guard direct public DK re-estimation or make the unchecked form private and callable only after a proven-safe snapshot.
+      - Change legacy ae.PromotionGate's omitted-state behavior from GREEN to fail-closed, or deprecate/remove it after proving no callers.
+      - Make provider exceptions produce a blocked result in every promotion loop; add a cross-loop matrix for RED, missing, and exception.
+      - Define GC-08 honestly: the same immutable normalized snapshot value must be passed to each loop in the integration test. If temporal identity across independently scheduled loops is required, add an explicit snapshot coordinator rather than pretending separate reads are one snapshot.
+    D. WORK TO REMOVE:
+      - Remove all instructions to invent ConservationGate, add a constructor gate parameter to PromptVariantEvolver, or duplicate existing GC-04 prompt tests.
+    E. FILE MAP:
+      - copilot_sdk/evolution/conservation_contract.py — MODIFY: public normalization/safety contract; keep providers stateless except documented CachedAsyncProvider cache.
+      - copilot_sdk/evolution/gate.py — MODIFY: DefaultPromotionGate delegates conservation evaluation to the public contract.
+      - copilot_sdk/evolution/prompt_evolver.py — MODIFY only if needed to use the public contract; preserve one pre-sample promotion point and current result reasons.
+      - copilot_sdk/scoring/scorer.py — MODIFY: one snapshot per learn transaction; gate centroid, DK refresh, and triggered scorer evolution; preserve score/learn result contracts.
+      - copilot_sdk/ae/gate.py — MODIFY: remove fail-open default or deprecate the unused legacy gate.
+      - copilot_sdk/evolution/evolver.py and copilot_sdk/conservation/global_gate.py — VERIFY_ONLY first; MODIFY only where repeated reads or exceptions bypass the shared contract.
+      - tests/test_conservation_gate_coverage.py — MODIFY: replace source-code introspection with behavioral contract tests.
+      - tests/test_gate_enforced_scorer.py and tests/evolution/test_gate_fail_closed.py — MODIFY: centroid/DK unchanged plus missing/error cases.
+      - tests/evolution/test_prompt_promotion_gate.py — VERIFY_ONLY for existing GC-04 coverage.
+      - tests/evolution/test_cross_loop_conservation.py — CREATE: GC-05 through GC-08 matrix using one immutable snapshot.
+    F. DEPENDENCY MAP: clean integrity/root baseline; existing GraphStore test implementation; current ConservationStateProvider; no new persistence API.
+    G. PYTEST COLLECTION: all C-GOV tests must live below tests/ and are collected by `pytest tests/`.
+
+  Prompt: cgov_review
+    A. VERDICT: UPDATE.
+    B. STALE REFERENCES TO FIX: review DefaultPromotionGate/public conservation contract instead of ConservationGate/check(); use v0.9.61 paths and current signatures; remove gate-class uniqueness grep.
+    C. MISSING WORK TO ADD: independently trace every state mutation, prove one snapshot per transaction, verify no direct DK/legacy-AE bypass, run behavioral GC-01..GC-08, and inspect backward compatibility for GREEN.
+    D. WORK TO REMOVE: line-225 premise checks and tests that merely grep class names.
+    E. FILE MAP: VERIFY_ONLY every production/test file in cgov_impl plus all callsites of learn(), reestimate_dk_if_due(), DefaultPromotionGate, PromptVariantEvolver, and ae.PromotionGate.
+    F. DEPENDENCY MAP: cgov_impl complete with recorded diff boundary.
+    G. PYTEST COLLECTION: run targeted GC tests, full tests/, and any app tests for modified provider wiring.
+
+  Prompt: c0_part1_impl
+    A. VERDICT: UPDATE.
+    B. STALE REFERENCES TO FIX:
+      - Old scanner expects three differently named checks and run_t0.sh. New scanner has six checks and run_t0.ps1. Replacement: preserve current checks, add missing repo scopes and raw sqlite3.connect rule, and keep PowerShell runner; add a shell runner only for a documented Linux CI requirement.
+      - Old Provenanced source Literal has three values and no as_of. New class has source: str and as_of. Replacement: verify frozen/generic/serialization behavior and keep the extensible source contract.
+      - Old benchmark module exposes six helpers, seed 42, 500+100. New frozen benchmark is seed 20260711, 400+100, D=10. Replacement: do not regenerate fixtures; add helpers around load_benchmark() and current scorer APIs.
+      - Old import is scoring.compounding. New import is scoring.scorer.
+    C. MISSING WORK TO ADD:
+      - Scanner: keep existing AGE-01; broaden MERGE scanning to the intended repositories; add a separate no-raw-sqlite production check; add the intended kitchen-language regex without deleting the current raw-identifier check; test missing sibling repos and exit codes.
+      - Benchmark helpers with actual interfaces: load_benchmark_split alias/wrapper, train_scorer(domain, train_data, n_decisions, *, profile="test"), held-out measure_accuracy, measure_accuracy_with_weights using score_with_model_state, decisions_to_threshold, and inject_disruption over gae_scorer.centroids with bounds/copy isolation.
+      - Add fixture integrity tests for deterministic headers, 400/100 split, D=10, and [0,1] values.
+      - Add Provenanced contract tests; no production type narrowing.
+    D. WORK TO REMOVE: regeneration to seed 42, 500 training rows, DecisionStore usage, old preset shapes, and forced run_t0.sh creation.
+    E. FILE MAP:
+      - integrity/architecture_scan.py — MODIFY: extend checks and preserve current CLI.
+      - integrity/run_t0.ps1 — VERIFY_ONLY or MODIFY only if new checks require arguments.
+      - integrity/load_benchmark.py — MODIFY: add six public helpers using CompoundingScorer.from_preset(..., profile="test").
+      - integrity/benchmark_fixture.py and integrity/fixtures/*.json — VERIFY_ONLY; frozen artifacts must not be regenerated.
+      - copilot_sdk/evidence/provenance.py — VERIFY_ONLY.
+      - tests/test_integrity_scanner.py — MODIFY for expanded checks.
+      - tests/integrity/test_benchmark_fixture.py — CREATE.
+      - tests/test_provenance.py — CREATE or extend an existing provenance test module.
+    F. DEPENDENCY MAP: prerequisite integrity baseline repair; GraphStore test profile; actual five presets.
+    G. PYTEST COLLECTION: new tests under tests/integrity/ are collected by `pytest tests/`; integrity helper modules remain non-test support files.
+
+  Prompt: c0_part1_review
+    A. VERDICT: UPDATE.
+    B. STALE REFERENCES TO FIX: review seed 20260711/400+100/current shapes and source:str+as_of; recognize run_t0.ps1; use scoring.scorer.
+    C. MISSING WORK TO ADD: validate all old and new scanner checks, root auto-detection, missing-directory behavior, held-out separation, scorer isolation, perturbation efficacy, and fixture immutability/hash.
+    D. WORK TO REMOVE: failure solely because the old seed, split, Literal, or .sh runner differs.
+    E. FILE MAP: VERIFY_ONLY the Part 1 implementation map plus pyproject test configuration.
+    F. DEPENDENCY MAP: c0_part1_impl and pre-fix complete.
+    G. PYTEST COLLECTION: run tests/test_integrity_scanner.py, tests/integrity/test_benchmark_fixture.py, provenance tests, scanner --check, then full tests/.
+
+  Prompt: c0_part2_impl
+    A. VERDICT: SPLIT into deterministic claim tests and external commercial smoke.
+    B. STALE REFERENCES TO FIX:
+      - Old test paths are integrity/test_*.py. New collected paths must be tests/integrity/test_innovation_claims.py, test_judgment_memory.py, and test_counterfactual.py.
+      - Old judgment-transfer claim assumes shared cross-domain learned state. Current product truth explicitly says only signals transfer. Replacement: test per-domain memory persistence and, separately, signal transfer without centroid-state transfer.
+      - Old top-factor API does not exist. Replacement: calculate local sensitivity with score_read_only() or explicitly test VLDInvestigator.compute_Q.
+      - Old commercial smoke is an in-process scorer loop. Replacement: HTTP smoke with argparse, configurable base URLs, timeouts, JSON validation, and a CHECKS map.
+    C. MISSING WORK TO ADD:
+      - Eight comparative tests on fresh scorers and the same held-out set: accuracy improvement; uniform-vs-learned DK; RED blocks and GREEN allows; disruption demonstrably lowers accuracy before reconvergence comparison; three-point IKS trajectory using one selected IKS definition; same category/action penalty asymmetry; truthful signal transfer; all five current presets/shapes.
+      - Four judgment tests: export/load centroid and probe-score survival; persisted GraphStore decision order; count_verified consistency with scorer belief; centroid movement toward a verified outcome using vector distance.
+      - Three counterfactual tests: one-factor flip in [0,1] changes score distribution; identical perturbation under high/low explicit DK weights has appropriately different impact; displayed GREEN/RED matches the actual gate result in both directions.
+      - HTTP smoke checks: SOC POST /api/alert/analyze; S2P POST /api/s2p/score; Trading, Purchasing, and DataOps POST /api/score. Payloads and base URLs must be per-copilot configuration, and every response must verify service identity plus expected schema, not only HTTP 200.
+      - commercial_smoke.py must handle connect/read timeout, connection refusal, non-JSON, non-2xx, and wrong-service responses; return 0 only when every selected check passes.
+    D. WORK TO REMOVE: module-level scorer cache, uncollected root integrity test modules, ad-hoc benchmark generation, cross-domain judgment-transfer claim, and in-process commercial smoke masquerading as HTTP validation.
+    E. FILE MAP:
+      - tests/integrity/test_innovation_claims.py — CREATE from corrected/migrated scenarios.
+      - tests/integrity/test_judgment_memory.py — CREATE.
+      - tests/integrity/test_counterfactual.py — CREATE.
+      - integrity/test_innovation_claims.py, integrity/test_innovation_incremental.py, integrity/test_product_truth.py — REMOVE or rename only after coverage migration; never leave duplicate collection.
+      - integrity/commercial_smoke.py — MODIFY as standalone HTTP CLI.
+      - tests/integrity/test_commercial_smoke_unit.py — CREATE unit tests for timeout, non-JSON, identity, selection, and exit aggregation without importing the script as a pytest test module if standalone independence is a hard requirement; otherwise test an extracted helper module.
+    F. DEPENDENCY MAP: pre-fix; c0_part1 benchmark helpers; known app base URLs and sample payloads; no live services for unit tests.
+    G. PYTEST COLLECTION: deterministic and smoke-unit tests live under tests/integrity/ and are collected by tests/. The standalone smoke script is run separately with --help and against an explicitly started stack.
+
+  Prompt: c0_part2_review
+    A. VERDICT: SPLIT review execution into deterministic claims and live-stack smoke, while one final review can combine the verdicts.
+    B. STALE REFERENCES TO FIX: current scorer/store/evidence/IKS APIs, current test paths, current shapes, and truthful signal-transfer claim.
+    C. MISSING WORK TO ADD: audit held-out isolation, fresh scorer instances, perturbation precondition, IKS-definition consistency, exact vector-distance assertions, both conservation directions, HTTP service identity, and all error modes.
+    D. WORK TO REMOVE: name-only verification of eight/seven tests and acceptance of any HTTP 200.
+    E. FILE MAP: VERIFY_ONLY all Part 2 files plus five application route definitions used by CHECKS.
+    F. DEPENDENCY MAP: both Part 2 implementation slices complete; five services available only for live smoke stage.
+    G. PYTEST COLLECTION: full tests/ must collect deterministic tests; live smoke remains an explicit command and records per-service results.
+
+SECTION 7: RECOMMENDED PROMPT SEQUENCE
+  Consolidation decision:
+    - Keep implementation and independent review separate.
+    - Do not combine C-GOV with C-0; C-GOV changes mutation governance and has a higher regression radius.
+    - Keep C-0 Part 1 as one implementation prompt: scanner, provenance verification, and benchmark helpers are approximately 3 production modifications, 2 test creations, and 3 verification-only artifacts.
+    - Split C-0 Part 2: deterministic scientific tests and live HTTP smoke have different dependencies and failure modes. Combined scope is too large for one reliable session.
+  Estimated remaining file actions:
+    - C-GOV: 1 test creation, approximately 5 production and 3 test modifications, 3 or more verification-only files; about 12-16 focused tests; medium-high risk.
+    - C-0 Part 1: 2 test creations, approximately 3 modifications, 4 verification-only artifacts; medium risk.
+    - C-0 Part 2 deterministic: 3 test creations and migration/removal of 3 root integrity test files; approximately 15 named scenarios; medium risk.
+    - Commercial smoke: 1 script modification plus 1 unit-test creation and five route verifications; medium integration risk.
+  Seven-failure decision: use a separate pre-fix prompt. Mixing baseline repairs with new claims would make regressions impossible to attribute; known-failure markers would hide real failures.
+  Collection decision: fix during the pre-fix prompt by moving executable tests under tests/integrity/. Do not rely on adding testpaths because the existing gate explicitly passes tests/.
+  Prompt sequence:
+    0. Integrity baseline repair — sol/high; small-medium; fix profile="test", invalidate scorer cache after direct fixture writes or use public writes, migrate collection, and fix stale F-25 lint. Dependency: none.
+    1. C-GOV implementation — astra/high; medium-high; canonical state contract, L1/L1b/L2/L2b fail-closed matrix, one-snapshot transaction semantics. Dependency: step 0 clean.
+    2. C-GOV independent review — terra/high; medium; behavioral GC-01..GC-08 and full regression. Dependency: step 1.
+    3. C-0 Part 1 implementation — sol/high; medium; scanner expansion, benchmark helpers, provenance verification. Dependency: step 0.
+    4. C-0 Part 1 review — terra/high; small-medium. Dependency: step 3.
+    5. C-0 Part 2A deterministic claims — sol/high; medium-high; 8+4+3 collected tests. Dependency: steps 0 and 3.
+    6. C-0 Part 2B commercial HTTP smoke — sol/high; medium integration; configurable five-service checks. Dependency: current route contracts and sample payloads.
+    7. C-0 Part 2 combined review — terra/high; medium; deterministic suite plus live smoke results. Dependency: steps 5 and 6.
+  Credit control: reserve astra only for the cross-loop C-GOV mutation redesign. Use sol for implementations and terra for bounded independent reviews.
+
+SECTION 8: STALE TEST
+  Failing test: tests/test_ent03_models.py::test_no_incorrect_rl_naming
+  Root cause: its regex bans "no reward function" across .md files. docs/quality/product_integrity_execution_strategy_v3_0.md intentionally uses "we have no reward function for judgment" as approved C-18 wording in several active sections. The second banned phrase, "RL-based decision", remains a legitimate guard.
+  Recommendation: fix the test, not the strategy document and not the docs scan scope. Remove or narrow the first regex so it allows the exact C-18 sentence, retain bans on claims that label supervised judgment learning as RL, and add a positive regression assertion for the approved C-18 wording.
+
+Status: COMPLETE
+
+
+INTEGRITY BASELINE REPAIR (Pre-C-GOV/C-0)
+Date: 2026-09-28
+Model: sol/high
+Phase 0 findings:
+  InMemoryGraphStore failures:
+    - integrity/test_product_truth.py::test_scorer_state_survives_process_restart
+    - integrity/test_product_truth.py::test_counterfactual_faithfulness
+    - integrity/test_product_truth.py::test_counterfactual_direction
+    - integrity/test_product_truth.py::test_displayed_factor_matches_computed
+    - integrity/test_product_truth.py::test_sample_value_rejected_from_metric
+    - Root cause: the shared _scorer() injected InMemoryGraphStore but omitted profile="test" from CompoundingScorer.from_preset(), so resolve_profile() selected production and correctly rejected a non-AGE store. InMemoryGraphStore itself has no profile parameter.
+  Cache invalidation failures:
+    - integrity/test_innovation_claims.py::test_conservation_fires_on_degradation
+    - integrity/test_innovation_claims.py::test_reconvergence_after_disruption
+    - Root cause: direct GraphStore.write_outcome() batches bypassed CompoundingScorer.learn() and left _verified_decisions_cache stale. No public invalidation method exists; production invalidates this cache by assigning None after governed writes.
+  Lint test failure:
+    - tests/test_ent03_models.py::test_no_incorrect_rl_naming
+    - Matched regex: the concatenated tokens "no reward" and "function".
+    - Files: docs/quality/product_integrity_execution_strategy_v3_0.md approved C-18 wording and the execution-plan quotation in docs/session_state.md.
+  Test migration:
+    - integrity/test_innovation_claims.py -> tests/integrity/test_innovation_claims.py
+    - integrity/test_innovation_incremental.py -> tests/integrity/test_innovation_incremental.py
+    - integrity/test_product_truth.py -> tests/integrity/test_product_truth.py
+    - Non-test loaders, fixtures, scanners, CLI scripts, and integrity/__init__.py remain in integrity/.
+  SDK root baseline (pre-migration): 3,792 collected; 3,791 passed and 1 failed in the prior full run.
+  Standalone integrity baseline: 20 collected; 13 passed and 7 failed.
+Phase 1 design:
+  Add profile="test" once to the shared product-truth scorer factory; set COPILOT_PROFILE=test inside the restart test's child process because CompoundingScorer.load() has no profile parameter; clear _verified_decisions_cache after each direct outcome batch and before conservation reads; migrate all three executable modules to a collected tests/integrity package; use a relative import between migrated tests; whitelist only Markdown-normalized lines containing the exact approved C-18 sentence while retaining repository-wide scans and the RL-based-decision ban; assert that the strategy document contains the approved sentence. No conftest is needed.
+Phase 2 implementation:
+  Files modified:
+    - tests/integrity/test_innovation_claims.py: invalidates the verified-decision cache after noisy and recovery outcome batches.
+    - tests/integrity/test_innovation_incremental.py: imports its migrated sibling through the tests.integrity package.
+    - tests/integrity/test_product_truth.py: selects the test profile in parent and restart subprocess; replaces a banned type-ignore with an explicit cast.
+    - tests/test_ent03_models.py: exact C-18 whitelist plus positive approved-wording regression assertion.
+  Files moved:
+    - integrity/test_innovation_claims.py -> tests/integrity/test_innovation_claims.py
+    - integrity/test_innovation_incremental.py -> tests/integrity/test_innovation_incremental.py
+    - integrity/test_product_truth.py -> tests/integrity/test_product_truth.py
+  Files created:
+    - tests/integrity/__init__.py
+  No conftest was required. No production code was modified.
+Status: COMPLETE
+Test counts:
+  SDK root (post-migration): 3,812 passed, 0 failures (3,812 collected; 1,035.98 seconds)
+  tests/integrity/: 20 passed, 0 failures
+  Integrity standalone (non-test only): 0 tests collected; no executable test functions remain
+Notes: Both naming tests passed. Mypy passed on all five changed/created Python paths. The changed-file banned-pattern scan found no body_iterator or type-ignore. Random sampling passed 93 tests across test_oracle_protocols.py, test_sqlite_to_age_migration.py, and test_dataops_oracle.py. architecture_scan, benchmark_fixture, commercial_smoke, correctness_scanner, and load_benchmark remain importable. The only discovery deviation was that profile belongs to CompoundingScorer.from_preset(), not InMemoryGraphStore; the restart subprocess also needed the same test profile because load() does not accept one.
+
+
+C-GOV (B27) — Cross-Loop Conservation Contract
+Date: 2026-09-28
+Model: astra/high
+Phase 0 findings:
+  Baseline prerequisite: INTEGRITY BASELINE REPAIR is COMPLETE. Current tag is v0.9.61. SDK root collection is 3,812 tests; the recorded post-repair full run is 3,812 passed, 0 failures.
+  Existing contract: copilot_sdk/evolution/conservation_contract.py already exists. It defines ConservationStatus, ConservationState, ConservationStateProvider, normalize_conservation_state(), ScorerBackedProvider, and CachedAsyncProvider. Provider failures are converted to UNKNOWN by the provider adapters.
+  DefaultPromotionGate: evaluate(shadow_results, conservation_state=None) preserves batch sufficiency, data sufficiency, one-sided statistical significance, practical significance, accuracy floor, conservation, and variance checks. Conservation currently uses private _is_conservation_safe(), accepting GREEN/VERIFIED/ACTIVE and explicit overallSafe markers; missing and malformed inputs fail closed.
+  Prompt evolution: PromptVariantEvolver already resolves provider state before sample/improvement checks and blocks RED as conservation_gate_red and missing/provider error as conservation_gate_unavailable. It calls DefaultPromotionGate._is_conservation_safe() directly. Prompt promotion is a separate operation from scorer learn.
+  Scorer learning: learn() calls _conservation_pause() before centroid mutation. Infrastructure read failure returns a fail-closed pause. RED pauses. PRESEED, COLD_START, and BOOTSTRAP intentionally return no pause so verified learning can establish the history needed to compute conservation. After a successful centroid/outcome write, learn() refreshes DK and may run scorer evolution every 20 learns.
+  DK path: reestimate_dk_if_due() is public and has no conservation guard. _refresh_dk_after_learn() calls it after 400 verified decisions. Other production calls exist in migrate/verify_state.py and backend/scorer_proxy.py.
+  Scorer evolution: _run_evolution() independently calls _evolution_conservation_state() and supplies it to AgentEvolver. AgentEvolver delegates to DefaultPromotionGate before promotion; gate exceptions prevent mutation.
+  Legacy AE gate: copilot_sdk/ae/gate.py PromotionGate.evaluate/check/should_promote default conservation_state to GREEN. The package exports the class, but no active production caller was found.
+  Global transfer: GlobalConservationGate fails mutation when reads raise, but check_transfer() reads snapshot once and then transfer_allowed() reads it again, so a single transfer decision can observe two snapshots.
+  Trading custom evolution: trading_evolver.py has a duplicate _conservation_green() predicate. run_shadow(), check_promotion(), and promote() independently call the provider; promote() calls check_promotion() and then reads again before mutation.
+  Worktree/tag state: evolver.py, prompt_evolver.py, and scorer.py already contain unrelated uncommitted changes. The worktree has approximately 185 dirty paths. Current v0.9.61 is newer than the requested v0.7.74-sdk target.
+Phase 1 design:
+  A safe implementation needs an immutable operation-aware result, not one context-free bool. A viable revised contract would normalize one raw snapshot into fields such as available, status, learning_allowed, promotion_allowed, and reason. GREEN permits learning and promotion; PRESEED/COLD_START/BOOTSTRAP permit verified learning but deny promotion; RED/AMBER/CALIBRATING/UNKNOWN/unavailable deny automated promotion, and unavailable denies learning. Provider resolution must remain outside the pure predicate and convert exceptions into an unavailable snapshot.
+  CompoundingScorer.learn() could capture one immutable result before mutation and thread it through centroid update, DK refresh, and any scorer evolution triggered by that learn. Direct public DK re-estimation would need a separately guarded entry point plus a private snapshot-authorized implementation.
+  DefaultPromotionGate, PromptVariantEvolver, the legacy AE gate, Trading's custom evolver, and GlobalConservationGate could delegate promotion/transfer decisions to the promotion_allowed field. Trading promote() and global check_transfer() would need to pass one captured snapshot through their internal checks.
+  GC-08 must be redefined: one learn transaction can share a snapshot across L1, L1b, and triggered L2; L2b prompt promotion has no shared transaction or coordinator with learn. Covering L2b with the identical snapshot requires a new orchestration/snapshot-coordinator API and wider application wiring.
+  Tagging must target a version newer than v0.9.61. Any eventual commit must stage only C-GOV paths or run from a clean isolated worktree; git add -A is unsafe in the current cumulative worktree.
+Phase 2 implementation:
+  Not started. No production or test files were changed.
+Status: DESIGN_BLOCKED
+Test count: SDK root 3,812 collected; last recorded full run 3,812 passed, 0 failures
+GC tests: not created
+Notes: The prompt requires one context-free safety predicate while current lifecycle semantics require different learning and promotion decisions for the same COLD_START/BOOTSTRAP snapshot. It also requires one transaction across independently scheduled scorer and prompt-evolution loops. Resolve those contract semantics, update GC-08's boundary or introduce a coordinator, provide a forward tag target, and replace git add -A with scoped staging before implementation.
+
+
+C-GOV DESIGN VERIFICATION (B27 Pre-Implementation)
+Date: 2026-09-28
+Model: sol/high
+Phase 0 codebase findings:
+  conservation_contract.py: exists; it already provides ConservationState, ConservationStateProvider, normalization, ScorerBackedProvider, and CachedAsyncProvider. It must be extended rather than replaced.
+  Current conservation checks: scorer.learn() uses _conservation_pause(); direct DK re-estimation is unguarded; DefaultPromotionGate owns a private parser; PromptVariantEvolver calls that private parser; the legacy AE gate defaults to GREEN; global transfer and Trading promotion can read state twice.
+  Transaction boundaries: centroid learning and its internal DK refresh share scorer.learn(); scorer evolution is a post-outcome promotion transaction; direct DK refresh, prompt promotion, Trading promotion, and global transfer are independent transactions. The scoring router currently risks a second DK mutation after learn.
+  Git state: tag v0.9.61, branch main, 185 changed or untracked paths. prompt_evolver.py, scorer.py, evolver.py, and scoring_router.py have pre-existing changes relevant to staging safety.
+  Test baseline: 3,812 collected; last recorded full run 3,812 passed, 0 failures.
+Conflict resolutions: K1=use one frozen operation-aware decision with learning_allowed and promotion_allowed; K2=one immutable snapshot per real transaction, not across independent scorer and prompt requests; K3=modify and preserve the existing contract module; K4=target v0.9.62 only after isolating prerequisite work, with explicit or hunk-level staging and never git add -A.
+Design document: docs/cgov_design_v1.md
+Status: DESIGN_COMPLETE
+
+C-GOV (B27) — Cross-Loop Conservation Contract
+Date: 2026-09-29
+Model: sol/high
+Design source: docs/cgov_design_v1.md
+Phase 0 confirmation: design matches codebase yes. The existing contract/providers were preserved; the operation-aware contract resolved bootstrap learning versus promotion; scorer learning, post-outcome evolution, prompt evolution, global transfer, and Trading promotion remain separate snapshot transactions.
+Phase 2 implementation:
+  Files created:
+    - tests/evolution/test_cross_loop_conservation.py: GC-01 through GC-08 behavioral coverage.
+  Files modified:
+    - copilot_sdk/evolution/conservation_contract.py: immutable operation-aware safety decision and expanded status normalization.
+    - copilot_sdk/evolution/__init__.py: public contract exports.
+    - copilot_sdk/evolution/gate.py: DefaultPromotionGate delegates to the public contract.
+    - copilot_sdk/evolution/prompt_evolver.py: one resolved safety decision per promotion transaction.
+    - copilot_sdk/scoring/scorer.py: one L1 snapshot guards learning and internal DK refresh; direct L1b is guarded; L2 captures a fresh post-outcome snapshot.
+    - copilot_sdk/backend/scoring_router.py: real scorer learning owns the L5 DK mutation; legacy doubles retain compatibility.
+    - copilot_sdk/ae/gate.py: removed fail-open GREEN defaults and delegated admission.
+    - copilot_sdk/conservation/global_gate.py: one snapshot per transfer decision.
+    - apps/trading/backend/app/services/trading_evolver.py: public contract delegation and one snapshot per promotion.
+    - copilot_sdk/evolution/evolver.py: accepts the immutable decision as pass-through state.
+    - copilot_sdk/migrate/verify_state.py: offline replay supplies an explicit PRESEED decision to governed DK re-estimation.
+    - tests/test_conservation_gate_coverage.py: asserts public-contract delegation.
+    - tests/test_conservation_contract.py: decision-table, precedence, malformed-input, and identity coverage.
+    - tests/test_ae_framework.py: success cases explicitly supply GREEN after fail-closed default change.
+    - tests/test_supplier_signal.py: isolates purchasing submodule imports from application startup and an unreachable inherited AGE DSN during the full-suite gate.
+  Files NOT modified (design said optional): none; evolver.py required a type-compatible pass-through annotation.
+Status: COMPLETE
+Test count: SDK root 3,833 passed, 0 failures
+GC tests: 8 passed, 0 failures
+Notes: The SDK's direct DK schedule remains 400 verified decisions; the scoring router passes its established L5 boundary of 200 into learn so the mutation occurs under the scorer snapshot. Mypy passed on all 16 changed or created Python files. The banned-pattern scan and git diff --check passed. GREEN paths, bootstrap learning, fail-closed paths, and independent single-snapshot transaction boundaries passed targeted and full-suite coverage. The full suite emitted existing warnings but no skips or failures.
+
+C-GOV REVIEW (B27)
+Date: 2026-09-29
+Model: terra/high
+Design source: docs/cgov_design_v1.md
+Files reviewed:
+  - apps/trading/backend/app/services/trading_evolver.py
+  - copilot_sdk/ae/gate.py
+  - copilot_sdk/backend/scoring_router.py
+  - copilot_sdk/conservation/global_gate.py
+  - copilot_sdk/evolution/__init__.py
+  - copilot_sdk/evolution/conservation_contract.py
+  - copilot_sdk/evolution/evolver.py
+  - copilot_sdk/evolution/gate.py
+  - copilot_sdk/evolution/prompt_evolver.py
+  - copilot_sdk/migrate/verify_state.py
+  - copilot_sdk/scoring/scorer.py
+  - tests/evolution/test_cross_loop_conservation.py
+  - tests/test_ae_framework.py
+  - tests/test_conservation_contract.py
+  - tests/test_conservation_gate_coverage.py
+  - tests/test_supplier_signal.py
+Findings: 10
+  - P1 copilot_sdk/scoring/scorer.py:1044 — blocked learning mutates _last_conflict before checking the captured conservation pause.
+  - P1 copilot_sdk/scoring/scorer.py:1057 — the blocked/pause branch persists conservation, centroid-checkpoint, and fingerprint artifacts despite the design requiring ancillary writes only after admission.
+  - P1 copilot_sdk/evolution/prompt_evolver.py:177 — family=None resolves conservation separately for each family, so one check_for_promotion transaction can observe multiple snapshots.
+  - P1 copilot_sdk/conservation/global_gate.py:57 — aggregate parsing treats COLD_START/BOOTSTRAP/CALIBRATING/CONSERVATION_UNAVAILABLE as GREEN when another domain is the transfer source/target; reproduced transfer allowed with a third domain COLD_START.
+  - P1 copilot_sdk/backend/scoring_router.py:881 — _persist_dk_state_l5 still invokes reestimate_dk_if_due when the payload lacks dk_refresh, retaining a production duplicate-mutation path.
+  - P1 apps/trading/backend/app/services/trading_evolver.py:287 — check_for_promotion ignores its conservation_state argument; reproduced an explicit RED request returning promotable under a GREEN provider.
+  - P1 v0.9.62 tagged tree — the exact tag is not green or self-contained: 3,726 passed and 10 failed, including eight failures because copilot_sdk.backend.graph_access is absent while the current S2P checkout imports it; collection is 3,736, below the required 3,820 floor.
+  - P2 copilot_sdk/evolution/prompt_evolver.py:231 — available unsafe AMBER/CALIBRATING states are reported as conservation_gate_unavailable instead of an unsafe/red reason.
+  - P2 tests/evolution/test_cross_loop_conservation.py:191 — GC-06/GC-07 do not exercise real L1 learn or L2 rule mutation, and GC-08 omits L1, direct L1b, and scorer L2 snapshot counts; source inspection substitutes for the router mutation assertion.
+  - P2 copilot_sdk/evolution/evolver.py:112 — mypy fails on the exact tag with two no-any-return errors; the implementation gate passed only because unrelated unstaged cast changes were present in the dirty worktree.
+Test count: exact v0.9.62 SDK root 3,726 passed, 10 failures (3,736 collected); dirty implementation worktree previously reported 3,833 passed, 0 failures
+Targeted tests:
+  - tests/evolution/: 225 passed
+  - scorer-selected: 197 passed
+  - conservation-selected: 226 passed
+GC tests: 8 passed, 0 failures
+Conservation gate coverage test: 4 passed, 0 failures
+Contract checks: decision table, normalization, identity preservation, side-effect freedom, and preserved exports passed review
+Mypy: FAIL on exact tag (copilot_sdk/evolution/evolver.py:112,115); 15 other changed Python files passed
+Banned patterns/F-25 additions: PASS
+Verdict: NEEDS_FIXER

@@ -16,6 +16,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
+from copilot_sdk.backend.graph_access import (
+    GRAPH_CONNECTION_ERRORS, graph_call, graph_unavailable, require_graph_store,
+)
 from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
 from copilot_sdk.backend.diagnostics_models import build_diagnostics
 from copilot_sdk.backend.models import (
@@ -170,11 +173,8 @@ def create_scoring_router(
                 )
             except ValueError as exc:
                 raise HTTPException(status_code=404, detail=str(exc)) from exc
-            except Exception as exc:
-                raise HTTPException(
-                    status_code=503,
-                    detail=f"Graph store unavailable for domain {domain!r}: {exc}",
-                ) from exc
+            except GRAPH_CONNECTION_ERRORS as exc:
+                raise graph_unavailable(exc) from exc
             _require_graph_store(scorer, domain)
             scorer_cache["scorer"] = scorer
         return scorer_cache["scorer"]
@@ -215,8 +215,8 @@ def create_scoring_router(
             await load_stable_context(request)
         except (AssertionError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except Exception as exc:
-            raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+        except GRAPH_CONNECTION_ERRORS as exc:
+            raise graph_unavailable(exc) from exc
         return await run_in_threadpool(score_sync, request)
 
     def score_sync(request: ScoreRequest) -> dict[str, Any]:
@@ -235,16 +235,16 @@ def create_scoring_router(
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
-            except Exception as exc:
-                raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+            except GRAPH_CONNECTION_ERRORS as exc:
+                raise graph_unavailable(exc) from exc
             payload = _json_safe(result)
             payload["engine"] = ENGINE
             payload = _score_response_payload(payload)
             if score_payload_enricher is not None:
                 payload = score_payload_enricher(payload)
-            apply_cache_invalidation_event(domain, "score")
             if query_cache_invalidator is not None:
                 query_cache_invalidator()
+            apply_cache_invalidation_event(domain, "score")
             return payload
 
     @router.post("/learn", response_model=LearnResponse,
@@ -300,8 +300,8 @@ def create_scoring_router(
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
-            except Exception as exc:
-                raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+            except GRAPH_CONNECTION_ERRORS as exc:
+                raise graph_unavailable(exc) from exc
 
             payload = _json_safe(result)
             if payload.get("blocked_by_gate") is True:
@@ -387,22 +387,28 @@ def create_scoring_router(
                 ),
             )
             _finalize_learn_persistence(payload)
-            apply_cache_invalidation_event(domain, "learn")
             if query_cache_invalidator is not None:
                 query_cache_invalidator()
+            apply_cache_invalidation_event(domain, "learn")
             return payload
 
     @router.get("/fingerprint", response_model=FingerprintResponse)
     def fingerprint(request: Request) -> dict[str, Any]:
+        materialized = _materialized_response(request, "fingerprint")
+        if materialized is not None:
+            return materialized
         scorer = get_scorer()
-        payload = _json_safe(scorer.fingerprint())
+        payload = _json_safe(graph_call(scorer.fingerprint))
         payload["engine"] = ENGINE
         return payload
 
     @router.get("/trajectory", response_model=TrajectoryResponse)
     def trajectory(request: Request) -> dict[str, Any]:
+        materialized = _materialized_response(request, "trajectory")
+        if materialized is not None:
+            return materialized
         scorer = get_scorer()
-        payload = _json_safe(scorer.trajectory())
+        payload = _json_safe(graph_call(scorer.trajectory))
         payload["engine"] = ENGINE
         return payload
 
@@ -410,8 +416,8 @@ def create_scoring_router(
     def health() -> dict[str, Any]:
         scorer = get_scorer()
         return {
-            "phase": scorer.get_phase(),
-            "alpha": scorer.get_alpha(),
+            "phase": graph_call(scorer.get_phase),
+            "alpha": graph_call(scorer.get_alpha),
             "engine": ENGINE,
         }
 
@@ -428,36 +434,49 @@ def create_scoring_router(
             scorer = get_scorer()
             result: dict[str, Any] = build_diagnostics(domain, scorer, scorer.graph_store, extras=extras)
             return result
-        except Exception as exc:
-            logger.exception("Diagnostics failed for %s", domain)
-            result = build_diagnostics(domain, None, None, extras={"error": str(exc)})
-            return result
+        except GRAPH_CONNECTION_ERRORS as exc:
+            raise graph_unavailable(exc) from exc
 
     @router.get("/history", response_model=ScoringHistoryResponse)
     def history(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
         store = _scorer_data_store(scorer)
         store_domain = _store_domain(store, domain)
-        decisions = store.get_decisions(store_domain, limit=10**12)
+        decisions = graph_call(require_graph_store(store).get_decisions, store_domain, limit=10**12)
         return {"engine": ENGINE, "decisions": _json_safe(decisions)}
 
     def measurement_payload() -> dict[str, Any]:
         scorer = get_scorer()
-        payload = compute_measurement_state(scorer).to_dict()
+        payload = graph_call(compute_measurement_state, scorer).to_dict()
         payload["engine"] = ENGINE
-        return payload
+        return _measurement_http_payload(payload)
 
     @router.get("/measurement-state", response_model=MeasurementStateResponse)
     def measurement_state(request: Request) -> dict[str, Any]:
+        materialized = _materialized_response(request, "measurement_state")
+        if materialized is not None:
+            return _measurement_http_payload(materialized)
         return measurement_payload()
 
     @router.get("/{copilot}/measurement-state", response_model=MeasurementStateResponse)
-    def prefixed_measurement_state(copilot: str) -> dict[str, Any]:
+    def prefixed_measurement_state(request: Request, copilot: str) -> dict[str, Any]:
         if copilot != domain:
             raise HTTPException(status_code=404, detail=f"Unknown copilot: {copilot}")
+        materialized = _materialized_response(request, "measurement_state")
+        if materialized is not None:
+            return _measurement_http_payload(materialized)
         return measurement_payload()
 
     return router
+
+
+def _materialized_response(request: Request, key: str) -> dict[str, Any] | None:
+    materializer = getattr(request.app.state, "materializer", None)
+    get = getattr(materializer, "get", None)
+    if not callable(get):
+        return None
+    result = get(key)
+    return result if isinstance(result, dict) else None
 
 
 def _decision_variant_id(decision: dict[str, Any]) -> str | None:
@@ -486,11 +505,24 @@ def create_measurement_state_router(
     def prefixed_measurement_state(copilot: str) -> dict[str, Any]:
         if copilot != domain:
             raise HTTPException(status_code=404, detail=f"Unknown copilot: {copilot}")
-        payload = compute_measurement_state(scorer_factory()).to_dict()
+        payload = graph_call(compute_measurement_state, graph_call(scorer_factory)).to_dict()
         payload["engine"] = ENGINE
-        return payload
+        return _measurement_http_payload(payload)
 
     return router
+
+
+def _measurement_http_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize internal absence sentinels at the HTTP boundary."""
+    result = dict(payload)
+    accuracy = result.get("accuracy")
+    iks = result.get("iks")
+    result["accuracy"] = float(accuracy) if accuracy is not None else 0.0
+    result["accuracy_available"] = accuracy is not None
+    result["iks"] = float(iks) if iks is not None else 0.0
+    result["iks_available"] = bool(result.get("iks_available", iks is not None)) and iks is not None
+    result["degraded"] = bool(result.get("degraded", False))
+    return result
 
 
 def _score_with_optional_metadata(scorer: Any, request: ScoreRequest) -> Any:
@@ -569,7 +601,7 @@ def _signed_reward(
 
 def _get_decision(scorer: Any, decision_id: str, *, domain: str) -> dict[str, Any]:
     store = _scorer_data_store(scorer)
-    decision = store.get_decision(decision_id, domain=domain)
+    decision = graph_call(require_graph_store(store).get_decision, decision_id, domain=domain)
     if decision is None:
         raise KeyError(decision_id)
     return dict(decision)
@@ -617,11 +649,15 @@ def _persist_conservation_state_l5_locked(
 ) -> bool:
     try:
         metrics = compute_conservation_metrics(scorer, domain=domain)
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:  # pragma: no cover - exercised through caller behavior
         log.warning("L5 conservation state skipped for %s: %s", domain, exc)
         return False
     try:
         old_state = store.get_conservation_state(domain)
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:
         log.warning("L5 conservation state read failed for %s: %s", domain, exc)
         return False
@@ -646,6 +682,8 @@ def _persist_conservation_state_l5_locked(
             caused_by_decision_id=caused_by_decision_id,
             old_status=old_status,
         )
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:
         log.warning("L5 conservation state write failed for %s: %s", domain, exc)
         return False
@@ -722,6 +760,8 @@ def _persist_centroid_l5(
         return False
     try:
         phase = str(get_phase(category))
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:
         if logger is not None:
             logger.debug("L5 centroid persistence skipped for %s: phase unavailable: %s", domain, exc)
@@ -734,6 +774,8 @@ def _persist_centroid_l5(
         return False
     try:
         post_centroid = get_centroid(category, actual_action)
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:
         if logger is not None:
             logger.debug("L5 centroid persistence skipped for %s: centroid unavailable: %s", domain, exc)
@@ -758,6 +800,8 @@ def _persist_centroid_l5(
                 delta_norm=delta_norm,
                 caused_by_decision_id=caused_by_decision_id,
             )
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:
         if logger is not None:
             logger.warning("L5 centroid write failed for %s: %s", domain, exc)
@@ -779,6 +823,8 @@ def _read_centroid_for_l5(
         return None
     try:
         centroid = get_centroid(category, action)
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:
         if logger is not None:
             logger.debug("L5 centroid pre-read skipped: %s", exc)
@@ -820,7 +866,6 @@ def _persist_dk_state_l5(
     if factor_vector is None or recommended_action is None:
         log.warning("L5 DK persistence skipped for %s: missing decision factor/action data", domain)
         return False
-    reestimate = getattr(scorer, "reestimate_dk_if_due", None)
     get_dk_weights = getattr(scorer, "get_dk_weights", None)
     if not callable(get_dk_weights):
         log.warning("L5 DK persistence skipped for %s: scorer lacks DK runtime helpers", domain)
@@ -829,11 +874,8 @@ def _persist_dk_state_l5(
     try:
         with persistence_lock:
             welford_tracker.update(factor_vector, is_correct)
-            # CompoundingScorer.learn owns the governed DK mutation. Retain
-            # compatibility for legacy scorer doubles that do not expose its
-            # dk_refresh result, without re-estimating a real learn twice.
-            if "dk_refresh" not in payload and callable(reestimate):
-                reestimate()
+            # CompoundingScorer.learn owns the governed DK mutation. Persistence
+            # must only store the weights produced by that transaction.
             store = _dk_learning_store_for(scorer, explicit_learning_store)
             if store is None:
                 return False
@@ -847,6 +889,8 @@ def _persist_dk_state_l5(
                 entity_group=None,
                 logger=log,
             )
+    except GRAPH_CONNECTION_ERRORS as exc:
+        raise graph_unavailable(exc) from exc
     except Exception as exc:
         log.warning("L5 DK persistence skipped for %s: %s", domain, exc)
         return False

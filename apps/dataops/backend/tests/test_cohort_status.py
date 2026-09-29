@@ -3,14 +3,37 @@ from __future__ import annotations
 import inspect
 import json
 from pathlib import Path
+from unittest.mock import MagicMock
 
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from app.routers.cohort_status_router import create_cohort_status_router
 from app.services.cohort_status import (
+    CohortReadError,
     STATE_VALUES,
     CohortStatusService,
     DataOpsCohortStatus,
     compute_state,
     evaluate_v7_gate,
 )
+from copilot_sdk.graph import InMemoryGraphStore
+
+
+def test_cohort_read_failure_is_not_an_empty_cohort() -> None:
+    class BrokenStore:
+        def get_verified_decisions(self, domain: str) -> list[dict]:
+            raise RuntimeError("graph unavailable")
+
+        def get_all_decisions(self, domain: str) -> list[dict]:
+            raise RuntimeError("graph unavailable")
+
+        def get_decisions(self, domain: str, limit: int) -> list[dict]:
+            raise RuntimeError("graph unavailable")
+
+    with pytest.raises(CohortReadError):
+        CohortStatusService(graph_store=BrokenStore()).get_status()
 
 
 def _records(
@@ -180,8 +203,41 @@ def test_endpoint_returns_200(client):
 
     assert response.status_code == 200
     data = response.json()
-    assert sorted(data.keys()) == ["instrument", "real", "state", "structure"]
+    assert {"instrument", "real", "state", "structure", "data_available", "degraded"} <= set(data)
     assert data["state"] in STATE_VALUES
+
+
+@pytest.mark.parametrize("failure", ["raises", "none", "query"])
+def test_cohort_factory_or_query_failure_is_degraded(failure: str) -> None:
+    if failure == "raises":
+        factory = MagicMock(side_effect=ConnectionError("offline"))
+    elif failure == "none":
+        factory = MagicMock(return_value=None)
+    else:
+        store = MagicMock()
+        store.get_verified_decisions.side_effect = ConnectionError("offline")
+        store.get_all_decisions.side_effect = ConnectionError("offline")
+        store.get_decisions.side_effect = ConnectionError("offline")
+        factory = MagicMock(return_value=store)
+    app = FastAPI()
+    app.include_router(create_cohort_status_router(factory))
+
+    payload = TestClient(app).get("/api/dataops/cohort-status").json()
+
+    assert payload["data_available"] is False
+    assert payload["degraded"] is True
+    assert payload["real"]["magnitude"] == 0.0
+    assert payload["real"]["magnitude_available"] is False
+
+
+def test_cohort_factory_success_is_available() -> None:
+    store = InMemoryGraphStore(domain="dataops")
+    app = FastAPI()
+    app.include_router(create_cohort_status_router(MagicMock(return_value=store)))
+    payload = TestClient(app).get("/api/dataops/cohort-status").json()
+    assert payload["data_available"] is True
+    assert payload["degraded"] is False
+    assert isinstance(payload["real"]["magnitude"], float)
 
 
 def test_state_machine_values():

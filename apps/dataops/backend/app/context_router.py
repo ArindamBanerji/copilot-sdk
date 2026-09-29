@@ -13,6 +13,7 @@ from typing import Any, Callable, cast
 
 from fastapi import APIRouter, HTTPException, Request, status
 
+from copilot_sdk.backend.graph_access import graph_call, require_graph_store
 from copilot_sdk.scoring.scorer import compute_theta_min
 from copilot_sdk.config.graph_config import resolve_profile
 
@@ -103,25 +104,16 @@ def _graph_client() -> DataOpsGraphClient:
 
 def _decision_store() -> Any:
     if _evolution_store_factory is None:
-        raise HTTPException(status_code=503, detail="DataOps Decision graph unavailable")
-    try:
-        store = _evolution_store_factory()
-        if store is None:
-            raise RuntimeError("DataOps Decision graph store is unavailable")
-        return store
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail="DataOps Decision graph unavailable") from exc
+        return require_graph_store(None)
+    return require_graph_store(graph_call(_evolution_store_factory))
+
+
+def _request_store(request: Request) -> Any:
+    return require_graph_store(getattr(request.app.state, "graph_store", None))
 
 
 def _graph_decisions() -> list[dict[str, Any]]:
-    try:
-        decisions = _decision_store().get_all_decisions(DOMAIN)
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail="DataOps Decision graph query failed") from exc
+    decisions = graph_call(_decision_store().get_all_decisions, DOMAIN)
     if not isinstance(decisions, list):
         raise HTTPException(status_code=503, detail="DataOps Decision graph returned invalid data")
     return [_normalize_live_decision(entry) for entry in decisions if isinstance(entry, dict)]
@@ -196,10 +188,8 @@ def _variant_from_evolution_event(event: dict[str, Any]) -> dict[str, Any]:
 
 
 def _evolution_variants() -> list[dict[str, Any]]:
-    if _evolution_store_factory is None:
-        raise RuntimeError("DataOps evolution graph store is not configured")
-    store = _evolution_store_factory()
-    events = store.get_evolution_events(domain="dataops", limit=500)
+    store = _decision_store()
+    events = graph_call(store.get_evolution_events, domain="dataops", limit=500)
     return [_variant_from_evolution_event(event) for event in events if isinstance(event, dict)]
 
 
@@ -605,10 +595,7 @@ def _audit_variant_matches(alert: dict[str, Any], variant: dict[str, Any]) -> bo
 
 
 def _audit_recommendation_for_alert(alert: dict[str, Any]) -> dict[str, Any] | None:
-    try:
-        variants = _evolution_variants()
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail="DataOps evolution graph unavailable") from exc
+    variants = _evolution_variants()
     for variant in variants:
         if not isinstance(variant, dict) or variant.get("event_type") != "promotion_approved":
             continue
@@ -786,7 +773,17 @@ def _schema_impact_count(change: dict[str, Any]) -> int:
 
 @router.get("/pipelines")
 def pipelines(request: Request) -> dict[str, Any]:
-    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    materializer = getattr(request.app.state, "materializer", None)
+    get = getattr(materializer, "get", None)
+    if callable(get):
+        result = get("pipelines")
+        if isinstance(result, dict):
+            return result
+    decisions = graph_call(_request_store(request).get_all_decisions, domain=DOMAIN)
+    return _pipelines_from_decisions(list(decisions))
+
+
+def _pipelines_from_decisions(decisions: list[dict[str, Any]]) -> dict[str, Any]:
     grouped: dict[str, dict[str, Any]] = {}
     for decision in decisions:
         name = str(decision.get("system") or decision.get("system_name") or decision.get("source") or "dataops")
@@ -1083,9 +1080,19 @@ def pipeline_decisions(system_id: str, limit: int = 20) -> dict[str, Any]:
 
 
 @router.get("/accuracy-by-category")
-def accuracy_by_category() -> dict[str, Any]:
+def accuracy_by_category(request: Request) -> dict[str, Any]:
+    materializer = getattr(request.app.state, "materializer", None)
+    get = getattr(materializer, "get", None)
+    if callable(get):
+        result = get("context_accuracy_by_category")
+        if isinstance(result, dict):
+            return result
+    return _context_accuracy_by_category(_all_context_decisions())
+
+
+def _context_accuracy_by_category(decisions: list[dict[str, Any]]) -> dict[str, Any]:
     decisions_by_category: dict[str, list[dict[str, Any]]] = {}
-    for decision in _all_context_decisions():
+    for decision in decisions:
         category = _decision_category(decision)
         if not category:
             continue
@@ -1127,7 +1134,7 @@ def accuracy_by_category() -> dict[str, Any]:
 @router.get("/transformations/{system}")
 def transformations(system: str, request: Request) -> dict[str, Any]:
     system_key = _normalize_system_key(system)
-    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    decisions = graph_call(_request_store(request).get_all_decisions, domain=DOMAIN)
     steps = [
         {
             "id": str(decision.get("decision_id") or index),
@@ -1185,7 +1192,7 @@ def bottleneck(system: str) -> dict[str, Any]:
 @router.get("/schema-impact/{system}")
 def schema_impact(system: str, request: Request, column: str | None = None) -> dict[str, Any]:
     system_key = _normalize_system_key(system)
-    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    decisions = graph_call(_request_store(request).get_all_decisions, domain=DOMAIN)
     changes = [
         {
             "column": str(decision.get("category") or "decision"),
@@ -1213,7 +1220,7 @@ def schema_impact(system: str, request: Request, column: str | None = None) -> d
 
 @router.get("/process-timeline")
 def process_timeline(request: Request) -> dict[str, Any]:
-    decisions = request.app.state.graph_store.get_all_decisions(domain=DOMAIN)
+    decisions = graph_call(_request_store(request).get_all_decisions, domain=DOMAIN)
     activities = [
         {
             "id": str(decision.get("decision_id") or decision.get("id") or index),
@@ -1517,7 +1524,7 @@ async def _process_connector_state() -> dict[str, Any]:
 
 @router.get("/audit-trail/{alert_id}")
 def audit_trail(alert_id: str, request: Request) -> dict[str, Any]:
-    alert = request.app.state.graph_store.get_decision(alert_id, DOMAIN)
+    alert = graph_call(_request_store(request).get_decision, alert_id, DOMAIN)
     if not alert:
         return {
             "alert_id": alert_id,

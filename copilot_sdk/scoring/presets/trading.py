@@ -18,6 +18,7 @@ _NEUTRAL_SKIP_CENTROID = (0.30, 0.35, 0.50, 0.50, 0.50, 0.25, 0.40, 0.50, 0.50, 
 
 
 class TradingPreset:
+    bootstrap_degraded: bool = False
     factor_polarities = {
         "signal_alignment": Polarity.POSITIVE,
         "market_regime": Polarity.NEUTRAL,
@@ -127,11 +128,15 @@ def _load_bootstrap(preset: TradingPreset) -> np.ndarray:
         data = json.loads(path.read_text(encoding="utf-8"))
         centroids = np.asarray(data["centroids"], dtype=np.float64)
         if centroids.shape == (5, 3, 6) and expected_shape == (5, 4, 10):
+            preset.bootstrap_degraded = False
             return _migrate_legacy_centroids(centroids)
         if centroids.shape != expected_shape:
-            raise ValueError(f"trading bootstrap shape {centroids.shape} != {expected_shape}")
+            preset.bootstrap_degraded = True
+            return cast(np.ndarray, np.full(expected_shape, 0.5, dtype=np.float64))
+        preset.bootstrap_degraded = False
         return cast(np.ndarray, centroids)
-    except Exception:
+    except (OSError, json.JSONDecodeError, RuntimeError):
+        preset.bootstrap_degraded = True
         return cast(np.ndarray, np.full(expected_shape, 0.5, dtype=np.float64))
 
 

@@ -21,7 +21,7 @@ def compute(context: dict) -> float:
     if not isinstance(context, dict) or "day_of_week" not in context:
         return 0.5
     try:
-        day = int(context.get("day_of_week"))
+        day = int(context["day_of_week"])
     except (TypeError, ValueError):
         return 0.5
     return DAY_SCORES.get(day, 0.5)

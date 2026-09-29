@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copilot_sdk.graph import InMemoryGraphStore
+
 from collections.abc import Callable
 from typing import Any
 
@@ -31,20 +33,12 @@ DATA_PRODUCTS = (
 )
 
 
-class _Store:
-    domain = "dataops"
-
-    def count_verified(self, domain: str) -> int:
-        assert domain == self.domain
-        return 340
-
-    def count_verified_decisions(self, domain: str) -> int:
-        assert domain == self.domain
-        return 340
-
-    def count_correct(self, domain: str) -> int:
-        assert domain == self.domain
-        return 300
+class _Store(InMemoryGraphStore):
+    def __init__(self) -> None:
+        super().__init__(domain="dataops")
+        for index in range(340):
+            decision_id = self.write_decision("dataops", str(index % 1), "accept", 0.8, {})
+            self.write_outcome(decision_id, "accept", index < 300, domain="dataops")
 
 
 class _Scorer:

@@ -284,11 +284,17 @@ def test_periodic_drain_fires(tmp_path: Path) -> None:
     store = _ReplayStore()
 
     timer = outbox.start_periodic_drain(store, interval_seconds=0.2)
-    time.sleep(0.5)
-    outbox.stop_periodic_drain()
-    timer.cancel()
-
-    assert outbox.pending_count() == 0
+    try:
+        # Wait for completion rather than assuming the worker and SQLite commit
+        # can finish within half a second on a busy test host.
+        deadline = time.monotonic() + 5.0
+        while outbox.pending_count() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert outbox.pending_count() == 0
+        assert store.calls == [("conservation", {"V": 10})]
+    finally:
+        outbox.stop_periodic_drain()
+        timer.cancel()
 
 
 def test_existing_failure_path_unchanged(tmp_path: Path) -> None:

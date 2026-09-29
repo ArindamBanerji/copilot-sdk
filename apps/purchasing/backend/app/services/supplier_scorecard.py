@@ -220,14 +220,14 @@ def _exception_rate(rows: list[dict[str, Any]]) -> float:
 
 
 def _decision_supplier_id(row: dict[str, Any]) -> str:
-    metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
-    context = row.get("context") if isinstance(row.get("context"), dict) else {}
-    outcome_metadata = row.get("outcome_metadata") if isinstance(row.get("outcome_metadata"), dict) else {}
-    outcome_context = (
-        outcome_metadata.get("context")
-        if isinstance(outcome_metadata.get("context"), dict)
-        else {}
-    )
+    metadata = row.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    context = row.get("context")
+    context = context if isinstance(context, dict) else {}
+    outcome_metadata = row.get("outcome_metadata")
+    outcome_metadata = outcome_metadata if isinstance(outcome_metadata, dict) else {}
+    outcome_context = outcome_metadata.get("context")
+    outcome_context = outcome_context if isinstance(outcome_context, dict) else {}
     return str(
         row.get("supplier_id")
         or metadata.get("supplier_id")

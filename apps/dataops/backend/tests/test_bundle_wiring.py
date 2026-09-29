@@ -34,11 +34,11 @@ def test_create_app_default_demo_bundle_restores_on_startup(tmp_path: Path) -> N
 def test_domain_demo_bundle_restores_into_tmp_sqlite_store(tmp_path: Path) -> None:
     store = SQLiteGraphStore(str(tmp_path / "bundle.db"), domain=DOMAIN, decision_id_prefix="DOPS-")
     try:
-        assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is True
+        assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is True
         assert store.count_decisions(DOMAIN) == 200
         assert len(store.get_verified_decisions(DOMAIN)) >= 140
         assert len(store.get_centroid_checkpoints(DOMAIN, limit=10)) == 5
-        assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is False
+        assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is False
     finally:
         store.close()
 
@@ -46,7 +46,7 @@ def test_domain_demo_bundle_restores_into_tmp_sqlite_store(tmp_path: Path) -> No
 @pytest.mark.age
 def test_bundle_restore_returns_true_for_age_backend(disposable_age) -> None:
     store = disposable_age.store(DOMAIN)
-    assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is True
+    assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is True
     reopened = disposable_age.store(DOMAIN)
     assert reopened.count_decisions(DOMAIN) == 200
     rows = reopened.get_all_decisions(DOMAIN)
@@ -57,14 +57,14 @@ def test_bundle_restore_returns_true_for_age_backend(disposable_age) -> None:
 @pytest.mark.age
 def test_bundle_restore_preserves_later_age_decisions(disposable_age) -> None:
     store = disposable_age.store(DOMAIN)
-    assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is True
+    assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is True
     decision_id = store.write_decision(DOMAIN, "pipeline_failure", "investigate", 0.8, {"impact_scope": 0.5})
     reopened = disposable_age.store(DOMAIN)
-    assert restore_bundle_if_empty(reopened, _bundle_path(), domain=DOMAIN) is False
+    assert restore_bundle_if_empty(reopened, _bundle_path(), domain=DOMAIN).success is False
     assert reopened.count_decisions(DOMAIN) == 201
     assert reopened.get_decision(decision_id, domain=DOMAIN) is not None
 
 
 def test_demo_bundle_restore_skips_in_memory_store() -> None:
     store = InMemoryGraphStore(domain=DOMAIN)
-    assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is False
+    assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is False

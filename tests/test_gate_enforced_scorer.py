@@ -9,19 +9,16 @@ from copilot_sdk.backend.conservation_router import create_conservation_router
 from copilot_sdk.backend.conservation_utils import _baseline_q
 from copilot_sdk.scoring.composite_gate import CompositeGate
 from copilot_sdk.scoring.gate_enforced_scorer import GateEnforcedScorer
-
-
-class FakeStore:
-    def __init__(self, outcomes: list[bool]) -> None:
-        self.outcomes = outcomes
-
-    def get_verified_decisions(self, _domain: str) -> list[dict[str, bool]]:
-        return [{"is_correct": value} for value in self.outcomes]
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 class FakeScorer:
     def __init__(self, outcomes: list[bool], state: dict[str, Any]) -> None:
-        self.graph_store = FakeStore(outcomes)
+        self._domain = "test"
+        self.graph_store = InMemoryGraphStore(domain=self._domain)
+        for correct in outcomes:
+            decision_id = self.graph_store.write_decision("test", "category", "accept", 0.8, {})
+            self.graph_store.write_outcome(decision_id, "accept", correct, domain="test")
         self.state = state
         self.learn_calls: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
 

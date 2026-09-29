@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Optional
 
 
@@ -46,9 +46,13 @@ class InvestigationResult:
     conservation_emit_gate: str = "not_evaluated_read_only"
     halt_reason: str = "unknown"
     policy: str = "dataops_vld"
+    degraded: bool = False
+    failed_patterns: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         payload = asdict(self)
         payload["trace"] = [step.to_dict() for step in self.trace]
+        if not self.degraded:
+            payload.pop("degraded", None)
+            payload.pop("failed_patterns", None)
         return payload
-

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+from unittest.mock import MagicMock
 from datetime import datetime, timezone
 from dataclasses import dataclass
 
@@ -186,6 +187,8 @@ def test_investigate_skips_none_evidence(investigator) -> None:
     assert len(provider.reads) == 2
     assert trace.steps[0].status == "empty"
     assert trace.steps[0].evidence_value is None
+    assert trace.steps[0].evidence_available is True
+    assert trace.steps[0].evidence_admitted is False
     assert len([step for step in trace.steps if step.status == "acquired"]) <= 1
 
 
@@ -209,6 +212,75 @@ def test_module_level_investigate_records_empty_reads(simple_geometry) -> None:
         factor_names=names,
     )
     assert len([step for step in result["steps"] if step["status"] == "empty"]) == 2
+
+
+def test_investigate_rejects_degraded_provider_payload(investigator) -> None:
+    v = np.asarray([0.5] * 6)
+    provider = MagicMock()
+    provider.read_evidence.return_value = {
+        "value": 0.9, "confidence": 1.0, "source": "neutral",
+        "data_available": False, "degraded": True,
+        "failure_reason": "graph unavailable",
+    }
+    trace = investigator.investigate("d1", "cat", v, provider, budget=1)
+    step = trace.steps[0]
+    assert step.v_after == step.v_before == v.tolist()
+    assert step.evidence_available is False
+    assert step.evidence_admitted is False
+    assert step.failure_reason == "graph unavailable"
+    assert trace.degraded is True
+    assert trace.failed_providers == [step.factor_name]
+
+
+def test_investigate_available_payload_is_admitted(investigator) -> None:
+    v = np.asarray([0.5] * 6)
+    provider = MagicMock()
+    provider.read_evidence.return_value = {
+        "value": 0.9, "confidence": 1.0, "source": "graph",
+        "data_available": True, "degraded": False,
+    }
+    trace = investigator.investigate("d1", "cat", v, provider, budget=1)
+    step = trace.steps[0]
+    assert step.evidence_available is True
+    assert step.evidence_admitted is True
+    assert step.v_after != step.v_before
+    assert trace.degraded is False
+    assert trace.failed_providers == []
+
+
+def test_investigate_mixed_providers_uses_only_available_evidence(investigator) -> None:
+    v = np.asarray([0.5] * 6)
+    provider = MagicMock()
+    provider.read_evidence.side_effect = [
+        {"value": 0.9, "confidence": 1.0, "source": "graph", "data_available": True},
+        {"value": 0.1, "confidence": 1.0, "source": "neutral", "data_available": False},
+    ]
+    trace = investigator.investigate("d1", "cat", v, provider, budget=2, delta=0.0)
+    assert trace.steps[0].evidence_admitted is True
+    assert trace.steps[1].evidence_admitted is False
+    assert trace.steps[1].v_after == trace.steps[1].v_before
+    assert trace.final_action == trace.steps[0].action_after
+    assert trace.degraded is True
+    assert trace.failed_providers == [trace.steps[1].factor_name]
+
+
+def test_investigate_all_providers_fail_without_vector_change(investigator) -> None:
+    v = np.asarray([0.5] * 6)
+    provider = MagicMock()
+    provider.read_evidence.return_value = {
+        "value": 0.5,
+        "confidence": 0.0,
+        "source": "purchasing_domain_context",
+        "data_available": False,
+        "degraded": True,
+        "failure_reason": "graph unavailable",
+    }
+    trace = investigator.investigate("d1", "cat", v, provider, budget=2)
+    assert trace.degraded is True
+    assert trace.evidence_available is False
+    assert len(trace.failed_providers) == 2
+    assert all(step.v_after == step.v_before for step in trace.steps)
+    assert all(step.evidence_admitted is False for step in trace.steps)
 
 
 def test_investigate_records_flips(investigator) -> None:
@@ -399,7 +471,14 @@ def test_router_no_evidence(simple_geometry) -> None:
     assert response.status_code == 200
     steps = response.json()["steps"]
     assert len(steps) == 1
+    payload = response.json()
     assert steps[0]["status"] == "empty"
+    assert steps[0]["evidence_available"] is True
+    assert steps[0]["evidence_admitted"] is False
+    assert payload["evidence_available"] is True
+    assert payload["degraded"] is False
+    assert payload["failed_providers"] == []
+    assert all(value is not None for value in payload.values())
 
 
 def test_router_with_budget(client) -> None:

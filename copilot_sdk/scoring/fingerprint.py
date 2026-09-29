@@ -22,6 +22,7 @@ class FingerprintResult:
     per_category_precision: dict[str, float]
     decisions_analyzed: int
     skipped_decisions: int = 0
+    persistence_failed: bool = False
 
 
 def compute_fingerprint(decisions: list[dict], factor_names: list[str]) -> FingerprintResult:

@@ -284,7 +284,13 @@ class TradingAgentEvolver:
             )
         if candidate_id is None:
             return {"promoted": False, "reason": "insufficient_batches"}
-        return cast(dict[str, Any], self.check_promotion(candidate_id))
+        return cast(
+            dict[str, Any],
+            self.check_promotion(
+                candidate_id,
+                conservation_state=conservation_state,
+            ),
+        )
 
     def get_active_rules(self) -> dict[str, Any]:
         """Retain the legacy generic-router inventory interface."""

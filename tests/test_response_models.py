@@ -93,35 +93,9 @@ class FakeTrajectoryResult:
     days_active: float
 
 
-class FakeStore:  # MOCK-OK: response model fixture store, no conservation behavior
-    domain = "dataops"
-
-    def __init__(self) -> None:
-        self.decisions: dict[str, dict[str, Any]] = {}
-
-    def save(self, decision: dict[str, Any]) -> None:
-        self.decisions[decision["decision_id"]] = decision
-
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
-        return self.decisions.get(decision_id)
-
-    def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]:
-        del domain
-        decisions = [
-            decision
-            for decision in self.decisions.values()
-            if category is None or decision.get("category") == category
-        ]
-        return decisions[:limit]
-
-    def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
-        del domain
-        return list(self.decisions.values())
-
-
 class FakeScorer:  # MOCK-OK: response model fixture, real scorer covered elsewhere
     def __init__(self) -> None:
-        self.graph_store = FakeStore()
+        self.graph_store = InMemoryGraphStore(domain="dataops")
 
     def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
         result = FakeScoreResult(
@@ -133,14 +107,9 @@ class FakeScorer:  # MOCK-OK: response model fixture, real scorer covered elsewh
             category=category,
             factors=factors,
         )
-        self.graph_store.save(
-            {
-                "decision_id": result.decision_id,
-                "category": category,
-                "factors": factors,
-                "recommended_action": result.action,
-                "confidence": result.confidence,
-            }
+        self.graph_store.write_decision(
+            "dataops", category, result.action, result.confidence, factors,
+            metadata={"decision_id": result.decision_id},
         )
         return result
 

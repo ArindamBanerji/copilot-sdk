@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, Callable
+from typing import Any, Callable, cast, overload
 
 from fastapi import APIRouter, HTTPException
 
@@ -29,7 +29,7 @@ def create_iks_router(graph_store_factory: GraphStoreFactory | None = None) -> A
                 shape=PurchasingPreset().shape,
                 categories=CATEGORIES,
             )
-            return service.summary()
+            return cast(dict[str, Any], service.summary())
         except HTTPException:
             raise
         except Exception as exc:
@@ -84,9 +84,12 @@ def _scorecard_from_graph(supplier_id: str, rows: list[dict[str, Any]]) -> dict[
 
 
 def _row_supplier_id(row: dict[str, Any]) -> str:
-    metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
-    factors = row.get("factors") if isinstance(row.get("factors"), dict) else {}
-    factor_metadata = factors.get("metadata") if isinstance(factors.get("metadata"), dict) else {}
+    metadata = row.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    factors = row.get("factors")
+    factors = factors if isinstance(factors, dict) else {}
+    factor_metadata = factors.get("metadata")
+    factor_metadata = factor_metadata if isinstance(factor_metadata, dict) else {}
     return str(
         row.get("supplier_id")
         or metadata.get("supplier_id")
@@ -96,9 +99,12 @@ def _row_supplier_id(row: dict[str, Any]) -> str:
 
 
 def _bool_value(row: dict[str, Any], key: str, *, default: bool) -> bool:
-    metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
-    outcome_metadata = row.get("outcome_metadata") if isinstance(row.get("outcome_metadata"), dict) else {}
-    context = outcome_metadata.get("context") if isinstance(outcome_metadata.get("context"), dict) else {}
+    metadata = row.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    outcome_metadata = row.get("outcome_metadata")
+    outcome_metadata = outcome_metadata if isinstance(outcome_metadata, dict) else {}
+    context = outcome_metadata.get("context")
+    context = context if isinstance(context, dict) else {}
     value = row.get(key, metadata.get(key, context.get(key, default)))
     return bool(value)
 
@@ -124,9 +130,9 @@ def _last_prices_by_category(rows: list[dict[str, Any]]) -> list[dict[str, Any]]
 
 def _seasonal_patterns(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     seasons = [
-        _metadata(row).get("season")
+        season
         for row in rows
-        if _metadata(row).get("season")
+        if (season := _metadata(row).get("season"))
     ]
     return [{"season": str(season)} for season in sorted(set(seasons))]
 
@@ -144,6 +150,14 @@ def _ratio(numerator: int, denominator: int) -> float:
 
 def _bounded(value: Any) -> float:
     return max(0.0, min(_finite_float(value, default=0.0), 1.0))
+
+
+@overload
+def _finite_float(value: Any, *, default: float) -> float: ...
+
+
+@overload
+def _finite_float(value: Any, *, default: None) -> float | None: ...
 
 
 def _finite_float(value: Any, *, default: float | None) -> float | None:

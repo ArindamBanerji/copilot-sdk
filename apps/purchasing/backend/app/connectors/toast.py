@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 
 class ToastConnector:
     """SourceConnector for Toast POS system.
@@ -52,7 +54,7 @@ class ToastConnector:
         data = response.json()
         if not isinstance(data, list):
             data = [data] if data else []
-        return data
+        return cast(list[dict], data)
 
     def validate(self, record: dict) -> bool:
         """Validate a Toast POS record."""

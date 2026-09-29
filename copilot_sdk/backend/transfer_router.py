@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 import hashlib
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,9 @@ from copilot_sdk.transfer.category_mappings import get_mapping, list_available_t
 from copilot_sdk.transfer.registry import SharedPatternRegistry
 from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.state.cached_static import cached_static
+
+
+log = logging.getLogger(__name__)
 
 
 class TransferExecuteRequest(BaseModel):
@@ -384,8 +388,9 @@ def _latest_checkpoint_info(scorer: Any) -> dict[str, Any] | None:
 
     try:
         checkpoints = store.get_centroid_checkpoints(domain, limit=10)
-    except Exception:
-        return None
+    except Exception as exc:
+        log.warning("Warm-start checkpoint lookup failed for domain %s", domain, exc_info=exc)
+        return {"checkpoint_lookup_failed": True}
 
     for checkpoint in reversed(list(checkpoints or [])):
         if not isinstance(checkpoint, dict):
@@ -404,6 +409,8 @@ def _latest_checkpoint_info(scorer: Any) -> dict[str, Any] | None:
 def _normalize_transfer_status(info: dict[str, Any] | None) -> dict[str, Any]:
     if not info:
         return {"warm_started": False}
+    if info.get("checkpoint_lookup_failed"):
+        return {"warm_started": False, "checkpoint_status": "unavailable"}
 
     patterns_transferred = _patterns_transferred(info)
     narrative = _narrative_transfer_fields(info, patterns_transferred)
@@ -493,32 +500,9 @@ def _transfer_id(source_domain: str, target_domain: str, mapping: dict[str, str]
     return "TR-" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:32]
 
 
-def _target_conservation_state(scorer: Any, target_domain: str) -> str:
-    store = _graph_store(scorer)
-    if store is not None and callable(getattr(store, "get_latest_conservation_statuses", None)):
-        try:
-            statuses = store.get_latest_conservation_statuses(domains=[target_domain])
-            if statuses and statuses[0].get("status"):
-                return _normalize_conservation_state(statuses[0]["status"])
-        except Exception:
-            pass
-    if store is not None and callable(getattr(store, "get_conservation_state", None)):
-        try:
-            state = store.get_conservation_state(target_domain)
-            if isinstance(state, dict) and state.get("status"):
-                return _normalize_conservation_state(state["status"])
-        except Exception:
-            pass
-    provider = getattr(scorer, "conservation_state", None)
-    if callable(provider):
-        try:
-            result = provider()
-            if isinstance(result, dict):
-                return _normalize_conservation_state(result.get("status") or result.get("state"))
-            return _normalize_conservation_state(result)
-        except Exception:
-            pass
-    return "UNKNOWN"
+def _degraded_conservation_state(value: Any) -> str:
+    """Return a gate-blocking state that exposes a fallback after graph failure."""
+    return f"{_normalize_conservation_state(value)} (fallback: graph unavailable)"
 
 
 def _opportunity_status(
@@ -545,38 +529,76 @@ def _clean_domain(value: Any) -> str:
     return str(value or "").strip().lower()
 
 
+def _target_conservation_state(scorer: Any, target_domain: str) -> str:
+    store = _graph_store(scorer)
+    graph_failed = False
+    if store is not None and callable(getattr(store, "get_latest_conservation_statuses", None)):
+        try:
+            statuses = store.get_latest_conservation_statuses(domains=[target_domain])
+            if statuses and statuses[0].get("status"):
+                return _normalize_conservation_state(statuses[0]["status"])
+        except Exception as exc:
+            graph_failed = True
+            log.warning("Target conservation lookup failed for %s", target_domain, exc_info=exc)
+    if store is not None and callable(getattr(store, "get_conservation_state", None)):
+        try:
+            state = store.get_conservation_state(target_domain)
+            if isinstance(state, dict) and state.get("status"):
+                return _normalize_conservation_state(state["status"])
+        except Exception as exc:
+            graph_failed = True
+            log.warning("Target conservation lookup failed for %s", target_domain, exc_info=exc)
+    provider = getattr(scorer, "conservation_state", None)
+    if callable(provider):
+        try:
+            result = provider()
+            value = result.get("status") or result.get("state") if isinstance(result, dict) else result
+            normalized = _normalize_conservation_state(value)
+            return _degraded_conservation_state(normalized) if graph_failed else normalized
+        except Exception as exc:
+            log.warning("Target conservation fallback failed for %s", target_domain, exc_info=exc)
+            return "UNKNOWN"
+    return "UNKNOWN"
+
+
 def _source_conservation_state(scorer: Any, source_domain: str) -> str:
     store = _graph_store(scorer)
+    graph_failed = False
     if store is not None and callable(getattr(store, "get_latest_conservation_statuses", None)):
         try:
             statuses = store.get_latest_conservation_statuses(domains=[source_domain])
             if statuses and statuses[0].get("status"):
                 return _normalize_conservation_state(statuses[0]["status"])
-        except Exception:
-            pass
+        except Exception as exc:
+            graph_failed = True
+            log.warning("Source conservation lookup failed for %s", source_domain, exc_info=exc)
     if store is not None and callable(getattr(store, "get_conservation_state", None)):
         try:
             state = store.get_conservation_state(source_domain)
             if isinstance(state, dict) and state.get("status"):
                 return _normalize_conservation_state(state["status"])
-        except Exception:
-            pass
+        except Exception as exc:
+            graph_failed = True
+            log.warning("Source conservation lookup failed for %s", source_domain, exc_info=exc)
     states = getattr(scorer, "source_conservation_states", None)
     if isinstance(states, dict):
         if source_domain not in states:
             _raise_unknown_conservation()
-        return _normalize_conservation_state(states.get(source_domain))
+        value = _normalize_conservation_state(states.get(source_domain))
+        return _degraded_conservation_state(value) if graph_failed else value
     value = getattr(scorer, "source_conservation_state", None)
     if isinstance(value, str):
-        return _normalize_conservation_state(value)
+        normalized = _normalize_conservation_state(value)
+        return _degraded_conservation_state(normalized) if graph_failed else normalized
     provider = getattr(scorer, "conservation_state", None)
     if callable(provider):
         try:
             result = provider()
-            if isinstance(result, dict):
-                return _normalize_conservation_state(result.get("status") or result.get("state"))
-            return _normalize_conservation_state(result)
-        except Exception:
+            value = result.get("status") or result.get("state") if isinstance(result, dict) else result
+            normalized = _normalize_conservation_state(value)
+            return _degraded_conservation_state(normalized) if graph_failed else normalized
+        except Exception as exc:
+            log.warning("Source conservation fallback failed for %s", source_domain, exc_info=exc)
             _raise_unknown_conservation()
     _raise_unknown_conservation()
 
@@ -685,7 +707,8 @@ def _source_store_for_domain(scorer: Any, source_domain: str) -> Any | None:
     if callable(provider):
         try:
             return provider(source_domain)
-        except Exception:
+        except Exception as exc:
+            log.warning("Source store lookup failed for domain %s", source_domain, exc_info=exc)
             return None
     return None
 

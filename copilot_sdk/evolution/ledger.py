@@ -31,10 +31,10 @@ class InMemoryEvolutionLedger:
     def event_count(self) -> int:
         return len(self._events)
 
-    def append(self, event: EvolutionEvent, *, decision_id: str | None = None) -> None:
+    def append(self, event: EvolutionEvent, *, decision_id: str | None = None) -> bool:
         self._events.append(event)
         if self._evolution_store is None:
-            return
+            return True
         event_id = str(
             uuid.uuid5(
                 uuid.NAMESPACE_URL,
@@ -77,6 +77,8 @@ class InMemoryEvolutionLedger:
                     self._outbox.record_failure(event_id, "evolution", payload, str(exc))
                 except Exception as outbox_exc:
                     logger.warning("Persistence outbox record failed: %s", outbox_exc)
+            return False
+        return True
 
     def get_events(
         self,

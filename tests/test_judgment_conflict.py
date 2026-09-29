@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pytest
@@ -43,7 +44,10 @@ class ConflictPreset:
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
-        return np.array([[[0.2, 0.3, 0.4], [0.8, 0.7, 0.6]]], dtype=np.float64)
+        return cast(
+            np.ndarray,
+            np.array([[[0.2, 0.3, 0.4], [0.8, 0.7, 0.6]]], dtype=np.float64),
+        )
 
 
 def _build_scorer(tmp_path, graph_store=None) -> CompoundingScorer:
@@ -265,7 +269,7 @@ def test_conflict_detection_does_not_block_centroid_update_or_outcome_write(tmp_
     scorer.graph_store.close()
 
 
-def test_conflict_detection_runs_before_conservation_pause_without_changing_pause_result(tmp_path):
+def test_conservation_pause_prevents_conflict_diagnostic_mutation(tmp_path):
     graph_store = InMemoryGraphStore()
     scorer = _build_scorer(tmp_path, graph_store=graph_store)
     for index in range(25):
@@ -297,7 +301,6 @@ def test_conflict_detection_runs_before_conservation_pause_without_changing_paus
     learn = scorer.learn(result.decision_id, "review")
 
     assert learn["status"] == "paused"
-    assert scorer.last_conflict is not None
-    assert scorer.last_conflict.conflict_type == "surprising_failure"
+    assert scorer.last_conflict is None
     assert graph_store.count_verified("test") == 25
     scorer.graph_store.close()

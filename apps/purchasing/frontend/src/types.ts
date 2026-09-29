@@ -698,6 +698,11 @@ export interface TrustInsight {
   [key: string]: unknown;
 }
 
+export interface TrustInsightsResponse {
+  insights: TrustInsight[];
+  trustAvailable: boolean;
+}
+
 export interface AutoOrderStatus {
   enabled: boolean;
   threshold: number;

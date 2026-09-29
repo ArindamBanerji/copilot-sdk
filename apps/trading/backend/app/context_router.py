@@ -374,6 +374,10 @@ def portfolio_summary(request: Request) -> dict[str, Any]:
 
 def _analytics_from_store(store: Any) -> dict[str, Any]:
     decisions = store.get_all_decisions(domain="trading")
+    return _analytics_from_decisions(list(decisions))
+
+
+def _analytics_from_decisions(decisions: list[dict[str, Any]]) -> dict[str, Any]:
     categories: dict[str, int] = {}
     for decision in decisions:
         category = str(decision.get("category") or "unknown")
@@ -489,6 +493,12 @@ def _graph_decision_correctness(decision: dict[str, Any]) -> bool | None:
 
 @router.get("/analytics")
 def analytics(request: Request) -> dict[str, Any]:
+    materializer = getattr(request.app.state, "materializer", None)
+    get = getattr(materializer, "get", None)
+    if callable(get):
+        result = get("analytics")
+        if isinstance(result, dict):
+            return result
     store = getattr(request.app.state, "graph_store", request.app.state.trading_selected_graph_store)
     return _analytics_from_store(store)
 

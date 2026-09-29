@@ -36,6 +36,16 @@ def create_trust_router(scorer_factory: ScorerFactory | None = None) -> APIRoute
         scorer = _scorer(scorer_factory)
         decisions_total = _decisions_total(scorer)
         weights = _weights_payload(scorer)
+        if decisions_total is None:
+            return {
+                "weights": None,
+                "phase": "UNAVAILABLE",
+                "decisions_total": 0,
+                "decisions_needed": 0,
+                "provenance": PROVENANCE_TIER,
+                "data_available": False,
+                "degraded": True,
+            }
         if decisions_total < LEARNING_THRESHOLD or weights is None:
             return {
                 "weights": None,
@@ -61,13 +71,15 @@ def create_trust_router(scorer_factory: ScorerFactory | None = None) -> APIRoute
         }
 
     @router.get("/trust-weights/insights")
-    def trust_insights() -> list[dict[str, Any]]:
+    def trust_insights() -> dict[str, Any]:
         scorer = _scorer(scorer_factory)
         decisions_total = _decisions_total(scorer)
         weights = _weights_payload(scorer)
+        if decisions_total is None:
+            return {"insights": [], "trust_available": False}
         if decisions_total < LEARNING_THRESHOLD or weights is None:
-            return []
-        return _insights(weights)
+            return {"insights": [], "trust_available": True}
+        return {"insights": _insights(weights), "trust_available": True}
 
     return router
 
@@ -146,23 +158,29 @@ def _scorer(factory: ScorerFactory | None) -> Any | None:
     return None
 
 
-def _decisions_total(scorer: Any | None) -> int:
+def _decisions_total(scorer: Any | None) -> int | None:
     if scorer is None:
         return 0
     getter = getattr(scorer, "get_verified_count", None)
     if callable(getter):
         try:
-            return int(getter())
-        except Exception:
-            return 0
+            raw_count = getter()
+        except (ConnectionError, TimeoutError, OSError, RuntimeError):
+            return None
+        if isinstance(raw_count, bool) or not isinstance(raw_count, (int, float)):
+            return None
+        return int(raw_count)
     store = getattr(scorer, "graph_store", None)
     count_verified = getattr(store, "count_verified", None)
     if callable(count_verified):
         try:
-            return int(count_verified("purchasing"))
-        except Exception:
-            return 0
-    return 0
+            raw_count = count_verified("purchasing")
+        except (ConnectionError, TimeoutError, OSError, RuntimeError):
+            return None
+        if isinstance(raw_count, bool) or not isinstance(raw_count, (int, float)):
+            return None
+        return int(raw_count)
+    return None
 
 
 def _bounded(value: Any) -> float:

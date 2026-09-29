@@ -88,7 +88,7 @@ def _store(tmp_path):
 def test_restores_when_cold(tmp_path):
     store = _store(tmp_path)
     try:
-        assert restore_bundle_if_empty(store, _write_bundle(tmp_path), domain=DOMAIN) is True
+        assert restore_bundle_if_empty(store, _write_bundle(tmp_path), domain=DOMAIN).success is True
         assert store.count_decisions(DOMAIN) == 2
     finally:
         store.close()
@@ -98,8 +98,8 @@ def test_skips_when_warm(tmp_path):
     store = _store(tmp_path)
     try:
         path = _write_bundle(tmp_path)
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is True
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is False
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is True
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is False
         assert store.count_decisions(DOMAIN) == 2
     finally:
         store.close()
@@ -156,7 +156,7 @@ def test_domain_mismatch_returns_false(tmp_path):
             store,
             _write_bundle(tmp_path, _bundle(domain="other")),
             domain=DOMAIN,
-        ) is False
+        ).success is False
         assert store.count_decisions(DOMAIN) == 0
     finally:
         store.close()
@@ -165,7 +165,7 @@ def test_domain_mismatch_returns_false(tmp_path):
 def test_missing_file_returns_false(tmp_path):
     store = _store(tmp_path)
     try:
-        assert restore_bundle_if_empty(store, tmp_path / "missing.json", domain=DOMAIN) is False
+        assert restore_bundle_if_empty(store, tmp_path / "missing.json", domain=DOMAIN).success is False
     finally:
         store.close()
 
@@ -175,7 +175,7 @@ def test_malformed_json_returns_false(tmp_path):
     path = tmp_path / "bad.json"
     path.write_text("{bad", encoding="utf-8")
     try:
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is False
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is False
     finally:
         store.close()
 
@@ -184,8 +184,8 @@ def test_idempotent_decisions(tmp_path):
     store = SQLiteGraphStore(tmp_path / "graph.sqlite", domain=DOMAIN)
     try:
         path = _write_bundle(tmp_path, _bundle(min_decisions_to_skip=999))
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is True
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is True
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is True
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is True
         assert store.count_decisions(DOMAIN) == 2
     finally:
         store.close()
@@ -217,8 +217,8 @@ def test_second_restore_same_bundle_returns_false_when_all_writes_noop(tmp_path)
     }
     try:
         path = _write_bundle(tmp_path, data)
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is True
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is False
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is True
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is False
         assert store.count_decisions(DOMAIN) == 1
     finally:
         store.close()
@@ -228,7 +228,7 @@ def test_rl_state_null_safe(tmp_path):
     store = _store(tmp_path)
     try:
         path = _write_bundle(tmp_path, _bundle(rl_state={"alpha": None}))
-        assert restore_bundle_if_empty(store, path, domain=DOMAIN) is True
+        assert restore_bundle_if_empty(store, path, domain=DOMAIN).success is True
         assert store.load_rl_state("alpha") == {}
     finally:
         store.close()
@@ -260,7 +260,7 @@ def test_bundle_restore_none_correctness_stays_pending(tmp_path):
     decision = {**_bundle()["decisions"][0], "verified": True, "is_correct": None}
     data = _bundle(decisions=[decision])
     try:
-        assert restore_bundle_if_empty(store, _write_bundle(tmp_path, data), domain=DOMAIN) is True
+        assert restore_bundle_if_empty(store, _write_bundle(tmp_path, data), domain=DOMAIN).success is True
         restored = store.get_all_decisions(DOMAIN)[0]
         assert restored["status"] == "pending"
         assert restored["correct"] is None
@@ -280,7 +280,7 @@ def test_empty_noop_bundle_returns_false(tmp_path):
         "evolution_events": [],
     }
     try:
-        assert restore_bundle_if_empty(store, _write_bundle(tmp_path, data), domain=DOMAIN) is False
+        assert restore_bundle_if_empty(store, _write_bundle(tmp_path, data), domain=DOMAIN).success is False
         assert store.count_decisions(DOMAIN) == 0
         assert store.get_centroid_checkpoints(DOMAIN, limit=None) == []
         assert store.load_rl_state("alpha") is None
@@ -291,7 +291,7 @@ def test_empty_noop_bundle_returns_false(tmp_path):
 
 def test_in_memory_graph_store_returns_false_and_does_not_crash(tmp_path):
     store = InMemoryGraphStore(domain=DOMAIN)
-    assert restore_bundle_if_empty(store, _write_bundle(tmp_path), domain=DOMAIN) is False
+    assert restore_bundle_if_empty(store, _write_bundle(tmp_path), domain=DOMAIN).success is False
     assert store.count_decisions(DOMAIN) == 0
 
 

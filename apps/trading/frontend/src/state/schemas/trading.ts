@@ -79,6 +79,9 @@ export interface MeasurementStateResponse {
   armsMeasured?: number;
   armsTotal?: number;
   provenance?: string;
+  accuracyAvailable?: boolean;
+  iksAvailable?: boolean;
+  degraded?: boolean;
   [key: string]: unknown;
 }
 
@@ -125,6 +128,7 @@ export interface FingerprintResponse {
   decisionsAnalyzed?: number;
   overallWinRate?: unknown;
   skippedDecisions?: number;
+  persistenceFailed?: boolean;
   engine?: unknown;
   [key: string]: unknown;
 }
@@ -143,6 +147,7 @@ export interface TrustAnalysisResponse {
   heroInsight?: string;
   perCategory?: unknown;
   decisionsUntilDk?: number;
+  dkReadinessAvailable?: boolean;
   totalTrades?: number;
   [key: string]: unknown;
 }
@@ -413,6 +418,7 @@ export interface CohortStatusResponse {
   real?: Record<string, unknown>;
   instrument?: Record<string, unknown>;
   structure?: Record<string, unknown>;
+  dataAvailable?: boolean;
   [key: string]: unknown;
 }
 
@@ -468,6 +474,7 @@ export interface RegimeAnalyticsSummaryResponse {
 
 export interface IksResponse {
   iks?: number;
+  iksAvailable?: boolean;
   evidenceTier?: string;
   evidenceLabel?: string;
   evidenceGate?: string;

@@ -77,12 +77,15 @@ def _verification_record(
         gate_result = "PASS"
     vector = decision.get("factor_vector")
     source_count = len(vector) if isinstance(vector, list) else 0
+    timestamp, timestamp_available, timestamp_source = _timestamp(decision.get("created_at"))
     return {
         "action_id": str(decision.get("decision_id") or decision.get("entity_id") or "unknown"),
         "category": str(decision.get("category") or "unknown"),
         "trust_score": confidence,
         "gate_result": gate_result,
-        "timestamp": _timestamp(decision.get("created_at")),
+        "timestamp": timestamp,
+        "timestamp_available": timestamp_available,
+        "timestamp_source": timestamp_source,
         "source_count": source_count,
         "evidence_tier": "T_O" if verified else "T_S",
     }
@@ -99,6 +102,8 @@ def _snapshot_record(scorer: Any, conservation_status: str, category: str | None
         "trust_score": trust_score,
         "gate_result": "BLOCK" if conservation_status == "RED" else "ABSTAIN",
         "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "timestamp_available": False,
+        "timestamp_source": "generated",
         "source_count": len(factors),
         "evidence_tier": "T_S",
     }
@@ -126,8 +131,10 @@ def _bounded_float(value: Any) -> float:
         return 0.0
 
 
-def _timestamp(value: Any) -> str:
+def _timestamp(value: Any) -> tuple[str, bool, str]:
+    if value is None or value == "":
+        return datetime.now(timezone.utc).isoformat(timespec="seconds"), False, "generated"
     try:
-        return datetime.fromtimestamp(float(value), tz=timezone.utc).isoformat(timespec="seconds")
+        return datetime.fromtimestamp(float(value), tz=timezone.utc).isoformat(timespec="seconds"), True, "source"
     except (TypeError, ValueError, OverflowError, OSError):
-        return str(value or datetime.now(timezone.utc).isoformat(timespec="seconds"))
+        return str(value), False, "invalid"

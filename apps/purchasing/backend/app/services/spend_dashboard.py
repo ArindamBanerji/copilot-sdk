@@ -24,7 +24,7 @@ class SpendDashboardService:
         rows = self._windowed_orders(days)
         total = sum(_amount(row) for row in rows)
         order_count = len(rows)
-        covers = sum(_covers(row) for row in rows if _covers(row) is not None)
+        covers = sum(value for row in rows if (value := _covers(row)) is not None)
         has_covers = any(_covers(row) is not None for row in rows)
         start, end = _period_bounds(rows)
         return {
@@ -170,8 +170,7 @@ class SpendDashboardService:
     def _windowed_orders(self, days: int) -> list[dict]:
         if not self._orders:
             return []
-        parsed_dates = [_order_date(row) for row in self._orders]
-        parsed_dates = [value for value in parsed_dates if value is not None]
+        parsed_dates = [value for row in self._orders if (value := _order_date(row)) is not None]
         if not parsed_dates:
             return list(self._orders)
         period_days = max(1, int(days))
@@ -199,7 +198,7 @@ def _covers(order: dict[str, Any]) -> float | None:
         if key not in order:
             continue
         try:
-            value = float(order.get(key))
+            value = float(order[key])
         except (TypeError, ValueError):
             return None
         return value if value > 0 else None
@@ -217,8 +216,7 @@ def _order_date(order: dict[str, Any]) -> date | None:
 
 
 def _period_bounds(rows: list[dict[str, Any]]) -> tuple[str | None, str | None]:
-    dates = [_order_date(row) for row in rows]
-    dates = [value for value in dates if value is not None]
+    dates = [value for row in rows if (value := _order_date(row)) is not None]
     if not dates:
         return None, None
     return min(dates).isoformat(), max(dates).isoformat()
@@ -235,11 +233,13 @@ def _line_unit_price(order: dict[str, Any], line: dict[str, Any]) -> float | Non
     for key in ("unit_price", "price", "current_price"):
         if key in line:
             try:
-                value = float(line.get(key))
+                value = float(line[key])
             except (TypeError, ValueError):
                 return None
             return value if value > 0 else None
     quantity = line.get("quantity")
+    if quantity is None:
+        return None
     try:
         qty = float(quantity)
     except (TypeError, ValueError):

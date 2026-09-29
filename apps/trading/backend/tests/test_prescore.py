@@ -187,6 +187,8 @@ def test_prescore_response_has_all_keys(client, monkeypatch):
         "evidence",
         "category",
         "observation_only",
+        "degraded_factors",
+        "factors_available",
     }
 
 

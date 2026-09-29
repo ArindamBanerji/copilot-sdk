@@ -27,6 +27,7 @@ class ItemWasteProfile:
     trend: str
     flagged: bool
     recommendation: str
+    data_available: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -98,6 +99,7 @@ class WasteTracker:
             trend=_trend(waste_values),
             flagged=flagged,
             recommendation=_recommendation(category, flagged),
+            data_available=all(_row_data_available(row) for row in rows),
         )
 
 
@@ -148,6 +150,24 @@ def _waste_pct(row: dict[str, Any]) -> float:
     except (TypeError, ValueError):
         return 0.0
     return number / 100.0 if number > 1 else number
+
+
+def _row_data_available(row: dict[str, Any]) -> bool:
+    raw_outcome = row.get("outcome")
+    outcome: dict[str, Any] = raw_outcome if isinstance(raw_outcome, dict) else {}
+    raw_factors = row.get("factors")
+    factors: dict[str, Any] = raw_factors if isinstance(raw_factors, dict) else {}
+    waste_value = row.get("waste_pct", outcome.get("waste_pct", row.get("historical_waste", factors.get("waste_pct"))))
+    quantity = row.get("quantity")
+    unit_cost = row.get("unit_cost")
+    for value in (waste_value, quantity, unit_cost):
+        if value is None:
+            return False
+        try:
+            float(value)
+        except (TypeError, ValueError):
+            return False
+    return True
 
 
 def _quantity(row: dict[str, Any]) -> float:

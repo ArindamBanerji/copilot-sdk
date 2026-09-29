@@ -100,7 +100,7 @@ def test_integrates_with_par_optimizer():
         def recommend(self, *args, **kwargs):
             return SimpleNamespace(recommended_par=33)
 
-    assert PredictivePar(optimizer=Optimizer()).base_from_optimizer("salmon", "protein", []) == 33
+    assert PredictivePar(optimizer=Optimizer()).base_from_optimizer("salmon", "protein", []) == (33.0, True)
 
 
 def test_adjusted_differs_when_signals():

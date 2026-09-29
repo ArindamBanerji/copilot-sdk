@@ -21,6 +21,7 @@ import type {
   SupplierScorecard,
   TrustExpectedWeightsResponse,
   TrustInsight,
+  TrustInsightsResponse,
   TrustWeightsResponse,
   OrderFormState,
   OrderMetadataPayload,
@@ -603,8 +604,8 @@ export function getExpectedTrustWeights(): Promise<TrustExpectedWeightsResponse>
   return apiGet<TrustExpectedWeightsResponse>("/api/purchasing/trust-weights/expected");
 }
 
-export function getTrustInsights(): Promise<TrustInsight[]> {
-  return apiGet<TrustInsight[]>("/api/purchasing/trust-weights/insights");
+export function getTrustInsights(): Promise<TrustInsightsResponse> {
+  return apiGet<TrustInsightsResponse>("/api/purchasing/trust-weights/insights");
 }
 
 export function getAutoOrderStatus(): Promise<AutoOrderStatus> {

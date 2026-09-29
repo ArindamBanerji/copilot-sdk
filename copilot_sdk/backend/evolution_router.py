@@ -42,7 +42,7 @@ def create_evolution_router(
     graph_store_factory: Callable[[], Any] | None = None,
     domain: str = "unknown",
     evolver_factory: Callable[[], Any] | None = None,
-    variant_provider: Callable[[], list[dict[str, Any]]] | None = None,
+    variant_provider: Callable[[], list[dict[str, Any]] | None] | None = None,
 ) -> APIRouter:
     if graph_store_factory is not None and not callable(graph_store_factory):
         raise TypeError("graph_store_factory must be callable or None")
@@ -79,7 +79,11 @@ def create_evolution_router(
                 )
         return evolver_cache["evolver"]
 
-    @router.get("/variants", response_model=EvolutionVariantsResponse)
+    @router.get(
+        "/variants",
+        response_model=EvolutionVariantsResponse,
+        response_model_exclude_none=True,
+    )
     def variants() -> dict[str, Any]:
         evolver = _get_evolver()
         prompt_summary = _prompt_summary(evolver)
@@ -96,10 +100,10 @@ def create_evolution_router(
         else:
             active_rules = sorted(evolver.get_active_rules())
             promoted_rules = evolver.get_promoted_rules()
-        variants_payload = _provided_variants(variant_provider)
+        variants_payload, data_available = _provided_variants(variant_provider)
         if not variants_payload and prompt_summary is not None:
             variants_payload = prompt_summary["variants"]
-        return {
+        payload = {
             "domain": domain,
             "variants": variants_payload,
             "active_rules": active_rules,
@@ -107,6 +111,9 @@ def create_evolution_router(
             "total_active": len(active_rules),
             "total_promoted": len(promoted_rules),
         }
+        if not data_available:
+            payload.update(data_available=False, degraded=True)
+        return payload
 
     @router.get("/history", response_model=EvolutionHistoryResponse)
     def history(
@@ -219,14 +226,19 @@ def create_evolution_router(
     return router
 
 
-def _provided_variants(provider: Callable[[], list[dict[str, Any]]] | None) -> list[dict[str, Any]]:
+def _provided_variants(
+    provider: Callable[[], list[dict[str, Any]] | None] | None,
+) -> tuple[list[dict[str, Any]], bool]:
     if provider is None:
-        return []
+        return [], True
     try:
-        return list(provider() or [])
+        provided = provider()
+        if provided is None:
+            return [], False
+        return list(provided), True
     except Exception as exc:
         logger.warning("evolution variant provider unavailable: %s", exc)
-        raise RuntimeError("evolution variant provider unavailable") from exc
+        return [], False
 
 
 def _prompt_summary(evolver: AgentEvolver | PromptVariantEvolver) -> dict[str, Any] | None:

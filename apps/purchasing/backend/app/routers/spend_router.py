@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException
 
@@ -58,19 +58,19 @@ def create_spend_router(
 
     @router.get("/by-category")
     def get_by_category(days: int = 30) -> list[dict]:
-        return _service().by_category(days=days)
+        return cast(list[dict], _service().by_category(days=days))
 
     @router.get("/by-supplier")
     def get_by_supplier(days: int = 30, limit: int = 10) -> list[dict]:
-        return _service().by_supplier(days=days, limit=limit)
+        return cast(list[dict], _service().by_supplier(days=days, limit=limit))
 
     @router.get("/alerts")
     def get_alerts(threshold: float = 10.0) -> list[dict]:
-        return _service().price_alerts(threshold_pct=threshold)
+        return cast(list[dict], _service().price_alerts(threshold_pct=threshold))
 
     @router.get("/cost-per-cover")
     def get_cost_per_cover(days: int = 30) -> list[dict]:
-        return _service().cost_per_cover_trend(days=days)
+        return cast(list[dict], _service().cost_per_cover_trend(days=days))
 
     return router
 

@@ -12,7 +12,7 @@ import os
 import sys
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Coroutine, Optional, cast
@@ -125,6 +125,7 @@ class LearnResult:
     persistence: dict[str, bool] = field(default_factory=dict)
     persistence_failures: list[dict[str, str]] = field(default_factory=list)
     dk_refresh: str = "skipped"
+    warnings: list[str] = field(default_factory=list)
 
 
 class CompoundingScorer:
@@ -1034,6 +1035,12 @@ class CompoundingScorer:
         if context and context.get("preseed") is True and not self._preseed_mode:
             logger.warning("Ignoring client-controlled preseed flag for %s decision=%s", self._domain, decision_id)
         conservation_safety, conservation_pause = self._capture_conservation_safety()
+        if conservation_pause is not None:
+            conservation_pause["decision_id"] = decision_id
+            return conservation_pause
+        if not conservation_safety.learning_allowed:
+            raise RuntimeError("conservation contract blocked learning without a pause payload")
+
         if (context and context.get("benchmark") is True) or self._preseed_mode:
             # Synthetic benchmark/server-side preseed runs do not represent live judgments.
             # Avoid recomputing the full verified-history fingerprint on every
@@ -1048,74 +1055,6 @@ class CompoundingScorer:
                 factor_vector=factor_vector,
                 confidence=confidence,
             )
-        if conservation_pause is not None:
-            conservation_pause["decision_id"] = decision_id
-            if persist_artifacts:
-                try:
-                    self._persist_conservation_snapshot(
-                        decision_id,
-                        V=int(conservation_pause["verified_count"]),
-                        q=float(conservation_pause["q"]),
-                        alpha=float(conservation_pause["alpha"]),
-                        theta_min=float(conservation_pause["theta_min"]),
-                        status="RED",
-                        )
-                except Exception as exc:
-                    # The snapshot helper isolates normal persistence errors;
-                    # retain a final guard so a pause response is never blocked.
-                    logger.warning(
-                        "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
-                        self._domain,
-                        decision_id,
-                        "conservation",
-                        type(exc).__name__,
-                        exc,
-                    )
-                try:
-                    centroids = np.asarray(self._scorer.centroids, dtype=np.float64)
-                    if centroids.size and np.any(np.isfinite(centroids)):
-                        pause_category = str(_decision_field(decision, "category", ""))
-                        pause_action = str(
-                            _decision_field(
-                                decision,
-                                "recommended_action",
-                                _decision_field(decision, "action", ""),
-                            )
-                        )
-                        self._save_centroids_checkpoint(
-                            decision_id=decision_id,
-                            category=pause_category,
-                            action=pause_action,
-                            iks=self._compute_iks(persist_artifacts=False),
-                            boundary="conservation_pause",
-                            decisions_in_batch=int(conservation_pause["verified_count"]),
-                            regime_tag=regime_tag,
-                        )
-                except Exception as exc:
-                    logger.warning(
-                        "Paused conservation checkpoint failed: domain=%s decision=%s error=%s",
-                        self._domain,
-                        decision_id,
-                        exc,
-                    )
-                if persist_artifacts:
-                    try:
-                        paused_fingerprint = self.fingerprint(persist=False)
-                        if paused_fingerprint.decisions_analyzed >= 5:
-                            self._persist_fingerprint(
-                                paused_fingerprint,
-                                decision_id=decision_id,
-                            )
-                    except Exception as exc:
-                        logger.warning(
-                            "Paused conservation fingerprint failed: domain=%s decision=%s error=%s",
-                            self._domain,
-                            decision_id,
-                            exc,
-                        )
-            return conservation_pause
-        if not conservation_safety.learning_allowed:
-            raise RuntimeError("conservation contract blocked learning without a pause payload")
         cold_start_learn = self._conservation_mode == "cold_start"
         bootstrap_learn = self._conservation_mode == "bootstrap"
         iks_before = self._compute_iks(
@@ -1299,10 +1238,15 @@ class CompoundingScorer:
                 ]
                 self._credit.assign(reward_raw, factor_names)
 
+        warnings: list[str] = []
+        if bool(getattr(self._preset, "bootstrap_degraded", False)):
+            warnings.append("bootstrap_degraded")
+            logger.warning("Learning is using degraded bootstrap centroids for %s", self._domain)
         if self._evolve and self._evolver is not None:
             self._evolve_count += 1
             if self._evolve_count % 20 == 0:
-                self._run_evolution()
+                if not self._run_evolution():
+                    warnings.append("evolution_run_failed")
 
         if persist_artifacts:
             persistence_failures.extend(self._persist_learning_artifacts(
@@ -1338,6 +1282,7 @@ class CompoundingScorer:
             persistence=persistence,
             persistence_failures=persistence_failures,
             dk_refresh=dk_refresh,
+            warnings=warnings,
         )
 
     def fingerprint(
@@ -1353,7 +1298,8 @@ class CompoundingScorer:
             )
         result = self._fingerprint_cache
         if persist:
-            self._persist_fingerprint(result, decision_id=decision_id)
+            if not self._persist_fingerprint(result, decision_id=decision_id):
+                return replace(result, persistence_failed=True)
         return result
 
     def _record_persistence_failure(
@@ -2759,13 +2705,13 @@ class CompoundingScorer:
         evolver.register_rule(ActionBiasRule(actions))
         self._evolver = evolver
 
-    def _run_evolution(self) -> None:
+    def _run_evolution(self) -> bool:
         if self._evolver is None:
-            return
+            return True
         try:
             decisions = list(self._graph_store.get_verified_decisions(self._domain) or [])
             if len(decisions) < 10:
-                return
+                return True
             conservation_safety = evaluate_conservation_safety(
                 self._evolution_conservation_state()
             )
@@ -2778,8 +2724,10 @@ class CompoundingScorer:
                     conservation_state=conservation_safety,
                     decision_id=decision_id,
                 )
+            return True
         except Exception as exc:
             logger.warning("Evolution run failed: %s", exc)
+            return False
 
     def _evolution_conservation_state(self) -> dict[str, Any] | None:
         if self._preseed_mode:

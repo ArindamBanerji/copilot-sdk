@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import logging
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter
 
@@ -52,27 +52,27 @@ def create_qbo_router(connector: Any | None = None) -> APIRouter:
 
     @router.get("/vendors")
     def get_vendors() -> list[dict]:
-        return _connector().fetch_vendors()
+        return cast(list[dict], _connector().fetch_vendors())
 
     @router.get("/bills")
     def get_bills(since_days: int = 365) -> list[dict]:
-        return _connector().fetch_bills(since_days=since_days)
+        return cast(list[dict], _connector().fetch_bills(since_days=since_days))
 
     @router.get("/purchase-orders")
     def get_purchase_orders(since_days: int = 365) -> list[dict]:
-        return _connector().fetch_purchase_orders(since_days=since_days)
+        return cast(list[dict], _connector().fetch_purchase_orders(since_days=since_days))
 
     @router.get("/payments")
     def get_payments(since_days: int = 365) -> list[dict]:
-        return _connector().fetch_payments(since_days=since_days)
+        return cast(list[dict], _connector().fetch_payments(since_days=since_days))
 
     @router.get("/price-history/{vendor_id}/{item_name}")
     def get_price_history(vendor_id: str, item_name: str) -> list[dict]:
-        return _connector().compute_price_history(vendor_id, item_name)
+        return cast(list[dict], _connector().compute_price_history(vendor_id, item_name))
 
     @router.get("/lead-times/{vendor_id}")
     def get_lead_times(vendor_id: str) -> dict:
-        return _connector().compute_lead_times(vendor_id)
+        return cast(dict, _connector().compute_lead_times(vendor_id))
 
     @router.get("/status")
     def get_status() -> dict[str, Any]:
@@ -89,7 +89,7 @@ def create_qbo_router(connector: Any | None = None) -> APIRouter:
         status["source_name"] = str(getattr(active, "source_name", "quickbooks_online_demo"))
         status["connector_mode"] = "demo" if type(active).__name__.startswith("Demo") else "real"
         status["entity_type"] = str(getattr(active, "entity_type", "accounting"))
-        return status
+        return cast(dict[str, Any], status)
 
     @router.get("/profile")
     def get_profile() -> dict[str, Any]:
@@ -98,6 +98,6 @@ def create_qbo_router(connector: Any | None = None) -> APIRouter:
         profile = BaseSourceProfiler(active).profile(entity_ids)
         payload = profile.to_dict()
         payload["entity_ids"] = entity_ids
-        return payload
+        return cast(dict[str, Any], payload)
 
     return router

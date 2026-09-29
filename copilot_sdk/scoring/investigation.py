@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -29,6 +29,9 @@ class InvestigationStep:
     flipped: bool
     status: str = "acquired"
     halt_reason: str | None = None
+    evidence_available: bool = True
+    evidence_admitted: bool = True
+    failure_reason: str = ""
 
 
 @dataclass
@@ -70,6 +73,9 @@ class InvestigationTrace:
     snapshot: EpisodeSnapshot | None = None
     contrast: dict[str, Any] | None = None
     halt_reason: str | None = None
+    evidence_available: bool = True
+    degraded: bool = False
+    failed_providers: list[str] = field(default_factory=list)
 
 
 @runtime_checkable
@@ -239,6 +245,7 @@ class VLDInvestigator:
         acquired_count = 0
         halt_reason = "budget_exhausted" if budget > 0 else "budget_exhausted"
         steps: list[InvestigationStep] = []
+        failed_providers: list[str] = []
         for step_index in range(budget):
             action_before, p_before, margin_before = self.predict(v, category, score_fn)
             q = self.compute_Q(v, p_before, enriched, frozen_k)
@@ -256,7 +263,7 @@ class VLDInvestigator:
                 status = "error"
                 error_source = f"error:{exc.__class__.__name__}"
             enriched.add(k_star)
-            if evidence is None:
+            if evidence is None and status == "empty":
                 step_halt = "budget_exhausted" if step_index == budget - 1 else None
                 if step_halt is not None:
                     halt_reason = step_halt
@@ -267,6 +274,47 @@ class VLDInvestigator:
                         factor_name=self.factor_names[k_star],
                         evidence_value=None,
                         evidence_confidence=0.0,
+                        evidence_source="none",
+                        v_before=before.tolist(),
+                        v_after=v.copy().tolist(),
+                        action_before=action_before,
+                        action_after=action_before,
+                        margin_before=margin_before,
+                        margin_after=margin_before,
+                        flipped=False,
+                        status="empty",
+                        halt_reason=step_halt,
+                        evidence_available=True,
+                        evidence_admitted=False,
+                    )
+                )
+                if step_halt is not None:
+                    break
+                continue
+            unavailable = (
+                not isinstance(evidence, dict)
+                or evidence.get("data_available") is False
+                or evidence.get("degraded") is True
+                or evidence.get("value") is None
+            )
+            if unavailable:
+                provider_name = self.factor_names[k_star]
+                failed_providers.append(provider_name)
+                failure_reason = (
+                    str(evidence.get("failure_reason") or "evidence_unavailable")
+                    if isinstance(evidence, dict)
+                    else error_source if status == "error" else "evidence_unavailable"
+                )
+                step_halt = "budget_exhausted" if step_index == budget - 1 else None
+                if step_halt is not None:
+                    halt_reason = step_halt
+                steps.append(
+                    InvestigationStep(
+                        step=len(steps),
+                        dimension=k_star,
+                        factor_name=self.factor_names[k_star],
+                        evidence_value=0.0,
+                        evidence_confidence=0.0,
                         evidence_source=error_source if status == "error" else "none",
                         v_before=before.tolist(),
                         v_after=v.copy().tolist(),
@@ -275,13 +323,17 @@ class VLDInvestigator:
                         margin_before=margin_before,
                         margin_after=margin_before,
                         flipped=False,
-                        status=status,
+                        status="failed",
                         halt_reason=step_halt,
+                        evidence_available=False,
+                        evidence_admitted=False,
+                        failure_reason=failure_reason,
                     )
                 )
                 if step_halt is not None:
                     break
                 continue
+            assert isinstance(evidence, dict)
             raw_value = float(evidence.get("value", before[k_star]))
             value = max(0.0, min(1.0, raw_value))
             confidence = max(0.0, min(1.0, float(evidence.get("confidence", 1.0))))
@@ -342,6 +394,9 @@ class VLDInvestigator:
             snapshot=snapshot,
             contrast=contrast,
             halt_reason=halt_reason,
+            evidence_available=not failed_providers,
+            degraded=bool(failed_providers),
+            failed_providers=failed_providers,
         )
 
     def _vector(self, v: Any) -> np.ndarray:
@@ -399,6 +454,9 @@ def _trace_to_dict(trace: InvestigationTrace) -> dict[str, Any]:
         "snapshot": trace.snapshot.public_dict() if trace.snapshot is not None else None,
         "contrast": dict(trace.contrast or {}),
         "halt_reason": trace.halt_reason,
+        "evidence_available": trace.evidence_available,
+        "degraded": trace.degraded,
+        "failed_providers": list(trace.failed_providers),
     }
 
 

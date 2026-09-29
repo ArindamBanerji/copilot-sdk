@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
+from typing import TypedDict
+
+
+class _CommodityPrice(TypedDict):
+    date: str
+    item: str
+    price: float
+    unit: str
+
 
 class MockCommoditySource:
     """Deterministic fixture data for commodity prices. No API calls."""
 
     provenance_tier = "sample"
 
-    MOCK_PRICES = {
+    MOCK_PRICES: dict[str, list[_CommodityPrice]] = {
         "protein": [
             {"date": "2025-07", "item": "Ground Beef", "price": 5.72, "unit": "per lb"},
             {"date": "2025-08", "item": "Ground Beef", "price": 5.76, "unit": "per lb"},

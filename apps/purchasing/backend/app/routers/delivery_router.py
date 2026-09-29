@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter
 
@@ -21,7 +21,7 @@ def create_delivery_router() -> APIRouter:
 
     @router.get("/week")
     def week(start: str | None = None) -> dict[str, Any]:
-        return coordinator.schedule_week(start or date.today())
+        return cast(dict[str, Any], coordinator.schedule_week(start or date.today()))
 
     @router.get("/consolidation")
     def consolidation() -> dict[str, Any]:

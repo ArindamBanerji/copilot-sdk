@@ -53,7 +53,18 @@ module = [
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = ["snowflake", "snowflake.*", "tomli", "joblib", "sklearn", "sklearn.*"]
+module = [
+    "snowflake",
+    "snowflake.*",
+    "tomli",
+    "joblib",
+    "sklearn",
+    "sklearn.*",
+    "intuitlib",
+    "intuitlib.*",
+    "quickbooks",
+    "quickbooks.*",
+]
 ignore_missing_imports = true
 
 [build-system]

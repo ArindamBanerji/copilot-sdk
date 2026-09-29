@@ -4,6 +4,7 @@ import asyncio
 import re
 from pathlib import Path
 
+from app.services.trading_materialization import create_trading_materializer
 from app.services.regime_monitor import RegimeMonitor
 from app.state.key_manifest import TradingKey
 from app.state.trading_registry import TRADING_STATIC_KEYS, create_trading_tab_state_cache
@@ -19,10 +20,13 @@ def run(coro):
 def build_cache():
     store = InMemoryGraphStore(domain="trading")
     scorer = CompoundingScorer.from_preset("trading", graph_store=store, enable_rl=False, profile="test")
+    monitor = RegimeMonitor(config=TradingPreset())
+    materializer = create_trading_materializer(scorer, lambda: store, monitor)
     cache = create_trading_tab_state_cache(
         scorer_provider=lambda: scorer,
         graph_store_factory=lambda: store,
-        regime_monitor=RegimeMonitor(config=TradingPreset()),
+        regime_monitor=monitor,
+        materializer_provider=lambda: materializer,
     )
     return cache, scorer
 
@@ -222,3 +226,24 @@ def test_standard_key_invalidation_completeness():
 
     assert incomplete == []
     assert unknown == {}
+
+
+def test_overlapping_keys_read_materializer_without_independent_computation(monkeypatch):
+    cache, scorer = build_cache()
+    overlapping = {
+        "analytics", "accuracy", "fingerprint", "measurement-state",
+        "vol-sharpe", "vrp-attribution", "dispersion-follow", "trajectory", "conservation",
+    }
+    expected = {key: cache.registrations[key].compute_fn() for key in overlapping}
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("overlapping tab-state entry computed independently")
+
+    monkeypatch.setattr(scorer.graph_store, "get_all_decisions", forbidden)
+    monkeypatch.setattr(scorer.graph_store, "get_verified_decisions", forbidden)
+    monkeypatch.setattr(scorer, "fingerprint", forbidden)
+    monkeypatch.setattr(scorer, "trajectory", forbidden)
+    for key in overlapping:
+        assert cache.registrations[key].compute_fn() == expected[key]
+    assert "regime-vrp" in cache.registrations
+    assert "journal-trades-summary" in cache.registrations

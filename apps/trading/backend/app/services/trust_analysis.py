@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from typing import Any
 
 from app.factors.registry import ALL_FACTOR_NAMES, TRADING_FACTOR_COMPUTERS, compute_factors
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TrustAnalyzer:
@@ -41,7 +45,10 @@ class TrustAnalyzer:
             hero_insight = f"Phase B reached but DK weights not yet available. {hero_insight}"
 
         categories = self._categories(scorer)
-        return {
+        decisions_until_dk, dk_readiness_available = (
+            self._decisions_until_dk(scorer) if mode == "variance" else (None, True)
+        )
+        result = {
             "mode": mode,
             "phase": phase,
             "available_categories": categories,
@@ -52,10 +59,13 @@ class TrustAnalyzer:
             "noise_signals": [factor["name"] for factor in factors_sorted if factor.get("is_noise")],
             "hero_insight": hero_insight,
             "per_category": per_category,
-            "decisions_until_dk": self._decisions_until_dk(scorer) if mode == "variance" else None,
+            "decisions_until_dk": decisions_until_dk,
             "total_trades": len(trades),
             "trust_scores": self._trust_score_map(factors_sorted),
         }
+        if mode == "variance":
+            result["dk_readiness_available"] = dk_readiness_available
+        return result
 
     def _dk_analysis(
         self,
@@ -164,14 +174,18 @@ class TrustAnalyzer:
             message += f" {', '.join(noise)} {shows} high variance."
         return message
 
-    def _decisions_until_dk(self, scorer: Any) -> int | None:
+    def _decisions_until_dk(self, scorer: Any) -> tuple[int | None, bool]:
         try:
-            total = len(scorer.graph_store.get_decisions("trading", limit=10000))
+            rows = scorer.graph_store.get_decisions("trading", limit=10000)
+            if not isinstance(rows, list):
+                return None, False
+            total = len(rows)
             threshold = getattr(scorer, "_dk_transition_threshold", 200)
             remaining = max(0, int(threshold) - total)
-            return remaining if remaining > 0 else None
-        except Exception:
-            return None
+            return remaining, True
+        except (ConnectionError, TimeoutError, RuntimeError) as exc:
+            LOGGER.warning("Trading DK readiness count failed: %s", exc)
+            return None, False
 
     @staticmethod
     def _population_variance(values: list[float]) -> float:

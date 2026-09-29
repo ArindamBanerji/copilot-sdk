@@ -7,8 +7,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from integrity import test_innovation_claims as claims
 from integrity.load_benchmark import load_benchmark
+
+from . import test_innovation_claims as claims
 
 
 def _train_from_scratch(count: int):

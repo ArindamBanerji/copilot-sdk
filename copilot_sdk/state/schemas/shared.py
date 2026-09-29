@@ -84,6 +84,7 @@ class CohortStatusResponse(FlexibleModel):
     real: dict[str, Any] | None = None
     instrument: dict[str, Any] | None = None
     structure: dict[str, Any] | None = None
+    data_available: bool = True
 
 
 class FingerprintFactor(FlexibleModel):
@@ -101,4 +102,5 @@ class FingerprintResponse(FlexibleModel):
     decisions_analyzed: int | None = None
     overall_win_rate: int | float | None = None
     skipped_decisions: int | None = None
+    persistence_failed: bool = False
     engine: Any = None

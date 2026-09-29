@@ -7,25 +7,31 @@ They describe options context for explanations and UI surfaces only.
 from __future__ import annotations
 
 from datetime import date, datetime
+import importlib
 from math import log
+from types import ModuleType
 from typing import Any
+
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
 
 from ci_trading.quant import IVRVFactor as QuantIVRVFactor
 
+py_vollib: ModuleType | None
 try:  # pragma: no cover - availability is environment dependent
-    import py_vollib  # noqa: F401
+    py_vollib = importlib.import_module("py_vollib")
 
     VOLLIB_AVAILABLE = True
 except Exception:  # pragma: no cover - availability is environment dependent
-    py_vollib = None  # type: ignore[assignment]
+    py_vollib = None
     VOLLIB_AVAILABLE = False
 
+yf: ModuleType | None
 try:  # pragma: no cover - availability is environment dependent
-    import yfinance as yf
+    yf = importlib.import_module("yfinance")
 
     YFINANCE_AVAILABLE = True
 except Exception:  # pragma: no cover - availability is environment dependent
-    yf = None  # type: ignore[assignment]
+    yf = None
     YFINANCE_AVAILABLE = False
 
 
@@ -60,11 +66,15 @@ NEUTRAL_TERMS = (
 class _IVRVRatioFactorLegacy:
     """Score implied-volatility richness versus realized volatility."""
 
+    def __init__(self) -> None:
+        self.options_available = True
+
     def compute(self, context: dict[str, Any]) -> float:
         implied = _number(_value(context, "implied_volatility", "iv", "impliedVolatility"))
         realized = _number(_value(context, "realized_volatility", "rv", "realizedVolatility"))
         if implied is None or realized is None:
-            fetched_iv, fetched_rv = self._fetch_iv_rv(_value(context, "ticker"))
+            fetched_iv, fetched_rv, options_available = self._fetch_iv_rv(_value(context, "ticker"))
+            self.options_available = options_available
             implied = implied if implied is not None else fetched_iv
             realized = realized if realized is not None else fetched_rv
         if implied is None or realized is None or realized <= 0:
@@ -83,9 +93,9 @@ class _IVRVRatioFactorLegacy:
             return 0.5
         return _clamp(0.5 + min(distance, 1.0) * 0.5)
 
-    def _fetch_iv_rv(self, ticker: Any) -> tuple[float | None, float | None]:
+    def _fetch_iv_rv(self, ticker: Any) -> tuple[float | None, float | None, bool]:
         if not YFINANCE_AVAILABLE or yf is None or not ticker:
-            return (None, None)
+            return (None, None, False)
         try:
             instrument = yf.Ticker(str(ticker).upper())
             implied = None
@@ -94,18 +104,18 @@ class _IVRVRatioFactorLegacy:
                 chain = instrument.option_chain(options[0])
                 calls = getattr(chain, "calls", None)
                 if calls is not None and "impliedVolatility" in calls:
-                    values = [
+                    raw_values = [
                         _number(value)
                         for value in calls["impliedVolatility"].tolist()
                     ]
-                    values = [value for value in values if value is not None and value > 0]
-                    implied = sum(values) / len(values) if values else None
+                    valid_values = [float(value) for value in raw_values if value is not None and value > 0]
+                    implied = sum(valid_values) / len(valid_values) if valid_values else None
 
             realized = None
             history = instrument.history(period="45d")
             if history is not None and "Close" in history:
-                closes = [_number(value) for value in history["Close"].tolist()]
-                closes = [value for value in closes if value is not None and value > 0]
+                raw_closes = [_number(value) for value in history["Close"].tolist()]
+                closes = [float(value) for value in raw_closes if value is not None and value > 0]
                 returns = [
                     (closes[index] / closes[index - 1]) - 1.0
                     for index in range(1, len(closes))
@@ -115,9 +125,10 @@ class _IVRVRatioFactorLegacy:
                     avg = sum(returns) / len(returns)
                     variance = sum((value - avg) ** 2 for value in returns) / (len(returns) - 1)
                     realized = variance ** 0.5 * (252 ** 0.5)
-            return (implied, realized)
-        except Exception:
-            return (None, None)
+            available = implied is not None and realized is not None
+            return (implied, realized, available)
+        except (*GRAPH_CONNECTION_ERRORS, OSError, RuntimeError):
+            return (None, None, False)
 
 
 class IVRVRatioFactor:
@@ -126,6 +137,7 @@ class IVRVRatioFactor:
     def __init__(self) -> None:
         self._quant = QuantIVRVFactor()
         self._legacy = _IVRVRatioFactorLegacy()
+        self.options_available = True
 
     def compute(self, context: dict[str, Any]) -> float:
         ticker = _value(context, "ticker", "symbol", "underlying")
@@ -139,7 +151,9 @@ class IVRVRatioFactor:
             "rv",
             "realizedVolatility",
         ) is not None:
-            return self._legacy.compute(context)
+            value = self._legacy.compute(context)
+            self.options_available = self._legacy.options_available
+            return value
 
         return _clamp(self._quant.compute(str(ticker or ""), quant_context))
 
@@ -205,16 +219,27 @@ OPTIONS_FACTOR_COMPUTERS = {
 }
 
 
-def compute_options_factors(context: dict[str, Any] | None) -> dict[str, float]:
+class OptionsFactorComputation(dict[str, float]):
+    def __init__(self, values: dict[str, float], degraded_factors: list[str]) -> None:
+        super().__init__(values)
+        self.degraded_factors = list(degraded_factors)
+        self.options_available = not degraded_factors
+
+
+def compute_options_factors(context: dict[str, Any] | None) -> OptionsFactorComputation:
     payload = context if isinstance(context, dict) else {}
     values: dict[str, float] = {}
+    degraded_factors: list[str] = []
     for name in OPTIONS_FACTOR_NAMES:
-        computer = OPTIONS_FACTOR_COMPUTERS[name]
+        computer: Any = OPTIONS_FACTOR_COMPUTERS[name]
         try:
             values[name] = _clamp(computer.compute(payload))
-        except Exception:
+            if name == "iv_rv_ratio" and not bool(getattr(computer, "options_available", True)):
+                degraded_factors.append(name)
+        except (*GRAPH_CONNECTION_ERRORS, OSError, RuntimeError):
             values[name] = 0.5
-    return values
+            degraded_factors.append(name)
+    return OptionsFactorComputation(values, degraded_factors)
 
 
 def _fetch_quant_ivrv_context(ticker: Any) -> dict[str, Any]:
@@ -285,8 +310,10 @@ def _prices_by_strike(frame: Any) -> dict[float, float]:
 
 
 def _value(context: dict[str, Any], *keys: str) -> Any:
-    metadata = context.get("metadata") if isinstance(context.get("metadata"), dict) else {}
-    options = context.get("options") if isinstance(context.get("options"), dict) else {}
+    raw_metadata = context.get("metadata")
+    metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
+    raw_options = context.get("options")
+    options: dict[str, Any] = raw_options if isinstance(raw_options, dict) else {}
     for key in keys:
         if key in context:
             return context.get(key)

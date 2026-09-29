@@ -33,11 +33,13 @@ def create_queue_router(
 
     @router.get("/queue")
     def order_queue(limit: int | None = None) -> dict[str, Any]:
-        orders = _orders(qbo_connector)
+        orders, qbo_available = _orders_with_availability(qbo_connector)
         max_amount = _max_amount(orders)
         scorer = _queue_scorer(scorer_factory)
-        rows = [_recommendation(order, scorer=scorer, max_amount=max_amount) for order in orders]
-        rows = [row for row in rows if row is not None]
+        rows = [
+            row for order in orders
+            if (row := _recommendation(order, scorer=scorer, max_amount=max_amount)) is not None
+        ]
         rows.sort(key=lambda item: item["priority_score"], reverse=True)
         if limit is not None and limit >= 0:
             rows = rows[:limit]
@@ -45,12 +47,13 @@ def create_queue_router(
             "queue": rows,
             "count": len(rows),
             "conservation_status": _conservation_status(graph_store_factory),
-            "source": "quickbooks_online",
+            "source": "quickbooks_online" if qbo_available else "unavailable",
+            "qbo_available": qbo_available,
         }
 
     @router.get("/queue/{order_id}")
     def order_queue_detail(order_id: str) -> dict[str, Any]:
-        orders = _orders(qbo_connector)
+        orders, _qbo_available = _orders_with_availability(qbo_connector)
         max_amount = _max_amount(orders)
         scorer = _queue_scorer(scorer_factory)
         for order in orders:
@@ -64,13 +67,33 @@ def create_queue_router(
     return router
 
 
-def _orders(connector: Any | None = None) -> list[dict[str, Any]]:
+def _orders(connector: Any | None = None) -> tuple[list[dict[str, Any]], bool]:
     try:
         rows = qbo_bills_for_spend(connector or MockQBOConnector())
-    except (FileNotFoundError, OSError):
-        return []
+    except (ConnectionError, TimeoutError, FileNotFoundError, OSError, RuntimeError):
+        return [], False
+    if not isinstance(rows, list):
+        return [], False
     orders = [order for order in rows if isinstance(order, dict)]
-    return [order for order in orders if not is_sample_data(order)]
+    return [order for order in orders if not is_sample_data(order)], True
+
+
+def _orders_with_availability(connector: Any | None = None) -> tuple[list[dict[str, Any]], bool]:
+    """Normalize the availability-aware result while accepting legacy test adapters."""
+
+    result: object = _orders(connector)
+    if (
+        isinstance(result, tuple)
+        and len(result) == 2
+        and isinstance(result[0], list)
+        and isinstance(result[1], bool)
+    ):
+        rows = [row for row in result[0] if isinstance(row, dict)]
+        return rows, result[1] and len(rows) == len(result[0])
+    if isinstance(result, list):
+        rows = [row for row in result if isinstance(row, dict)]
+        return rows, len(rows) == len(result)
+    return [], False
 
 
 def _recommendation(
@@ -79,7 +102,8 @@ def _recommendation(
     max_amount: float | None = None,
 ) -> dict[str, Any] | None:
     factors = _merged_factors(order)
-    items = order.get("items") if isinstance(order.get("items"), list) else []
+    items = order.get("items")
+    items = items if isinstance(items, list) else []
     if not items:
         return None
     primary_item = items[0] if isinstance(items[0], dict) else {}
@@ -119,13 +143,15 @@ def _recommendation(
 
 
 def _merged_factors(order: dict[str, Any]) -> dict[str, float]:
-    explicit_factors = order.get("factors") if isinstance(order.get("factors"), dict) else {}
+    explicit_factors = order.get("factors")
+    explicit_factors = explicit_factors if isinstance(explicit_factors, dict) else {}
     computed = compute_factors(_factor_context(order))
     return {**computed, **_explicit_factor_overrides(order, explicit_factors)}
 
 
 def _factor_context(order: dict[str, Any]) -> dict[str, Any]:
-    outcome = order.get("outcome") if isinstance(order.get("outcome"), dict) else {}
+    outcome = order.get("outcome")
+    outcome = outcome if isinstance(outcome, dict) else {}
     context = {
         "forecast_demand": order.get("forecast_demand") or order.get("expected_demand"),
         "par_level": order.get("par_level"),
@@ -221,7 +247,8 @@ def _priority_score(*, stockout_risk: float, confidence: float, financial_impact
 def _stockout_risk(order: dict[str, Any], factors: dict[str, float]) -> float:
     par_compliance = _finite_factor(order.get("par_compliance"))
     if par_compliance is None:
-        explicit = order.get("factors") if isinstance(order.get("factors"), dict) else {}
+        explicit = order.get("factors")
+        explicit = explicit if isinstance(explicit, dict) else {}
         par_compliance = _finite_factor(explicit.get("par_compliance"))
     if par_compliance is not None:
         return 1.0 - par_compliance
@@ -231,7 +258,8 @@ def _stockout_risk(order: dict[str, Any], factors: dict[str, float]) -> float:
     if current_stock is not None and par_level and par_level > 0:
         return 1.0 - _coerce_factor(current_stock / par_level)
 
-    outcome = order.get("outcome") if isinstance(order.get("outcome"), dict) else {}
+    outcome = order.get("outcome")
+    outcome = outcome if isinstance(outcome, dict) else {}
     if outcome.get("stockout") is True:
         return 1.0
     return _coerce_factor(factors.get("expected_demand"))
@@ -280,7 +308,8 @@ def _order_amount(order: dict[str, Any]) -> float:
         if value is not None:
             return max(0.0, value)
     total = 0.0
-    items = order.get("items") if isinstance(order.get("items"), list) else []
+    items = order.get("items")
+    items = items if isinstance(items, list) else []
     for item in items:
         if not isinstance(item, dict):
             continue

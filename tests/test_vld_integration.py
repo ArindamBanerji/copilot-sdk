@@ -256,7 +256,15 @@ def test_real_router_matches_real_investigator(sweep, domain):
         assert result["action_names"][response["final_action"]] == row["final_action"]
         assert response["surface_margin"] == row["surface_margin"]
         assert response["final_margin"] == row["final_margin"]
-        assert response["steps"] == row["steps"]
+        expected_steps = []
+        for step in row["steps"]:
+            wire_step = dict(step)
+            if wire_step["evidence_value"] is None:
+                wire_step["evidence_value"] = 0.0
+            if wire_step["halt_reason"] is None:
+                wire_step["halt_reason"] = ""
+            expected_steps.append(wire_step)
+        assert response["steps"] == expected_steps
         assert response["budget_used"] == 2
 
 

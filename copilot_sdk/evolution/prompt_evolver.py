@@ -9,6 +9,7 @@ from typing import Any, Callable, Mapping, Protocol
 
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.conservation_contract import (
+    ConservationSafety,
     ConservationStateProvider,
     evaluate_conservation_safety,
 )
@@ -77,6 +78,7 @@ class PromptVariantEvolver:
         self._store = store or InMemoryVariantStore()
         self._ledger = ledger
         self._promotion_gate = DefaultPromotionGate()
+        self.warnings: list[str] = []
 
     @property
     def store(self) -> VariantStore:
@@ -171,9 +173,14 @@ class PromptVariantEvolver:
         family: str | None = None,
         conservation_state: Any = None,
     ) -> dict | None:
+        raw_conservation_state = self._resolve_conservation_state(conservation_state)
+        conservation_safety = evaluate_conservation_safety(raw_conservation_state)
         families = [family] if family is not None else self._families_in_order()
         for family_name in families:
-            result = self._check_family_for_promotion(family_name, conservation_state)
+            result = self._check_family_for_promotion(
+                family_name,
+                conservation_safety,
+            )
             if result is not None:
                 return result
         return None
@@ -200,6 +207,7 @@ class PromptVariantEvolver:
             "variant_count": len(variants),
             "active_count": sum(1 for variant in variants if variant["status"] == "active"),
             "variants": variants,
+            "warnings": list(self.warnings),
             "categories": list(self._config.categories),
         }
 
@@ -209,7 +217,11 @@ class PromptVariantEvolver:
     def reset_stats(self) -> None:
         self._store.reset_stats_only()
 
-    def _check_family_for_promotion(self, family: str, conservation_state: Any = None) -> dict | None:
+    def _check_family_for_promotion(
+        self,
+        family: str,
+        conservation_safety: ConservationSafety,
+    ) -> dict | None:
         variants = self._store.get_variants_by_family(family)
         active_variants = [variant for variant in variants if variant.status == "active"]
         if not active_variants:
@@ -222,20 +234,22 @@ class PromptVariantEvolver:
 
         # Prompt evolution is a compounding loop: conservation must be safe
         # before sample or improvement evidence can authorize promotion.
-        conservation_state = self._resolve_conservation_state(conservation_state)
-        conservation_safety = evaluate_conservation_safety(conservation_state)
         if not conservation_safety.promotion_allowed:
             blocked = shadow_variants[0]
             blocked_stats = self._store.get_global_stats(blocked.id)
             reason = (
                 "conservation_gate_red"
                 if conservation_safety.status == "RED"
-                else "conservation_gate_unavailable"
+                else (
+                    "conservation_gate_unsafe"
+                    if conservation_safety.available
+                    else "conservation_gate_unavailable"
+                )
             )
             logger.warning(
                 "Prompt variant promotion blocked: reason=%s, conservation=%s, variant=%s",
                 reason,
-                conservation_state,
+                conservation_safety.status,
                 blocked.id,
             )
             result = {
@@ -245,7 +259,11 @@ class PromptVariantEvolver:
                 "message": (
                     "Prompt variant promotion blocked: conservation RED"
                     if reason == "conservation_gate_red"
-                    else "Prompt variant promotion blocked: conservation unavailable"
+                    else (
+                        "Prompt variant promotion blocked: conservation state is unsafe"
+                        if reason == "conservation_gate_unsafe"
+                        else "Prompt variant promotion blocked: conservation unavailable"
+                    )
                 ),
                 "candidate_id": blocked.id,
                 "previous_id": active_variant.id,
@@ -437,7 +455,7 @@ class PromptVariantEvolver:
         if spec is not None:
             event_metadata.setdefault("family", spec.family)
         rule_name = str(event_metadata.get("family") or (spec.family if spec is not None else variant_id))
-        self._ledger.append(
+        persisted = self._ledger.append(
             EvolutionEvent(
                 event_type=event_type,
                 rule_name=rule_name,
@@ -445,6 +463,8 @@ class PromptVariantEvolver:
                 metadata=event_metadata,
             )
         )
+        if persisted is False:
+            self.warnings.append("evolution_ledger_write_failed")
 
     def _emit_selected_hook(
         self,
