@@ -3083,3 +3083,24 @@ Contract checks: decision table, normalization, identity preservation, side-effe
 Mypy: FAIL on exact tag (copilot_sdk/evolution/evolver.py:112,115); 15 other changed Python files passed
 Banned patterns/F-25 additions: PASS
 Verdict: NEEDS_FIXER
+
+C-GOV Fixer (B27)
+Date: 2026-09-29
+Model: sol/high
+Review findings addressed:
+  P1-1: scorer.py mutation ordering — FIXED: conservation rejection now returns before judgment-conflict diagnostics mutate scorer state.
+  P1-2: scorer.py persistence on rejection — FIXED: rejected learning performs no conservation, centroid-checkpoint, fingerprint, receipt, or outcome graph writes.
+  P1-3: prompt_evolver.py per-family resolution — FIXED: check_for_promotion resolves one ConservationSafety before iterating families.
+  P1-4: global_gate.py fail-open on unhandled states — FIXED: every domain is evaluated by the canonical contract and every non-promotion-safe state denies transfer.
+  P1-5: scoring_router.py double DK mutation — FIXED: persistence stores current weights and never calls reestimate_dk_if_due.
+  P1-6: trading_evolver.py ignores conservation_state — FIXED: check_for_promotion forwards the explicit snapshot to check_promotion.
+  P1-7: Unstaged prerequisites — FIXED: staged the complete prerequisite worktree as directed, including copilot_sdk/backend/graph_access.py and integrity-test collection changes; the committed tree is self-contained.
+  P2-1: prompt_evolver.py rejection reason — FIXED: RED reports conservation_gate_red, available unsafe states report conservation_gate_unsafe, unavailable states report conservation_gate_unavailable.
+  P2-2: GC test depth — FIXED: rejected L1 asserts centroids, outcomes, diagnostic state, and artifacts unchanged; L2 asserts the active rule is unchanged; GC-08 counts L1, direct L1b, scorer-L2, prompt, Trading, and global reads and behaviorally verifies no router DK re-estimation.
+  P2-3: evolver.py mypy — FIXED: typed casts preserve declared history and promoted-rule return types.
+Clean-tree baseline (Phase 0h): 3,728 passed, 8 failed (all eight missing copilot_sdk.backend.graph_access imports)
+Files changed: core fixer paths copilot_sdk/scoring/scorer.py, copilot_sdk/evolution/prompt_evolver.py, copilot_sdk/conservation/global_gate.py, copilot_sdk/backend/scoring_router.py, apps/trading/backend/app/services/trading_evolver.py, copilot_sdk/evolution/evolver.py; strengthened tests in tests/evolution/test_cross_loop_conservation.py and related stale-expectation tests; copilot_sdk/backend/graph_access.py plus the previously completed cumulative prerequisite worktree (194 paths total) were committed per Gate 9.
+Status: COMPLETE
+Test count (committed): 3,833 passed, 0 failures
+Commit: 8c5ef92
+Notes: GC suite 8 passed; evolution 225 passed; conservation-selected 231 passed; scorer-selected 200 passed; Trading backend 1,498 passed; sampling 46 passed. Mypy checked all 167 Python paths changed by the commit from their correct package import roots: 0 failures. Added-line banned-pattern scan and whitespace check passed. No tag created.
