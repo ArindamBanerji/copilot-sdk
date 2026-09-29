@@ -3104,3 +3104,25 @@ Status: COMPLETE
 Test count (committed): 3,833 passed, 0 failures
 Commit: 8c5ef92
 Notes: GC suite 8 passed; evolution 225 passed; conservation-selected 231 passed; scorer-selected 200 passed; Trading backend 1,498 passed; sampling 46 passed. Mypy checked all 167 Python paths changed by the commit from their correct package import roots: 0 failures. Added-line banned-pattern scan and whitespace check passed. No tag created.
+
+C-GOV REVIEW — RE-REVIEW (B27)
+Date: 2026-09-29
+Model: terra/high
+Supersedes: C-GOV REVIEW (B27) Verdict: NEEDS_FIXER
+Fixer commits verified: 8c5ef92 (implementation), ad27115 (fixer session record)
+Phase 0 baseline: 3,833 passed, 0 failures
+Findings:
+  P1-1 mutation ordering: FIXED
+  P1-2 persistence on rejection: FIXED
+  P1-3 per-family resolution: FIXED
+  P1-4 fail-open on non-GREEN: FIXED
+  P1-5 double DK mutation: FIXED
+  P1-6 trading_evolver ignores conservation_state: FIXED
+  P1-7 unstaged prerequisites: FIXED
+  P2-1 wrong rejection reason: FIXED
+  P2-2 GC test depth: FIXED
+  P2-3 evolver.py mypy: FIXED
+Test count: SDK root 3,833 passed, 0 failures
+GC tests: 8 passed, 0 failures
+Verdict: PASS
+Tag: v0.9.63

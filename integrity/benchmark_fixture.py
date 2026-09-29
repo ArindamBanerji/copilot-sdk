@@ -35,11 +35,15 @@ OUTCOMES_PATH = FIXTURE_DIR / "benchmark_outcomes_v1.json"
 def _header(n_factors: int) -> dict[str, Any]:
     return {
         "version": VERSION,
+        "seed": SEED,
         "domain": DOMAIN,
+        "preset": DOMAIN,
         "n_train": N_TRAIN,
         "n_eval": N_EVAL,
         "n_factors": n_factors,
+        "D": n_factors,
         "generated": GENERATED,
+        "generation_date": GENERATED,
         "frozen": True,
     }
 
@@ -71,6 +75,7 @@ def build_fixture() -> tuple[dict[str, Any], dict[str, Any]]:
         DOMAIN,
         graph_store=InMemoryGraphStore(domain=DOMAIN),
         enable_rl=False,
+        profile="test",
     )
     shape = scorer._preset.shape
     category_names = tuple(shape.category_names)
@@ -137,13 +142,12 @@ def build_fixture() -> tuple[dict[str, Any], dict[str, Any]]:
 
 def main() -> int:
     FIXTURE_DIR.mkdir(parents=True, exist_ok=True)
-    if FACTORS_PATH.exists() or OUTCOMES_PATH.exists():
-        print("Benchmark fixture already exists. Delete manually to regenerate.")
-        return 0
     factors, outcomes = build_fixture()
-    FACTORS_PATH.write_text(json.dumps(factors, indent=2) + "\n", encoding="utf-8")
-    OUTCOMES_PATH.write_text(json.dumps(outcomes, indent=2) + "\n", encoding="utf-8")
-    print("Benchmark fixture generated")
+    factors_text = json.dumps(factors, indent=2) + "\n"
+    outcomes_text = json.dumps(outcomes, indent=2) + "\n"
+    FACTORS_PATH.write_text(factors_text, encoding="utf-8")
+    OUTCOMES_PATH.write_text(outcomes_text, encoding="utf-8")
+    print("Benchmark fixture generated deterministically")
     return 0
 
 

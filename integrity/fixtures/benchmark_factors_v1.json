@@ -1,10 +1,14 @@
 {
   "version": "v1",
+  "seed": 20260711,
   "domain": "trading",
+  "preset": "trading",
   "n_train": 400,
   "n_eval": 100,
   "n_factors": 10,
+  "D": 10,
   "generated": "2026-07-11",
+  "generation_date": "2026-07-11",
   "frozen": true,
   "decisions": [
     {
