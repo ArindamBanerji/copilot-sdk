@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Sequence
+from typing import Any, Sequence
 
 from copilot_sdk.ae.types import PromotionDecision
+from copilot_sdk.evolution.conservation_contract import evaluate_conservation_safety
 
 
 class PromotionGate:
@@ -22,13 +23,13 @@ class PromotionGate:
         self.bootstrap_samples = bootstrap_samples
         self.random_seed = random_seed
 
-    def evaluate(self, candidate: Sequence[float], baseline: Sequence[float], conservation_state: str = "GREEN") -> PromotionDecision:
+    def evaluate(self, candidate: Sequence[float], baseline: Sequence[float], conservation_state: Any = None) -> PromotionDecision:
         if len(candidate) != len(baseline):
             raise ValueError("candidate and baseline samples must be paired")
         n = len(candidate)
         if n < self.min_n:
             return self._reject("insufficient_sample_size", n, 0.0, 1.0)
-        if conservation_state.strip().upper() != "GREEN":
+        if not evaluate_conservation_safety(conservation_state).promotion_allowed:
             return self._reject("conservation_not_green", n, 0.0, 1.0)
         differences = [float(c) - float(b) for c, b in zip(candidate, baseline)]
         if not all(math.isfinite(value) for value in differences):
@@ -45,11 +46,11 @@ class PromotionGate:
         promoted = effect > 0.0 and p_value < self.fpr_threshold
         return PromotionDecision(promoted, "promoted" if promoted else "bootstrap_not_significant", p_value, n, effect, self.fpr_threshold, checks)
 
-    def check(self, candidate: Sequence[float], baseline: Sequence[float], conservation_state: str = "GREEN") -> PromotionDecision:
+    def check(self, candidate: Sequence[float], baseline: Sequence[float], conservation_state: Any = None) -> PromotionDecision:
         return self.evaluate(candidate, baseline, conservation_state)
 
-    def should_promote(self, candidate: Sequence[float], baseline: Sequence[float], conservation_state: str = "GREEN") -> bool:
-        return self.evaluate(candidate, baseline, conservation_state).promoted
+    def should_promote(self, candidate: Sequence[float], baseline: Sequence[float], conservation_state: Any = None) -> bool:
+        return bool(self.evaluate(candidate, baseline, conservation_state).promoted)
 
     def _reject(self, reason: str, n: int, effect: float, p_value: float) -> PromotionDecision:
         return PromotionDecision(False, reason, p_value, n, effect, self.fpr_threshold, {"minimum_sample": n >= self.min_n, "conservation": reason != "conservation_not_green", "superiority": False, "fpr": False})

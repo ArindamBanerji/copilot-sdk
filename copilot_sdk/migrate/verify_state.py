@@ -264,6 +264,9 @@ def replay_decisions(
     if not decisions:
         return _empty_state(domain, preset_config)
 
+    from copilot_sdk.evolution.conservation_contract import (
+        evaluate_conservation_safety,
+    )
     from copilot_sdk.scoring.scorer import PRESET_REGISTRY, CompoundingScorer
 
     resolved_domain = _domain_from_preset_config(domain, preset_config)
@@ -290,7 +293,9 @@ def replay_decisions(
         store.add_decision(normalised)
         scorer.learn(decision_id, actual_action, context=context)
 
-    scorer.reestimate_dk_if_due()
+    # Replay is an isolated, controlled learning transaction. Use the same
+    # canonical contract's PRESEED admission instead of bypassing the guard.
+    scorer.reestimate_dk_if_due(evaluate_conservation_safety("PRESEED"))
     current = np.asarray(scorer.gae_scorer.centroids, dtype=np.float64)
     learned_delta = current - baseline
     centroids = {

@@ -6,12 +6,12 @@ from math import erfc, sqrt
 from statistics import pstdev
 from typing import Any
 
+from copilot_sdk.evolution.conservation_contract import evaluate_conservation_safety
+
 MIN_BATCHES = 3
 
 
 class DefaultPromotionGate:
-    _SAFE_PHASES = {"GREEN", "VERIFIED", "ACTIVE"}
-
     def __init__(
         self,
         superiority_threshold_pp: float = 3.0,
@@ -27,7 +27,7 @@ class DefaultPromotionGate:
     def evaluate(
         self,
         shadow_results: dict[str, Any],
-        conservation_state: dict[str, Any] | None = None,
+        conservation_state: Any = None,
     ) -> dict[str, Any]:
         total = int(shadow_results.get("total") or 0)
         accuracy = float(shadow_results.get("accuracy") or 0.0)
@@ -67,7 +67,9 @@ class DefaultPromotionGate:
             "statistical_significance": p_value is not None and p_value < self.alpha,
             "practical_significance": superiority_pp > self.superiority_threshold_pp,
             "accuracy_floor": accuracy >= self.accuracy_floor,
-            "conservation": self._is_conservation_safe(conservation_state),
+            "conservation": evaluate_conservation_safety(
+                conservation_state
+            ).promotion_allowed,
             "variance": variance <= 0.10,
         }
         promoted = all(checks.values())
@@ -135,19 +137,7 @@ class DefaultPromotionGate:
         return "rejected"
 
     def _is_conservation_safe(self, conservation_state: Any) -> bool:
-        if conservation_state is None:
-            return False
-        if isinstance(conservation_state, str):
-            return conservation_state.strip().upper() == "GREEN"
-        if not isinstance(conservation_state, dict) or not conservation_state:
-            return False
-        for key in ("status", "state", "phase"):
-            value = conservation_state.get(key)
-            if value is None:
-                continue
-            if not isinstance(value, str):
-                return False
-            return value.strip().upper() in self._SAFE_PHASES
-        if conservation_state.get("overallSafe") is True or conservation_state.get("overall_safe") is True:
-            return True
-        return False
+        """Compatibility delegate; new callers use the public contract."""
+        return bool(
+            evaluate_conservation_safety(conservation_state).promotion_allowed
+        )

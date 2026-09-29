@@ -9,17 +9,20 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from importlib import import_module
 import random
 import logging
 from statistics import pstdev
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from copilot_sdk.evolution import (
     AgentEvolver,
+    ConservationSafety,
     DefaultPromotionGate,
     DefaultShadowRunner,
     VariantSpec,
     VariantStore,
+    evaluate_conservation_safety,
 )
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
@@ -39,17 +42,7 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
-def _conservation_green(state: Any) -> bool:
-    if isinstance(state, str):
-        return state.strip().upper() == "GREEN"
-    if isinstance(state, dict):
-        for key in ("status", "state", "phase"):
-            value = state.get(key)
-            if isinstance(value, str):
-                return value.strip().upper() == "GREEN"
-        if state.get("overall_safe") is True or state.get("overallSafe") is True:
-            return True
-    return False
+_UNSET_CONSERVATION = object()
 
 
 def _default_conservation_state() -> dict[str, str]:
@@ -291,15 +284,15 @@ class TradingAgentEvolver:
             )
         if candidate_id is None:
             return {"promoted": False, "reason": "insufficient_batches"}
-        return self.check_promotion(candidate_id)
+        return cast(dict[str, Any], self.check_promotion(candidate_id))
 
     def get_active_rules(self) -> dict[str, Any]:
         """Retain the legacy generic-router inventory interface."""
-        return self.sdk_evolver.get_active_rules()
+        return cast(dict[str, Any], self.sdk_evolver.get_active_rules())
 
     def get_promoted_rules(self) -> list[str]:
         """Retain the legacy generic-router promotion interface."""
-        return self.sdk_evolver.get_promoted_rules()
+        return cast(list[str], self.sdk_evolver.get_promoted_rules())
 
     def get_evolution_history(
         self,
@@ -307,7 +300,10 @@ class TradingAgentEvolver:
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         """Retain the legacy generic-router history interface."""
-        return self.sdk_evolver.get_evolution_history(rule_name=rule_name, limit=limit)
+        return cast(
+            list[dict[str, Any]],
+            self.sdk_evolver.get_evolution_history(rule_name=rule_name, limit=limit),
+        )
 
     def generate_variant(self) -> dict[str, Any]:
         variant = self._generator.generate()
@@ -359,7 +355,9 @@ class TradingAgentEvolver:
         baseline_accuracy = float(shadow.get("baseline_accuracy") or 0.0)
         improvement_pp = round((variant_accuracy - baseline_accuracy) * 100.0, 4)
         conservation_state = self.conservation_provider()
-        conservation_safe = _conservation_green(conservation_state)
+        conservation_safe = evaluate_conservation_safety(
+            conservation_state
+        ).promotion_allowed
         result = {
             "variant_id": variant_id,
             "batch_number": batch_number,
@@ -381,7 +379,11 @@ class TradingAgentEvolver:
         })
         return deepcopy(result)
 
-    def check_promotion(self, variant_id: str) -> dict[str, Any]:
+    def check_promotion(
+        self,
+        variant_id: str,
+        conservation_state: object = _UNSET_CONSERVATION,
+    ) -> dict[str, Any]:
         if self.regime_break_provider():
             log.warning("AE promotion deferred: regime break active")
             return {
@@ -404,8 +406,8 @@ class TradingAgentEvolver:
                 "reason": "insufficient_improvement",
                 "batches": batches,
             }
-        conservation_state = self.conservation_provider()
-        if not _conservation_green(conservation_state):
+        conservation_safety = self._conservation_safety(conservation_state)
+        if not conservation_safety.promotion_allowed:
             return {
                 "promotable": False,
                 "reason": "conservation_not_green",
@@ -425,7 +427,10 @@ class TradingAgentEvolver:
             "accuracy": sum(float(result["variant_accuracy"]) for result in results) / batches,
             "baseline_accuracy": sum(float(result["baseline_accuracy"]) for result in results) / batches,
         }
-        gate_result = self._gate.evaluate(aggregate_shadow, conservation_state=conservation_state)
+        gate_result = self._gate.evaluate(
+            aggregate_shadow,
+            conservation_state=conservation_safety,
+        )
         return {
             "promotable": bool(gate_result.get("promoted")),
             "reason": "promotable" if gate_result.get("promoted") else str(gate_result.get("reason")),
@@ -437,19 +442,15 @@ class TradingAgentEvolver:
 
     def promote(self, variant_id: str) -> dict[str, Any]:
         variant_id = str(variant_id)
-        check = self.check_promotion(variant_id)
+        conservation_safety = self._conservation_safety()
+        check = self.check_promotion(
+            variant_id,
+            conservation_state=conservation_safety,
+        )
         if not check.get("promotable"):
             return {
                 "promoted": False,
                 "reason": check.get("reason", "not_promotable"),
-                "adjustments": {},
-                "check": check,
-            }
-        conservation_state = self.conservation_provider()
-        if not _conservation_green(conservation_state):
-            return {
-                "promoted": False,
-                "reason": "conservation_not_green",
                 "adjustments": {},
                 "check": check,
             }
@@ -475,6 +476,18 @@ class TradingAgentEvolver:
             "adjustments": dict(variant.get("adjustments") or {}),
             "check": check,
         }
+
+    def _conservation_safety(
+        self,
+        state: object = _UNSET_CONSERVATION,
+    ) -> ConservationSafety:
+        if state is not _UNSET_CONSERVATION:
+            return evaluate_conservation_safety(state)
+        try:
+            return evaluate_conservation_safety(self.conservation_provider())
+        except Exception as exc:
+            log.warning("AE conservation read failed closed: %s", exc)
+            return evaluate_conservation_safety(None)
 
     def evolution_log(self) -> list[dict[str, Any]]:
         variants = []
@@ -530,7 +543,7 @@ def create_default_trading_evolver(
         conservation_provider=conservation_provider,
         regime_break_provider=regime_break_provider or (lambda: False),
     )
-    from app.evolution.evolver_config import get_trading_variants
-
+    config_module = import_module("app.evolution.evolver_config")
+    get_trading_variants = getattr(config_module, "get_trading_variants")
     evolver.register_variants(get_trading_variants())
     return evolver

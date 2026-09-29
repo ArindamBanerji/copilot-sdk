@@ -90,7 +90,9 @@ def test_gate_defaults_to_e22_thresholds() -> None:
 
 def test_gate_accepts_exact_minimum_sample() -> None:
     candidate, baseline = _pairs()
-    assert PromotionGate(random_seed=1).evaluate(candidate, baseline).promoted
+    assert PromotionGate(random_seed=1).evaluate(
+        candidate, baseline, conservation_state="GREEN"
+    ).promoted
 
 
 def test_gate_rejects_insufficient_sample() -> None:
@@ -104,15 +106,21 @@ def test_gate_requires_paired_lengths() -> None:
 
 
 def test_gate_promotes_clear_superiority() -> None:
-    assert PromotionGate(random_seed=2).should_promote(*_pairs())
+    assert PromotionGate(random_seed=2).should_promote(
+        *_pairs(), conservation_state="GREEN"
+    )
 
 
 def test_gate_rejects_equal_performance() -> None:
-    assert not PromotionGate(random_seed=2).evaluate([0.5] * 30, [0.5] * 30).promoted
+    assert not PromotionGate(random_seed=2).evaluate(
+        [0.5] * 30, [0.5] * 30, conservation_state="GREEN"
+    ).promoted
 
 
 def test_gate_rejects_worse_candidate() -> None:
-    assert not PromotionGate(random_seed=2).evaluate([0.2] * 30, [0.5] * 30).promoted
+    assert not PromotionGate(random_seed=2).evaluate(
+        [0.2] * 30, [0.5] * 30, conservation_state="GREEN"
+    ).promoted
 
 
 def test_gate_blocks_non_green_conservation() -> None:
@@ -122,13 +130,19 @@ def test_gate_blocks_non_green_conservation() -> None:
 
 def test_gate_is_reproducible_with_seed() -> None:
     candidate, baseline = _pairs()
-    first = PromotionGate(random_seed=9).evaluate(candidate, baseline)
-    second = PromotionGate(random_seed=9).evaluate(candidate, baseline)
+    first = PromotionGate(random_seed=9).evaluate(
+        candidate, baseline, conservation_state="GREEN"
+    )
+    second = PromotionGate(random_seed=9).evaluate(
+        candidate, baseline, conservation_state="GREEN"
+    )
     assert first == second
 
 
 def test_gate_reports_effect_and_p_value() -> None:
-    result = PromotionGate(random_seed=3).evaluate(*_pairs())
+    result = PromotionGate(random_seed=3).evaluate(
+        *_pairs(), conservation_state="GREEN"
+    )
     assert result.effect == pytest.approx(0.4)
     assert 0.0 <= result.p_value <= 1.0
 
@@ -151,7 +165,7 @@ def test_evolution_store_persists_fitness_in_ledger() -> None:
 
 def test_evolution_store_persists_promotion() -> None:
     store = EvolutionStore(InMemoryGraphStore(), "dataops")
-    decision = PromotionGate().evaluate(*_pairs())
+    decision = PromotionGate().evaluate(*_pairs(), conservation_state="GREEN")
     store.save_promotion("rule-1", decision)
     saved = store.graph_store.get_promotion("dataops", "rule-1")
     assert saved is not None and saved["promoted"] is True
@@ -173,7 +187,9 @@ def test_evolution_store_delete_is_explicit() -> None:
 def test_end_to_end_generation_fitness_and_promotion() -> None:
     variant = VariantGenerator(Strategy()).generate("base", {"source": "seed"})[0]
     fitness = FitnessEvaluator(Strategy()).evaluate(variant, [{"value": 0.9}] * 30)
-    decision = PromotionGate(random_seed=7).evaluate(*_pairs())
+    decision = PromotionGate(random_seed=7).evaluate(
+        *_pairs(), conservation_state="GREEN"
+    )
     assert fitness.sample_size == 30 and decision.promoted
 
 

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from importlib import import_module
 import sys
 import time
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 from fastapi import FastAPI
@@ -23,6 +25,13 @@ def isolated_app_imports():
             sys.modules.pop(name, None)
     if str(PURCHASING_BACKEND) not in sys.path:
         sys.path.insert(0, str(PURCHASING_BACKEND))
+    # These unit tests import purchasing services and routers, not the app
+    # lifecycle. A lightweight package namespace prevents ``app.__init__``
+    # from constructing the full service and contacting the configured AGE
+    # backend during module import.
+    app_package = ModuleType("app")
+    app_package.__path__ = [str(PURCHASING_BACKEND / "app")]
+    sys.modules["app"] = app_package
     yield
     for name in list(sys.modules):
         if name == "app" or name.startswith("app."):
@@ -31,21 +40,18 @@ def isolated_app_imports():
 
 
 def _publisher_class():
-    from app.services.supplier_signal_publisher import SupplierSignalPublisher
-
-    return SupplierSignalPublisher
+    return getattr(
+        import_module("app.services.supplier_signal_publisher"),
+        "SupplierSignalPublisher",
+    )
 
 
 def _alert_engine_class():
-    from app.services.alert_engine import PurchasingAlertEngine
-
-    return PurchasingAlertEngine
+    return getattr(import_module("app.services.alert_engine"), "PurchasingAlertEngine")
 
 
 def _signal_router_factory():
-    from app.routers.signal_router import create_signal_router
-
-    return create_signal_router
+    return getattr(import_module("app.routers.signal_router"), "create_signal_router")
 
 
 @dataclass

@@ -277,12 +277,22 @@ def create_scoring_router(
                 )
                 learn_context = dict(request.context or {})
                 learn_context.pop("preseed", None)
+                learn_kwargs: dict[str, Any] = {
+                    "consolidate": bool(learn_context.get("consolidate")),
+                    "context": learn_context,
+                }
+                if "dk_refresh_min_verified" in inspect.signature(
+                    scorer.learn
+                ).parameters:
+                    # Preserve the established L5 transition at the start of
+                    # variance learning while keeping the mutation inside the
+                    # scorer's single conservation-snapshot transaction.
+                    learn_kwargs["dk_refresh_min_verified"] = 200
                 result = scorer.learn(
                     request.decision_id,
                     request.actual_action,
                     request.outcome,
-                    consolidate=bool(learn_context.get("consolidate")),
-                    context=learn_context,
+                    **learn_kwargs,
                 )
             except KeyError as exc:
                 raise HTTPException(status_code=404, detail=f"Unknown decision: {request.decision_id}") from exc
@@ -812,14 +822,18 @@ def _persist_dk_state_l5(
         return False
     reestimate = getattr(scorer, "reestimate_dk_if_due", None)
     get_dk_weights = getattr(scorer, "get_dk_weights", None)
-    if not callable(reestimate) or not callable(get_dk_weights):
+    if not callable(get_dk_weights):
         log.warning("L5 DK persistence skipped for %s: scorer lacks DK runtime helpers", domain)
         return False
     is_correct = str(actual_action) == str(recommended_action)
     try:
         with persistence_lock:
             welford_tracker.update(factor_vector, is_correct)
-            reestimate()
+            # CompoundingScorer.learn owns the governed DK mutation. Retain
+            # compatibility for legacy scorer doubles that do not expose its
+            # dk_refresh result, without re-estimating a real learn twice.
+            if "dk_refresh" not in payload and callable(reestimate):
+                reestimate()
             store = _dk_learning_store_for(scorer, explicit_learning_store)
             if store is None:
                 return False

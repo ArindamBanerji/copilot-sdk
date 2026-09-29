@@ -8,7 +8,10 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Protocol
 
 from copilot_sdk.evolution.gate import DefaultPromotionGate
-from copilot_sdk.evolution.conservation_contract import ConservationStateProvider
+from copilot_sdk.evolution.conservation_contract import (
+    ConservationStateProvider,
+    evaluate_conservation_safety,
+)
 from copilot_sdk.evolution.protocol import EvolutionEvent, EvolutionLedger
 from copilot_sdk.evolution.variant_store import InMemoryVariantStore, VariantSpec, VariantStats, VariantStore
 from copilot_sdk.config.graph_config import resolve_profile
@@ -220,10 +223,15 @@ class PromptVariantEvolver:
         # Prompt evolution is a compounding loop: conservation must be safe
         # before sample or improvement evidence can authorize promotion.
         conservation_state = self._resolve_conservation_state(conservation_state)
-        if not self._promotion_gate._is_conservation_safe(conservation_state):
+        conservation_safety = evaluate_conservation_safety(conservation_state)
+        if not conservation_safety.promotion_allowed:
             blocked = shadow_variants[0]
             blocked_stats = self._store.get_global_stats(blocked.id)
-            reason = self._conservation_rejection_reason(conservation_state)
+            reason = (
+                "conservation_gate_red"
+                if conservation_safety.status == "RED"
+                else "conservation_gate_unavailable"
+            )
             logger.warning(
                 "Prompt variant promotion blocked: reason=%s, conservation=%s, variant=%s",
                 reason,

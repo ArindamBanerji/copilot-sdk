@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
+from copilot_sdk.evolution.conservation_contract import evaluate_conservation_safety
 from copilot_sdk.graph.protocol import ProtocolV2GraphStore
 
 
@@ -76,11 +77,23 @@ class GlobalConservationGate:
         )
 
     def transfer_allowed(self, source_domain: str, target_domain: str) -> bool:
+        snapshot = self.snapshot()
+        return self._transfer_allowed_from_snapshot(
+            source_domain,
+            target_domain,
+            snapshot,
+        )
+
+    @staticmethod
+    def _transfer_allowed_from_snapshot(
+        source_domain: str,
+        target_domain: str,
+        snapshot: GlobalConservationSnapshot,
+    ) -> bool:
         if source_domain == target_domain:
             return False
-        snapshot = self.snapshot()
         return (
-            snapshot.status == "GREEN"
+            evaluate_conservation_safety(snapshot.to_dict()).promotion_allowed
             and snapshot.statuses.get(str(source_domain)) == "GREEN"
             and snapshot.statuses.get(str(target_domain)) == "GREEN"
         )
@@ -99,7 +112,11 @@ class GlobalConservationGate:
 
     def check_transfer(self, source_domain: str, target_domain: str) -> dict[str, Any]:
         snapshot = self.snapshot()
-        allowed = self.transfer_allowed(source_domain, target_domain)
+        allowed = self._transfer_allowed_from_snapshot(
+            source_domain,
+            target_domain,
+            snapshot,
+        )
         return {
             "allowed": allowed,
             "source_domain": str(source_domain),

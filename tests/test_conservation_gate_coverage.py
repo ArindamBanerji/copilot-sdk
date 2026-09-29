@@ -4,6 +4,7 @@ from copilot_sdk.evolution import PromptEvolverConfig, PromptVariantEvolver, Var
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 import copilot_sdk.evolution.gate as gate_module
 import copilot_sdk.evolution.prompt_evolver as prompt_evolver_module
+import copilot_sdk.evolution.conservation_contract as contract_module
 import copilot_sdk.scoring.scorer as scorer_module
 
 
@@ -66,7 +67,16 @@ def test_gc03_prompt_promotion_fails_closed_when_conservation_unknown() -> None:
 
 
 def test_gc04_conservation_gate_coverage_across_l1_l2_l2b() -> None:
-    assert hasattr(DefaultPromotionGate, "_is_conservation_safe")
-    assert "_conservation_pause" in inspect.getsource(scorer_module.CompoundingScorer.learn)
-    assert "_is_conservation_safe" in inspect.getsource(gate_module.DefaultPromotionGate.evaluate)
-    assert "_is_conservation_safe" in inspect.getsource(prompt_evolver_module.PromptVariantEvolver)
+    assert hasattr(contract_module, "evaluate_conservation_safety")
+    assert "_capture_conservation_safety" in inspect.getsource(
+        scorer_module.CompoundingScorer.learn
+    )
+    assert "evaluate_conservation_safety" in inspect.getsource(
+        gate_module.DefaultPromotionGate.evaluate
+    )
+    assert "evaluate_conservation_safety" in inspect.getsource(
+        prompt_evolver_module.PromptVariantEvolver
+    )
+    assert "_is_conservation_safe" not in inspect.getsource(
+        prompt_evolver_module.PromptVariantEvolver
+    )

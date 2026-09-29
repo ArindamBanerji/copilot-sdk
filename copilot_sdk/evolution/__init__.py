@@ -7,8 +7,10 @@ from copilot_sdk.evolution.credit_attribution import StepCredit, StepCreditAssig
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.conservation_contract import (
     CachedAsyncProvider,
+    ConservationSafety,
     ConservationState,
     ConservationStateProvider,
+    evaluate_conservation_safety,
     normalize_conservation_state,
     ScorerBackedProvider,
 )
@@ -41,8 +43,10 @@ __all__ = [
     "ContextAwareSelector",
     "DefaultPromotionGate",
     "CachedAsyncProvider",
+    "ConservationSafety",
     "ConservationState",
     "ConservationStateProvider",
+    "evaluate_conservation_safety",
     "normalize_conservation_state",
     "DefaultShadowRunner",
     "EVOLUTION_EVENT_TYPES",

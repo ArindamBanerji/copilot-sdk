@@ -50,7 +50,7 @@ class AgentEvolver:
         self,
         rule_name: str,
         decisions: list[dict[str, Any]],
-        conservation_state: dict[str, Any] | None = None,
+        conservation_state: Any = None,
         seed: Any | None = None,
         decision_id: str | None = None,
     ) -> dict[str, Any]:

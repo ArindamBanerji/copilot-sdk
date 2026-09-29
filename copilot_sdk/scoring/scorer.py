@@ -26,6 +26,10 @@ from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerpri
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
 from copilot_sdk.evolution.protocol import EvolutionStore
+from copilot_sdk.evolution.conservation_contract import (
+    ConservationSafety,
+    evaluate_conservation_safety,
+)
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
 from copilot_sdk.config.graph_config import GraphConfig, GraphConfigError, resolve_profile
 from copilot_sdk.graph.production import validate_production_store
@@ -592,8 +596,26 @@ class CompoundingScorer:
             factors=factor_values,
         )
 
-    def reestimate_dk_if_due(self) -> bool:
-        """Run GAE DK re-estimation and report whether active weights changed."""
+    def reestimate_dk_if_due(
+        self,
+        conservation_safety: ConservationSafety | None = None,
+    ) -> bool:
+        """Run a conservation-guarded DK re-estimation transaction."""
+        if conservation_safety is None:
+            conservation_safety, _ = self._capture_conservation_safety()
+        else:
+            conservation_safety = evaluate_conservation_safety(conservation_safety)
+        if not conservation_safety.learning_allowed:
+            return False
+        return self._reestimate_dk_if_due_unchecked(conservation_safety)
+
+    def _reestimate_dk_if_due_unchecked(
+        self,
+        conservation_safety: ConservationSafety,
+    ) -> bool:
+        """Re-estimate DK using a decision captured by the calling transaction."""
+        if not conservation_safety.learning_allowed:
+            return False
         before = getattr(self._scorer, "_dk_weights", None)
         before_array = None if before is None else np.asarray(before, dtype=np.float64).copy()
 
@@ -993,6 +1015,7 @@ class CompoundingScorer:
         consolidate: bool = False,
         context: dict[str, Any] | None = None,
         persist_artifacts: bool = True,
+        dk_refresh_min_verified: int = 400,
     ) -> LearnResult | dict[str, Any]:
         decision = self._graph_store.get_decision(decision_id, domain=self._domain)
         if decision is None:
@@ -1007,6 +1030,10 @@ class CompoundingScorer:
         factor_vector = np.asarray(_decision_field(decision, "factor_vector", []), dtype=np.float64)
         category_index = int(_decision_field(decision, "category_index", 0))
         confidence = float(_decision_field(decision, "confidence", 0.0))
+        synthetic_preseed = self._preseed_mode
+        if context and context.get("preseed") is True and not self._preseed_mode:
+            logger.warning("Ignoring client-controlled preseed flag for %s decision=%s", self._domain, decision_id)
+        conservation_safety, conservation_pause = self._capture_conservation_safety()
         if (context and context.get("benchmark") is True) or self._preseed_mode:
             # Synthetic benchmark/server-side preseed runs do not represent live judgments.
             # Avoid recomputing the full verified-history fingerprint on every
@@ -1021,11 +1048,6 @@ class CompoundingScorer:
                 factor_vector=factor_vector,
                 confidence=confidence,
             )
-
-        synthetic_preseed = self._preseed_mode
-        if context and context.get("preseed") is True and not self._preseed_mode:
-            logger.warning("Ignoring client-controlled preseed flag for %s decision=%s", self._domain, decision_id)
-        conservation_pause = self._conservation_pause()
         if conservation_pause is not None:
             conservation_pause["decision_id"] = decision_id
             if persist_artifacts:
@@ -1092,6 +1114,8 @@ class CompoundingScorer:
                             exc,
                         )
             return conservation_pause
+        if not conservation_safety.learning_allowed:
+            raise RuntimeError("conservation contract blocked learning without a pause payload")
         cold_start_learn = self._conservation_mode == "cold_start"
         bootstrap_learn = self._conservation_mode == "bootstrap"
         iks_before = self._compute_iks(
@@ -1190,7 +1214,10 @@ class CompoundingScorer:
                 persistence_failures.append(
                     {"step": "receipt", "error": "evidence_receipt_failed"}
                 )
-        dk_refresh = self._refresh_dk_after_learn()
+        dk_refresh = self._refresh_dk_after_learn(
+            conservation_safety,
+            min_verified=dk_refresh_min_verified,
+        )
         if dk_refresh == "failed":
             persistence_failures.append(
                 {"step": "dk_refresh", "error": "dk_reestimate_failed"}
@@ -2300,16 +2327,43 @@ class CompoundingScorer:
             "quality_policy_version": QUALITY_POLICY_VERSION,
         }
 
-    def _refresh_dk_after_learn(self) -> str:
+    def _refresh_dk_after_learn(
+        self,
+        conservation_safety: ConservationSafety,
+        *,
+        min_verified: int = 400,
+    ) -> str:
         """Refresh DK weights once enough verified decisions exist."""
-        if self.get_verified_count() < 400:
+        if not conservation_safety.learning_allowed:
+            return "blocked"
+        if self.get_verified_count() < max(int(min_verified), 0):
             return "skipped"
         try:
-            self.reestimate_dk_if_due()
+            self._reestimate_dk_if_due_unchecked(conservation_safety)
             return "complete"
         except Exception as exc:
             logger.error("DK re-estimation failed for %s: %s", self._domain, exc)
             return "failed"
+
+    def _capture_conservation_safety(
+        self,
+    ) -> tuple[ConservationSafety, dict[str, Any] | None]:
+        """Read and normalize one immutable conservation decision."""
+        pause = self._conservation_pause()
+        if pause is not None:
+            raw_status = (
+                "CONSERVATION_UNAVAILABLE"
+                if pause.get("conservation_mode") == "unavailable"
+                else str(pause.get("conservation_status") or "RED")
+            )
+            return evaluate_conservation_safety(raw_status), pause
+        status_by_mode = {
+            "preseed": "PRESEED",
+            "cold_start": "COLD_START",
+            "bootstrap": "BOOTSTRAP",
+        }
+        raw_status = status_by_mode.get(self._conservation_mode, "GREEN")
+        return evaluate_conservation_safety(raw_status), None
 
     def _conservation_pause(self) -> dict[str, Any] | None:
         if self._preseed_mode:
@@ -2712,20 +2766,24 @@ class CompoundingScorer:
             decisions = list(self._graph_store.get_verified_decisions(self._domain) or [])
             if len(decisions) < 10:
                 return
-            conservation_state = self._evolution_conservation_state()
+            conservation_safety = evaluate_conservation_safety(
+                self._evolution_conservation_state()
+            )
             decision_id = str(decisions[-1].get("decision_id")) if decisions[-1].get("decision_id") else None
             active_rules = self._evolver.get_active_rules()
             for rule_name in list(active_rules):
                 self._evolver.evolve(
                     rule_name,
                     decisions,
-                    conservation_state=conservation_state,
+                    conservation_state=conservation_safety,
                     decision_id=decision_id,
                 )
         except Exception as exc:
             logger.warning("Evolution run failed: %s", exc)
 
     def _evolution_conservation_state(self) -> dict[str, Any] | None:
+        if self._preseed_mode:
+            return {"status": "PRESEED"}
         if self._calibration_overlay is not None:
             panel = self.get_conservation_state()
             if self._calibration_overlay is not None:
@@ -2747,7 +2805,7 @@ class CompoundingScorer:
             return None
         if verified <= 0:
             return {
-                "status": "GREEN",
+                "status": "COLD_START",
                 "verified_count": 0,
                 "correct_count": 0,
                 "q": 0.0,
@@ -2755,6 +2813,17 @@ class CompoundingScorer:
                 "alpha": 0.0,
                 "category_coverage": 0.0,
                 "override_rate": 0.0,
+            }
+        if verified < CONSERVATION_MIN_VERIFIED:
+            return {
+                "status": "BOOTSTRAP",
+                "verified_count": verified,
+                "correct_count": correct,
+                "q": correct / verified,
+                "theta_min": None,
+                "alpha": category_coverage,
+                "category_coverage": category_coverage,
+                "override_rate": override_rate,
             }
         q = correct / verified
         theta_min = compute_theta_min(category_coverage, verified)
