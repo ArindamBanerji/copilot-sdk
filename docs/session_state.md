@@ -3153,3 +3153,15 @@ Findings: 3
   - P2 integrity/load_benchmark.py:136 — decisions_to_threshold measures the first transient evaluation-prefix accuracy crossing without learning, so it does not count training or reconvergence decisions to a threshold.
 Test count: SDK root 3,851 passed, 0 failures
 Verdict: NEEDS_FIXER
+
+C-0 Part 1 FIXER (B29)
+Date: 2026-09-29
+Model: sol/high
+Findings addressed:
+  F1 [P1] scanner false negatives: FIXED — replaced AGE-02 whole-file and substring skips with a counted allowlist of 27 exact path/signature occurrences; new calls in formerly exempt files are detected.
+  F2 [P2] benchmark validation: FIXED — both frozen files now validate metadata, split counts, dimensions, numeric ranges, unique IDs, split parity, actions, and one-to-one decision/outcome coverage.
+  F3 [P2] decisions_to_threshold: FIXED — accepts separate learning and held-out sets, performs verified learning updates, and measures the full held-out set after every update.
+Files changed: integrity/architecture_scan.py, integrity/load_benchmark.py, tests/test_integrity_scanner.py, tests/integrity/test_benchmark_fixture.py, docs/session_state.md
+Status: COMPLETE
+Test count: SDK root 3,857 passed, 1 skipped, 0 failures
+Notes: baseline 3,851 passed; 3,858 tests collected after seven new regressions. Scanner exited 0; 34 focused tests and 38 sampled tests passed; mypy, banned-pattern, F-25, and whitespace gates passed. Fixer implementation commit d7a9718.
