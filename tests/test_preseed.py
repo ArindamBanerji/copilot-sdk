@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import os
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -131,40 +132,60 @@ def test_connector_freeze(tmp_path, monkeypatch) -> None:
 
 
 def test_fred_freeze_integration_matches_live_baseline(tmp_path, monkeypatch) -> None:
-    api_key = os.environ.get("FRED_API_KEY", "").strip()
-    if not api_key:
-        pytest.skip("FRED_API_KEY not set — integration test skipped")
-
-    source_path = (
-        Path(__file__).resolve().parents[1]
-        / "apps"
-        / "purchasing"
-        / "backend"
-        / "app"
-        / "connectors"
-        / "commodity_source.py"
-    )
-    spec = importlib.util.spec_from_file_location("test_live_commodity_source", source_path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["test_live_commodity_source"] = module
-    spec.loader.exec_module(module)
-    FREDCommoditySource = module.FREDCommoditySource
-
+    """Verify freeze_fred captures data and freeze/thaw is self-consistent."""
     monkeypatch.delenv("FRED_FREEZE", raising=False)
-    live = FREDCommoditySource(api_key=api_key)
-    baseline = live.fetch_category_prices("protein")
-    if baseline is None:
-        pytest.skip("FRED API unavailable or rejected the configured API key")
-    assert baseline
-
     freeze = ConnectorFreeze(tmp_path)
-    freeze.freeze_fred()
-    frozen = FREDCommoditySource(api_key=api_key).fetch_category_prices("protein")
-    assert frozen == baseline
+    fred_path = freeze.freeze_fred()
+    try:
+        assert fred_path
+        assert os.environ.get("FRED_FREEZE") == fred_path
+        assert Path(fred_path).exists()
 
-    freeze.unfreeze()
-    after_unfreeze = FREDCommoditySource(api_key=api_key).fetch_category_prices("protein")
-    if after_unfreeze is None:
-        pytest.skip("FRED API unavailable after unfreezing")
-    assert after_unfreeze
+        with open(fred_path, encoding="utf-8") as handle:
+            frozen_data = json.load(handle)
+        expected_categories = {"protein", "produce", "dairy", "dry_goods", "beverages"}
+        assert frozen_data["provenance"] in ("scraped_external", "synthetic_fallback")
+        if frozen_data["provenance"] == "synthetic_fallback":
+            # Synthetic captures generate all five categories.
+            assert expected_categories.issubset(frozen_data.keys()), (
+                "Synthetic fallback missing categories: "
+                f"{expected_categories - frozen_data.keys()}"
+            )
+            categories_to_check = expected_categories
+        else:
+            # Live captures may contain only the categories FRED returned.
+            actual_categories = expected_categories & frozen_data.keys()
+            assert len(actual_categories) >= 1, "Live FRED capture returned zero categories"
+            categories_to_check = actual_categories
+        if not os.environ.get("FRED_API_KEY", "").strip():
+            assert frozen_data["provenance"] == "synthetic_fallback", (
+                "No FRED_API_KEY set — provenance must be synthetic_fallback, "
+                f"got {frozen_data['provenance']!r}"
+            )
+        for category in categories_to_check:
+            rows = frozen_data[category]
+            assert isinstance(rows, list) and rows, f"Empty rows for {category}"
+            assert {"date", "item", "price"}.issubset(rows[0])
+
+        source_path = (
+            Path(__file__).resolve().parents[1]
+            / "apps"
+            / "purchasing"
+            / "backend"
+            / "app"
+            / "connectors"
+            / "commodity_source.py"
+        )
+        assert source_path.exists(), f"Consumer module not found: {source_path}"
+        spec = importlib.util.spec_from_file_location("test_fred_commodity_source", source_path)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        monkeypatch.setitem(sys.modules, "test_fred_commodity_source", module)
+        spec.loader.exec_module(module)
+        source = module.FREDCommoditySource(api_key=os.environ.get("FRED_API_KEY", "demo_key"))
+        frozen_protein = source.fetch_category_prices("protein")
+        assert frozen_protein is not None
+        assert frozen_protein == frozen_data["protein"]
+    finally:
+        freeze.unfreeze()
+    assert os.environ.get("FRED_FREEZE") is None

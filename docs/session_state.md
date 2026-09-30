@@ -3165,3 +3165,324 @@ Files changed: integrity/architecture_scan.py, integrity/load_benchmark.py, test
 Status: COMPLETE
 Test count: SDK root 3,857 passed, 1 skipped, 0 failures
 Notes: baseline 3,851 passed; 3,858 tests collected after seven new regressions. Scanner exited 0; 34 focused tests and 38 sampled tests passed; mypy, banned-pattern, F-25, and whitespace gates passed. Fixer implementation commit d7a9718.
+
+C-0 Part 1 REVIEW — RE-REVIEW (B29)
+Date: 2026-09-29
+Model: terra/high
+Supersedes: C-0 Part 1 REVIEW (B29) Verdict: NEEDS_FIXER
+Fixer commits verified: d7a9718 (implementation), db9f754 (session-state record)
+Phase 0 baseline: 3,858 passed, 0 failures
+Findings:
+  F1 [P1] scanner false negatives: FIXED
+  F2 [P2] benchmark validation: FIXED
+  F3 [P2] decisions_to_threshold: FIXED
+Test count: SDK root 3,858 passed, 0 failures
+Verdict: PASS
+Tag: none (tag waits for all C-0 parts)
+
+C-0 Part 2A (B29) — Deterministic Product Claims
+Date: 2026-09-29
+Model: sol/high
+Phase 0 findings:
+  Scorer interface: _compute_iks(*, persist_artifacts=True, decision_id=None, skip_history_scan=False); score_read_only(factors, category) is side-effect-free; get_centroid() and get_dk_weights() expose copies; export() writes centroids plus decision metadata, while load() restores centroids only.
+  VLDInvestigator: found at copilot_sdk/scoring/investigation.py with compute_Q(v, P, enriched_set=None, K_weights=None).
+  Preset shapes verified: SOC (6,4,6), S2P (5,5,8), Trading (5,4,10), Purchasing (5,4,7), DataOps (6,5,6).
+  Pre-existence: tests/integrity/test_innovation_claims.py PARTIAL (legacy nine-test file with module-level mutable scorer cache and different claim coverage); test_judgment_memory.py ABSENT; test_counterfactual.py ABSENT.
+  SDK root baseline: 3,858 collected; most recent C-0 Part 1 re-review baseline 3,858 passed, 0 failures.
+Phase 1 design: DESIGN_BLOCKED — the required strict DK claim is false on the frozen benchmark. Separate fresh scorers at 50, 100, 150, 200, 250, 300, 350, and 400 decisions produced identical learned-weight and uniform-weight held-out accuracy at every checkpoint. At 400 decisions both measured 0.48, so test_dk_weights_improve_scoring cannot truthfully assert learned > uniform.
+Phase 2 implementation:
+  Files created: none
+  Files modified: none (session-state record only)
+  Steps skipped (pre-existing): none
+Status: DESIGN_BLOCKED
+Test count: SDK root not rerun after block; 3,858 tests collected, prior validated baseline 3,858 passed, 0 failures
+Claim tests: not implemented because the DK product claim is not code-true on the frozen benchmark
+Notes: accuracy improvement itself was observed (0.41 at 50 decisions, 0.48 at 400). Learned DK weights were non-uniform, but they did not improve held-out action accuracy over uniform weights at any tested checkpoint. No production or test code was changed.
+
+C-0 Part 2A FIXER (B29) — DK Weight Metric Investigation
+Date: 2026-09-29
+Model: sol/high
+Supersedes: C-0 Part 2A (B29) Status: DESIGN_BLOCKED
+Investigation findings:
+  Explanation: E — no metric differentiates on the frozen 400-decision benchmark. All five Trading categories remain in MEAN_CONVERGENCE, while the GAE scorer applies _dk_weights only in VARIANCE_LEARNING. The helper correctly replaces and restores the category-by-factor tensor, but the active scoring path does not consult it in the current phase.
+  DK weight spread (max/min ratio): 20.0; highest weight 2.0 at category/factor index (1,7), lowest 0.1 at (1,3).
+  Score values differ under learned vs uniform: no; mean and maximum absolute probability differences were both 0.0 across all 100 held-out examples, and all 100 top actions matched.
+  Metrics tested: accuracy 0.48 vs 0.48; mean top-action margin 0.2935478681 vs 0.2935478681; mean correct-action probability 0.3889944393 vs 0.3889944393; Brier score 0.6527163475 vs 0.6527163475; mean correct-action margin -0.0091065945 vs -0.0091065945; score-rank ordering identical.
+  Metric selected: none — selecting a metric would invent an effect absent from scoring output.
+  Learned metric value: N/A
+  Uniform metric value: N/A
+  Delta: 0.0 for every tested output metric
+Changes:
+  - integrity/load_benchmark.py: unchanged
+  - tests/integrity/test_innovation_claims.py: retained because Phase 2 was not entered
+  - tests/integrity/test_benchmark_fixture.py: unchanged
+Partial file deletion:
+  Tests removed: 0
+  Old baseline: 3,858 tests
+  New baseline: unchanged; full suite not rerun after the mandated Phase 1 halt
+Guidance for claims prompt:
+  test_dk_weights_improve_scoring should use: no current helper; the frozen benchmark must first drive at least one category into VARIANCE_LEARNING or the claim must be redesigned around a lifecycle phase where DK weights are active.
+  Import: N/A
+  Assertion: no truthful learned-versus-uniform output assertion exists on the current 400-decision fixture.
+  The claim remains blocked: DK weights are learned but do not affect scoring output while every category is in MEAN_CONVERGENCE.
+Test count: SDK root not rerun after mandated halt; baseline remains 3,858 passed, 0 failures
+Status: BLOCKED_NO_DK_EFFECT
+
+C-0 Part 2A FIXER 2 (B29) — DK Weight Lifecycle Benchmark
+Date: 2026-09-29
+Model: sol/high
+Supersedes: C-0 Part 2A FIXER (B29) Status: BLOCKED_NO_DK_EFFECT
+Phase transition investigation:
+  Transition condition: CompoundingScorer configures DecisionCountPolicy(n=200); ProfileScorer records each verified category decision and freezes that category when state.n_decisions >= 200. The transition is fixed-count per category, not centroid-stability based. get_category_phase(category) reports the public phase view.
+  Decisions for first category to reach VL: 996 total balanced decisions (200 for trend_following)
+  Category that transitions first: trend_following
+  Time to train N_DK decisions: 34.45 seconds to first transition; 34.70 seconds to 1,000 decisions
+  Categories in VL at N_DK: trend_following at 996; all five Trading categories at the helper default of 1,000
+DK weight effect in VARIANCE_LEARNING:
+  Metric used: mean top-action probability margin
+  VL eval examples: 100
+  Learned metric: 0.21641409205476364
+  Uniform metric: 0.11590742869106757
+  Delta: 0.10050666336369607
+  Weight non-uniformity ratio: 20.0
+Changes:
+  - integrity/load_benchmark.py: added load_dk_benchmark_split()
+  - integrity/load_benchmark.py: added train_scorer_dk()
+  - integrity/load_benchmark.py: added measure_dk_weight_effect()
+  - tests/integrity/test_benchmark_fixture.py: added deterministic expansion and active-DK margin regressions
+  - tests/integrity/test_innovation_claims.py: DELETED (partial, shared mutable state)
+  - tests/integrity/test_innovation_incremental.py: DELETED (six tests coupled exclusively to the removed shared cache)
+Partial file deletion:
+  Tests removed: 15 — test_accuracy_improves_with_decisions, test_accuracy_improves_with_400, test_dk_weights_converge, test_dk_weights_nonuniform, test_conservation_fires_on_degradation, test_conservation_green_on_stable, test_reconvergence_after_disruption, test_ae_variant_rejected_by_conservation, test_scorer_state_survives_reload, test_incremental_matches_from_scratch_50, test_incremental_matches_from_scratch_200, test_cache_reuse_returns_independent_copies, test_incremental_no_cache_trains_from_zero, test_conservation_pause_failure_message_is_preserved, test_write_outcome_in_benchmark_uses_correct_domain
+  Old baseline: 3,858
+  New baseline: 3,845 (15 legacy tests removed, 2 focused regressions added)
+Guidance for claims prompt:
+  test_dk_weights_improve_scoring should be restructured as TWO assertions:
+  Part 1 (weights learned):
+    from integrity.load_benchmark import load_dk_benchmark_split, train_scorer_dk
+    scorer = train_scorer_dk(train_data)
+    assert max(dk_weights) / min(dk_weights) > 2.0
+  Part 2 (weights improve scoring):
+    from integrity.load_benchmark import measure_dk_weight_effect
+    result = measure_dk_weight_effect(scorer, eval_data)
+    assert result['delta'] > 0
+  The claim is now: "DK weights learn factor-level trust (non-uniform) and improve scoring precision once categories reach VARIANCE_LEARNING"
+Determinism: confirmed; two standalone runs and the regression test produced learned 0.21641409205476364, uniform 0.11590742869106757, and delta 0.10050666336369607
+Test count: SDK root 3,845 passed, 0 failures
+Status: COMPLETE
+
+C-0 Part 2A (B29) — Deterministic Product Claims
+Date: 2026-09-29
+Model: sol/high
+Phase 0 findings:
+  Scorer interface and presets match the recorded Part 2A baseline; lifecycle DK helper reaches VARIANCE_LEARNING at 1,000 decisions.
+  SDK root baseline: 3,845 passed, 0 failures (from the latest Part 2A fixer entry).
+Phase 1 design: DESIGN_BLOCKED — the required reconvergence assertion is not supported by the current benchmark/scorer behavior. A fresh scorer reached 0.45 held-out accuracy after 141 updates. A scorer trained on 200 rows fell from 0.44 to 0.33 after deterministic disruption, then did not reach 0.45 within the remaining 200 learning rows. An exploratory run with 1,200 deterministic updates also did not reach 0.45.
+Phase 2 implementation:
+  Files created: tests/integrity/test_innovation_claims.py (8 tests), tests/integrity/test_judgment_memory.py (4 tests), tests/integrity/test_counterfactual.py (3 tests).
+  Files modified: none outside these new tests and this session-state entry; no production code changed.
+  Steps skipped: full-suite exit gate and completion because the required reconvergence claim failed verification.
+Status: DESIGN_BLOCKED
+Test count: SDK root not run; baseline remains 3,845 passed, 0 failures. The new files collect 15 tests.
+Claim tests: 14 passed; test_reconvergence_is_faster failed because the disrupted scorer did not regain the 0.45 threshold.
+Notes: targeted innovation tests excluding reconvergence passed 7/7; judgment-memory tests passed 4/4; counterfactual tests passed 3/3. Mypy on the three new files passed. The conservation test now exercises an explicit RED snapshot, and the DK counterfactual verifies greater sensitivity under learned weights than uniform weights. No commit or tag created. The benchmark claim needs redesign or the scorer's reconvergence behavior needs investigation before Part 2A can be marked complete.
+
+C-0 Part 2A FIXER 3 DESIGN (B29) — Reconvergence Investigation
+Date: 2026-09-29
+Model: gpt-6-astra/high
+Prerequisite: latest C-0 Part 2A entry is DESIGN_BLOCKED, with 14/15 passing claim tests and test_reconvergence_is_faster failing.
+Current tag: v0.9.63
+Baseline: prior validated SDK root 3,845 passed, 0 failures. This investigation did not run or certify the current full suite; the existing failing claim test remains unchanged.
+Scope: diagnostics and design only. No production, test, helper, or fixture source files changed. Existing working-tree changes from previous tasks were preserved.
+
+Root causes:
+  (1) Kernel: the original 200-decision test and the 400-decision benchmark use actual L2 distances. Stale DK weights are NOT the initial cause. At 1,000 balanced decisions, every category reaches VARIANCE_LEARNING and scoring dispatches to a shrinkage-adjusted DiagonalKernel even though kernel=KernelType.L2 and scoring_kernel=L2Kernel remain set.
+  (2) epsilon_firm: the fixture supplies action labels from a linear threshold function, not a known ground-truth centroid tensor. Thus true epsilon_firm and proximity to that tensor cannot be established. The SDK's normalized distance-to-canonical proxy is 0.0224909455 at 200, 0.0360638066 at 400, and 0.0641968420 at 1,000; all are below both 0.125 and the SDK accessor's own 0.128 threshold. This proxy is not a proof of convergence. More training is not equivalent to satisfying the theorem.
+  (3) Disruption scope: inject_disruption adds independent Gaussian noise to ALL 5x4x10 centroid cells. The original test passes magnitude=1.0 (standard deviation per coordinate), disrupts 5/5 categories, and does not clip, reset DK, change kernel, or reset lifecycle. At 400 training decisions, 121/200 centroid coordinates leave [0,1]. The theorem instead assumes localized ground-truth change with previously converged centroids.
+  (4) Threshold: the expert-initialized fresh scorer is already 0.40 accurate, versus uniform-random action accuracy 0.25. The first 0.45 crossing occurs at 141 updates, but accuracy falls to 0.44 by 200. The test disrupts that 200-decision model before it has attained a stable target. Its fixed full-held-out accuracy statistic differs from the theorem's rolling_w(correct) statistic.
+  (5) Lifecycle: ProfileScorer.update freezes category means after 200 admitted decisions per category. In the 200+1,200 reproduction, the first 800 recovery updates changed means and the next 400 returned phase2_buffered. Centroid displacement after freeze was exactly 0.0. Directly corrupting centroids does not trigger a lifecycle reset.
+  (6) Censoring: decisions_to_threshold returns len(learn_data) when the threshold is never reached, indistinguishable from success on the last row. An exhausted budget is not N2; gamma is undefined, not 141/1,200. If eventual recovery occurs, the observed bound is gamma < 0.1175.
+
+Experiments run:
+  1a disruption scope: 400-decision model, magnitude=1.0, seed=20260711; all five categories changed. Frobenius deltas in preset order: 6.454264369, 6.465317402, 7.032112130, 6.286260991, 6.597228116. DK tensor unchanged; post-disruption accuracy 0.31.
+  1b kernel identification: at 200 and 400, actual distances exactly equal L2 distances (maximum delta 0.0). At 400, the learned-DK alternative differs by 0.0157022332 on the first evaluation probe but is inactive. At 1,000, actual distances exactly equal effective-DK distances and differ from L2 by 0.0190458872 on that probe. Shape is (5,4,10); weights have shape (5,10).
+  1c convergence depth: independent fresh scorers at every checkpoint; per-category counts are total/5 except the non-multiple 141. All categories remain MEAN_CONVERGENCE through 400, then all are VARIANCE_LEARNING at 1,000. Per-category centroid drift 200->400: 0.1400607255, 0.1307024495, 0.1073798194, 0.1282016692, 0.1663843035. Fresh 1,000-decision training took 31.927 seconds.
+  1d full reproduction: exact original test uses 200 pretraining updates, magnitude=1.0, then train[200:400]. Accuracy 0.44 -> 0.30 -> 0.25; N1=141; N2 was not reached in 200 updates. The older log conflated this with a magnitude=0.1 exploratory run (which started at 0.33 after disruption). Reproduced that exploratory run with train*3: 0.44 -> 0.33 -> 0.39 after 1,200 updates, maximum recovery accuracy 0.44, 800 applied + 400 phase2_buffered, 81.899 seconds. Also tested the prompt's 400-pretraining variant with magnitude=1.0 and 1,200 distinct additional rows from the expanded seed-family generator: 0.48 -> 0.31 -> 0.25, best recovery accuracy 0.31, 600 applied + 600 phase2_buffered, 101.589 seconds. Neither reached 0.45.
+  1e category-sparse test: clipped Gaussian perturbation, RandomState(42), standard deviation 0.25, selected first one or first two categories in preset order. Every unaffected category retained bit-identical centroids and all evaluation probabilities. See sparse table below.
+  1f threshold sensitivity: fresh 0.40; first crossings across the expanded 1,000-row trajectory were 0.45 at 141, 0.50 at 412, 0.55 at 571. Maximum accuracy in the first 400 updates was 0.49. The fixed 100-row evaluation set contains action counts 26/24/22/28; fresh performance comes from expert bootstrap centroids, not random initialization.
+
+Depth results (fixed 100-row held-out evaluation):
+| Training updates | Accuracy | Normalized distance from canonical |
+| --- | --- | --- |
+| 0 | 0.40 | 0.0000000000 |
+| 10 | 0.40 | 0.0044955435 |
+| 25 | 0.41 | 0.0071642140 |
+| 50 | 0.41 | 0.0105030150 |
+| 100 | 0.43 | 0.0158595090 |
+| 141 | 0.45 | 0.0189687756 |
+| 150 | 0.48 | 0.0196766125 |
+| 200 | 0.44 | 0.0224909455 |
+| 250 | 0.45 | 0.0253886688 |
+| 300 | 0.45 | 0.0294332844 |
+| 400 | 0.48 | 0.0360638066 |
+| 1,000 | 0.61 | 0.0641968420 |
+
+Sparse-disruption results:
+| Pretraining | Changed categories | Fraction | Before | After |
+| --- | --- | --- | --- | --- |
+| 200 | trend_following | 0.20 | 0.44 | 0.41 |
+| 200 | trend_following, mean_reversion | 0.40 | 0.44 | 0.31 |
+| 400 | trend_following | 0.20 | 0.48 | 0.45 |
+| 400 | trend_following, mean_reversion | 0.40 | 0.48 | 0.37 |
+| 1,000 | trend_following | 0.20 | 0.61 | 0.51 |
+| 1,000 | trend_following, mean_reversion | 0.40 | 0.61 | 0.40 |
+
+Theorem conditions analysis:
+| Condition | Required | Observed | Met? |
+| --- | --- | --- | --- |
+| Kernel | L2 for the cited L2 result | L2 initially; effective DK after category freeze | Yes initially; not throughout a long recovery |
+| Warm convergence / epsilon_firm | Close to GT1 and epsilon above the geometry-specific threshold | No known GT tensor; small canonical-distance proxies; pretraining accuracy below target at 200 | Not established |
+| Sparse disruption | Few categories, reference 2/6 | Existing helper modifies 5/5 | No |
+| Meaningful convergence statistic | The theorem uses rolling verified correctness, and recommends GT distance for its experiment | First crossing on 100 held-out rows; only five examples above fresh accuracy | Does not establish convergence |
+
+The theorem source is docs/design/math_synopsis_v18.md:648-887. Its epsilon_firm is firm-specific displacement from canonical ground truth, not a synonym for training depth. Its 0.125 boundary is alpha_disrupt*||Delta||/(1-alpha_disrupt) for the cited geometry, not a universal threshold for any Gaussian perturbation. Section 3.2 also reports gamma>1 in only 57% of the above-threshold L2 experimental runs. The frozen Trading fixture cannot be treated as an unconditional theorem instance.
+
+Design chosen: B
+Rationale: retain a supported, observable claim about localized resilience. The available benchmark verifies that unaffected predictions survive corruption of one category and that immediate post-disruption accuracy exceeds fresh-scorer accuracy. It does not verify a finite recovery-speed ratio, monotonic recovery, or return to pre-disruption accuracy.
+
+RECONVERGENCE CLAIM DESIGN
+New test structure:
+  Replace and rename test_reconvergence_is_faster to test_sparse_disruption_preserves_learned_predictions. Keeping the original name would assert a stronger claim than its replacement measures.
+  1. Load the frozen 400 training / 100 evaluation rows. Create two independent Trading scorers with profile="test", enable_rl=False: fresh at 0 updates and trained at 400.
+  2. Confirm all trained categories are MEAN_CONVERGENCE and the live scoring kernel is L2. Capture a copy of the entire centroid tensor, DK tensor, category phases, and probability vector for every evaluation row.
+  3. Select exactly the first preset category, trend_following, before inspecting outcomes. This is 1/5 categories (20%), not the SOC theorem's 2/6 setting.
+  4. Apply inject_category_disruption(trained, ("trend_following",), 0.25, seed=42). The separate disruption seed does not alter the frozen fixture's seed 20260711.
+  5. Assert that only the selected centroid slice changed and every value remains in [0,1]. DK weights and phases must be unchanged.
+  6. Assert all 80 unaffected evaluation probability vectors are exactly equal before and after, and their correctness masks are identical. Assert selected-category centroids and at least one predicted action changed.
+  7. Measure all three accuracies on the SAME full held-out set; assert trained_accuracy > disrupted_accuracy > fresh_accuracy.
+  8. Do not compute N1/N2, gamma, or imply recovery. Reaching 0.45 immediately after sparse disruption would yield helper return 0, not evidence of infinite recovery speed.
+
+New helper needed (integrity/load_benchmark.py):
+  def inject_category_disruption(
+      scorer: CompoundingScorer,
+      categories: Sequence[str],
+      magnitude: float,
+      *,
+      seed: int,
+  ) -> tuple[str, ...]:
+  Purpose: reproducible corruption of an explicitly selected proper subset of centroid categories.
+  Implementation: validate a nonempty, unique proper subset of known category names and finite positive magnitude; copy scorer.gae_scorer.centroids; create one local np.random.RandomState(seed); add rng.normal(0, magnitude, size=slice.shape) to each selected slice in caller-supplied order; clip selected slices only to [0,1]; assign the copied tensor using the existing centroids setter; return the selected category tuple.
+  Preserve other category slices exactly. Do not change DK, learning phases, category counters, kernels, training data, evaluation rows, or global random state.
+  Keep existing inject_disruption and decisions_to_threshold interfaces/behavior unchanged for this narrowly scoped implementation. Any future speed measurement must separately distinguish an exhausted budget from a successful threshold crossing.
+  Reuse load_benchmark_split, train_scorer, and measure_accuracy; no new accuracy helper is required.
+
+Verified numbers (two fresh, independent runs):
+  Pre-disruption accuracy: 0.48
+  Immediate post-disruption accuracy: 0.45
+  Fresh accuracy: 0.40
+  Affected category: trend_following, 20 evaluation rows; accuracy 0.35 -> 0.20
+  Unaffected categories: 80 evaluation rows; accuracy 0.5125 -> 0.5125 (41 correct retained)
+  Unaffected probability vectors: bit-identical (all 80)
+  Selected centroid Frobenius displacement: 1.5160527448538745 (0.25 is coordinate-noise SD, not this tensor norm)
+  Unselected centroid displacement: 0.0
+  DK state / category phases: unchanged
+  All 11 diagnostic assertions: PASS in both runs
+  Run times: 6.071 seconds, 6.490 seconds
+  Post-disruption centroid SHA256: 76922c550fb382d5e6b5150dfe90e85404c3a54d9c0705ef72183ed23d16733e
+  Post-disruption probability SHA256: 25d6125abd65aa7d69c184dc05540c5beded074bf9757308f7153a1c941e9b9f
+Determinism: confirmed; numeric result dictionaries and both hashes identical
+Design iterations: 1 final Design B candidate, verified twice; sparse 1/5 and 2/5 exploratory cases were reported without selecting a recovery threshold to force gamma>1.
+
+Implementation changes needed:
+  integrity/load_benchmark.py: ADD inject_category_disruption with the signature and exact algorithm above; preserve existing helpers and fixture files.
+  tests/integrity/test_innovation_claims.py: REPLACE/RENAME only the failing reconvergence test with the specified sparse-resilience test and adjust helper imports. Keep eight innovation tests and leave the other fourteen claim tests untouched.
+  copilot_sdk/* and graph-attention-engine-v50/*: NO CHANGES.
+Commercial claim: "On the frozen Trading benchmark, localized disruption of one category preserves every unaffected-category prediction; immediate overall accuracy remains above an untrained preset scorer."
+Conditions to state alongside claim: synthetic held-out Trading benchmark; 400 verified training updates; L2/MEAN_CONVERGENCE; 1 of 5 categories corrupted; clipped Gaussian noise SD 0.25 with independent seed 42; immediate post-disruption measurement; no claim of faster recovery, universal domain behavior, or equality to the theorem's rolling-window experiment.
+Status: DESIGN_COMPLETE
+
+---
+
+C-0 Part 2A FIXER 3 (B29) — Category-Sparse Resilience Implementation
+Date: 2026-09-29
+Model: gpt-6-astra/high
+Design source: C-0 Part 2A FIXER 3 DESIGN (B29), Design B, Status: DESIGN_COMPLETE, above.
+Scope: implemented the verified localized-resilience design following the user's continuation request. No production source files changed.
+Prior baseline: SDK root 3,845 passed before adding the 15 Part 2A claim tests. The preceding Part 2A attempt had 14 of 15 claim tests passing and a blocked reconvergence claim.
+
+Implementation:
+  integrity/load_benchmark.py: added inject_category_disruption(scorer, categories, magnitude, *, seed) -> tuple[str, ...]. Validates a nonempty, unique proper subset of known categories and finite positive magnitude. Uses a local RandomState, perturbs and clips selected centroid slices only, and preserves other slices, DK weights, phases, counters, and global RNG state. Existing disruption and threshold helpers remain unchanged.
+  tests/integrity/test_innovation_claims.py: replaced test_reconvergence_is_faster with test_sparse_disruption_preserves_learned_predictions. Uses independent fresh and 400-update scorers, selects the first category before inspecting outcomes, verifies L2/MEAN_CONVERGENCE, and asserts unaffected centroids and all 80 unaffected probability vectors are identical. Also checks selected-category predictions change, DK/phases/counters are preserved, and trained_accuracy > disrupted_accuracy > fresh_accuracy on the full held-out evaluation set.
+  docs/session_state.md: appended this implementation and validation record.
+  Other fourteen claim tests were unchanged by this continuation. Earlier uncommitted helper/test changes and file deletion were preserved.
+
+Qualified commercial claim: "On the frozen Trading benchmark, localized disruption of one category preserves every unaffected-category prediction; immediate overall accuracy remains above an untrained preset scorer."
+Design verification values: trained accuracy 0.48; immediate disrupted accuracy 0.45; fresh accuracy 0.40. One of five categories disrupted, Gaussian SD 0.25, local seed 42. No recovery-speed or universal-domain claim.
+
+Validation:
+  Mypy: integrity/load_benchmark.py and all three Part 2A claim test files pass --follow-imports=skip --no-error-summary.
+  Banned-pattern/naming scans: no body_iterator, type:ignore, rl_, reward_, or policy_ matches in those four files. git diff --check clean (line-ending conversion warnings only).
+  Helper diagnostics: nine invalid-input cases rejected without centroid mutation; two independent same-seed results identical; global NumPy RNG state preserved.
+  Focused suite: 31 passed, 0 failed (15 claim tests plus 16 benchmark regression tests), 133.94 seconds.
+  Claim tests: 8 innovation + 4 judgment memory + 3 counterfactual = 15 passed, 0 failed.
+  Sampling gate: tests/test_jm_reference_run.py, tests/test_polarity.py, tests/test_trading_clone.py; 27 passed, 0 failed, 16.27 seconds. Files selected reproducibly with seed 20260929.
+  Full SDK exit gate: python -m pytest tests/ -q --timeout=120; 3,859 passed, 1 failed, 7,924 warnings, 1,058.28 seconds. Total collected: 3,860.
+
+Exit-gate failure:
+  tests/test_preseed.py:164, test_fred_freeze_integration_matches_live_baseline.
+  Assertion: frozen == baseline.
+  Observed first frozen row: 2026-01 / Ground Beef / 3.07 / per lb.
+  Observed first live baseline row: 2025-09 / Ground Beef / 4.17 / per lb.
+  Frozen data also contained one more row than the baseline.
+  Read-only tracing: copilot_sdk/demo/connector_freeze.py:27-45 falls back to deterministic synthetic _fred_rows when _live_fred_rows returns None. The observed frozen series matches that fallback. The underlying live-fetch failure is not exposed because exceptions/unavailable responses are suppressed; its precise cause was not established by this run. This path does not call the changed benchmark helper or claim test.
+  The connector and its integration test were not modified. No exclusions, environment changes, or skips were introduced to force a green result. Work stopped at the failed full-suite gate as required.
+
+Status: FAILED
+Notes: The reconvergence-claim blocker is replaced by the experimentally verified Design B and all 15 claim tests pass, but Part 2A is not certified COMPLETE because the full SDK exit gate failed. No commit or tag created. Next action is to investigate the FRED live-versus-fallback freeze failure, then rerun the full-suite gate.
+
+===
+FRED FREEZE FIXER (Batch 29)
+Timestamp: 2026-09-30T00:50:56-07:00
+Model: terra/high (requested)
+Status: BLOCKED
+Baseline: latest C-0 Part 2A fixer entry FAILED, SDK root 3,859 passed, 1 failed; 3,860 collected. All 15 claim tests passed. Earlier fully green baseline was 3,845 before the 15 new claim tests.
+Premise correction: the current _live_fred_rows() already contains `return rows_by_category`; there is no `returo` typo. The method and its try/except/finally, including FRED_FREEZE restoration, were preserved unchanged. No claim that this path was dead or that a typo was fixed is supported by the current source.
+Changes applied:
+  1. copilot_sdk/demo/connector_freeze.py: freeze_fred labels live results scraped_external and synthetic results synthetic_fallback; all five fallback categories and _fred_rows calls preserved.
+  2. tests/test_preseed.py: added top-level json import and replaced only the named freeze integration test with snapshot self-consistency checks. Consumer output is compared directly with captured JSON; cleanup uses finally. Other test functions were preserved.
+Verification completed:
+  Both changed files pass mypy --follow-imports=skip --no-error-summary.
+  No body_iterator, type:ignore, or Rule #72 matches in either file.
+  Controlled runtime checks confirm both provenance labels, captured data preservation, and unfreeze cleanup.
+  AST comparison against HEAD confirms every function other than freeze_fred and the explicitly targeted integration test is unchanged.
+Targeted gate: 1 failed, 0 passed. tests/test_preseed.py:147 reports Missing categories: {'dairy', 'dry_goods'}.
+New finding: live capture succeeded for protein, produce, and beverages. _live_fred_rows intentionally keeps successful categories and returns any nonempty result. It can therefore return a partial snapshot. The requested all-five-categories assertion is incompatible with that existing behavior, independently of the removed cross-fetch comparison.
+Pending design decision requested from user:
+  Recommended: allow nonempty subsets for live snapshots, require all five categories for synthetic fallback, and compare every captured category against the consumer's frozen read.
+  Alternative: require complete live snapshots and extend production behavior for incomplete captures; this exceeds the specified provenance-only change and preservation of _live_fred_rows.
+Remaining gates: full test_preseed.py, random sampling, full SDK suite, and copilot_sdk/ test invocation NOT RUN after the targeted failure. No PASS claimed. No commit or tag created. Earlier unrelated working-tree changes were preserved.
+===
+
+===
+FRED FREEZE FIXER ROUND 2 (Batch 29)
+Timestamp: 2026-09-30T01:19:46-07:00
+Model: terra/high (requested)
+Status: PASS
+Supersedes: FRED FREEZE FIXER (Batch 29), Status: BLOCKED, partial live capture assertion failure.
+Changes:
+  1. tests/test_preseed.py: Provenance-aware category assertions
+     - synthetic_fallback: all 5 categories required
+     - scraped_external: >= 1 category, verify structure of captured subset
+     - Per-category row verification now uses categories_to_check.
+     - No-API-key provenance assertion and Gates 1, 4, and 5 preserved. No other tests changed.
+Tests: SDK root 3,860 passed, 0 failed (7,924 warnings; 1,295.03 seconds).
+Baseline: 3,858 from the most recent explicit Verdict: PASS entry, C-0 Part 1 REVIEW — RE-REVIEW (B29). Subsequent DK lifecycle work recorded a fully green 3,845-test baseline before the 15 new claim tests; the latest pre-fix full run had 3,859 passed and 1 failed out of 3,860. This round adds no tests and clears that failure.
+Additional validation:
+  Mypy tests/test_preseed.py --follow-imports=skip --no-error-summary: clean.
+  Specific freeze integration test: 1 passed, 0 failed.
+  Full tests/test_preseed.py: 7 passed, 0 failed, 54.76 seconds.
+  Sampling gate (random selection seed 20260930): tests/test_oracle_protocols.py 26 passed; tests/test_l5_dk_weight_storage.py 44 passed; tests/test_scorer_construction.py 5 passed. Total 75 passed, 0 failed.
+  python -m pytest copilot_sdk/ -q --timeout=120: 5 passed, 0 failed, exit code 0.
+  Banned-pattern scan: no body_iterator, type:ignore, or Rule #72 matches. git diff --check clean, apart from informational line-ending conversion warnings.
+Scope: one test file modified in Round 2, plus this required session-state append. No production code changes or new files. Existing Round 1 provenance changes and earlier uncommitted C-0 work preserved. The Round 1 record's correction still applies: no returo typo was present or fixed. No commit or tag created.
+===

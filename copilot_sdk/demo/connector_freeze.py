@@ -27,7 +27,10 @@ class ConnectorFreeze:
     def freeze_fred(self) -> str:
         path = self.cache_dir / "fred.json"
         rows_by_category = self._live_fred_rows()
-        if rows_by_category is None:
+        if rows_by_category is not None:
+            provenance = "scraped_external"
+        else:
+            provenance = "synthetic_fallback"
             rows_by_category = {
                 "protein": _fred_rows("Ground Beef", "per lb"),
                 "produce": _fred_rows("Lettuce", "per lb"),
@@ -39,7 +42,7 @@ class ConnectorFreeze:
             path,
             {
                 **rows_by_category,
-                "provenance": "scraped_external",
+                "provenance": provenance,
             },
         )
         os.environ["FRED_FREEZE"] = str(path)

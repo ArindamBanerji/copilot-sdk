@@ -14,9 +14,12 @@ from integrity.load_benchmark import (
     OUTCOMES_PATH,
     decisions_to_threshold,
     inject_disruption,
+    load_dk_benchmark_split,
     load_benchmark_split,
     measure_accuracy,
     measure_accuracy_with_weights,
+    measure_dk_weight_effect,
+    train_scorer_dk,
     train_scorer,
 )
 from integrity import load_benchmark as benchmark_loader
@@ -173,3 +176,23 @@ def test_disruption_affects_held_out_accuracy() -> None:
     inject_disruption(scorer, magnitude=2.0)
     after = measure_accuracy(scorer, evaluation)
     assert after != before
+
+
+def test_dk_benchmark_expansion_is_deterministic() -> None:
+    first_train, first_eval = load_dk_benchmark_split()
+    second_train, second_eval = load_dk_benchmark_split()
+    assert first_train == second_train
+    assert first_eval == second_eval
+    assert len(first_train) == 1000
+    assert len(first_eval) == 100
+
+
+def test_active_dk_weights_improve_action_margin() -> None:
+    train, evaluation = load_dk_benchmark_split()
+    scorer = train_scorer_dk(train)
+    result = measure_dk_weight_effect(scorer, evaluation)
+    assert result["vl_categories"] == list(scorer._preset.shape.category_names)
+    assert result["n_vl_examples"] == 100
+    assert result["weights_non_uniform_ratio"] > 2.0
+    assert result["learned_metric"] > result["uniform_metric"]
+    assert result["delta"] > 0.0
