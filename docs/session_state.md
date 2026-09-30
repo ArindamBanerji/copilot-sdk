@@ -3486,3 +3486,79 @@ Additional validation:
   Banned-pattern scan: no body_iterator, type:ignore, or Rule #72 matches. git diff --check clean, apart from informational line-ending conversion warnings.
 Scope: one test file modified in Round 2, plus this required session-state append. No production code changes or new files. Existing Round 1 provenance changes and earlier uncommitted C-0 work preserved. The Round 1 record's correction still applies: no returo typo was present or fixed. No commit or tag created.
 ===
+
+===
+C-0 Part 2B (B29) — HTTP Commercial Smoke
+Date: 2026-09-30
+Timestamp: 2026-09-30T03:39:41-07:00
+Model: sol/high (requested)
+Current tag: v0.9.64
+Prerequisite: latest entry FRED FREEZE FIXER ROUND 2 (Batch 29), Status: PASS, SDK root 3,860 passed, 0 failed. Working tree was clean at discovery.
+Phase 0 findings:
+  Existing smoke script: PARTIAL. integrity/commercial_smoke.py was an in-process CompoundingScorer score/learn/read loop, with only --copilot. It lacked HTTP transport, CHECKS, --all, base URL overrides, timeout controls, service identity verification, and response error handling. No Python consumers of the old run() helper were found.
+  SDK copilot payloads (main.py router wiring and shared request schema):
+    All three mount create_scoring_router under /api. POST /api/score accepts category: str, factors: dict[str,float], optional context and metadata. Smoke metadata is {"source":"commercial_smoke"}; every named factor is 0.5.
+    Trading: category trend_following; factors signal_alignment, market_regime, position_sizing, timing_quality, risk_reward_actual, emotional_indicator, signal_confidence, options_delta_exposure, options_iv_percentile, options_gamma_risk.
+    Purchasing: category protein; factors expected_demand, day_of_week, weather_forecast, event_flag, historical_waste, supplier_lead_time, price_memory_index.
+    DataOps: category schema_change; factors impact_scope, source_reliability, recurrence_frequency, downstream_urgency, data_freshness, business_criticality.
+    SDK ScoreResponse requires decision_id, action, action_index, confidence, probabilities, category, factors, engine. No service identity is required in that score schema; the three apps expose domain on /health via build_graph_health.
+  SOC payload: {"alert_id":"SMOKE-TEST-001"} to POST /api/alert/analyze, port 8001 (embedded, cross-repo).
+  S2P payload: {"invoice_id":"SMOKE-TEST-INV-001"} to POST /api/s2p/score, port 8002 (embedded, cross-repo).
+  Health endpoint evidence: scripts/demo_truth_preflight.py already defines /health for all five services. CLI requires domain or service to identify the expected copilot; a missing or conflicting identity fails closed.
+  Pre-existence:
+    integrity/commercial_smoke.py: PARTIAL, rewritten.
+    tests/integrity/test_commercial_smoke.py: ABSENT, created.
+    tests/integrity/ and tests/integrity/__init__.py: present, preserved.
+  SDK root baseline: 3,860 tests collected; latest validated PASS was also 3,860.
+Phase 1 design:
+  Standalone argparse CLI with a five-entry CHECKS mapping, --copilot/--all exclusive selection, per-copilot --base-url override, and finite positive --timeout (default 10 seconds). Check /health identity before posting; then require 2xx and JSON objects for all services, plus the actual SDK response fields for Trading/Purchasing/DataOps. Missing/wrong identity blocks scoring. Explicit identity in a score body may not contradict health.
+  Prefer requests when installed; ImportError selects urllib with no added dependency. Both transports have connect/read timeouts and disable redirects. No automatic retries of scoring POSTs. Catch connection/refusal, timeout, non-2xx, non-JSON/non-object, missing fields, and truncated standard-library responses. Display bounded response snippets (first 200 characters) on errors. Continue --all after a failed check; print PASS/FAIL details and N/M passed; return 0 for all selected checks passing, 1 for check failure, and standard argparse exit 2 for invalid arguments.
+  Unit tests mock HTTP and verify transports, selection, overrides, errors, identity, fields, aggregate exit status, and SDK payload compatibility against ScoreRequest and PRESET_REGISTRY. No live-stack smoke invocation in validation.
+Phase 2 implementation:
+  Files created: tests/integrity/test_commercial_smoke.py.
+  Files modified: integrity/commercial_smoke.py (HTTP CLI rewrite); docs/session_state.md (required append).
+  Steps skipped (pre-existing): tests/integrity directory and __init__.py creation.
+Status: COMPLETE
+Test count: SDK root 3,899 passed, 0 failures (8,002 warnings; 1,117.84 seconds). Baseline 3,860 + 39 new smoke tests.
+Smoke unit tests: 39 passed, 0 failures, 0.62 seconds.
+Other gates:
+  Both changed/new Python files pass mypy --follow-imports=skip --no-error-summary.
+  python integrity/commercial_smoke.py --help: exit 0, no service connection required.
+  Standalone isolation: script does not import tests or the SDK scorer and does not alter sys.path.
+  Banned-pattern scan: no body_iterator or type-ignore matches. F-25 substring matches are the existing required Trading wire key risk_reward_actual and url_fails in a test name, not new core learning symbols.
+  Sampling gate: 34 passed across tests/test_five_domain_completeness.py, tests/test_l5_protocol_extension.py, tests/test_worker_process_safety.py; random seed 202609302, 10.99 seconds.
+  git diff --check: clean apart from informational LF/CRLF warnings.
+Notes:
+  Prompt premise correction: POST /api/score is not read-only. CompoundingScorer.score persists decisions and the router invalidates caches. The CLI help states that scoring POSTs may persist decisions; no live scoring calls were made during this task.
+  SOC/S2P scoring payloads use the supplied contract; their smoke entity IDs and health identity must be recognized by the target deployment. Neither endpoint was live-verified. A CLI PASS validates HTTP identity and response contracts, not commercial learning claims.
+  Existing production files, existing test files, fixtures, and package initializers were not modified. No commit or tag created.
+===
+
+===
+C-0 Part 2B (B29) — HTTP Commercial Smoke Live Verification
+Date: 2026-09-30
+Current tag: v0.9.64
+Baseline: previous Part 2B entry, 3,899 SDK tests passed, 0 failures; 39 smoke unit tests.
+Authorization: user confirmed all copilots running and requested continuation. Live scoring POSTs may persist decisions; no learning/outcome or execution endpoints were called.
+Live discovery and corrections:
+  Initial smoke run: 3/5 passed. SOC and S2P health responses contain correct canonical domains (soc/s2p), alongside display service names SOC Copilot Demo and s2p-copilot. Identity validation now uses domain when present and service only as fallback; invalid or conflicting domain still blocks before POST.
+  S2P live OpenAPI and backend ScoreRequest require event_id, category, amount, supplier_id, rather than the embedded invoice_id-only payload. Updated smoke event uses price_variance, amount 100.0, supplier SMOKE-TEST-SUPPLIER, and commercial_smoke context.
+  A subsequent S2P HTTP 500 was traced in logs/s2p.log to compute_all_factors rejecting missing factor context. The synthetic event now explicitly supplies all eight accepted factor fields at 0.5: match_status, amount_variance_ratio, duplicate_score, supplier_exception_history, payment_terms_impact, commodity_index_correlation, tax_regulatory_compliance, environmental_risk. No service code or conservation checks were changed.
+  SOC analyze requires an existing graph alert. Added --soc-alert-id for --copilot soc or --all; invalid selections/empty IDs are rejected. The override does not mutate CHECKS defaults. GET /api/alerts/queue confirmed ALERT-LM-101 exists and was used for verification.
+Files modified in this continuation:
+  integrity/commercial_smoke.py: canonical domain identity, current S2P payload, SOC alert override/help.
+  tests/integrity/test_commercial_smoke.py: ten additional cases for display names, wrong/empty domains, override selection/default preservation, and S2P event/factor payload.
+  docs/session_state.md: this append.
+Live verification command:
+  python -u integrity/commercial_smoke.py --all --soc-alert-id ALERT-LM-101 --timeout 30
+Live results: SOC PASS; S2P PASS; Trading PASS; Purchasing PASS; DataOps PASS. 5/5 passed, exit code 0.
+Validation:
+  Smoke unit tests: 49 passed, 0 failures; final factor-payload change covered by a subsequent targeted run.
+  Mypy on both Python files: clean (--follow-imports=skip --no-error-summary).
+  --help: exit 0. git diff --check: clean, apart from informational LF/CRLF warnings.
+  No banned patterns or imports from tests in the CLI. Existing risk_reward_actual wire key and url_fails test-name substring are not new core learning symbols.
+  Sampling: 52 passed across tests/test_trading_clone.py, tests/test_oracle_protocols.py, tests/test_combination_discovery.py (seed 202609303).
+  Full SDK exit gate: 3,909 passed, 0 failures; 8,022 warnings; 1,155.42 seconds. Baseline 3,899 + 10 new smoke cases.
+Status: COMPLETE
+Notes: Live PASS covers HTTP identity and response contracts, not learning claims or completeness of graph enrichment. S2P uses explicit synthetic factors; SOC uses an existing alert. Reuse the command with an alert ID available in the target deployment. No production source edits, service restarts, commit, or tag.
+===
