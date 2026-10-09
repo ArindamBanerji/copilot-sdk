@@ -8,6 +8,7 @@ from pathlib import Path
 
 from copilot_sdk.transfer.chain_transfer import ChainTransfer, LocationStore
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
+from copilot_sdk.testing.fixtures import requires_age
 
 PURCHASING_BACKEND = Path(__file__).resolve().parents[1] / "apps" / "purchasing" / "backend"
 
@@ -163,6 +164,7 @@ def test_validate_shape_match_passes():
     assert ChainTransfer().validate(_store(), _store(location_id="Miami", decisions=0))["valid"] is True
 
 
+@requires_age
 def test_demo_grids_match_purchasing_preset():
     create_app = _purchasing_create_app()
     try:
@@ -179,6 +181,7 @@ def test_demo_grids_match_purchasing_preset():
         _clear_app_modules()
 
 
+@requires_age
 def test_router_validate(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:
@@ -190,6 +193,7 @@ def test_router_validate(monkeypatch):
         _clear_app_modules()
 
 
+@requires_age
 def test_router_uses_request_payload(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:
@@ -204,6 +208,7 @@ def test_router_uses_request_payload(monkeypatch):
         _clear_app_modules()
 
 
+@requires_age
 def test_router_rejects_unknown_location(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:
@@ -214,6 +219,7 @@ def test_router_rejects_unknown_location(monkeypatch):
         _clear_app_modules()
 
 
+@requires_age
 def test_router_validate_returns_location_names(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:
@@ -226,6 +232,7 @@ def test_router_validate_returns_location_names(monkeypatch):
         _clear_app_modules()
 
 
+@requires_age
 def test_router_transfer_dry_run(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:
@@ -237,6 +244,7 @@ def test_router_transfer_dry_run(monkeypatch):
         _clear_app_modules()
 
 
+@requires_age
 def test_chain_state_resets(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:
@@ -251,6 +259,7 @@ def test_chain_state_resets(monkeypatch):
         _clear_app_modules()
 
 
+@requires_age
 def test_chain_status_empty_after_reset(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:
@@ -273,6 +282,7 @@ def test_double_transfer_idempotent():
     assert np.allclose(target.pattern_grid, first)
 
 
+@requires_age
 def test_transfer_history_cleared_on_reset(monkeypatch):
     create_app = _purchasing_create_app(monkeypatch)
     try:

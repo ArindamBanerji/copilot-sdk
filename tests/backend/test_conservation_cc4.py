@@ -52,7 +52,11 @@ def test_conservation_reason_is_plain_language() -> None:
     reason = _client().get("/conservation/status").json()["reason"]
     assert isinstance(reason, str)
     assert len(reason.split()) >= 8
-    assert "Signal" in reason or "No verified decisions" in reason
+    assert (
+        "Signal" in reason
+        or "No verified decisions" in reason
+        or "Ordered verified decisions are unavailable" in reason
+    )
 
 
 def test_conservation_headroom_matches() -> None:

@@ -21,7 +21,8 @@ from copilot_sdk.pilot import (
     VerifiedCountCheck,
     create_qualification_router,
 )
-from copilot_sdk.promotion import PromotionEngine, S2PPromotionPolicy
+from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.promotion import PromotionEngine, PromotionStore, S2PPromotionPolicy
 
 
 class _Twin:
@@ -39,7 +40,7 @@ def _evidence_gate(tier: EvidenceTier = EvidenceTier.T_O) -> EvidenceGate:
 
 
 def _promotion_engine(with_record: bool = True) -> PromotionEngine:
-    engine = PromotionEngine(S2PPromotionPolicy())
+    engine = PromotionEngine(S2PPromotionPolicy(), PromotionStore(InMemoryGraphStore(), "test"))
     if with_record:
         engine.create("test", "class-a")
     return engine

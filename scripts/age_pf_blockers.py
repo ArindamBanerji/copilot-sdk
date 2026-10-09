@@ -6,7 +6,9 @@ Plus: Check for shared cross-domain entities (§6.6).
 Plus: V_soc regression baseline.
 """
 import psycopg
+from pathlib import Path
 import sqlite3
+# Migration utility: retains SQLite read access per Rule #92.
 import os
 
 DSN = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres"
@@ -60,7 +62,7 @@ def find_sqlite(domain):
 def get_sqlite_decision_ids(db_path):
     """Extract decision_ids from a SQLite GraphStore DB."""
     try:
-        with sqlite3.connect(db_path) as sconn:
+        with sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True) as sconn:
             # Check what tables exist
             tables = [t[0] for t in sconn.execute(
                 "SELECT name FROM sqlite_master WHERE type='table'"

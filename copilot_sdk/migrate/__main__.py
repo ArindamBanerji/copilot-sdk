@@ -88,13 +88,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "reconcile_archive":
         from ci_platform.graph.age_graph_store import AGEGraphStore
-        from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+        from copilot_sdk.migrate.legacy_archive_reader import LegacySQLiteArchiveReader
         from copilot_sdk.migrate.reconcile_archive import ArchiveReconciler
 
-        sqlite_store = SQLiteGraphStore(args.source, domain=args.domain)
+        archive_reader = LegacySQLiteArchiveReader(args.source)
         age_store = AGEGraphStore(dsn=args.age_dsn, graph_name=args.graph_name)
         try:
-            reconciler = ArchiveReconciler(sqlite_store, age_store, args.domain)
+            reconciler = ArchiveReconciler(archive_reader, age_store, args.domain)
             result = reconciler.reconcile(batch_size=args.batch_size, dry_run=args.dry_run)
             if result["status"] == "PASS" and not args.dry_run:
                 verification = reconciler.verify()
@@ -103,11 +103,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 }
                 if not all(report.passed for report in verification.values()):
                     result["status"] = "FAIL"
-                    result["fail_reason"] = "Active or history read-diff verification failed"
+                    result["fail_reason"] = "Archive verification failed"
             print(json.dumps(result, indent=2, sort_keys=True))
             sys.exit(0 if result["status"] == "PASS" else 1)
         finally:
-            sqlite_store.close()
             age_store.close()
 
     parser.print_help()

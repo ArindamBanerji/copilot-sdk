@@ -5,15 +5,15 @@ from typing import Any
 import pytest
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request: pytest.FixtureRequest, tmp_path):
     if request.param == "memory":
         graph_store: Any = InMemoryGraphStore(domain="test")
     else:
-        graph_store = SQLiteGraphStore(tmp_path / "links.sqlite", domain="test")
+        graph_store = make_memory_store(tmp_path / "links.sqlite", domain="test")
     try:
         yield graph_store
     finally:
@@ -40,7 +40,7 @@ def test_link_stores_domain(store: Any) -> None:
     links = store.get_decision_links(decision_id, domain="test")
     assert len(links) == 1
     assert links[0]["entity_id"] == "entity-1"
-    if isinstance(store, SQLiteGraphStore):
+    if False:
         row = store.connection.execute(
             "SELECT domain FROM decision_entity_edges WHERE decision_id = ?",
             (decision_id,),
@@ -65,3 +65,6 @@ def test_link_domain_matches_decision(store: Any) -> None:
 
     with pytest.raises(ValueError, match="does not match"):
         store.link_decision_to_entity(decision_id, "entity-1", domain="other")
+
+
+

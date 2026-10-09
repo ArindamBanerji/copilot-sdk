@@ -29,6 +29,7 @@ S2P_FRAMEWORK_DIR = (
 # Format: filename → human reason + backlog reference.
 # ---------------------------------------------------------------------------
 KNOWN_DRIFT = {
+    "learning_state.py": "SDK-STEP9/F-05: SDK checkpoints require GraphStore and domain; SOC retains its separate file-based checkpoint API. Follow-up: migrate SOC/S2P checkpoint consumers, then reconcile copies. SDK graph round-trips are covered by test_side_store_removal.py.",
     "override_detector.py": "SOC-only. Not in SDK. Expected.",
     "audit.py": "app.framework.feedback_store and app.db.graph_client imports guarded with try/except ImportError. SDK standalone requirement.",
     "composite_gate.py": "Import path adapted: app.framework → copilot_sdk.framework. SDK namespace requirement.",

@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
 
+from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.scoring.scorer import CompoundingScorer
 from copilot_sdk.transfer import SharedPatternRegistry, TransferPattern
 
 
 def main() -> int:
-    registry = SharedPatternRegistry()
+    store = create_graph_store(backend="memory", domain="s2p", profile="offline", env={})
+    registry = SharedPatternRegistry(store, "s2p")
     registry.register(
         TransferPattern(
             pattern_id="",
@@ -25,8 +25,7 @@ def main() -> int:
         )
     )
 
-    db_path = Path(tempfile.mkdtemp()) / "s2p-transfer-demo.db"
-    scorer = CompoundingScorer.from_preset("s2p", db_path=str(db_path))
+    scorer = CompoundingScorer.from_preset("s2p", graph_store=store, profile="offline")
     factors = {
         name: 0.5
         for name in scorer._preset.shape.factor_names

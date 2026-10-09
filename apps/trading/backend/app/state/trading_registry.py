@@ -6,7 +6,6 @@ from typing import Any, Callable, cast
 
 from app import context_router
 from app.analytics.regime_vrp import compute_regime_vrp
-from app.routers.evolution_router import _load_persisted_rejection_summary
 from app.routers.journal import _journal_records
 from app.routers.regime_analytics import _read_decisions
 from app.routers.webhook import compute_webhook_status
@@ -123,7 +122,7 @@ def create_trading_tab_state_cache(
         return cast(dict[str, Any], _correlation_service(20).compute(_journal_records(graph_store, "trading")))
 
     def rejection_summary() -> dict[str, Any]:
-        persisted = _load_persisted_rejection_summary()
+        persisted = graph_store().get_evolution("trading", "preseed_rejection_summary")
         if isinstance(persisted, dict):
             return cast(dict[str, Any], persisted)
         return {

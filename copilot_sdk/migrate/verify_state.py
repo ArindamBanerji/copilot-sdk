@@ -7,6 +7,8 @@ import math
 from dataclasses import dataclass
 from typing import Any, Mapping, cast
 
+from copilot_sdk.timestamps import normalize_timestamp
+
 import numpy as np
 import psycopg
 
@@ -224,7 +226,7 @@ def _normalise_decision(
         "confidence": float(decision.get("confidence") or 0.0),
         "probabilities": [float(value) for value in probabilities],
         "status": str(decision.get("status") or "confirmed"),
-        "created_at": float(decision.get("created_at") or 0.0),
+        "created_at": normalize_timestamp(decision.get("created_at") or 0.0),
     }
     return normalised, str(actual_action), dict(context or {})
 
@@ -282,7 +284,7 @@ def replay_decisions(
 
     ordered = sorted(
         decisions,
-        key=lambda row: (float(row.get("created_at") or 0.0), str(row.get("decision_id") or "")),
+        key=lambda row: (normalize_timestamp(row.get("created_at") or 0.0), str(row.get("decision_id") or "")),
     )
     for decision in ordered:
         decision_id = str(decision["decision_id"])

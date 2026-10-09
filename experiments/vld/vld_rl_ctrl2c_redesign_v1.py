@@ -20,6 +20,7 @@ Tier: REAL_COMPONENT geometry + GEOMETRY-DERIVED / SIMULATED.
 
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import json
 import importlib.util
 import random
@@ -59,13 +60,6 @@ DEFAULT_B = 2
 MAX_B = 4
 
 
-class MemoryStore:
-    """SQLite-compatible in-memory connection for KUtilityStore."""
-
-    def __init__(self) -> None:
-        import sqlite3
-
-        self.conn = sqlite3.connect(":memory:")
 
 
 def info_for(copilot: str) -> dict[str, Any]:
@@ -142,7 +136,7 @@ def build_training(
 ) -> tuple[ExtraTreesRegressor, dict[str, Any]]:
     categories, factors, sigma, mus, tau = setup(info)
     rng = random.Random(seed + sum(ord(ch) for ch in copilot) + int(lam * 1000))
-    store = h.KUtilityStore(MemoryStore(), d=len(factors))
+    store = h.KUtilityStore(InMemoryGraphStore(), d=len(factors))
     records: list[dict[str, Any]] = []
     x_rows: list[np.ndarray] = []
     y_rows: list[float] = []
@@ -185,7 +179,7 @@ def choose_budget(
 def run_learning(copilot: str, info: dict[str, Any], seed: int, model: ExtraTreesRegressor | None) -> dict[str, Any]:
     categories, factors, sigma, mus, tau = setup(info)
     rng = random.Random(seed + sum(ord(ch) for ch in copilot))
-    store = h.KUtilityStore(MemoryStore(), d=len(factors))
+    store = h.KUtilityStore(InMemoryGraphStore(), d=len(factors))
     records: list[dict[str, Any]] = []
     budgets: list[int] = []
     curve: dict[str, dict[str, float]] = {}
@@ -228,7 +222,7 @@ def run_learning(copilot: str, info: dict[str, Any], seed: int, model: ExtraTree
 def safety_run(copilot: str, info: dict[str, Any], seed: int, model: ExtraTreesRegressor | None, condition: str) -> dict[str, float]:
     categories, factors, sigma, mus, tau = setup(info)
     rng = random.Random(seed + 700000 + sum(ord(ch) for ch in copilot))
-    store = h.KUtilityStore(MemoryStore(), d=len(factors))
+    store = h.KUtilityStore(InMemoryGraphStore(), d=len(factors))
     horizon = 900 if condition == "poison_25" else 500
     records: list[dict[str, Any]] = []
     pause_count = 0

@@ -5,12 +5,12 @@ Creates experiment output only. Existing SDK/app/test sources are not modified.
 
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import json
 import sys
 from math import floor, log2
 from pathlib import Path
 import random
-import sqlite3
 from typing import Any
 
 import numpy as np
@@ -34,9 +34,6 @@ S1_EVAL_SCENARIOS = 20
 S1_MARGIN = 0.70
 
 
-class Store:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def adaptive_budget(copilot: str) -> int:
@@ -183,7 +180,7 @@ def eval_checkpoint(
 def run_arm(copilot: str, variant: str, seed: int) -> dict[str, Any]:
     geom = geometry(copilot)
     rng = random.Random(seed + sum(ord(ch) for ch in copilot) + len(variant))
-    store = KUtilityStore(Store(), d=len(geom["factors"]))
+    store = KUtilityStore(InMemoryGraphStore(), d=len(geom["factors"]))
     checkpoints = []
     sources = {int(k): v for k, v in base.DIMENSION_SOURCES.get(copilot, {}).items()}
     for idx, factor in enumerate(geom["factors"]):

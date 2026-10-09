@@ -8,6 +8,7 @@ scoring, evidence-provider, preseed, or database source.
 
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import argparse
 import difflib
 import hashlib
@@ -15,7 +16,6 @@ import importlib.util
 import json
 from pathlib import Path
 import random
-import sqlite3
 import tempfile
 from typing import Any, cast
 
@@ -127,9 +127,6 @@ DIMENSION_SOURCES = {
 }
 
 
-class SQLiteDecisionStore:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def load_export() -> dict[str, Any]:
@@ -375,12 +372,12 @@ def run_copilot(copilot: str) -> dict[str, Any]:
     construction_error = None
     try:
         with tempfile.TemporaryDirectory(prefix=f"k-learning-{copilot}-") as tmp:
-            CompoundingScorer.from_preset(preset_name, db_path=str(Path(tmp) / f"{copilot}.db"), profile="test")
+            CompoundingScorer.from_preset(preset_name,  profile="test")
     except Exception as exc:  # recorded, not fatal to exported-geometry protocol
         construction_error = repr(exc)
 
-    learning_store = KUtilityStore(SQLiteDecisionStore(), d=len(factor_names))
-    control_store = KUtilityStore(SQLiteDecisionStore(), d=len(factor_names))
+    learning_store = KUtilityStore(InMemoryGraphStore(), d=len(factor_names))
+    control_store = KUtilityStore(InMemoryGraphStore(), d=len(factor_names))
     rng = random.Random(SEED + sum(ord(ch) for ch in copilot))
     checkpoints: list[dict[str, Any]] = []
 

@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.config.graph_config import GraphConfig, GraphConfigError, GraphIdentity
+from copilot_sdk.graph.protocol import GraphStore, ProductionReadyStore
 
 
 class GraphStoreWrapper:
@@ -74,7 +75,16 @@ def probe_graph_identity(dsn: str, graph: str) -> GraphIdentity:
     return _probe_client_identity(AGEClient(dsn=dsn, graph_name=graph, use_pool=False))
 
 
-def age_client_for_store(store: Any, *, domain: str) -> Any:
+def is_production_ready_store(store: object) -> bool:
+    """Return whether a store exposes the production-approval marker."""
+    return isinstance(store, ProductionReadyStore)
+
+
+def age_client_for_store(
+    store: GraphStore | GraphStoreWrapper,
+    *,
+    domain: str,
+) -> Any:
     """Follow declared primaries only, rejecting unknown wrappers and local stores."""
     from ci_platform.graph.age_client import AGEClient
     from ci_platform.graph.age_graph_store import AGEGraphStore
@@ -88,18 +98,29 @@ def age_client_for_store(store: Any, *, domain: str) -> Any:
         if getattr(store, "domain", None) != domain:
             raise GraphConfigError("graph wrapper domain mismatch")
         store = store.graph_primary
-    if type(store) is not AGEGraphStoreAdapter or store.domain != domain:
+    if not is_production_ready_store(store):
         raise GraphConfigError(
-            "Production scorer requires an AGE-backed GraphStore primary; "
+            "Production scorer requires an AGE-backed GraphStore primary "
+            "implementing ProductionReadyStore; "
             "SQLite, InMemory, dual-write and undeclared wrappers are test/offline only"
         )
-    primary = store._store
+
+    # ZONE 1 composition-root exception: this bridge still extracts the actual
+    # AGE client and verifies its destination. Keep it concrete until AGE
+    # composition moves client wiring to the factory.
+    adapter = cast(AGEGraphStoreAdapter, store)
+    if adapter.domain != domain:
+        raise GraphConfigError("Production graph adapter domain mismatch")
+    primary = adapter._store
     if type(primary) is not AGEGraphStore or type(primary._client) is not AGEClient:
         raise GraphConfigError("AGE adapter does not own a verified AGE primary connection")
     return primary._client
 
 
-def validate_production_store(store: Any, config: GraphConfig) -> GraphStoreCapabilities:
+def validate_production_store(
+    store: GraphStore | GraphStoreWrapper,
+    config: GraphConfig,
+) -> GraphStoreCapabilities:
     """Revalidate an injected store, including decorators and its actual destination."""
     if config.profile != "production":
         raise GraphConfigError("production store validation requires production GraphConfig")

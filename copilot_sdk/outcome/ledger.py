@@ -1,106 +1,59 @@
-"""SQLite persistence for canonical verified-outcome receipts."""
-
+"""Verified receipt persistence through the injected graph store."""
 from __future__ import annotations
 
 import json
-import os
-import sqlite3
-import threading
-from pathlib import Path
-
+from threading import RLock
+from copilot_sdk.graph.protocol import ProtocolV2GraphStore
+from copilot_sdk.timestamps import normalize_timestamp
 from .models import VerifiedOutcome
 
 
 class OutcomeLedger:
-    """Thread-safe, restart-safe receipt ledger with stable-id deduplication."""
+    """Read receipts from graph events; never maintain a second authority."""
 
-    def __init__(self, db_path: str | os.PathLike[str] = ":memory:") -> None:
-        self.db_path = str(db_path)
-        if self.db_path != ":memory:":
-            Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
-        self._connection = sqlite3.connect(self.db_path, check_same_thread=False)
-        self._connection.row_factory = sqlite3.Row
-        self._lock = threading.RLock()
-        self._connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS verified_outcomes (
-                receipt_id TEXT PRIMARY KEY,
-                copilot TEXT NOT NULL,
-                decision_id TEXT NOT NULL,
-                category TEXT NOT NULL,
-                timestamp TEXT NOT NULL,
-                receipt_json TEXT NOT NULL,
-                created_at REAL NOT NULL DEFAULT (unixepoch('now'))
-            )
-            """
-        )
-        self._connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_verified_outcomes_scope "
-            "ON verified_outcomes(copilot, category, timestamp)"
-        )
-        self._connection.commit()
+    def __init__(self, graph_store: ProtocolV2GraphStore, domain: str) -> None:
+        self.graph_store = graph_store
+        self.domain = domain
+        self._lock = RLock()
 
     def append(self, outcome: VerifiedOutcome) -> bool:
-        """Append once; return whether this call inserted a new receipt."""
         receipt_id = outcome.receipt_id()
         with self._lock:
-            cursor = self._connection.execute(
-                """
-                INSERT OR IGNORE INTO verified_outcomes
-                    (receipt_id, copilot, decision_id, category, timestamp, receipt_json)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    receipt_id,
-                    outcome.copilot,
-                    outcome.decision_id,
-                    outcome.category,
-                    outcome.timestamp,
-                    json.dumps(outcome.to_dict(), sort_keys=True, separators=(",", ":")),
-                ),
+            if self.exists(receipt_id):
+                return False
+            self.graph_store.write_evolution_event(
+                event_id=f"verified-outcome:{self.domain}:{receipt_id}",
+                domain=self.domain, event_type="verified_outcome",
+                rule_name=outcome.category, variant_id=outcome.decision_id,
+                metadata={"receipt": outcome.to_dict()},
             )
-            self._connection.commit()
-            return cursor.rowcount == 1
+            return True
+
+    def _receipts(self) -> list[VerifiedOutcome]:
+        receipts = []
+        for event in self.graph_store.get_evolution_events(
+            self.domain, event_type="verified_outcome", limit=None
+        ):
+            metadata = event.get("metadata") or event.get("metadata_json") or {}
+            if isinstance(metadata, str):
+                metadata = json.loads(metadata)
+            receipts.append(VerifiedOutcome.from_dict(metadata["receipt"]))
+        return receipts
 
     def get(self, receipt_id: str) -> VerifiedOutcome | None:
-        with self._lock:
-            row = self._connection.execute(
-                "SELECT receipt_json FROM verified_outcomes WHERE receipt_id = ?",
-                (str(receipt_id),),
-            ).fetchone()
-        return None if row is None else VerifiedOutcome.from_dict(json.loads(str(row["receipt_json"])))
+        return next((row for row in self._receipts() if row.receipt_id() == receipt_id), None)
 
     def exists(self, receipt_id: str) -> bool:
-        with self._lock:
-            row = self._connection.execute(
-                "SELECT 1 FROM verified_outcomes WHERE receipt_id = ? LIMIT 1",
-                (str(receipt_id),),
-            ).fetchone()
-        return row is not None
+        return self.get(receipt_id) is not None
 
     def count(self, copilot: str, category: str | None = None) -> int:
-        query = "SELECT COUNT(*) FROM verified_outcomes WHERE copilot = ?"
-        parameters: tuple[str, ...] = (str(copilot),)
-        if category is not None:
-            query += " AND category = ?"
-            parameters += (str(category),)
-        with self._lock:
-            row = self._connection.execute(query, parameters).fetchone()
-        return int(row[0]) if row is not None else 0
+        return sum(row.copilot == copilot and (category is None or row.category == category)
+                   for row in self._receipts())
 
     def list_recent(self, copilot: str, limit: int = 100) -> list[VerifiedOutcome]:
-        bounded_limit = max(1, min(int(limit), 10_000))
-        with self._lock:
-            rows = self._connection.execute(
-                """
-                SELECT receipt_json FROM verified_outcomes
-                WHERE copilot = ? ORDER BY timestamp DESC, created_at DESC LIMIT ?
-                """,
-                (str(copilot), bounded_limit),
-            ).fetchall()
-        return [VerifiedOutcome.from_dict(json.loads(str(row["receipt_json"]))) for row in rows]
+        rows = [row for row in self._receipts() if row.copilot == copilot]
+        rows.sort(key=lambda row: (-normalize_timestamp(row.timestamp), row.receipt_id()))
+        return rows[:max(0, min(int(limit), 10_000))]
 
     def close(self) -> None:
-        with self._lock:
-            self._connection.close()
-
+        """The caller owns the injected graph's lifetime."""

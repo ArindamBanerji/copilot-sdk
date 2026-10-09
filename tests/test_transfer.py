@@ -141,23 +141,24 @@ def test_malformed_or_missing_factors_are_ignored_safely() -> None:
     assert opportunities == []
 
 
-def test_save_and_load_fingerprint_roundtrip(tmp_path: Path) -> None:
-    path = save_fingerprint("Trading", {"factors": [{"name": "x", "sigma": 0.1}]}, tmp_path)
-
-    assert path == tmp_path / "trading.json"
-    loaded = load_fingerprints(tmp_path)
+def test_save_and_load_fingerprint_roundtrip() -> None:
+    graph = InMemoryGraphStore()
+    identifier = save_fingerprint("Trading", {"factors": [{"name": "x", "sigma": 0.1}]}, graph_store=graph)
+    assert identifier.startswith("exported-fingerprint:trading:")
+    loaded = load_fingerprints(graph_store=graph)
     assert loaded["trading"]["domain"] == "trading"
     assert loaded["trading"]["fingerprint"]["factors"][0]["name"] == "x"
+    assert graph.list_fingerprints("trading")[0]["fingerprint_id"] == identifier
 
 
-def test_load_fingerprints_skips_malformed_json(tmp_path: Path) -> None:
-    (tmp_path / "bad.json").write_text("{", encoding="utf-8")
-    save_fingerprint("dataops", {"factors": []}, tmp_path)
-
-    loaded, warnings = load_fingerprints_with_warnings(tmp_path)
-
-    assert sorted(loaded) == ["dataops"]
-    assert warnings[0]["file"] == "bad.json"
+def test_load_fingerprints_reads_live_graph_updates() -> None:
+    graph = InMemoryGraphStore()
+    save_fingerprint("dataops", {"factors": []}, graph_store=graph)
+    assert sorted(load_fingerprints(graph_store=graph)) == ["dataops"]
+    save_fingerprint("trading", {"factors": []}, graph_store=graph)
+    loaded, warnings = load_fingerprints_with_warnings(graph_store=graph)
+    assert sorted(loaded) == ["dataops", "trading"]
+    assert warnings == []
 
 
 class FakeScorer:  # MOCK-OK: transfer planner reads centroids only

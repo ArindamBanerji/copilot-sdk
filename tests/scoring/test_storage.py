@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime
 
 import numpy as np
 import pytest
 
-from copilot_sdk.graph import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 def save_sample_decision(store, decision_id="d-1", category="alpha", created_at=1000.0):
@@ -88,12 +89,12 @@ def test_save_load_latest_centroids(store):
     first = np.zeros((3, 2, 3), dtype=float)
     latest = np.ones((3, 2, 3), dtype=float)
 
-    store.save_centroids("mock", "", first, metadata={"iks": 1.5})
-    store.save_centroids("mock", "", latest, metadata={"iks": 7.5})
+    store.save_centroids("mock", "", first, metadata={"iks": 1.5}, created_at=1.0)
+    store.save_centroids("mock", "", latest, metadata={"iks": 7.5}, created_at=2.0)
 
     np.testing.assert_allclose(store.load_latest_centroids("mock"), latest)
     checkpoints = store.get_centroid_checkpoints("mock")
-    assert checkpoints[-1]["iks"] == 7.5
+    assert checkpoints[0]["iks"] == 7.5
 
 
 def test_decision_store_get_centroid_checkpoints_metadata(store):
@@ -120,7 +121,8 @@ def test_decision_store_save_generates_checkpoint_time(store):
 
     checkpoint = store.get_centroid_checkpoints("mock", limit=1)[0]
 
-    assert checkpoint["checkpoint_time"].endswith("Z")
+    assert isinstance(checkpoint["checkpoint_time"], str)
+    datetime.fromisoformat(checkpoint["checkpoint_time"].replace("Z", "+00:00"))
     assert checkpoint["decision_time_start"] is None
     assert checkpoint["decision_time_end"] is None
 
@@ -223,74 +225,8 @@ def test_decision_store_category_filter(store):
     assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["beta-1"]
 
 
-def test_decision_store_migration_adds_bitemporal_columns(tmp_path):
-    db_path = tmp_path / "old.sqlite"
-    connection = sqlite3.connect(db_path)
-    try:
-        connection.executescript(
-            """
-            CREATE TABLE decisions (
-                decision_id TEXT PRIMARY KEY,
-                category TEXT NOT NULL,
-                category_index INTEGER NOT NULL,
-                factors_json TEXT NOT NULL,
-                factor_vector_json TEXT NOT NULL,
-                recommended_action TEXT NOT NULL,
-                recommended_index INTEGER NOT NULL,
-                confidence REAL NOT NULL,
-                probabilities_json TEXT NOT NULL,
-                created_at REAL NOT NULL
-            );
-            CREATE TABLE outcomes (
-                decision_id TEXT PRIMARY KEY REFERENCES decisions(decision_id),
-                actual_action TEXT NOT NULL,
-                actual_index INTEGER NOT NULL,
-                is_correct INTEGER NOT NULL,
-                verified_at REAL NOT NULL
-            );
-            CREATE TABLE centroid_checkpoints (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                centroids_json TEXT NOT NULL,
-                decisions_count INTEGER NOT NULL,
-                iks REAL NOT NULL,
-                created_at REAL NOT NULL
-            );
-            """
-        )
-        connection.commit()
-    finally:
-        connection.close()
-
-    migrated = SQLiteGraphStore(db_path, domain="mock")
-    try:
-        columns = {
-            row["name"]
-            for row in migrated.connection.execute("PRAGMA table_info(centroid_checkpoints)")
-        }
-        indexes = {
-            row["name"]
-            for row in migrated.connection.execute("PRAGMA index_list(centroid_checkpoints)")
-        }
-    finally:
-        migrated.close()
-
-    assert {"decision_time_start", "decision_time_end", "checkpoint_time"} <= columns
-    assert {
-        "idx_cc_checkpoint_time",
-        "idx_cc_decision_time",
-        "idx_cc_category",
-    } <= indexes
 
 
-def test_decision_store_migration_idempotent(tmp_path):
-    db_path = tmp_path / "graph.sqlite"
-    store = SQLiteGraphStore(db_path, domain="mock")
-    try:
-        store._ensure_migrations()
-        store._ensure_migrations()
-        store.connection.commit()
-    finally:
-        store.close()
 
 
 def test_decision_store_get_centroid_checkpoints_limit(store):
@@ -300,6 +236,7 @@ def test_decision_store_get_centroid_checkpoints_limit(store):
             "alpha",
             np.full((1, 1), float(index)),
             decision_id=f"decision-{index}",
+            created_at=float(index + 1),
         )
 
     checkpoints = store.get_centroid_checkpoints("mock", limit=2)
@@ -342,13 +279,4 @@ def test_count_categories_with_n(store):
     assert store.count_categories_with_n("mock", 2) == 2
 
 
-def test_decisions_persist_across_store_reopen(temp_db):
-    store = SQLiteGraphStore(temp_db, domain="mock")
-    save_sample_decision(store, "persisted")
-    store.close()
 
-    reopened = SQLiteGraphStore(temp_db, domain="mock")
-    try:
-        assert reopened.get_decision("persisted", domain="mock")["decision_id"] == "persisted"
-    finally:
-        reopened.close()

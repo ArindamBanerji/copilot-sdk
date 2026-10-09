@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from copilot_sdk.timestamps import normalize_timestamp
+
 
 @dataclass(frozen=True)
 class TrajectoryPoint:
@@ -42,7 +44,7 @@ def compute_trajectory(
             days_active=0.0,
         )
 
-    ordered = sorted(decisions, key=lambda item: (float(item["created_at"]), str(item.get("decision_id", ""))))
+    ordered = sorted(decisions, key=lambda item: (normalize_timestamp(item["created_at"]), str(item.get("decision_id", ""))))
     total = len(ordered)
     counts = list(range(0, total + 1, 10))
     if counts[-1] != total:
@@ -66,7 +68,7 @@ def compute_trajectory(
         previous_count = count
 
     days_active = round(
-        (float(ordered[-1]["created_at"]) - float(ordered[0]["created_at"])) / 86400.0,
+        (normalize_timestamp(ordered[-1]["created_at"]) - normalize_timestamp(ordered[0]["created_at"])) / 86400.0,
         1,
     )
 
@@ -99,6 +101,6 @@ def _compute_iks(n_decisions: int, win_rate: float) -> float:
 
 
 def _timestamp_for_count(decisions: list[dict], count: int) -> float:
-    if count == 0:
-        return float(decisions[0]["created_at"])
-    return float(decisions[count - 1]["created_at"])
+    index = 0 if count == 0 else count - 1
+    timestamp: float = normalize_timestamp(decisions[index]["created_at"])
+    return timestamp

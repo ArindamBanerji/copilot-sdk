@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import time
 import uuid
 from dataclasses import asdict, dataclass, field, replace
-from pathlib import Path
 from typing import Any
-from copilot_sdk.config.graph_config import resolve_profile
+
+from copilot_sdk.timestamps import normalize_timestamp
+from copilot_sdk.graph.protocol import GraphStore
 
 
 @dataclass(frozen=True)
@@ -64,7 +64,7 @@ class TransferPattern:
             win_rate=float(payload.get("win_rate") or 0.0),
             centroid_delta=list(payload.get("centroid_delta") or []),
             confidence=float(payload.get("confidence") or 0.0),
-            created_at=float(payload.get("created_at") or time.time()),
+            created_at=normalize_timestamp(payload.get("created_at") or time.time()),
             metadata=dict(payload.get("metadata") or {}),
             source_domain=str(payload.get("source_domain") or payload.get("source_copilot") or ""),
             target_domain=str(payload.get("target_domain") or ""),
@@ -73,24 +73,39 @@ class TransferPattern:
 
 
 class SharedPatternRegistry:
-    """In-memory transfer pattern registry with optional JSON persistence."""
+    """Shared patterns read directly from domain-scoped graph state."""
 
-    def __init__(self, storage_path: str | Path | None = None, *, profile: str | None = None) -> None:
-        if profile is not None and resolve_profile(profile, domain="") == "production":
-            raise RuntimeError("production transfer registry requires an injected graph-backed registry")
-        self.storage_path = Path(storage_path) if storage_path is not None else None
-        self._patterns: dict[str, TransferPattern] = {}
-        self.load()
+    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+        self.graph_store = graph_store
+        self.domain = domain
+
+    def _patterns(self) -> list[TransferPattern]:
+        return [TransferPattern.from_dict(state["pattern"])
+                for state in self.graph_store.list_governance(self.domain)
+                if state.get("kind") == "transfer_pattern"]
 
     @property
     def count(self) -> int:
-        return len(self._patterns)
+        return len(self._patterns())
 
-    def register(self, pattern: TransferPattern) -> TransferPattern:
+    def register(
+        self,
+        pattern: TransferPattern,
+        graph_store: GraphStore | None = None,
+    ) -> TransferPattern:
+        if graph_store is not None:
+            source_artifact_id = str(pattern.metadata.get("source_artifact_id") or "").strip()
+            source_domain = str(pattern.source_domain or pattern.source_copilot).strip()
+            if (
+                not source_artifact_id
+                or not source_domain
+                or graph_store.get_governance(source_domain, source_artifact_id) is None
+            ):
+                raise ValueError("Source artifact not registered")
         pattern_id = pattern.pattern_id or self._new_pattern_id(pattern.source_copilot)
         stored = replace(pattern, pattern_id=pattern_id)
-        self._patterns[pattern_id] = stored
-        self.save()
+        self.graph_store.save_governance(self.domain, f"transfer_pattern:{pattern_id}",
+                                         {"kind": "transfer_pattern", "pattern": stored.to_dict()})
         return stored
 
     def get_patterns(
@@ -101,7 +116,7 @@ class SharedPatternRegistry:
     ) -> list[TransferPattern]:
         patterns = [
             pattern
-            for pattern in self._patterns.values()
+            for pattern in self._patterns()
             if (source_copilot is None or pattern.source_copilot == source_copilot)
             and pattern.confidence >= float(min_confidence)
             and pattern.win_rate >= float(min_win_rate)
@@ -142,46 +157,6 @@ class SharedPatternRegistry:
             mapped_patterns,
             key=lambda pattern: (pattern.confidence, pattern.win_rate, pattern.created_at),
             reverse=True,
-        )
-
-    def load(self) -> None:
-        if self.storage_path is None or not self.storage_path.exists():
-            return
-        try:
-            payload = json.loads(self.storage_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            return
-        raw_patterns = payload.get("patterns") if isinstance(payload, dict) else payload
-        if not isinstance(raw_patterns, list):
-            return
-        loaded: dict[str, TransferPattern] = {}
-        for item in raw_patterns:
-            if not isinstance(item, dict):
-                continue
-            try:
-                pattern = TransferPattern.from_dict(item)
-            except (TypeError, ValueError):
-                continue
-            if pattern.pattern_id:
-                loaded[pattern.pattern_id] = pattern
-        self._patterns = loaded
-
-    def save(self) -> None:
-        if self.storage_path is None:
-            return
-        self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "patterns": [
-                pattern.to_dict()
-                for pattern in sorted(
-                    self._patterns.values(),
-                    key=lambda item: item.pattern_id,
-                )
-            ]
-        }
-        self.storage_path.write_text(
-            json.dumps(payload, indent=2, sort_keys=True),
-            encoding="utf-8",
         )
 
     def _new_pattern_id(self, source_copilot: str) -> str:

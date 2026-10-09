@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
-import time
 from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
 from typing import Any, cast
@@ -51,7 +49,6 @@ class DIQueryService:
         claude_parser: ClaudeQueryParser | None = None,
         minimum_sample: int = 10,
         max_records: int = 1000,
-        cache_ttl_seconds: float | None = None,
     ) -> None:
         self.provider = provider
         self.allowed_domains = {value.lower() for value in (allowed_domains or {"dataops"})}
@@ -59,17 +56,6 @@ class DIQueryService:
         self.claude_parser = claude_parser
         self.minimum_sample = minimum_sample
         self.max_records = max(1, max_records)
-        configured_ttl = os.environ.get("DI_QUERY_CACHE_TTL_SECONDS", "300")
-        self.cache_ttl_seconds = max(
-            0.0,
-            float(configured_ttl) if cache_ttl_seconds is None else float(cache_ttl_seconds),
-        )
-        self._response_cache: dict[tuple[str, str, str | None], tuple[float, QueryResponse]] = {}
-
-    def invalidate_cache(self) -> None:
-        """Drop query results after score/learn changes governed evidence."""
-
-        self._response_cache.clear()
 
     def parse(self, question: str, *, context: Any = None) -> QueryPlan:
         normalized = str(question or "").strip()
@@ -217,15 +203,6 @@ class DIQueryService:
         query_id = str(uuid4())
         started = datetime.now(timezone.utc)
         plan = self.parse(query_request.question, context=query_request.context)
-        cache_key = (query_request.question.strip().lower(), plan.domain, plan.time_window)
-        cached = self._response_cache.get(cache_key)
-        if cached is not None and time.monotonic() - cached[0] < self.cache_ttl_seconds:
-            response = cast(QueryResponse, cached[1].model_copy(deep=True))
-            response.metadata.cache = "hit"
-            response.metadata.query_id = query_id
-            return response
-        if cached is not None:
-            self._response_cache.pop(cache_key, None)
         LOGGER.info(
             "di3_query_started",
             extra={"query_id": query_id, "domain": plan.domain, "intent": plan.intent.value},
@@ -289,7 +266,6 @@ class DIQueryService:
                 query_id=query_id,
             ),
         )
-        self._response_cache[cache_key] = (time.monotonic(), response)
         LOGGER.info(
             "di3_query_completed",
             extra={
@@ -466,7 +442,10 @@ def _dimensions(question: str) -> list[str]:
         ("month", "month"),
         ("week", "week"),
     ]
-    return validate_dimensions([value for marker, value in candidates if marker in question])
+    return cast(
+        list[str],
+        validate_dimensions([value for marker, value in candidates if marker in question]),
+    )
 
 
 def _time_window(question: str) -> str | None:

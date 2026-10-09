@@ -6,6 +6,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Any
 
+from copilot_sdk.timestamps import normalize_timestamp
+
 
 @dataclass(frozen=True)
 class _ActivityStats:
@@ -58,7 +60,7 @@ class ProcessExportIngester:
 
         relationships = []
         for case_id, case_events in cases.items():
-            ordered = sorted(case_events, key=lambda item: item["timestamp"])
+            ordered = sorted(case_events, key=lambda item: normalize_timestamp(item["timestamp"] or 0.0))
             for event in ordered:
                 relationships.append(
                     {

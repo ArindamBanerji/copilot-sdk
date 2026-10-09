@@ -8,7 +8,7 @@ from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph.protocol import GraphStore
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -25,7 +25,7 @@ def dataops_data_dir(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> Generator[Path, None, None]:
     monkeypatch.delenv("GRAPH_DSN", raising=False)
-    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "sqlite")
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "memory")
     for key in (
         "DATAOPS_ACTIVE_AGE_DSN",
         "DATAOPS_ACTIVE_AGE_GRAPH",
@@ -76,8 +76,6 @@ def dataops_data_dir(
     monkeypatch.setattr(main, "DEFAULT_DB_PATH", target / "dataops.db")
     ae_router.reset_ae_fixtures()
     try:
-        store = SQLiteGraphStore(str(target / "test_dataops.db"), domain="dataops", decision_id_prefix="DOPS-")
-        _seed_ae_events(store)
         yield target
     finally:
         ae_router.reset_ae_fixtures()
@@ -88,10 +86,11 @@ def client(dataops_data_dir: Path) -> TestClient:
     create_app = import_module("app.main").create_app
 
     app = create_app(db_path=dataops_data_dir / "test_dataops.db", demo_bundle_path=False)
+    _seed_ae_events(app.state.graph_store)
     return TestClient(app)
 
 
-def _seed_ae_events(store: SQLiteGraphStore) -> None:
+def _seed_ae_events(store: GraphStore) -> None:
     store.save_evolution_event(
         domain="dataops",
         event_type="promotion_approved",

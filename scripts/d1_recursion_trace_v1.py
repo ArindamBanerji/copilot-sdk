@@ -5,7 +5,7 @@ import importlib
 import importlib.util
 import json
 from pathlib import Path
-import sqlite3
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import sys
 from types import SimpleNamespace
 from typing import Any
@@ -39,11 +39,10 @@ def run() -> None:
     mu = np.array(info["all_category_mu"][category])
     inv = module.VLDInvestigator(mu, info["sigma"], names, tau=info["tau"], action_names=actions)
     provider = providers.S2PEvidenceProvider(data, invoice["invoice_id"])
-    conn = sqlite3.connect(":memory:")
-    store = module.KUtilityStore(SimpleNamespace(conn=conn), len(names))
+    graph = InMemoryGraphStore(domain="s2p")
+    store = module.KUtilityStore(graph, len(names))
     # Explicit planted near-boundary starting state; no invented prior verifications.
-    conn.execute("INSERT INTO k_utility VALUES (?, ?, ?, ?)", (category, 5, .62, 0))
-    conn.commit()
+    graph.save_k_utility("s2p", category, 5, .62, {"n_updates": 0})
     before = store.get_weights(category).copy()
 
     def episode(label: str, budget: int, weights: Any) -> Any:
@@ -159,7 +158,7 @@ def run() -> None:
                   f"ΔK: {fmt((after-before).round(10).tolist())}.",
                   "Δμ and Δσ: all zeros. Only the in-memory K table was written.",
                   f"Stored (dimension, weight, n_updates): "
-                  f"{fmt(conn.execute('SELECT dimension, weight, n_updates FROM k_utility ORDER BY dimension').fetchall())}."])
+                  f"{fmt([(r['k'], r['utility'], r['metadata']['n_updates']) for r in graph.get_k_utilities('s2p')])}."])
     append_trace("4. Subsequent similar invoice B with updated K (B=2)", next_trace, after)
     lines.extend(["", "## Arithmetic reconciliation and causal comparison", "",
                   "For amount_variance_ratio (dim 1), initial unweighted Q=.1998, rounded to .200. "
@@ -183,7 +182,7 @@ def run() -> None:
                       "before_action": actions[control.final_action], "after_action": actions[next_trace.final_action],
                       "delta_k": (after-before).tolist(), "mu_changed": False,
                       "clause": contract["clause"], "output": str(OUT)}))
-    conn.close()
+    graph.close()
 
 
 if __name__ == "__main__":

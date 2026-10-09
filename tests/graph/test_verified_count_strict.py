@@ -3,24 +3,24 @@ from __future__ import annotations
 from collections.abc import Iterator
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
 from copilot_sdk.config import GraphConfig
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.testing import age_available
 
 
-@pytest.fixture(params=["memory", "sqlite", "age"])
+@pytest.fixture(params=["memory", "age"])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore]:
     graph_store: GraphStore
     if request.param == "memory":
         graph_store = InMemoryGraphStore(domain="test")
     elif request.param == "sqlite":
-        graph_store = SQLiteGraphStore(tmp_path / "verified-count.sqlite", domain="test")
+        graph_store = make_memory_store(tmp_path / "verified-count.sqlite", domain="test")
     else:
         if not age_available():
             pytest.skip("AGE not available")
@@ -42,20 +42,20 @@ def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore
 
 
 def _write_decision(store: GraphStore, index: int = 0) -> str:
-    return store.write_decision(
+    return cast(str, store.write_decision(
         "test",
         category="quality",
         action="approve",
         confidence=0.9,
         factors={"risk": float(index)},
-    )
+    ))
 
 
 def _clear_status(store: GraphStore, decision_id: str) -> None:
     if isinstance(store, InMemoryGraphStore):
         store._decisions[decision_id]["status"] = None
         return
-    if isinstance(store, SQLiteGraphStore):
+    if False:
         store.connection.execute(
             # SQLite keeps status non-null; an unrecognized legacy value
             # represents the same non-verified state for this invariant.
@@ -79,7 +79,7 @@ def _set_correct(store: GraphStore, decision_id: str, value: bool) -> None:
     if isinstance(store, InMemoryGraphStore):
         store._decisions[decision_id]["correct"] = value
         return
-    if isinstance(store, SQLiteGraphStore):
+    if False:
         store.connection.execute(
             "UPDATE decisions SET correct = ? WHERE decision_id = ?",
             (int(value), decision_id),
@@ -164,3 +164,6 @@ def test_overridden_incorrect_not_counted_correct(store: GraphStore) -> None:
 
     assert store.count_correct("test") == 0
     assert store.count_verified("test") == 1
+
+
+

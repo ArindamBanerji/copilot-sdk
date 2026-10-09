@@ -1,19 +1,22 @@
 from __future__ import annotations
 
+from datetime import datetime
+from typing import cast
+
 import pytest
 
 from copilot_sdk.graph import InMemoryGraphStore
 
 
 def _write(store: InMemoryGraphStore, domain: str, index: int, category: str = "alpha") -> str:
-    return store.write_decision(
+    return cast(str, store.write_decision(
         domain,
         category,
         "approve",
         0.8,
         {"risk": float(index)},
         metadata={"decision_id": f"{domain}-{index}", "entity_id": f"entity-{index}", "created_at": float(index)},
-    )
+    ))
 
 
 def test_memory_write_decision_returns_id_and_stores_fields():
@@ -37,6 +40,36 @@ def test_memory_write_decision_returns_id_and_stores_fields():
     assert decision["confidence"] == 0.82
     assert decision["factors"] == {"amount": 0.2}
     assert decision["metadata"]["source"] == "unit"
+
+
+def test_age_timestamp_shapes_are_preserved():
+    store = InMemoryGraphStore(domain="mock")
+    decision_id = store.write_decision(
+        "mock", "alpha", "approve", 0.75, {"risk": 0.4},
+        metadata={"created_at": 10.0},
+    )
+    decision = store.get_decision(decision_id, "mock")
+    assert decision is not None
+    # AGE uses epoch numbers for native decision creation timestamps.
+    assert decision["created_at"] == 10.0
+
+    iso_timestamp = "2026-10-04T12:00:00Z"
+    store.write_evolution_event(
+        "event-1", "mock", "promoted", "rule", "variant",
+        metadata={"timestamp": iso_timestamp},
+    )
+    event = store.get_evolution_events("mock")[0]
+    assert event["timestamp"] == iso_timestamp
+    assert isinstance(event["timestamp"], str)
+    datetime.fromisoformat(event["timestamp"].replace("Z", "+00:00"))
+
+    store.save_centroids(
+        "mock", "alpha", [[0.1]], checkpoint_time=iso_timestamp,
+        decision_time_start=iso_timestamp, decision_time_end=iso_timestamp,
+    )
+    checkpoint = store.get_centroid_checkpoints("mock")[0]
+    for field in ("checkpoint_time", "decision_time_start", "decision_time_end"):
+        assert checkpoint[field] == iso_timestamp
 
 
 def test_memory_write_outcome_links_to_decision():
@@ -105,9 +138,9 @@ def test_memory_get_decisions_all_category_and_limit():
     _write(store, "mock", 2, category="beta")
     _write(store, "mock", 3, category="alpha")
 
-    assert [d["entity_id"] for d in store.get_decisions("mock")] == ["entity-1", "entity-2", "entity-3"]
-    assert [d["entity_id"] for d in store.get_decisions("mock", category="alpha")] == ["entity-1", "entity-3"]
-    assert [d["entity_id"] for d in store.get_decisions("mock", limit=2)] == ["entity-1", "entity-2"]
+    assert [d["entity_id"] for d in store.get_decisions("mock")] == ["entity-3", "entity-2", "entity-1"]
+    assert [d["entity_id"] for d in store.get_decisions("mock", category="alpha")] == ["entity-3", "entity-1"]
+    assert [d["entity_id"] for d in store.get_decisions("mock", limit=2)] == ["entity-3", "entity-2"]
 
 
 def test_memory_domain_isolation():
@@ -197,7 +230,7 @@ def test_memory_decision_time_filter():
 def test_memory_centroid_checkpoints_limit():
     store = InMemoryGraphStore()
     for index in range(4):
-        store.save_centroids("mock", "alpha", [[float(index)]], decision_id=f"decision-{index}")
+        store.save_centroids("mock", "alpha", [[float(index)]], decision_id=f"decision-{index}", created_at=float(index))
 
     checkpoints = store.get_centroid_checkpoints("mock", limit=2)
 
@@ -215,7 +248,7 @@ def test_memory_store_archive():
 
     assert store.archive_old_decisions("mock", keep_recent=2) == 2
 
-    assert [d["decision_id"] for d in store.get_all_decisions("mock")] == ids[2:]
+    assert [d["decision_id"] for d in store.get_all_decisions("mock")] == list(reversed(ids[2:]))
     assert store.count_archived("mock") == 2
     assert store.count_verified("mock") == 2
 

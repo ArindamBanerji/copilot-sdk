@@ -12,6 +12,7 @@ Each seed's scenario stream is rebuilt twice and canonical bytes compared.
 Tier: REAL_COMPONENT geometry + SIMULATED streams/degradation.
 """
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import hashlib
 import json
 import random
@@ -83,7 +84,7 @@ def make_stream(cop: str, geometry: R, seed: int, scenario: str,
     sigma = np.asarray(geometry["sigma"], dtype=np.float64)
     mus = {k: np.asarray(v, dtype=np.float64) for k, v in geometry["all_category_mu"].items()}
     rng = random.Random(seed)
-    store = c5.KUtilityStore(c5.SQLiteDecisionStore(), d=len(names))
+    store = c5.KUtilityStore(c5.InMemoryGraphStore(), d=len(names))
     pre = c5._category_distribution_for_break(categories, True)
     post = c5._category_distribution_for_break(categories, False)
     direction = np.zeros(len(names), dtype=np.float64)
@@ -116,7 +117,7 @@ def make_stream(cop: str, geometry: R, seed: int, scenario: str,
         records.append({"decision": decision, "category": category,
                         "is_correct": observed, "outcome": "confirmed" if observed else "rejected",
                         "true_correct": true_correct, "degradation": scenario if decision >= ONSET else "baseline"})
-    store.conn.close()
+    store.graph_store.close()
     return records
 
 

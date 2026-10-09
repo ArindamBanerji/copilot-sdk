@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy
 from copilot_sdk.backend.platform_router import create_platform_router
-from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -30,8 +30,8 @@ def _client() -> TestClient:
     return TestClient(app)
 
 
-def _graph_store(db_path: str | Path) -> SQLiteGraphStore:
-    store = SQLiteGraphStore(str(db_path), domain="trading")
+def _graph_store(db_path: str | Path) -> InMemoryGraphStore:
+    store = InMemoryGraphStore(domain='trading')
     setattr(store, "penalty_ratio", 2.0)
     return store
 

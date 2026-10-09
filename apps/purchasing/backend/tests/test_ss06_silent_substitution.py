@@ -136,11 +136,21 @@ def test_seed_reports_partial_failure(tmp_path, monkeypatch, capsys) -> None:
     class Scorer:
         calls = 0
 
+        def __init__(self):
+            from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
+
+            self._preset = PurchasingPreset()
+
         def score(self, factors, category, metadata):
             self.calls += 1
             if self.calls == 2:
                 raise RuntimeError("seed failed")
             return {"decision_id": "PUR-SEED-1", "action": "order_more"}
+
+        def _learn_preseed(self, decision_id, actual_action, **kwargs):
+            assert decision_id == "PUR-SEED-1"
+            assert actual_action == "order_more"
+            return {"status": "complete"}
 
     class Store:
         def write_outcome(self, *args, **kwargs):

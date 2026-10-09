@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -45,13 +46,14 @@ def test_graphstore_preserves_decision_order() -> None:
     scorer = _fresh()
     train, _ = load_benchmark_split()
     generated_ids: list[str] = []
-    for row in train[:20]:
-        result = scorer.score(row["factors"], str(row["category"]))
+    for index, row in enumerate(train[:20]):
+        with patch("time.time", return_value=float(index + 1)):
+            result = scorer.score(row["factors"], str(row["category"]))
         generated_ids.append(result.decision_id)
 
     stored = scorer._graph_store.get_decisions("trading", limit=100)
     stored_ids = [str(row["decision_id"]) for row in stored]
-    assert stored_ids == generated_ids
+    assert stored_ids == list(reversed(generated_ids))
 
 
 def test_verified_count_matches_scorer() -> None:

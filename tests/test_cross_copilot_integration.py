@@ -18,6 +18,7 @@ S2P_BACKEND = WORKSPACE / "s2p-copilot" / "backend"
 
 from copilot_sdk.outbox import OutboxEventType, OutboxStore
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.testing.fixtures import requires_age
 
 _s2p_path = WORKSPACE / "s2p-copilot" / "backend" / "app" / "services" / "cross_copilot_signals.py"
 _spec = importlib.util.spec_from_file_location("s2p_cross_copilot_signals", _s2p_path)
@@ -67,6 +68,7 @@ class Card:
     trend: str = "declining"
 
 
+@requires_age
 def test_purchasing_reliability_drop_signal_can_be_consumed(tmp_path):
     store = OutboxStore(tmp_path / "outbox.db")
     _publisher_class()(store).check_and_publish(Card())
@@ -77,6 +79,7 @@ def test_purchasing_reliability_drop_signal_can_be_consumed(tmp_path):
     assert rows[0]["supplier_name"] == "Sysco"
 
 
+@requires_age
 def test_signal_maps_to_s2p_supplier_risk_fields(tmp_path):
     store = OutboxStore(tmp_path / "outbox.db")
     _publisher_class()(store).check_and_publish(Card(reliability_pct=74.0))
@@ -182,12 +185,14 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
     assert entries[1].entry_hash == entries[1].compute_hash()
 
 
+@requires_age
 def test_no_signal_leaves_s2p_context_unchanged(tmp_path):
     store = OutboxStore(tmp_path / "outbox.db")
 
     assert _active_supplier_signals(store, "Sysco") == []
 
 
+@requires_age
 def test_expired_signal_is_not_consumed(tmp_path):
     store = OutboxStore(tmp_path / "outbox.db")
     store.append(
@@ -210,6 +215,7 @@ def test_expired_signal_is_not_consumed(tmp_path):
     assert _active_supplier_signals(store, "Sysco") == []
 
 
+@requires_age
 def test_signal_provenance_preserved_through_publish_consume(tmp_path):
     store = OutboxStore(tmp_path / "outbox.db")
     _publisher_class()(store).check_and_publish(Card())

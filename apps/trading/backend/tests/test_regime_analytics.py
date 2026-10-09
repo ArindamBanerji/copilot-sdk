@@ -11,7 +11,7 @@ from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
 def _decision(regime: str, *, verified: bool = True, correct: bool = True) -> dict:
-    payload = {
+    payload: dict = {
         "decision_id": f"{regime}-{verified}-{correct}",
         "regime_context": {
             "regime": regime,
@@ -108,7 +108,7 @@ def test_regime_analytics_endpoint_returns_200(tmp_path: Path) -> None:
 
 
 def test_regime_analytics_zero_writes_to_scorer(tmp_path: Path) -> None:
-    scorer = CompoundingScorer.from_preset("trading", db_path=tmp_path / "zero_writes.db", profile="test")
+    scorer = CompoundingScorer.from_preset("trading",  profile="test")
     before = np.asarray(scorer.gae_scorer.centroids).copy()
 
     RegimeAnalytics().compute([_decision("trending") for _ in range(30)])

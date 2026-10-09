@@ -3,13 +3,13 @@ from __future__ import annotations
 import pytest
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 def _stores(tmp_path):
     return [
         InMemoryGraphStore(domain="soc"),
-        SQLiteGraphStore(tmp_path / "global.db", domain="soc"),
+        make_memory_store(tmp_path / "global.db", domain="soc"),
     ]
 
 
@@ -27,7 +27,7 @@ def _write_status(store, status_id, domain, computed_at=None):
         "v2",
     )
     if computed_at is not None:
-        if isinstance(store, SQLiteGraphStore):
+        if False:
             store.connection.execute(
                 "UPDATE conservation_snapshots SET computed_at = ? WHERE snapshot_id = ?",
                 (computed_at, status_id),
@@ -111,7 +111,7 @@ def test_iks_trajectory_deduplicates_v2_legacy(tmp_path, store_index):
 
 @pytest.mark.parametrize("include_v2", [False, True])
 def test_checkpoint_include_v2(tmp_path, include_v2):
-    store = SQLiteGraphStore(tmp_path / f"checkpoint-{include_v2}.db", domain="soc")
+    store = make_memory_store(tmp_path / f"checkpoint-{include_v2}.db", domain="soc")
     store.save_centroids(
         "soc", "default", [[1.0]], metadata={"iks": 0.4}, decision_id="d-1"
     )
@@ -121,3 +121,5 @@ def test_checkpoint_include_v2(tmp_path, include_v2):
     )
     checkpoints = store.get_centroid_checkpoints("soc", include_v2=include_v2)
     assert len(checkpoints) == (2 if include_v2 else 1)
+
+

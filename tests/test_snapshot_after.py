@@ -4,7 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 def _seed(store, domain: str = "test") -> tuple[str, str]:
@@ -28,9 +29,9 @@ def _seed(store, domain: str = "test") -> tuple[str, str]:
     return decision_id, checkpoint_id
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request, tmp_path):
-    value = InMemoryGraphStore(domain="test") if request.param == "memory" else SQLiteGraphStore(Path(tmp_path) / "jm.db", domain="test")
+    value = InMemoryGraphStore(domain="test") if request.param == "memory" else make_memory_store(Path(tmp_path) / "jm.db", domain="test")
     yield value
     value.close()
 
@@ -72,7 +73,7 @@ def test_lineage_domain_scoped(store):
 
 
 def test_lineage_cross_adapter_parity(tmp_path):
-    stores = [InMemoryGraphStore(domain="test"), SQLiteGraphStore(Path(tmp_path) / "parity.db", domain="test")]
+    stores = [InMemoryGraphStore(domain="test"), make_memory_store(Path(tmp_path) / "parity.db", domain="test")]
     try:
         results = []
         for value in stores:
@@ -97,3 +98,5 @@ def test_backfill_idempotent(age_graph_store):
     assert first["created"] == 0
     assert second["created"] == 0
     assert store.get_checkpoint_lineage("trading", "backfill-checkpoint") is not None
+
+

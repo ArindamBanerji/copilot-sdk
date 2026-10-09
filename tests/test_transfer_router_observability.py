@@ -57,12 +57,18 @@ def test_source_fallback_cannot_execute_as_verified_green() -> None:
 
     response = TestClient(app).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json={
+            "source_domain": "dataops",
+            "target_domain": "trading",
+            "source_artifact_ids": ["artifact:dataops:offline"],
+            "dry_run": False,
+        },
     )
 
-    assert response.status_code == 200
-    assert response.json()["executed"] is False
-    assert "fallback" in response.json()["reason"]
+    assert response.status_code == 422
+    assert response.json()["detail"] == (
+        "No governed transfer patterns available. Register source artifacts first."
+    )
 
 
 def test_source_store_failure_is_logged(caplog) -> None:

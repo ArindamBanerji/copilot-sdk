@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from collections import deque
 import json
 import sys
 from pathlib import Path
 import random
-import sqlite3
 from typing import Any
 
 import numpy as np
@@ -30,9 +30,6 @@ THETA_CONSTANT = 23.53
 ROLLING_WINDOW = 50
 
 
-class Store:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def dataops_geometry() -> dict[str, Any]:
@@ -118,8 +115,8 @@ def run_seed(seed: int) -> dict[str, Any]:
     geom = dataops_geometry()
     rng = random.Random(seed)
     stores = {
-        "without_conservation": KUtilityStore(Store(), d=len(geom["factors"])),
-        "with_conservation": KUtilityStore(Store(), d=len(geom["factors"])),
+        "without_conservation": KUtilityStore(InMemoryGraphStore(), d=len(geom["factors"])),
+        "with_conservation": KUtilityStore(InMemoryGraphStore(), d=len(geom["factors"])),
     }
     conservation = ConservationState(total_categories=len(geom["categories"]))
     checkpoints: dict[str, list[dict[str, Any]]] = {"without_conservation": [], "with_conservation": []}

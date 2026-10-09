@@ -6,7 +6,6 @@ import json
 import asyncio
 import sys
 import os
-import sqlite3
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
@@ -96,12 +95,11 @@ from copilot_sdk.backend.counterfactual_router import create_counterfactual_rout
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
 from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
-from copilot_sdk.backend.signal_store import GraphSignalStore  # noqa: E402
 from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
 from copilot_sdk.evolution import ScorerBackedProvider  # noqa: E402
-from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph, resolve_profile  # noqa: E402
+from copilot_sdk.config import GraphConfig, resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
-from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
+from copilot_sdk.graph.factory import assert_production_graph, create_graph_store  # noqa: E402
 from copilot_sdk.graph.memory_store import InMemoryGraphStore  # noqa: E402
 from copilot_sdk.scoring.fingerprint import compute_fingerprint  # noqa: E402
 from fastapi.encoders import jsonable_encoder  # noqa: E402
@@ -117,7 +115,6 @@ from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa
 from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 from copilot_sdk.state import cached_static, create_invalidation_header_middleware, create_tab_state_router  # noqa: E402
-from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 from .investigation_config import INVESTIGATION_CONFIG, create_evidence_provider  # noqa: E402
 from .vld_preseed import seed_vld_trading_showcase  # noqa: E402
 
@@ -138,17 +135,8 @@ SEED_FIXTURE_PATH = DATA_DIR / "trading_seed_v2.json"
 FACTOR_NAMES = tuple(TradingPreset().shape.factor_names)
 
 
-class _VLDKDecisionConnection:
-    def __init__(self, path: Path):
-        self.conn = sqlite3.connect(path, check_same_thread=False)
-
-
-def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
-    return KUtilityStore(_VLDKDecisionConnection(path), dimensions)
-
-
-def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
-    return {"k_store": _create_vld_k_store(path, dimensions)}
+def _vld_k_router_kwargs(graph_store: GraphStore, dimensions: int) -> dict[str, KUtilityStore]:
+    return {"k_store": KUtilityStore(graph_store, dimensions, domain=DOMAIN)}
 
 
 def _vld_classifier_router_kwargs() -> dict[str, SituationClassifier]:
@@ -165,12 +153,6 @@ async def _materializer_refresh_loop(app: FastAPI) -> None:
                 await asyncio.to_thread(refresh)
             except Exception:
                 logger.exception("Trading materializer background refresh failed")
-
-
-def _invalidate_materializer(app: FastAPI) -> None:
-    materializer = getattr(app.state, "materializer", None)
-    if materializer is not None:
-        materializer.invalidate()
 
 
 DEFAULT_CORS_ORIGINS = (
@@ -196,37 +178,11 @@ def _cors_origins() -> list[str]:
 
 
 def _graph_store(db_path: str | Path, *, profile: str | None = None):
-    # Active AGE configuration is owned by TRADING_ACTIVE_*; generic AGE
-    # settings remain deliberately ignored by the graph-status contract.
+    # db_path remains a local-sidecar/proxy compatibility argument, not graph identity.
+    # Configuration errors propagate; no backend substitution is permitted.
     profile = profile or _resolve_profile()
-    graph_config = None
-    try:
-        graph_config = GraphConfig.load(DOMAIN, profile=profile)
-        backend = graph_config.backend
-    except GraphConfigError:
-        if profile != "test":
-            raise
-        # A generic AGE value without complete AGE config is intentionally not
-        # an active Trading-store selection in isolated tests.
-        backend = "sqlite"
-    if graph_config is not None:
-        require_shared_graph(
-            backend=graph_config.backend,
-            graph=graph_config.graph,
-            domain=DOMAIN,
-            profile=profile,
-            test_mode=graph_config.active_test_mode,
-        )
-    store = create_graph_store(
-        backend=backend,
-        domain=DOMAIN,
-        db_path=str(db_path),
-        decision_id_prefix="TRD-",
-        dsn=graph_config.dsn if graph_config is not None else None,
-        graph_name=graph_config.graph if graph_config is not None else None,
-        test_mode=graph_config.active_test_mode if graph_config is not None else False,
-        profile=profile,
-    )
+    graph_config = GraphConfig.load(DOMAIN, profile=profile)
+    store = create_graph_store(config=graph_config, decision_id_prefix="TRD-")
     setattr(store, "penalty_ratio", TradingPreset().penalty_ratio)
     return store
 
@@ -318,33 +274,33 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
                 metadata=_seed_metadata(entry, sequence, factors),
             )
             decision_id = _result_value(result, "decision_id")
-            action = (
-                entry.get("action_taken")
-                or entry.get("actual_action")
-                or entry.get("recommended_action")
-                or entry.get("direction")
-                or _result_value(result, "action")
-            )
+            recommended_action = _result_value(result, "action")
             if not decision_id:
                 raise ValueError("score result missing decision_id")
             decisions_seeded += 1
-            if "is_correct" in entry and action:
-                graph_store.write_outcome(
+            if "is_correct" in entry and recommended_action:
+                action_names = tuple(scorer._preset.shape.action_names)
+                recommended = str(recommended_action)
+                if recommended not in action_names:
+                    raise ValueError(f"score returned unknown action: {recommended}")
+                is_correct = bool(entry["is_correct"])
+                actual_action = recommended if is_correct else action_names[
+                    (action_names.index(recommended) + 1) % len(action_names)
+                ]
+                learned = scorer._learn_preseed(
                     str(decision_id),
-                    actual_action=str(action),
-                    is_correct=bool(entry["is_correct"]),
-                    domain=DOMAIN,
-                    metadata={
-                        "actual_index": 0,
-                        "context": {
-                            "source": "auto_seed",
-                            "seed_domain": DOMAIN,
-                            "seed_index": sequence,
-                            "seed_id": entry.get("trade_id") or entry.get("ticker") or str(sequence),
-                            "source_seed_index": sequence,
-                        },
+                    actual_action,
+                    outcome="confirmed" if is_correct else "overridden",
+                    context={
+                        "source": "auto_seed",
+                        "seed_domain": DOMAIN,
+                        "seed_index": sequence,
+                        "seed_id": entry.get("trade_id") or entry.get("ticker") or str(sequence),
+                        "source_seed_index": sequence,
                     },
                 )
+                if isinstance(learned, dict) and learned.get("status") == "paused":
+                    raise RuntimeError(str(learned.get("reason") or "preseed learn was paused"))
                 outcomes_seeded += 1
         except Exception as exc:
             print(f"[{DOMAIN}] auto-seed skipped entry {sequence}: {exc}")
@@ -398,14 +354,6 @@ def create_app(
     )
 
     scoring_db = _resolve_scoring_db(db_path)
-    # Stable instrument/market context only; decisions and learning authority
-    # remain in the graph store and are never cached.
-    entity_cache = EntityCache(
-        max_size=200,
-        ttl_seconds=300,
-        source="trading.entity_context_cache",
-    )
-    entity_context_cache = EntityContextCacheAdapter(entity_cache, enabled=True)
     active_graph_config = initialize_trading_active_graph_config()
     active_graph_store = create_trading_active_graph_store(
         active_graph_config,
@@ -518,7 +466,7 @@ def create_app(
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
-            elif active_graph_store is not None:
+            elif active_graph_config.requested_backend == "age":
                 print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
             else:
                 if isinstance(_bundle_path, Path):
@@ -542,14 +490,12 @@ def create_app(
     app.state.trading_active_graph_config = active_graph_config
     app.state.trading_selected_graph_store = scorer_proxy.graph_store
     app.state.graph_store = scorer_proxy.graph_store
+    assert_production_graph(app.state.graph_store, resolved_profile)
     app.state.domain = DOMAIN
     app.state.trading_regime_monitor = regime_monitor
     app.state.trading_regime_conditioning = regime_scorer_proxy
     app.state.trading_tab_state_cache = tab_state_cache
     app.state.l5_startup_status = l5_startup_status
-    app.state.entity_cache = entity_cache
-    app.state.entity_context_cache = entity_context_cache
-
     app.state.materializer = create_trading_materializer(
         scorer_proxy, trading_store_factory, regime_monitor,
     )
@@ -562,8 +508,6 @@ def create_app(
             dk_welford_tracker=dk_welford_tracker,
             outcome_recorder=record_trading_outcome,
             variant_selector=select_trading_variant,
-            entity_context_cache=entity_context_cache,
-            query_cache_invalidator=lambda: _invalidate_materializer(app),
         ),
         prefix="/api",
     )
@@ -612,7 +556,7 @@ def create_app(
         prefix="/api",
     )
     app.include_router(
-        create_cross_signal_router(GraphSignalStore(app.state.graph_store, DOMAIN)), prefix="/api"
+        create_cross_signal_router(app.state.graph_store), prefix="/api"
     )
     app.include_router(create_concepts_router())
     app.include_router(create_entrant_comparison_router(lambda: scorer_proxy))
@@ -623,7 +567,7 @@ def create_app(
                 trading_store_factory(),
                 decision_id,
             ),
-            **_vld_k_router_kwargs(DATA_DIR / "k_utility.db", len(FACTOR_NAMES)),
+            **_vld_k_router_kwargs(scorer_proxy.graph_store, len(FACTOR_NAMES)),
             **_vld_classifier_router_kwargs(),
             factor_names=INVESTIGATION_CONFIG["factor_names"],
             default_budget=2,
@@ -770,11 +714,10 @@ def create_app(
                         "scoring": "copilot_sdk.scoring.CompoundingScorer",
                         "gae": "gae.profile_scorer.ProfileScorer",
                     })
-        cache_stats = entity_cache.stats()
         payload.update(
-            cache_hits=cache_stats.hits,
-            cache_misses=cache_stats.misses,
-            cache_size=cache_stats.size,
+            cache_hits=0,
+            cache_misses=0,
+            cache_size=0,
         )
         return JSONResponse(payload, status_code=health_status_code(payload))
 

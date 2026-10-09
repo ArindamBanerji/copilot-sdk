@@ -18,6 +18,39 @@ from copilot_sdk.transfer.category_mappings import (
     list_available_transfers,
 )
 
+SOURCE_ARTIFACT_ID = "artifact:dataops:category-mapping"
+
+
+def _green(store: InMemoryGraphStore, domain: str) -> None:
+    store.update_conservation_state(
+        domain=domain,
+        status="GREEN",
+        alpha=0.9,
+        q=0.9,
+        V=20,
+        theta_min=0.1,
+        product=16.2,
+        categories_total=3,
+        categories_with_data=3,
+        baseline_product=0.6,
+        relative_threshold=0.1,
+        complacency_flag="false",
+    )
+
+
+def _transfer_payload(
+    *,
+    source: str = "dataops",
+    target: str = "trading",
+    dry_run: bool,
+) -> dict[str, object]:
+    return {
+        "source_domain": source,
+        "target_domain": target,
+        "source_artifact_ids": [SOURCE_ARTIFACT_ID],
+        "dry_run": dry_run,
+    }
+
 
 def test_get_mapping_soc_dataops_returns_mapping_dict() -> None:
     mapping = get_mapping("soc", "dataops")
@@ -80,13 +113,28 @@ def test_empty_mapping_rejected() -> None:
 
 
 def _trading_scorer(tmp_path) -> CompoundingScorer:
+    store = InMemoryGraphStore(domain="trading")
     scorer = CompoundingScorer.from_preset(
         "trading",
-        db_path=str(tmp_path / "trading.db"),
         profile="test",
-        graph_store=InMemoryGraphStore(domain="trading"),
+        graph_store=store,
     )
-    scorer.source_conservation_states = {"dataops": "GREEN"}
+    _green(store, "dataops")
+    _green(store, "trading")
+    store.save_governance("dataops", SOURCE_ARTIFACT_ID, {"kind": "judgment_artifact"})
+    SharedPatternRegistry(store, "dataops").register(
+        TransferPattern(
+            pattern_id="dataops-to-trading-governed",
+            source_copilot="dataops",
+            pattern_type="centroid_delta",
+            category="schema_change",
+            action="strong_execution",
+            win_rate=0.8,
+            centroid_delta=[0.02 for _ in TradingPreset().shape.factor_names],
+            confidence=0.9,
+            metadata={"source_artifact_id": SOURCE_ARTIFACT_ID},
+        )
+    )
     return scorer
 
 
@@ -97,7 +145,7 @@ def _client(scorer, registry: SharedPatternRegistry | None = None) -> TestClient
 
 
 def _source_registry() -> SharedPatternRegistry:
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
     registry.register(
         TransferPattern(
             pattern_id="dataops-to-trading-test",
@@ -119,7 +167,7 @@ def test_execute_dry_run_no_state_change(tmp_path) -> None:
 
     response = _client(scorer).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": True},
+        json=_transfer_payload(dry_run=True),
     )
 
     assert response.status_code == 200
@@ -130,18 +178,19 @@ def test_execute_dry_run_no_state_change(tmp_path) -> None:
 def test_execute_refuses_when_conservation_unknown(tmp_path) -> None:
     scorer = CompoundingScorer.from_preset(
         "trading",
-        db_path=str(tmp_path / "trading.db"),
         profile="test",
         graph_store=InMemoryGraphStore(domain="trading"),
     )
 
     response = _client(scorer).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json=_transfer_payload(dry_run=False),
     )
 
-    assert response.status_code == 503
-    assert "verified GREEN" in response.json()["detail"]
+    assert response.status_code == 422
+    assert response.json()["detail"] == (
+        "No governed transfer patterns available. Register source artifacts first."
+    )
 
 
 def test_execute_copies_centroids(tmp_path) -> None:
@@ -150,7 +199,7 @@ def test_execute_copies_centroids(tmp_path) -> None:
 
     response = _client(scorer).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json=_transfer_payload(dry_run=False),
     )
 
     assert response.status_code == 200
@@ -177,10 +226,11 @@ def test_execute_does_not_manufacture_green_conservation(tmp_path) -> None:
 
     response = _client(scorer).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json=_transfer_payload(dry_run=False),
     )
 
-    assert response.json()["conservation_reset"] is False
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Conservation threshold not met for trading"
     state = scorer.graph_store.get_conservation_state("trading")
     assert state is not None
     assert state["V"] == 8
@@ -189,16 +239,28 @@ def test_execute_does_not_manufacture_green_conservation(tmp_path) -> None:
 
 def test_execute_requires_source_green(tmp_path) -> None:
     scorer = _trading_scorer(tmp_path)
-    scorer.source_conservation_states = {"dataops": "AMBER"}
+    scorer.graph_store.update_conservation_state(
+        domain="dataops",
+        status="AMBER",
+        alpha=0.5,
+        q=0.5,
+        V=8,
+        theta_min=0.1,
+        product=2.0,
+        categories_total=3,
+        categories_with_data=2,
+        baseline_product=0.4,
+        relative_threshold=0.5,
+        complacency_flag="true",
+    )
 
     response = _client(scorer).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json=_transfer_payload(dry_run=False),
     )
 
-    assert response.status_code == 200
-    assert response.json()["executed"] is False
-    assert "GREEN" in response.json()["reason"]
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Conservation threshold not met for dataops"
 
 
 def test_execute_dk_not_transferred(tmp_path) -> None:
@@ -207,7 +269,7 @@ def test_execute_dk_not_transferred(tmp_path) -> None:
 
     _client(scorer).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json=_transfer_payload(dry_run=False),
     )
 
     assert scorer.get_dk_weights() == before
@@ -216,11 +278,16 @@ def test_execute_dk_not_transferred(tmp_path) -> None:
 def test_execute_log_in_target_store(tmp_path) -> None:
     scorer = _trading_scorer(tmp_path)
     source_store = InMemoryGraphStore(domain="dataops")
+    source_store.save_governance(
+        "dataops",
+        SOURCE_ARTIFACT_ID,
+        {"kind": "judgment_artifact"},
+    )
     scorer.source_stores = {"dataops": source_store}
 
     _client(scorer).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json=_transfer_payload(dry_run=False),
     )
 
     payload = _client(scorer).get("/api/transfer/status").json()
@@ -237,12 +304,12 @@ def test_execute_uses_registered_patterns_when_available(tmp_path) -> None:
 
     response = _client(scorer, _source_registry()).post(
         "/api/transfer/execute",
-        json={"source_domain": "dataops", "target_domain": "trading", "dry_run": False},
+        json=_transfer_payload(dry_run=False),
     )
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["provenance"] == "transfer"
+    assert payload["provenance"] == "governed"
     assert payload["patterns_applied"] > 0
 
 
@@ -251,14 +318,18 @@ def test_full_flow_discover_dryrun_execute_validate(tmp_path) -> None:
     client = _client(scorer)
 
     opportunities = client.get("/api/transfer/opportunities").json()
-    pair = next(item for item in opportunities["available_transfers"] if item["target"] == "trading")
+    pair = next(
+        item
+        for item in opportunities["available_transfers"]
+        if item["source"] == "dataops" and item["target"] == "trading"
+    )
     dry_run = client.post(
         "/api/transfer/execute",
-        json={"source_domain": pair["source"], "target_domain": pair["target"], "dry_run": True},
+        json=_transfer_payload(source=pair["source"], target=pair["target"], dry_run=True),
     ).json()
     applied = client.post(
         "/api/transfer/execute",
-        json={"source_domain": pair["source"], "target_domain": pair["target"], "dry_run": False},
+        json=_transfer_payload(source=pair["source"], target=pair["target"], dry_run=False),
     ).json()
     status = client.get("/api/transfer/status").json()
 

@@ -27,6 +27,7 @@ category_accuracy not measured (category supplied); routing_quality and
 action_accuracy retained with names; inherited legacy fields explicitly mapped.
 """
 from __future__ import annotations
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import hashlib
 import json
 from pathlib import Path
@@ -79,8 +80,8 @@ def k_curve(cop: str,info: R,seed: int) -> R:
     sigma=np.array(info["sigma"])
     mu={c:np.array(info["all_category_mu"][c]) for c in cats}
     invs={c:k.VLDInvestigator(mu[c],sigma,factors,tau=info["tau"]) for c in cats}
-    lm=k.KUtilityStore(k.SQLiteDecisionStore(),len(factors))
-    fixed=k.KUtilityStore(k.SQLiteDecisionStore(),len(factors))
+    lm=k.KUtilityStore(k.InMemoryGraphStore(),len(factors))
+    fixed=k.KUtilityStore(k.InMemoryGraphStore(),len(factors))
     # Reuse EXACT evaluator code, with a private globals dictionary for seed.
     namespace=dict(k.evaluate.__globals__);namespace["SEED"]=seed
     evaluate=types.FunctionType(k.evaluate.__code__,namespace)
@@ -103,7 +104,7 @@ def k_curve(cop: str,info: R,seed: int) -> R:
         return {"seed":seed,"tier":TIER,"training_decisions":500,"checkpoints":checkpoints,
                 "evaluation_cases_per_checkpoint":50,"category_accuracy":None}
     finally:
-        lm.conn.close();fixed.conn.close()
+        lm.graph_store.close();fixed.graph_store.close()
 
 
 def budget(cop: str,info: R,seed: int) -> R:

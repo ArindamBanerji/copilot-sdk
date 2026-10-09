@@ -17,8 +17,8 @@ from .store import FrozenTwinStore
 class FrozenTwin:
     """Run an immutable day-0 scorer beside a learning live scorer."""
 
-    def __init__(self, store: FrozenTwinStore | None = None) -> None:
-        self.store = store or FrozenTwinStore()
+    def __init__(self, store: FrozenTwinStore) -> None:
+        self.store = store
         self.graph_store = InMemoryGraphStore(domain="frozen_twin")
         self._snapshot: FrozenSnapshot | None = None
         self._frozen_scorer: Any | None = None
@@ -56,7 +56,7 @@ class FrozenTwin:
         if self._snapshot is not None:
             return True
         if self._copilot is not None:
-            return self.store.exists(self._copilot)
+            return bool(self.store.exists(self._copilot))
         return False
 
     def get_snapshot(self) -> FrozenSnapshot:

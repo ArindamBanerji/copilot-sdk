@@ -6,6 +6,7 @@ requested read quota is consumed. No production file or global is patched.
 """
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import argparse
 import csv
 from dataclasses import replace
@@ -25,7 +26,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import numpy as np
 
 from copilot_sdk.scoring.investigation import KUtilityStore, VLDInvestigator
-from k_learning_curve_experiment import SQLiteDecisionStore, geometry_hash, scenario
+from k_learning_curve_experiment import InMemoryGraphStore, geometry_hash, scenario
 
 OUT = ROOT / "experiments/vld/budget_accuracy_frontier.json"
 CSV = OUT.with_suffix(".csv")
@@ -206,7 +207,7 @@ def metrics(rows):
 
 
 def run_arm(info, invs, train, evaluation, policy, budget, seed):
-    memory = SQLiteDecisionStore()
+    memory = InMemoryGraphStore()
     store = KUtilityStore(memory, d=len(info["factor_names"]))
     train_rows = []
     checkpoints = []
@@ -221,8 +222,7 @@ def run_arm(info, invs, train, evaluation, policy, budget, seed):
                                     "k_by_category": k_snapshot(store, info["category_names"])})
         frozen = k_snapshot(store, info["category_names"])
         assert all(.1 <= k <= 3.0 for values in frozen.values() for k in values)
-        before_sql = list(store.conn.execute(
-            "SELECT category,dimension,weight,n_updates FROM k_utility ORDER BY category,dimension"))
+        before_sql = [(r["episode_id"], r["k"], r["utility"], r["metadata"].get("n_updates", 0)) for r in store.persistence.get_k_utilities(store.domain, limit=2**31-1)]
         eval_rows = []
         examples = []
         for case in evaluation:
@@ -233,8 +233,7 @@ def run_arm(info, invs, train, evaluation, policy, budget, seed):
                 examples.append({"case_id": case["id"],
                                  "vectors_after_reads": [s.v_after for s in trace.steps],
                                  "flips": [s.flipped for s in trace.steps]})
-        assert before_sql == list(store.conn.execute(
-            "SELECT category,dimension,weight,n_updates FROM k_utility ORDER BY category,dimension"))
+        assert before_sql == [(r["episode_id"], r["k"], r["utility"], r["metadata"].get("n_updates", 0)) for r in store.persistence.get_k_utilities(store.domain, limit=2**31-1)]
         assert frozen == k_snapshot(store, info["category_names"])
         return {"seed": seed, "metrics": metrics(eval_rows),
                 "training_metrics": metrics(train_rows), "k_by_category": frozen,
@@ -245,7 +244,7 @@ def run_arm(info, invs, train, evaluation, policy, budget, seed):
                 "evaluation_rows": eval_rows, "trace_examples": examples,
                 "evaluation_frozen": True}
     finally:
-        memory.conn.close()
+        memory.close()
 
 
 def summarize(runs):

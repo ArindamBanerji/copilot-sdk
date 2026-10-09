@@ -10,16 +10,33 @@ from typing import Any, Mapping, cast
 
 from copilot_sdk.config import GraphConfig, GraphConfigError
 from copilot_sdk.config.graph_config import resolve_profile
-from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.protocol import GraphStore, ProductionReadyStore, ProtocolV2GraphStore
+from copilot_sdk.graph.legacy_signal_filter import LegacySignalFilteringGraphStore
 from copilot_sdk.graph.tenant_store import TenantScopedGraphStore
 
 logger = logging.getLogger(__name__)
 
-_VALID_BACKENDS = {"sqlite", "memory", "age", "dual_write"}
+_VALID_BACKENDS = {"memory", "age"}
 
 
-def _tenant_store(store: GraphStore, env: Mapping[str, str]) -> GraphStore:
+def assert_production_graph(store: GraphStore, profile: str | None) -> None:
+    """Require production stores to expose the approved governed-memory contract."""
+    if resolve_profile(profile) != "production":
+        return
+    missing: list[str] = []
+    if not isinstance(store, ProductionReadyStore):
+        missing.append("ProductionReadyStore")
+    if not isinstance(store, ProtocolV2GraphStore):
+        missing.append("ProtocolV2GraphStore")
+    if missing:
+        raise RuntimeError(
+            "production graph store is missing required protocol capabilities: "
+            + ", ".join(missing)
+        )
+
+
+def _tenant_store(store: GraphStore, env: Mapping[str, str], domain: str) -> GraphStore:
+    store = cast(GraphStore, LegacySignalFilteringGraphStore(store, domain=domain))
     enabled = str(env.get("TENANT_ISOLATION_ENABLED", "false")).strip().lower() == "true"
     return TenantScopedGraphStore(store) if enabled else store
 
@@ -39,24 +56,10 @@ def _normalize_backend(value: str | None) -> str:
         )
     backend = str(value).strip().lower()
     if backend not in _VALID_BACKENDS:
-        raise ValueError(
+        raise GraphConfigError(
             f"invalid graph backend {value!r}; expected one of {sorted(_VALID_BACKENDS)}"
         )
     return backend
-
-
-def _resolve_sqlite_path(
-    *,
-    db_path: str | Path | None,
-    domain: str,
-    env: Mapping[str, str],
-) -> str | Path:
-    if db_path is not None:
-        return db_path
-    ci_data_dir = _env_value(env, "CI_DATA_DIR")
-    if ci_data_dir:
-        return Path(ci_data_dir) / f"{domain}.db"
-    return ":memory:"
 
 
 def _validate_graph_domain(env: Mapping[str, str], domain: str) -> None:
@@ -126,8 +129,9 @@ def create_graph_store(
     """Create a GraphStore.
 
     Every path uses GraphConfig, including explicit legacy arguments. A supplied
-    config is immutable: conflicting overrides are rejected. Local/dual-write
-    stores require an explicit test/offline profile; test_mode is not a profile.
+    config is immutable: conflicting overrides are rejected. Memory stores
+    require an explicit test/offline profile; test_mode is not a profile.
+    db_path is retained for existing callers and does not configure persistence.
     """
 
     env_map: Mapping[str, str] = os.environ if env is None else env
@@ -158,7 +162,7 @@ def create_graph_store(
             raise GraphConfigError("test_mode conflicts with supplied GraphConfig")
         config_driven = True
     config.validate()
-    # Probe before constructing any stateful adapter or SQLite outbox.
+    # Probe before constructing any stateful adapter.
     config.require_shared_graph()
     selected_backend = config.backend
     selected_domain = config.domain
@@ -169,94 +173,18 @@ def create_graph_store(
     _validate_graph_domain(env_map, selected_domain)
 
     if selected_backend == "memory":
+        if db_path is not None:
+            import warnings
+            warnings.warn(
+                "db_path has no effect with memory backend",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
-        return _tenant_store(InMemoryGraphStore(domain=selected_domain), env_map)
-
-    if selected_backend == "sqlite":
-        sqlite_path = _resolve_sqlite_path(
-            db_path=db_path,
-            domain=selected_domain,
-            env=env_map,
-        )
-        logger.info(
-            "creating SQLite GraphStore for domain=%s path=%s",
-            selected_domain,
-            sqlite_path,
-        )
-        return _tenant_store(cast(
-            GraphStore,
-            SQLiteGraphStore(
-                sqlite_path,
-                domain=selected_domain,
-                decision_id_prefix=decision_id_prefix,
-            ),
-        ), env_map)
-
-    if selected_backend == "dual_write":
-        sqlite_path = _resolve_sqlite_path(
-            db_path=db_path,
-            domain=selected_domain,
-            env=env_map,
-        )
-        primary = SQLiteGraphStore(
-            sqlite_path,
-            domain=selected_domain,
-            decision_id_prefix=decision_id_prefix,
-        )
-        selected_dsn = config.dsn
-        if not selected_dsn or not str(selected_dsn).strip():
-            primary.close()
-            raise GraphConfigError(
-                "dual_write backend requires an AGE DSN; set GRAPH_DSN or "
-                f"{selected_domain.upper()}_ACTIVE_AGE_DSN"
-            )
-        selected_graph = config.graph
-        dual_write_authorization = (
-            shared_graph_authorization
-            if shared_graph_authorization is not None
-            else _env_value(env_map, "SHARED_GRAPH_AUTHORIZED")
-        )
-        if str(selected_graph or "").strip() == "soc_graph":
-            required_pair = f"{selected_domain}:soc_graph"
-            authorized_pairs = {
-                pair.strip()
-                for pair in str(dual_write_authorization or "").split(",")
-                if pair.strip()
-            }
-            if required_pair not in authorized_pairs:
-                primary.close()
-                raise ValueError(
-                    f"soc_graph requires SHARED_GRAPH_AUTHORIZED={required_pair}"
-                )
-        selected_graph = _validate_age_graph_name(
-            selected_graph,
-            test_mode=test_mode,
-            read_only_soc_projection=read_only_soc_projection,
-            domain=selected_domain,
-            shared_graph_authorization=dual_write_authorization,
-        )
-        from copilot_sdk.graph.dual_write_store import DualWriteStore
-
-        adapter_cls = _load_age_adapter()
-        secondary_adapter = adapter_cls(
-            dsn=str(selected_dsn), graph_name=selected_graph
-        )
-        setattr(secondary_adapter, "domain", selected_domain)
-        secondary = cast(GraphStore, secondary_adapter)
-        logger.info(
-            "creating dual-write GraphStore for domain=%s path=%s graph_name=%s",
-            selected_domain,
-            sqlite_path,
-            selected_graph,
-        )
-        outbox_path = Path(sqlite_path).parent / f"{selected_domain}_dual_write_outbox.db"
-        return _tenant_store(cast(
-            GraphStore,
-            DualWriteStore(
-                cast(GraphStore, primary), secondary, outbox_path=str(outbox_path)
-            ),
-        ), env_map)
+        return _tenant_store(InMemoryGraphStore(
+            domain=selected_domain, decision_id_prefix=decision_id_prefix,
+        ), env_map, selected_domain)
 
     if not selected_domain.strip():
         raise ValueError("AGE graph backend requires explicit non-blank domain")
@@ -284,7 +212,7 @@ def create_graph_store(
     adapter = adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph)
     setattr(adapter, "domain", selected_domain)
     setattr(adapter, "graph_config", config)
-    store = _tenant_store(cast(GraphStore, adapter), env_map)
+    store = _tenant_store(cast(GraphStore, adapter), env_map, selected_domain)
     if config.profile == "production":
         from copilot_sdk.graph.production import validate_production_store
 

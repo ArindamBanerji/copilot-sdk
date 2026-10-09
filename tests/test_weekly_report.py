@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import cast
 from typing import Any
 
 import pytest
@@ -35,7 +36,6 @@ def store() -> InMemoryGraphStore:
 def scorer(tmp_path, store: InMemoryGraphStore) -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         DOMAIN,
-        db_path=str(tmp_path / "weekly.db"),
         profile="test",
         graph_store=store,
         enable_rl=False,
@@ -102,7 +102,7 @@ def _write_decision(
             },
             domain=DOMAIN,
         )
-    return stored_id
+    return cast(str, stored_id)
 
 
 def _generator(

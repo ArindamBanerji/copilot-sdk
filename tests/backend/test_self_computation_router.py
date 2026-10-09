@@ -41,8 +41,9 @@ def _seed_store() -> tuple[InMemoryGraphStore, dict[str, str]]:
     )
     store.write_outcome(d1, actual_action="investigate", is_correct=True, domain="test")
     store.write_outcome(d2, actual_action="escalate", is_correct=False, domain="test")
-    store.save_centroids("test", "schema", {"schema": [0.1, 0.2]}, metadata={"iks": 10.0}, decision_id=d1)
-    store.save_centroids("test", "quality", {"quality": [0.3, 0.4]}, metadata={"iks": 12.0}, decision_id=d2)
+    # Chronology is explicit; wall-clock writes can share the same timestamp.
+    store.save_centroids("test", "schema", {"schema": [0.1, 0.2]}, metadata={"iks": 10.0}, decision_id=d1, created_at=1.0)
+    store.save_centroids("test", "quality", {"quality": [0.3, 0.4]}, metadata={"iks": 12.0}, decision_id=d2, created_at=2.0)
     return store, {"d1": d1, "d2": d2, "d3": d3}
 
 

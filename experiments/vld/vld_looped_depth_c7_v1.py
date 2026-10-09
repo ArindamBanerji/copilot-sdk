@@ -27,6 +27,7 @@ Labels are nearest-centroid geometry-derived, not LLM-derived.
 
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import hashlib
 import importlib.util
 import json
@@ -197,7 +198,7 @@ def _run_curve(
         category: np.asarray(info["all_category_mu"][category], dtype=np.float64)
         for category in categories
     }
-    memory = kcurve.SQLiteDecisionStore()
+    memory = kcurve.InMemoryGraphStore()
     store = KUtilityStore(memory, d=len(factors))
     checkpoints: list[dict[str, Any]] = []
     stable_steps = 0
@@ -256,7 +257,7 @@ def _run_curve(
             },
         }
     finally:
-        memory.conn.close()
+        memory.close()
 
 
 def _std(values: list[float]) -> float:

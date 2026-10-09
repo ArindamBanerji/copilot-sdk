@@ -15,6 +15,7 @@ Tier: REAL_COMPONENT geometry + GEOMETRY-DERIVED / SIMULATED.
 
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import json
 from pathlib import Path
 from typing import Any
@@ -46,7 +47,7 @@ def source_facts() -> dict[str, str]:
         "reward": "train_policy hard-codes informative_reads/total_reads - .035*b; no lambda or violation input",
         "constraint": "pause(history) is len(history) >= 20 and last-20 accuracy < .60; it is not the R1 per-domain floor",
         "poison": "run_arm counts synthetic windows where n%400 is in 1..20; this is not the Stage 2 poison protocol",
-        "persistence": "run_arm constructs h.KUtilityStore(h.SQLiteDecisionStore(), ...) inside each decision before reward_learning_store",
+        "persistence": "run_arm constructs h.KUtilityStore(h.InMemoryGraphStore(), ...) inside each decision before reward_learning_store",
         "source_bytes": str(len(text.encode("utf-8"))),
     }
 

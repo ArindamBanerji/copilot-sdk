@@ -16,7 +16,7 @@ from copilot_sdk.graph.enrichment import (
 )
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 def _source_set() -> EnrichmentSourceSet:
@@ -251,7 +251,7 @@ def _write_sample(store):
     )
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_write_read_entity_enrichment_roundtrip(store_factory):
     store = store_factory()
 
@@ -267,7 +267,7 @@ def test_store_write_read_entity_enrichment_roundtrip(store_factory):
     assert read_back["exception_rate"] == _metric()
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_upsert_replaces_metric(store_factory):
     store = store_factory()
     _write_sample(store)
@@ -290,7 +290,7 @@ def test_store_upsert_replaces_metric(store_factory):
     assert read_back["exception_rate"].value == 0.22
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_dry_run_writes_nothing(store_factory):
     store = store_factory()
     receipt = store.write_entity_enrichment(
@@ -312,7 +312,7 @@ def test_store_dry_run_writes_nothing(store_factory):
     ) == {}
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_protected_metric_rejected(store_factory):
     store = store_factory()
     receipt = store.write_entity_enrichment(
@@ -328,7 +328,7 @@ def test_store_protected_metric_rejected(store_factory):
     assert receipt.metrics_written == ["exception_rate"]
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_protected_metric_does_not_reject_source_set_decision_ids(store_factory):
     store = store_factory()
     receipt = _write_sample(store)
@@ -341,7 +341,7 @@ def test_store_protected_metric_does_not_reject_source_set_decision_ids(store_fa
 
 
 def test_sqlite_provenance_roundtrip():
-    store = SQLiteGraphStore(":memory:")
+    store = make_memory_store(":memory:")
     _write_sample(store)
 
     value = store.read_entity_enrichment(
@@ -355,7 +355,7 @@ def test_sqlite_provenance_roundtrip():
 
 
 def test_sqlite_source_set_roundtrip():
-    store = SQLiteGraphStore(":memory:")
+    store = make_memory_store(":memory:")
     _write_sample(store)
 
     record = store.list_entity_enrichments(domain="s2p")[0]
@@ -363,7 +363,7 @@ def test_sqlite_source_set_roundtrip():
     assert record.computed_from == _source_set()
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_absent_enrichment_returns_empty_dict(store_factory):
     assert store_factory().read_entity_enrichment(
         domain="s2p",
@@ -373,7 +373,7 @@ def test_store_absent_enrichment_returns_empty_dict(store_factory):
     ) == {}
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_list_by_domain_entity_type_namespace(store_factory):
     store = store_factory()
     _write_sample(store)
@@ -397,7 +397,7 @@ def test_store_list_by_domain_entity_type_namespace(store_factory):
     assert records[0].entity_id == "SUP-1"
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_store_domain_scoped_reset_deletes_entity_enrichments(store_factory):
     store = store_factory()
     _write_sample(store)
@@ -408,7 +408,7 @@ def test_store_domain_scoped_reset_deletes_entity_enrichments(store_factory):
 
 
 def test_sqlite_idempotent_rewrite_same_payload():
-    store = SQLiteGraphStore(":memory:")
+    store = make_memory_store(":memory:")
     _write_sample(store)
     _write_sample(store)
 
@@ -494,7 +494,7 @@ def test_age_adapter_list_entity_enrichments_empty():
     assert adapter.list_entity_enrichments(domain="s2p") == []
 
 
-@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: SQLiteGraphStore(":memory:")])
+@pytest.mark.parametrize("store_factory", [InMemoryGraphStore, lambda: make_memory_store(":memory:")])
 def test_existing_decision_and_outcome_paths_still_work(store_factory):
     store = store_factory()
 
@@ -509,3 +509,4 @@ def test_existing_decision_and_outcome_paths_still_work(store_factory):
 
     assert store.get_decision(decision_id, domain="s2p")["decision_id"] == decision_id
     assert len(store.get_verified_decisions("s2p")) == 1
+

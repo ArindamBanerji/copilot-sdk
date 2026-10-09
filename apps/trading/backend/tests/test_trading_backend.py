@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import cast
 
 from fastapi.testclient import TestClient
+from copilot_sdk.graph.factory import create_graph_store
 
 from app import context_router
 import app.cli_sdk as cli_sdk
@@ -132,13 +133,13 @@ def _load_data(filename: str, root: Path = DATA_DIR):
     return json.loads((root / filename).read_text(encoding="utf-8"))
 
 
-def _write_sqlite_graph_config(path: Path) -> None:
+def _write_memory_graph_config(path: Path) -> None:
     path.write_text(
         """
 [copilot.trading]
 domain = "trading"
-backend = "sqlite"
-expected_backend = "sqlite"
+backend = "memory"
+expected_backend = "memory"
 graph = "soc_graph"
 prefix = "TRD-"
 """.strip(),
@@ -150,7 +151,7 @@ def test_app_factory_production_defaults(tmp_path, monkeypatch):
     for key in GRAPH_ENV_KEYS:
         monkeypatch.delenv(key, raising=False)
     config_path = tmp_path / "graph_config.toml"
-    _write_sqlite_graph_config(config_path)
+    _write_memory_graph_config(config_path)
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
 
     with pytest.raises(ValueError, match="production requires AGE primary"):
@@ -169,7 +170,7 @@ def test_health(client):
     payload = response.json()
     assert payload["status"] == "error"
     assert payload["domain"] == "trading"
-    assert payload["graph_backend"] == "sqlite"
+    assert payload["graph_backend"] == "memory"
     assert payload["graph_connected"] is True
     assert payload["ready"] is False
     assert "copilot_sdk.scoring" in payload["engine"]
@@ -423,29 +424,78 @@ def test_auto_seed_empty_db(tmp_path):
         assert startup_client.get("/health").status_code == 503
 
     expected_verified, expected_correct = _fixture_outcome_counts(DATA_DIR / "trading_seed_v2.json")
-    assert _count_decisions(db_path, "trading") == 40
-    assert _count_verified(db_path, "trading") == expected_verified
-    assert _count_correct(db_path, "trading") == expected_correct
+    assert startup_client.app.state.graph_store.count_decisions("trading") == 40
+    assert startup_client.app.state.graph_store.count_verified("trading") == expected_verified
+    assert startup_client.app.state.graph_store.count_correct("trading") == expected_correct
 
 
 def test_auto_seed_skips_populated(tmp_path):
     from app.main import create_app
-    from copilot_sdk.graph import SQLiteGraphStore
 
     db_path = tmp_path / "trading_populated.db"
-    store = SQLiteGraphStore(db_path, domain="trading")
+    store = create_graph_store(backend="memory", domain="trading", profile="test", env={})
     try:
         _save_proxy_decision(store, "existing")
     finally:
         store.close()
 
-    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False, active_store_factory=lambda **kwargs: store)) as startup_client:
         assert startup_client.get("/health").status_code == 503
 
-    assert _count_decisions(db_path, "trading") == 1
+    assert startup_client.app.state.graph_store.count_decisions("trading") == 1
 
 
-def test_ci_data_dir_creates_db(tmp_path, monkeypatch):
+def _seed_trading_fixture(tmp_path, monkeypatch):
+    from copilot_sdk.graph import InMemoryGraphStore
+    from copilot_sdk.scoring.scorer import CompoundingScorer
+
+    store = InMemoryGraphStore(domain="trading")
+    scorer = CompoundingScorer.from_preset(
+        "trading", graph_store=store, profile="test", enable_rl=False
+    )
+    category = scorer._preset.shape.category_names[0]
+    factors = {name: 0.7 for name in scorer._preset.shape.factor_names}
+    fixture = tmp_path / "trading_seed.json"
+    fixture.write_text(json.dumps([
+        {"category": category, "is_correct": label, "factors": factors}
+        for label in (True, False, False, True)
+    ]), encoding="utf-8")
+    monkeypatch.setattr(app_main, "SEED_FIXTURE_PATH", fixture)
+    return store, scorer
+
+
+def test_trading_seed_uses_scorer_learn(tmp_path, monkeypatch):
+    store, scorer = _seed_trading_fixture(tmp_path, monkeypatch)
+    calls = []
+    learn = scorer._learn_preseed
+
+    def tracked(*args, **kwargs):
+        calls.append(kwargs.copy())
+        return learn(*args, **kwargs)
+
+    monkeypatch.setattr(scorer, "_learn_preseed", tracked)
+    result = app_main._seed_from_fixtures(scorer, store)
+    assert result["outcomes_seeded"] == 4
+    assert len(calls) == 4
+    assert store.count_verified_decisions("trading") == 4
+
+
+def test_trading_seed_preserves_correct_incorrect_ratio(tmp_path, monkeypatch):
+    store, scorer = _seed_trading_fixture(tmp_path, monkeypatch)
+    app_main._seed_from_fixtures(scorer, store)
+    verified = store.get_verified_decisions("trading")
+    assert len(verified) == 4
+    assert sum(bool(row.get("is_correct")) for row in verified) == 2
+
+
+def test_trading_seed_updates_centroids(tmp_path, monkeypatch):
+    store, scorer = _seed_trading_fixture(tmp_path, monkeypatch)
+    before = scorer._scorer.centroids.copy()
+    app_main._seed_from_fixtures(scorer, store)
+    assert float(((scorer._scorer.centroids - before) ** 2).sum()) > 0.0
+
+
+def test_ci_data_dir_keeps_graph_in_memory(tmp_path, monkeypatch):
     from app.main import create_app
 
     data_dir = tmp_path / "ci-data"
@@ -454,12 +504,12 @@ def test_ci_data_dir_creates_db(tmp_path, monkeypatch):
         assert startup_client.get("/health").status_code == 503
 
     db_path = data_dir / "trading.db"
-    assert db_path.exists()
-    assert _count_decisions(db_path, "trading") == 40
-    assert _count_verified(db_path, "trading") == _fixture_outcome_counts(DATA_DIR / "trading_seed_v2.json")[0]
+    assert not db_path.exists()
+    assert startup_client.app.state.graph_store.count_decisions("trading") == 40
+    assert startup_client.app.state.graph_store.count_verified("trading") == _fixture_outcome_counts(DATA_DIR / "trading_seed_v2.json")[0]
 
 
-def test_explicit_db_path_wins(tmp_path, monkeypatch):
+def test_local_db_path_does_not_select_graph_persistence(tmp_path, monkeypatch):
     from app.main import create_app
 
     ci_dir = tmp_path / "ci-data"
@@ -469,12 +519,12 @@ def test_explicit_db_path_wins(tmp_path, monkeypatch):
     with TestClient(create_app(db_path=explicit_db, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 503
 
-    assert explicit_db.exists()
+    assert not explicit_db.exists()
     assert not (ci_dir / "trading.db").exists()
-    assert _count_decisions(explicit_db, "trading") == 40
+    assert startup_client.app.state.graph_store.count_decisions("trading") == 40
 
 
-def test_no_env_uses_explicit_fallback(tmp_path, monkeypatch):
+def test_local_path_without_env_keeps_graph_in_memory(tmp_path, monkeypatch):
     from app.main import create_app
 
     monkeypatch.delenv("CI_DATA_DIR", raising=False)
@@ -482,8 +532,8 @@ def test_no_env_uses_explicit_fallback(tmp_path, monkeypatch):
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 503
 
-    assert db_path.exists()
-    assert _count_decisions(db_path, "trading") == 40
+    assert not db_path.exists()
+    assert startup_client.app.state.graph_store.count_decisions("trading") == 40
 
 
 def test_startup_records_l5_source_status(tmp_path):
@@ -685,8 +735,10 @@ def test_conservation_status_returns_live_counts(client):
     assert payload["penalty_ratio"] == TradingPreset().penalty_ratio
 
 
-def test_in_memory_scoring_and_conservation_share_proxy_store():
+def test_in_memory_scoring_and_conservation_share_proxy_store(monkeypatch):
     from app.main import create_app
+
+    monkeypatch.setenv("DEMO_NO_RESEED", "1")
 
     with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as memory_client:
         score = _score(memory_client)
@@ -748,15 +800,14 @@ def test_self_computation_mounted_at_api_self(client):
 
 def test_graph_store_count_verified(tmp_path):
     from app.main import _graph_store
-    from copilot_sdk.graph import SQLiteGraphStore
 
     db_path = tmp_path / "graph.sqlite"
-    store = SQLiteGraphStore(db_path, domain="trading")
+    store = _graph_store(str(db_path), profile="test")
     try:
-        _save_proxy_decision(store, "d-1")
-        _save_proxy_decision(store, "d-2")
+        d1 = _save_proxy_decision(store, "d-1")
+        d2 = _save_proxy_decision(store, "d-2")
         store.write_outcome(
-            decision_id="d-1",
+            decision_id=d1,
             actual_action="strong_execution",
             is_correct=True,
             metadata={"actual_index": 0},
@@ -765,27 +816,26 @@ def test_graph_store_count_verified(tmp_path):
     finally:
         store.close()
 
-    assert _graph_store(str(db_path)).count_verified("trading") == 1
+    assert store.count_verified("trading") == 1
 
 
 def test_graph_store_count_correct(tmp_path):
     from app.main import _graph_store
-    from copilot_sdk.graph import SQLiteGraphStore
 
     db_path = tmp_path / "graph.sqlite"
-    store = SQLiteGraphStore(db_path, domain="trading")
+    store = _graph_store(str(db_path), profile="test")
     try:
-        _save_proxy_decision(store, "d-1")
-        _save_proxy_decision(store, "d-2")
+        d1 = _save_proxy_decision(store, "d-1")
+        d2 = _save_proxy_decision(store, "d-2")
         store.write_outcome(
-            decision_id="d-1",
+            decision_id=d1,
             actual_action="strong_execution",
             is_correct=True,
             metadata={"actual_index": 0},
             domain="trading",
         )
         store.write_outcome(
-            decision_id="d-2",
+            decision_id=d2,
             actual_action="partial_execution",
             is_correct=False,
             metadata={"actual_index": 1},
@@ -794,17 +844,14 @@ def test_graph_store_count_correct(tmp_path):
     finally:
         store.close()
 
-    assert _graph_store(str(db_path)).count_correct("trading") == 1
+    assert store.count_correct("trading") == 1
 
 
 def test_fingerprint(client):
     # Strict conservation requires enough verified/correct history before
     # additional learns mutate centroids. theta_min = 23.53 / override_count;
     # at q=1, >=24 correct overrides are required. Seed 30 for margin.
-    _seed_verified_history(
-        Path(client.app.state.trading_data_dir).parent / "trading_test.db",
-        total=50,
-    )
+    _seed_verified_history(client.app.state.graph_store, total=50)
 
     for _ in range(3):
         score = _score(client)
@@ -820,8 +867,8 @@ def test_fingerprint(client):
     assert {factor["name"] for factor in payload["factors"]} == set(TRADING_FACTORS)
 
 
-def _save_proxy_decision(store, decision_id: str) -> None:
-    store.write_decision(
+def _save_proxy_decision(store, decision_id: str) -> str:
+    return str(store.write_decision(
         "trading",
         category="trend_following",
         action="strong_execution",
@@ -834,66 +881,32 @@ def _save_proxy_decision(store, decision_id: str) -> None:
             "recommended_index": 0,
             "probabilities": [0.8, 0.1, 0.1, 0.0],
         },
-    )
+    ))
 
 
-def _seed_verified_history(db_path: Path, total: int) -> None:
-    from copilot_sdk.graph import SQLiteGraphStore
+def _seed_verified_history(store, total: int) -> None:
 
     override_count = 30
     alternate_actions = [("partial_execution", 1), ("poor_execution", 2)]
     assert total >= override_count
 
-    store = SQLiteGraphStore(db_path, domain="trading")
-    try:
-        for index in range(total):
-            decision_id = f"seed-{index}"
-            _save_proxy_decision(store, decision_id)
-            if index < override_count:
-                actual_action, actual_index = alternate_actions[
-                    index % len(alternate_actions)
-                ]
-            else:
-                actual_action, actual_index = "strong_execution", 0
-            store.write_outcome(
-                decision_id=decision_id,
-                actual_action=actual_action,
-                is_correct=True,
-                metadata={"actual_index": actual_index},
-                domain="trading",
-            )
-    finally:
-        store.close()
+    for index in range(total):
+        decision_id = f"seed-{index}"
+        decision_id = _save_proxy_decision(store, decision_id)
+        if index < override_count:
+            actual_action, actual_index = alternate_actions[
+                index % len(alternate_actions)
+            ]
+        else:
+            actual_action, actual_index = "strong_execution", 0
+        store.write_outcome(
+            decision_id=decision_id,
+            actual_action=actual_action,
+            is_correct=True,
+            metadata={"actual_index": actual_index},
+            domain="trading",
+        )
 
-
-def _count_decisions(db_path: Path, domain: str) -> int:
-    from copilot_sdk.graph import SQLiteGraphStore
-
-    store = SQLiteGraphStore(db_path, domain=domain)
-    try:
-        return int(store.count_decisions(domain))
-    finally:
-        store.close()
-
-
-def _count_verified(db_path: Path, domain: str) -> int:
-    from copilot_sdk.graph import SQLiteGraphStore
-
-    store = SQLiteGraphStore(db_path, domain=domain)
-    try:
-        return int(store.count_verified(domain))
-    finally:
-        store.close()
-
-
-def _count_correct(db_path: Path, domain: str) -> int:
-    from copilot_sdk.graph import SQLiteGraphStore
-
-    store = SQLiteGraphStore(db_path, domain=domain)
-    try:
-        return int(store.count_correct(domain))
-    finally:
-        store.close()
 
 
 def _fixture_outcome_counts(path: Path) -> tuple[int, int]:

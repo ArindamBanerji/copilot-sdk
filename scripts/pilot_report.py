@@ -11,15 +11,17 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.pilot import MeasuredTransfer, MeasuredTransferStore
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generate a measured 90-day pilot report")
     parser.add_argument("--copilot", required=True)
-    parser.add_argument("--db", type=Path, default=ROOT / "data" / "measured_transfer.sqlite3")
+    parser.add_argument("--profile", default="production", choices=("production", "offline", "test"))
     args = parser.parse_args(argv if argv is not None else sys.argv[1:])
-    store = MeasuredTransferStore(str(args.db))
+    graph = create_graph_store(domain=args.copilot, profile=args.profile)
+    store = MeasuredTransferStore(graph, args.copilot)
     try:
         report = MeasuredTransfer(store=store).latest_report(args.copilot)
         print(report.to_json())
@@ -28,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"pilot report unavailable: {exc}", file=sys.stderr)
         return 1
     finally:
-        store.close()
+        graph.close()
 
 
 if __name__ == "__main__":

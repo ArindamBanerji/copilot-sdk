@@ -8,7 +8,7 @@ import pytest
 
 from copilot_sdk.backend import scorer_proxy as scorer_proxy_module
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy
-from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
@@ -33,8 +33,8 @@ def _test_profile_for_proxy_scorers(monkeypatch):
     monkeypatch.setattr(CompoundingScorer, "from_preset", from_preset)
 
 
-def _graph_store(db_path: str | Path):
-    store = SQLiteGraphStore(str(db_path), domain="trading")
+def _graph_store(_unused_path: str | Path):
+    store = create_graph_store(backend="memory", domain="trading", profile="test", env={})
     setattr(store, "penalty_ratio", 2.0)
     return store
 
@@ -88,7 +88,7 @@ class FakeScorer:  # MOCK-OK: proxy construction/cache sentinel, real scorer pat
 
 
 def test_fresh_scorer_proxy_exposes_required_methods(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     for name in (
         "score",
@@ -105,7 +105,7 @@ def test_fresh_scorer_proxy_exposes_required_methods(tmp_path):
 
 
 def test_fresh_scorer_proxy_scores_and_learns(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     score = proxy.score(TRADING_FACTORS, "trend_following")
     learn = proxy.learn(score.decision_id, score.action)
@@ -117,7 +117,7 @@ def test_fresh_scorer_proxy_scores_and_learns(tmp_path):
 
 
 def test_fresh_scorer_proxy_uses_shared_graph_store(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     scorer_one = proxy._scorer()
     scorer_two = proxy._scorer()
@@ -128,7 +128,7 @@ def test_fresh_scorer_proxy_uses_shared_graph_store(tmp_path):
 
 
 def test_fresh_scorer_proxy_close_helper_leaves_shared_store_open(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
     scorer = proxy._scorer()
 
     proxy._close_scorer_store(scorer)
@@ -141,7 +141,7 @@ def test_fresh_scorer_proxy_close_helper_leaves_shared_store_open(tmp_path):
 
 
 def test_fresh_scorer_proxy_sequential_scores_share_store(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     first = proxy.score(TRADING_FACTORS, "trend_following")
     second = proxy.score(TRADING_FACTORS, "trend_following")
@@ -151,14 +151,14 @@ def test_fresh_scorer_proxy_sequential_scores_share_store(tmp_path):
 
 
 def test_fresh_scorer_proxy_phase_and_alpha(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     assert proxy.get_phase() in {"A", "B"}
     assert isinstance(proxy.get_alpha(), float)
 
 
 def test_fresh_scorer_proxy_uses_rlock(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     assert isinstance(proxy._lock, type(threading.RLock()))
 
@@ -170,8 +170,8 @@ def test_fresh_scorer_proxy_starts_empty_and_caches_after_first_call(tmp_path, m
         "from_preset",
         lambda *args, **kwargs: fake,
     )
-    first_proxy = FreshScorerProxy("trading", tmp_path / "first.db", _graph_store, profile="test")
-    second_proxy = FreshScorerProxy("trading", tmp_path / "second.db", _graph_store, profile="test")
+    first_proxy = FreshScorerProxy("trading", tmp_path / "first", _graph_store, profile="test")
+    second_proxy = FreshScorerProxy("trading", tmp_path / "second", _graph_store, profile="test")
 
     assert first_proxy._scorer_instance is None
     assert second_proxy._scorer_instance is None
@@ -191,7 +191,7 @@ def test_fresh_scorer_proxy_constructs_scorer_once_per_proxy(tmp_path, monkeypat
         return fake
 
     monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)  # MOCK-OK: verifies one construction call
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     score = proxy.score(TRADING_FACTORS, "trend_following")
     proxy.learn(score.decision_id, score.action)
@@ -224,7 +224,7 @@ def test_fresh_scorer_proxy_read_methods_do_not_reconstruct_scorer(tmp_path, mon
         return fake
 
     monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)  # MOCK-OK: verifies cached read methods
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     proxy.score(TRADING_FACTORS, "trend_following")
     proxy.fingerprint()
@@ -244,8 +244,8 @@ def test_fresh_scorer_proxy_keeps_proxy_instances_isolated(tmp_path, monkeypatch
         return scorer
 
     monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)  # MOCK-OK: verifies proxy instance isolation
-    first = FreshScorerProxy("trading", tmp_path / "one.db", _graph_store, profile="test")
-    second = FreshScorerProxy("trading", tmp_path / "two.db", _graph_store, profile="test")
+    first = FreshScorerProxy("trading", tmp_path / "one", _graph_store, profile="test")
+    second = FreshScorerProxy("trading", tmp_path / "two", _graph_store, profile="test")
 
     first_score = first.score(TRADING_FACTORS, "trend_following")
     second_score = second.score(TRADING_FACTORS, "trend_following")
@@ -261,7 +261,7 @@ def test_fresh_scorer_proxy_keeps_proxy_instances_isolated(tmp_path, monkeypatch
 
 
 def test_fresh_scorer_proxy_concurrent_scores_share_cached_scorer(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     with ThreadPoolExecutor(max_workers=4) as executor:
         results = list(
@@ -277,7 +277,7 @@ def test_fresh_scorer_proxy_concurrent_scores_share_cached_scorer(tmp_path):
 
 
 def test_fresh_scorer_proxy_interleaved_score_learn_score_uses_shared_state(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     first = proxy.score(TRADING_FACTORS, "trend_following")
     learn = proxy.learn(first.decision_id, first.action)
@@ -290,7 +290,7 @@ def test_fresh_scorer_proxy_interleaved_score_learn_score_uses_shared_state(tmp_
 
 
 def test_scorer_proxy_serialized(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     def score_once(index: int):
         factors = dict(TRADING_FACTORS)
@@ -305,7 +305,7 @@ def test_scorer_proxy_serialized(tmp_path):
 
 
 def test_scorer_proxy_score_and_learn(tmp_path):
-    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store, profile="test")
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy", _graph_store, profile="test")
 
     def score_and_learn(index: int):
         factors = dict(TRADING_FACTORS)

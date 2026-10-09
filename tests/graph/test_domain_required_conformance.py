@@ -5,14 +5,14 @@ from typing import Any, Callable, cast
 import pytest
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request: pytest.FixtureRequest, tmp_path: Any) -> Any:
     if request.param == "memory":
         return InMemoryGraphStore(domain="test")
-    return SQLiteGraphStore(tmp_path / "domain-required.sqlite", domain="test")
+    return make_memory_store(tmp_path / "domain-required.sqlite", domain="test")
 
 
 def _decision(store: Any, domain: str, decision_id: str, category: str = "shared") -> str:
@@ -133,3 +133,5 @@ def test_write_outcome_is_domain_scoped(store: Any) -> None:
     assert decision["correct"] is True
     with pytest.raises(KeyError):
         store.write_outcome("missing", "review", True, domain="soc")
+
+

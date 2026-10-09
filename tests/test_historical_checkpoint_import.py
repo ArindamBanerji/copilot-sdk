@@ -1,5 +1,4 @@
 """Historical demo imports retain a distinct ingestion clock and provenance."""
-from pathlib import Path
 import time
 
 import pytest
@@ -7,11 +6,11 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from copilot_sdk.backend.historical_checkpoint import normalize_historical_checkpoint
 from copilot_sdk.backend.self_computation_router import create_self_computation_router
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
 
 
-def test_real_store_historical_gap_roundtrip(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(tmp_path / "history.db", domain="purchasing")
+def test_real_store_historical_gap_roundtrip() -> None:
+    store = create_graph_store(backend="memory", domain="purchasing", profile="test", env={})
     now = time.time()
     try:
         for index, days in enumerate((14, 6)):

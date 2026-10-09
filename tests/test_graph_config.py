@@ -31,7 +31,7 @@ def clear_graph_env(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(key, raising=False)
 
 
-def write_config(path: Path, *, backend: str = "sqlite", expected: str = "sqlite") -> None:
+def write_config(path: Path, *, backend: str = "memory", expected: str = "memory") -> None:
     path.write_text(
         "[defaults]\n"
         f'backend = "{backend}"\n'
@@ -83,7 +83,7 @@ def test_collision_warning_contains_values_and_winner(
     with caplog.at_level(logging.WARNING):
         GraphConfig.load("trading")
     assert "field=backend" in caplog.text
-    assert "file=sqlite" in caplog.text
+    assert "file=memory" in caplog.text
     assert "env=age" in caplog.text
     assert "winner=env" in caplog.text
 
@@ -121,18 +121,18 @@ def test_expected_age_rejects_sqlite(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     config_path = tmp_path / "config.toml"
     write_config(config_path, backend="sqlite", expected="age")
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
-    with pytest.raises(GraphConfigError, match="expected backend age"):
+    with pytest.raises(GraphConfigError, match="invalid backend"):
         GraphConfig.load("trading")
 
 
-def test_development_explicit_fallback_is_allowed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_development_explicit_fallback_is_rejected(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     clear_graph_env(monkeypatch)
     config_path = tmp_path / "config.toml"
     write_config(config_path, backend="sqlite", expected="age")
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
     monkeypatch.setenv("CI_ALLOW_SQLITE_FALLBACK", "1")
-    config = GraphConfig.load("trading", profile="development")
-    assert config.backend == "sqlite"
+    with pytest.raises(GraphConfigError, match="invalid backend"):
+        GraphConfig.load("trading", profile="development")
 
 
 def test_authorization_is_derived(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -161,7 +161,7 @@ def test_dsn_is_redacted_from_collision_log(
     clear_graph_env(monkeypatch)
     config_path = tmp_path / "config.toml"
     config_path.write_text(
-        '[defaults]\nbackend = "sqlite"\nexpected_backend = "sqlite"\n'
+        '[defaults]\nbackend = "memory"\nexpected_backend = "memory"\n'
         'dsn = "file-secret"\ngraph = "soc_graph"\n', encoding="utf-8"
     )
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
@@ -209,19 +209,19 @@ def test_malformed_toml_raises_graph_config_error(monkeypatch: pytest.MonkeyPatc
         GraphConfig.load("trading")
 
 
-def test_dual_write_backend_is_accepted(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_unsupported_backend_backend_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     clear_graph_env(monkeypatch)
-    monkeypatch.setenv("GRAPH_BACKEND", "dual_write")
+    monkeypatch.setenv("GRAPH_BACKEND", "unsupported_backend")
     monkeypatch.setenv("GRAPH_DSN", "host=test")
-    config = GraphConfig.load("trading", profile="offline")
-    assert config.backend == "dual_write"
+    with pytest.raises(GraphConfigError, match="invalid backend"):
+        GraphConfig.load("trading", profile="offline")
 
 
-def test_file_only_sqlite_profile_loads_without_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_file_only_sqlite_profile_is_rejected(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     clear_graph_env(monkeypatch)
     config_path = tmp_path / "file_only.toml"
     write_config(config_path, backend="sqlite", expected="sqlite")
     monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
-    config = GraphConfig.load("trading", profile="development")
-    assert config.backend == "sqlite"
-    assert dict(config.sources)["backend"] == "file"
+    with pytest.raises(GraphConfigError, match="invalid backend"):
+        GraphConfig.load("trading", profile="development")
+

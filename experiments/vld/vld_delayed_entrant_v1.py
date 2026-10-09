@@ -22,7 +22,7 @@ start is frozen before D. Replay independently reroutes archived surface inputs
 and verified evidence, NEVER reads incumbent K. Its archive contains only values
 and informative flags on dimensions actually read in that historical decision,
 plus its verified final-action target. No unobserved counterfactual evidence is
-supplied to replay. Migration copies SQLite K weights/counters and deep-copies mu.
+supplied to replay. Migration copies graph-backed K weights/counters and deep-copies mu.
 All arms continue independent updates on the identical future alert stream.
 
 Reuse load_export, make_case, run_investigation, reward_learning_store and
@@ -52,7 +52,7 @@ REAL_COMPONENT. Replay additionally costs D archived updates, reported separatel
 zero weeks to parity does not mean zero compute, migration or engineering cost.
 
 DETERMINISM: compute ALL 16 curves twice independently; compare canonical output
-bytes. No timestamps, latency measurements, temp paths, SQLite file paths or
+bytes. No timestamps, latency measurements, temp paths, database file paths or
 process-dependent Python hashes in JSON. Hash excludes only its own JSON field.
 
 Run mypy before execution:
@@ -61,6 +61,9 @@ Run:
   python -B experiments/vld/vld_delayed_entrant_v1.py
 """
 from __future__ import annotations
+
+from copy import deepcopy
+from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
 
 from dataclasses import dataclass
 import hashlib
@@ -118,8 +121,7 @@ class Learner:
         return {c: [float(x) for x in self.store.get_weights(c)] for c in self.categories}
 
     def records(self) -> list[list[Any]]:
-        return [list(r) for r in self.store.conn.execute(
-            'SELECT category,dimension,weight,n_updates FROM k_utility ORDER BY category,dimension').fetchall()]
+        return [[r["episode_id"], r["k"], r["utility"], r["metadata"].get("n_updates", 0)] for r in self.store.persistence.get_k_utilities(self.store.domain, limit=2**31-1)]
 
     def state(self) -> Record:
         return {'K': self.weights(), 'K_records': self.records(),
@@ -145,7 +147,7 @@ def new_learner(copilot: str, info: Record) -> Learner:
     return Learner(categories, factors,
                    {c: np.asarray(info['all_category_mu'][c], dtype=np.float64).copy() for c in categories},
                    np.asarray(info['sigma'], dtype=np.float64).copy(), float(info['tau']),
-                   harness.KUtilityStore(harness.SQLiteDecisionStore(), d=len(factors)),
+                   harness.KUtilityStore(harness.InMemoryGraphStore(), d=len(factors)),
                    {int(k): str(v) for k,v in harness.DIMENSION_SOURCES[copilot].items()})
 
 
@@ -180,11 +182,12 @@ def archive_decision(case: Record, run: Record) -> Record:
 
 def migrate(source: Learner, target: Learner) -> None:
     assert target.updates == 0 and target.records() == []
-    source.store.conn.backup(target.store.conn)
+    target.store.graph_store = deepcopy(source.store.graph_store)
+    target.store.persistence = GraphScoringPersistence(target.store.graph_store)
     target.mu = {c: source.mu[c].copy() for c in source.categories}
     target.sigma = source.sigma.copy()
     target.tau = source.tau
-    assert target.store.conn is not source.store.conn
+    assert target.store.graph_store is not source.store.graph_store
     assert all(not np.shares_memory(source.mu[c], target.mu[c]) for c in source.categories)
     assert source.state() == target.state()
 
@@ -309,7 +312,7 @@ def run_delay(copilot: str, info: Record, delay: int, train: list[Record], evalu
         return output
     finally:
         for learner in learners.values():
-            learner.store.conn.close()
+            learner.store.graph_store.close()
 
 
 def compute_all(verbose: bool = True) -> Record:
@@ -321,7 +324,7 @@ def compute_all(verbose: bool = True) -> Record:
             train = generate_cases(generator,HORIZON,SEED)
             evaluation = generate_cases(generator,EVAL_N,SEED+100000)
         finally:
-            generator.store.conn.close()
+            generator.store.graph_store.close()
         cache: dict[str,Record] = {}
         result[copilot] = {}
         for delay in [100,250]:
@@ -372,7 +375,7 @@ def attach_metadata(result: Record, sources: dict[str,str]) -> None:
         'verification_source': 'KE-1 synthetic full-vector geometry oracle with informative-read tags',
         'primary_parity': 'both metrics >= contemporaneous incumbent minus .01; first checkpoint at/after D; elapsed decisions since D',
         'sustained_parity': 'first checkpoint satisfying parity at every remaining observed checkpoint; finite horizon only',
-        'mu_and_sigma_updates': False, 'state_migration': 'deep-copy mu and sigma plus SQLite K weights/update counters; no shared arrays or connection',
+        'mu_and_sigma_updates': False, 'state_migration': 'deep-copy mu and sigma plus graph-backed K weights/update counters; no shared arrays or connection',
         'replay_contract': 'independent routing from archived surface, acquired evidence, and verified action/informative tags; no K; no unobserved evidence',
         'wall_clock_rates_per_week': RATES,
         'wall_clock_rate_source': 'docs/design/map_vld_addendum_v20 (1).md: verified-outcome latency table',

@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import json
+import os
+import uuid
+
+import pytest
 import re
 import sys
 from pathlib import Path
 
 from click.testing import CliRunner
+from copilot_sdk.config import GraphConfig
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -38,9 +43,19 @@ def _db_path(tmp_path: Path, name: str = "purchasing.db") -> Path:
 
 
 def _invoke(tmp_path: Path, *args: str, db_name: str = "purchasing.db"):
+    graph = _CLI_GRAPHS.get(db_name)
+    if graph is None:
+        import psycopg
+        config = GraphConfig.load("purchasing", profile="test")
+        graph = f"protocol_v2_test_{uuid.uuid4().hex[:12]}"
+        with psycopg.connect(config.dsn, autocommit=True) as conn:
+            conn.execute("LOAD 'age'")
+            conn.execute('SET search_path = ag_catalog, "$user", public')
+            conn.execute("SELECT create_graph(%s)", (graph,))
+        _CLI_GRAPHS[db_name] = graph
     return _runner().invoke(
-        purchasing_cli.cli,
-        ["--db-path", str(_db_path(tmp_path, db_name)), *args],
+        purchasing_cli.cli, list(args),
+        env={"PURCHASING_ACTIVE_AGE_GRAPH": graph},
     )
 
 
@@ -386,7 +401,7 @@ def test_restore_rejects_wrong_shape_json(tmp_path: Path):
 
     assert result.exit_code != 0
     assert "shape does not match" in result.output
-    assert not _db_path(tmp_path).exists()
+    assert _decision_count(_invoke(tmp_path, "conservation").output) == 0
 
 
 def test_restore_missing_file_exits_nonzero(tmp_path: Path):
@@ -450,7 +465,7 @@ def test_backup_restore_roundtrip_preserves_decision_count(tmp_path: Path):
     assert "total_decisions: 1" in result.output
 
 
-def test_db_path_isolates_state_between_databases(tmp_path: Path):
+def test_configured_graphs_isolate_cli_state(tmp_path: Path):
     assert _score(tmp_path, db_name="first.db").exit_code == 0
 
     first = _invoke(tmp_path, "conservation", db_name="first.db")
@@ -483,3 +498,41 @@ def test_help_exits_zero():
     assert result.exit_code == 0
     assert "score" in result.output
     assert "restore" in result.output
+
+
+_CLI_GRAPHS: dict[str, str] = {}
+
+
+@pytest.fixture(autouse=True)
+def configured_cli_age(purchasing_live_age_graph, monkeypatch):
+    # Persistent CLI behavior is verified across independent AGE connections.
+    if purchasing_live_age_graph is None:
+        pytest.skip("Requires AGE for cross-invocation durability testing")
+    monkeypatch.setenv("PURCHASING_PROFILE", "test")
+    _CLI_GRAPHS.clear()
+    config = GraphConfig.load("purchasing", profile="test")
+    try:
+        yield
+    finally:
+        import psycopg
+        with psycopg.connect(config.dsn, autocommit=True) as conn:
+            conn.execute("LOAD 'age'")
+            conn.execute('SET search_path = ag_catalog, "$user", public')
+            for graph in _CLI_GRAPHS.values():
+                conn.execute("SELECT drop_graph(%s, true)", (graph,))
+        _CLI_GRAPHS.clear()
+
+
+def test_memory_persistent_cli_rejected(monkeypatch):
+    monkeypatch.setenv("PURCHASING_ACTIVE_GRAPH_BACKEND", "memory")
+    result = _runner().invoke(purchasing_cli.cli, ["conservation"])
+    assert result.exit_code != 0
+    assert "need AGE backend" in result.output
+
+
+def test_retired_db_path_rejected(tmp_path):
+    path = tmp_path / "retired.db"
+    result = _runner().invoke(purchasing_cli.cli, ["--db-path", str(path), "conservation"])
+    assert result.exit_code != 0
+    assert "--db-path is retired" in result.output
+    assert not path.exists()

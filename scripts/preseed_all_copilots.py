@@ -16,10 +16,13 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Protocol, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, NamedTuple, Optional, Protocol, Tuple
 from urllib.parse import urlsplit
 
-from copilot_sdk.backend.transfer import save_fingerprint
+
+if TYPE_CHECKING:
+    from copilot_sdk.demo.preseed import DemoPreseedResult
+    from copilot_sdk.graph.protocol import GraphStore
 
 
 HOST = os.environ.get("COPILOT_HOST", "127.0.0.1")
@@ -656,13 +659,6 @@ def verify_domain(
     except ApiError as exc:
         print("verify fingerprint failed: %s" % exc)
         fingerprint = {}
-    if fingerprint:
-        try:
-            path = save_fingerprint(config.name, fingerprint, source_url=base_url.rstrip("/") + "/api/fingerprint")
-            print("fingerprint exported: %s" % path.relative_to(REPO_ROOT))
-        except Exception as exc:
-            print("warning: fingerprint export failed: %s" % exc)
-
     factors = fingerprint.get("factors") or []
     active = any(float(factor.get("weight") or 0.0) > 0.0 for factor in factors if isinstance(factor, dict))
     print(
@@ -701,8 +697,29 @@ def print_summary(results: Iterable[DomainResult]) -> int:
     return exit_code
 
 
+def preseed_offline(
+    graph_store: GraphStore | None = None, *, seed: int | None = None,
+    fast_mode: bool = False, profile: str | None = None,
+) -> DemoPreseedResult:
+    """Seed in-process demo scorers on one graph supplied by composition.
+
+    The default HTTP workflow remains separate; a borrowed graph is never
+    replaced or closed. No store object crosses an HTTP process boundary.
+    """
+    from copilot_sdk.demo.preseed import DEFAULT_SEED, DemoPreseed, create_demo_graph
+
+    graph = graph_store if graph_store is not None else create_demo_graph()
+    effective_profile = profile if profile is not None or graph_store is not None else "offline"
+    result: DemoPreseedResult = DemoPreseed(
+        seed=DEFAULT_SEED if seed is None else seed, fast_mode=fast_mode,
+        graph_store=graph, profile=effective_profile,
+    ).preseed_all()
+    return result
+
+
 def parse_args(argv: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Pre-seed all demo copilots.")
+    parser.add_argument("--offline", action="store_true", help="Seed all five in-process scorers on one shared memory graph.")
     parser.add_argument("--trading-only", action="store_true", help="Seed Trading only, or include Trading in selected subset.")
     parser.add_argument("--purchasing-only", action="store_true", help="Seed Purchasing only, or include Purchasing in selected subset.")
     parser.add_argument("--dataops-only", action="store_true", help="Seed DataOps only, or include DataOps in selected subset.")
@@ -710,16 +727,34 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", help="Load seeds and check backend health without mutating.")
     parser.add_argument("--force", action="store_true", help="Append seed decisions even if trajectory already has decisions.")
     parser.add_argument("--demo-fixtures", action="store_true", help="Explicitly add synthetic demo states after ordinary seeding (includes degradation).")
-    return parser.parse_args(argv)
+    parser.add_argument("--heroes", action="store_true", help="Append and verify C-1 heroes after ordinary seeding, under normal conservation")
+    args = parser.parse_args(argv)
+    if args.offline and any((args.trading_only, args.purchasing_only, args.dataops_only,
+                             args.s2p_only, args.force, args.heroes, args.demo_fixtures)):
+        parser.error("--offline cannot be combined with HTTP-only selection, force, hero or fixture options")
+    if args.heroes and args.demo_fixtures:
+        parser.error("--heroes cannot follow --demo-fixtures, which deliberately degrades conservation")
+    return args
 
 
 def main(argv: List[str]) -> int:
     args = parse_args(argv)
+    if args.offline:
+        if args.dry_run:
+            print("offline dry-run: one shared graph for all five demo scorers; no writes")
+            return 0
+        result = preseed_offline()
+        print(result.stable_json())
+        return 0
     if os.environ.get("COPILOT_PRESEED_MODE", "").strip().lower() != "true":
         print("warning: COPILOT_PRESEED_MODE is not true in this client process; running backends must set it for privileged preseed bypass")
     if args.s2p_only:
         try:
-            return print_summary([seed_s2p_domain(args)])
+            exit_code = print_summary([seed_s2p_domain(args)])
+            if args.heroes and not args.dry_run:
+                from scripts.preseed_hero_scenarios import run_heroes
+                exit_code = max(exit_code, run_heroes({"s2p"}))
+            return exit_code
         except Exception as exc:
             print("s2p: failed before seeding: %s" % exc)
             return 1
@@ -753,6 +788,12 @@ def main(argv: List[str]) -> int:
         for domain in names:
             for scenario in scenarios[domain]:
                 exit_code = max(exit_code, run_scenarios(scenario))
+    if args.heroes and not args.dry_run:
+        from scripts.preseed_hero_scenarios import run_heroes
+        selected_names = {config.name for config in selected_domains(args)}
+        if not (args.trading_only or args.purchasing_only or args.dataops_only):
+            selected_names.add("s2p")
+        exit_code = max(exit_code, run_heroes(selected_names))
     return exit_code
 
 

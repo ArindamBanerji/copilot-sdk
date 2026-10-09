@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
+from unittest.mock import patch
 from typing import Any, cast
 
 import pytest
@@ -12,11 +12,11 @@ from fastapi.testclient import TestClient
 
 from copilot_sdk.backend.coalesced_read import CoalescedRead
 from copilot_sdk.backend.self_computation_router import mount_self_computation_router
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
 
 
-def test_overlapping_real_reads_share_work_but_own_their_results(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(tmp_path / "reads.db", domain="purchasing")
+def test_overlapping_real_reads_share_work_but_own_their_results() -> None:
+    store = create_graph_store(backend="memory", domain="purchasing", profile="test", env={})
     decision = store.write_decision("purchasing", "produce", "order", 0.8, {})
     store.write_outcome(decision, "order", True, domain="purchasing")
     reader = CoalescedRead()
@@ -48,13 +48,13 @@ def test_overlapping_real_reads_share_work_but_own_their_results(tmp_path: Path)
         store.close()
 
 
-def test_error_does_not_poison_later_read_and_keys_are_isolated(tmp_path: Path) -> None:
+def test_error_does_not_poison_later_read_and_keys_are_isolated() -> None:
     reader = CoalescedRead()
-    store = SQLiteGraphStore(tmp_path / "retry.db", domain="purchasing")
-    store.close()
-    with pytest.raises(Exception):
-        reader.run(("purchasing", "tenant-a"), lambda: store.get_all_decisions("purchasing"))
-    store = SQLiteGraphStore(tmp_path / "retry.db", domain="purchasing")
+    store = create_graph_store(backend="memory", domain="purchasing", profile="test", env={})
+    # MOCK-OK: inject a transport failure at the read boundary; successful reads use the real store.
+    with patch.object(store, "get_all_decisions", side_effect=ConnectionError("offline")):
+        with pytest.raises(ConnectionError, match="offline"):
+            reader.run(("purchasing", "tenant-a"), lambda: store.get_all_decisions("purchasing"))
     try:
         assert reader.run(("purchasing", "tenant-a"), lambda: store.get_all_decisions("purchasing")) == []
         store.write_decision("purchasing", "produce", "order", 0.8, {})
@@ -63,8 +63,8 @@ def test_error_does_not_poison_later_read_and_keys_are_isolated(tmp_path: Path) 
         store.close()
 
 
-def test_sc_reads_observe_committed_outcomes_without_waiting_for_ttl(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(tmp_path / "fresh.db", domain="purchasing")
+def test_sc_reads_observe_committed_outcomes_without_waiting_for_ttl() -> None:
+    store = create_graph_store(backend="memory", domain="purchasing", profile="test", env={})
     app = FastAPI()
     mount_self_computation_router(app, store, domain="purchasing")
     try:

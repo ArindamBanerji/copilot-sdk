@@ -1,7 +1,8 @@
-"""Offline CLI for Purchasing Copilot."""
+"""Configured GraphStore CLI for Purchasing Copilot."""
 
 from __future__ import annotations
 
+from typing import cast
 import json
 import math
 import os
@@ -36,7 +37,6 @@ def _cli_profile() -> str:
     if configured:
         return configured.strip().lower()
     return "development"
-DEFAULT_DB_PATH = BACKEND_ROOT / "data" / "purchasing.db"
 BACKUP_VERSION = 1
 
 PRESET = PurchasingPreset()
@@ -46,24 +46,26 @@ ACTION_NAMES = tuple(SHAPE.action_names)
 FACTOR_NAMES = tuple(SHAPE.factor_names)
 
 
-def _store(db_path: Path):
-    # This is the offline CLI: its explicit db path is the complete state
-    # boundary, independent of inherited AGE environment configuration.
-    profile = _cli_profile()
-    return create_graph_store(
-        backend="sqlite",
-        domain=DOMAIN,
-        db_path=str(db_path.expanduser()),
-        profile=profile,
-        test_mode=True,
-    )
+def _store(db_path: Path | None = None):
+    if db_path is not None:
+        raise click.ClickException("--db-path is retired. Configure the AGE graph instead.")
+    config = GraphConfig.load(DOMAIN, profile=_cli_profile())
+    if config.backend != "age":
+        raise click.ClickException(
+            "CLI operations requiring persistence need AGE backend. Current backend: memory"
+        )
+    store = create_graph_store(config=config, decision_id_prefix="PUR-")
+    # Close connections after each invocation, including commands using a scorer.
+    ctx = click.get_current_context(silent=True)
+    if ctx is not None:
+        ctx.call_on_close(store.close)
+    return store
 
 
-def _scorer(db_path: Path) -> CompoundingScorer:
-    resolved = str(db_path.expanduser())
+def _scorer(db_path: Path | None = None) -> CompoundingScorer:
     store = _store(db_path)
     return CompoundingScorer.from_preset(
-        DOMAIN, db_path=resolved, graph_store=store, profile=_cli_profile()
+        DOMAIN,  graph_store=store, profile=_cli_profile()
     )
 
 
@@ -158,6 +160,20 @@ def _shape_payload() -> dict[str, Any]:
         "actions": list(ACTION_NAMES),
         "factors": list(FACTOR_NAMES),
     }
+
+
+def _backup_decision(row: dict[str, Any]) -> dict[str, Any]:
+    """Project graph metadata into the existing portable backup schema."""
+    result = dict(row)
+    metadata = row.get("metadata") or {}
+    for field in ("category_index", "recommended_index", "probabilities", "factor_vector", "created_at"):
+        if result.get(field) is None and field in metadata:
+            result[field] = metadata[field]
+    outcome_metadata = row.get("outcome_metadata") or {}
+    for field in ("actual_index", "verified_at", "context"):
+        if result.get(field) is None and field in outcome_metadata:
+            result[field] = outcome_metadata[field]
+    return result
 
 
 def _validate_backup_payload(payload: Any) -> dict[str, Any]:
@@ -288,15 +304,15 @@ def _int_in_range(value: Any, field: str, upper_bound: int) -> int:
 @click.option(
     "--db-path",
     type=click.Path(dir_okay=False, path_type=Path),
-    default=DEFAULT_DB_PATH,
-    show_default=True,
-    help="SQLite scorer state path.",
+    default=None,
+    help="Retired option; configure the AGE graph instead.",
 )
 @click.pass_context
-def cli(ctx: click.Context, db_path: Path) -> None:
-    """Purchasing Copilot offline commands."""
-
-    ctx.obj = {"db_path": db_path.expanduser()}
+def cli(ctx: click.Context, db_path: Path | None) -> None:
+    """Purchasing commands using the configured persistent AGE graph."""
+    if db_path is not None:
+        raise click.ClickException("--db-path is retired. Configure the AGE graph instead.")
+    ctx.obj = {"db_path": None}
 
 
 @cli.command()
@@ -416,7 +432,7 @@ def backup(ctx: click.Context, output: Path | None) -> None:
 
     db_path = ctx.obj["db_path"]
     if output is None:
-        backup_dir = db_path.expanduser().parent / "backup"
+        backup_dir = Path.cwd() / "backup"
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         output = backup_dir / f"purchasing-backup-{timestamp}.json"
     output = output.expanduser()
@@ -424,8 +440,8 @@ def backup(ctx: click.Context, output: Path | None) -> None:
 
     store = _store(db_path)
     try:
-        decisions = store.get_all_decisions(DOMAIN)
-        verified = store.get_verified_decisions(DOMAIN)
+        decisions = [_backup_decision(row) for row in store.get_all_decisions(DOMAIN)]
+        verified = [_backup_decision(row) for row in store.get_verified_decisions(DOMAIN)]
         checkpoints = store.get_centroid_checkpoints(DOMAIN, limit=None)
     finally:
         store.close()
@@ -519,7 +535,7 @@ def main(args: list[str] | None = None) -> int:
         cli.main(args=args, standalone_mode=False)
     except click.ClickException as exc:
         exc.show()
-        return exc.exit_code
+        return cast(int, exc.exit_code)
     except click.Abort:
         return 1
     return 0

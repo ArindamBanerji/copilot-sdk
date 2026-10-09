@@ -4,6 +4,7 @@ import sys
 import os
 import importlib.util
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -28,26 +29,27 @@ def _test_profile_for_preseed_scorers(monkeypatch):
     monkeypatch.setattr(CompoundingScorer, "from_preset", from_preset)
 
 
-@pytest.fixture
-def preseed_result(tmp_path_factory, monkeypatch):
+@pytest.fixture(scope="session")
+def _shared_preseed_result(tmp_path_factory):
+    # Seed once under a temporary environment, restored before any test runs.
     original = CompoundingScorer.from_preset
 
     def from_preset(*args, **kwargs):
         kwargs.setdefault("profile", "test")
         return original(*args, **kwargs)
 
-    monkeypatch.setattr(CompoundingScorer, "from_preset", from_preset)
-    previous_path = os.environ.get("TRADING_EVOLUTION_LOG_PATH")
-    os.environ["TRADING_EVOLUTION_LOG_PATH"] = str(
-        tmp_path_factory.mktemp("preseed") / "evolution_log.json"
-    )
-    try:
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setenv("COPILOT_PRESEED_MODE", "true")
+        for domain in ("TRADING", "PURCHASING", "DATAOPS", "S2P", "SOC"):
+            patch.setenv(f"{domain}_PROFILE", "test")
+        patch.setattr(CompoundingScorer, "from_preset", from_preset)
         return DemoPreseed(seed=20260711).preseed_all()
-    finally:
-        if previous_path is None:
-            os.environ.pop("TRADING_EVOLUTION_LOG_PATH", None)
-        else:
-            os.environ["TRADING_EVOLUTION_LOG_PATH"] = previous_path
+
+
+@pytest.fixture
+def preseed_result(_shared_preseed_result):
+    # Consumers get independent data, never a shared mutable scorer/result.
+    return deepcopy(_shared_preseed_result)
 
 
 def test_preseed_deterministic() -> None:
@@ -64,6 +66,33 @@ def test_preseed_deterministic() -> None:
 def test_preseed_nonflat_iks(preseed_result) -> None:
     assert {name: copilot.iks for name, copilot in preseed_result.copilots.items()}
     assert all(copilot.iks > MIN_DEMO_IKS for copilot in preseed_result.copilots.values())
+
+
+def test_preseed_conservation_from_live_state(monkeypatch) -> None:
+    preseed = DemoPreseed(seed=20260711, fast_mode=True)
+    result = preseed.preseed_all()
+    for name, copilot in result.copilots.items():
+        state = preseed._scorers[name].get_conservation_state()
+        status = state.get("status") or state.get("state")
+        assert status == copilot.conservation
+        assert copilot.headline_metrics["conservation"]["value"] == status
+        assert isinstance(status, str) and status
+
+
+def test_preseed_verify_uses_live_conservation(monkeypatch) -> None:
+    preseed = DemoPreseed(seed=20260711, fast_mode=True)
+    result = preseed.preseed_all()
+    scorer = preseed._scorers["trading"]
+    calls = []
+
+    def changed_state():
+        calls.append(True)
+        return {"status": "changed", "passed": False}
+
+    monkeypatch.setattr(scorer, "get_conservation_state", changed_state)
+    with pytest.raises(ValueError, match="conservation changed during verification"):
+        preseed.verify(result)
+    assert calls
 
 
 def test_preseed_pending_items(preseed_result) -> None:
@@ -90,6 +119,13 @@ def test_preseed_cross_copilot_signal(preseed_result) -> None:
     assert signal["event_type"] == "supplier_reliability_signal"
     assert signal["payload"]["provenance"] == "signal"
     assert signal["banner"]["supplier"] == signal["payload"]["supplier_name"]
+
+
+def test_preseed_result_copy_isolates_nested_mutation(preseed_result, _shared_preseed_result) -> None:
+    baseline = _shared_preseed_result.stable_json()
+    preseed_result.cross_copilot_signal["payload"]["supplier_name"] = "mutated"
+    preseed_result.copilots.clear()
+    assert _shared_preseed_result.stable_json() == baseline
 
 
 def test_connector_freeze(tmp_path, monkeypatch) -> None:

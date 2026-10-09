@@ -10,11 +10,12 @@ from typing import Any
 import numpy as np
 import pytest
 
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.testing.fixtures import age_available
 
 
 DOMAIN = "jm_conformance"
-STORE_NAMES = ("memory", "sqlite") + (("age",) if os.environ.get("GRAPH_DSN") else ())
+STORE_NAMES = ("memory",) + (("age",) if os.environ.get("GRAPH_DSN") else ())
 
 
 def _age_store() -> tuple[Any, Any, str]:
@@ -22,7 +23,7 @@ def _age_store() -> tuple[Any, Any, str]:
     ci_platform = Path(__file__).resolve().parents[2] / "ci-platform"
     sys.path.insert(0, str(ci_platform))
     psycopg = importlib.import_module("psycopg")
-    connection = psycopg.connect(dsn, autocommit=True)
+    connection = psycopg.connect(dsn, autocommit=True, connect_timeout=5)
     graph_name = f"jm_conformance_{os.urandom(5).hex()}"
     try:
         connection.execute("LOAD 'age'")
@@ -37,17 +38,13 @@ def _age_store() -> tuple[Any, Any, str]:
 
 
 @pytest.fixture(params=STORE_NAMES)
-def store(request: pytest.FixtureRequest, tmp_path: Path) -> Any:
+def store(request: pytest.FixtureRequest) -> Any:
     if request.param == "memory":
         yield InMemoryGraphStore(domain=DOMAIN)
         return
-    if request.param == "sqlite":
-        instance = SQLiteGraphStore(str(tmp_path / "conformance.sqlite"), domain=DOMAIN)
-        try:
-            yield instance
-        finally:
-            instance.close()
-        return
+
+    if not age_available():
+        pytest.skip("disposable AGE graph unavailable")
 
     try:
         instance, connection, graph_name = _age_store()

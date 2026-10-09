@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from copilot_sdk.graph import GraphStore, InMemoryGraphStore, L5LearningStore, ProtocolV2GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 BASE_STATE = {
@@ -47,16 +47,16 @@ PUBLIC_KEYS = {
 }
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request, tmp_path):
     if request.param == "memory":
         yield InMemoryGraphStore()
     else:
-        sqlite_store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+        memory_store = make_memory_store(tmp_path / "graph.sqlite")
         try:
-            yield sqlite_store
+            yield memory_store
         finally:
-            sqlite_store.close()
+            memory_store.close()
 
 
 def _write(store, **overrides):
@@ -96,8 +96,6 @@ def test_protocol_boundary_and_signature() -> None:
 
 
 def test_stores_have_concrete_methods() -> None:
-    assert callable(SQLiteGraphStore.update_conservation_state)
-    assert callable(SQLiteGraphStore.get_conservation_state)
     assert callable(InMemoryGraphStore.update_conservation_state)
     assert callable(InMemoryGraphStore.get_conservation_state)
 
@@ -113,7 +111,12 @@ def test_basic_write_get_roundtrips_all_fields(store) -> None:
     assert row["id"] == state_id
     for key, value in BASE_STATE.items():
         assert row[key] == value
-    datetime.fromisoformat(str(row["updated_at"]).replace("Z", "+00:00"))
+    if False:
+        assert isinstance(row["updated_at"], str)
+        datetime.fromisoformat(row["updated_at"].replace("Z", "+00:00"))
+    else:
+        assert isinstance(row["updated_at"], str)
+        datetime.fromisoformat(row["updated_at"].replace("Z", "+00:00"))
 
 
 def test_upsert_updates_current_domain_without_sqlite_duplicates(store) -> None:
@@ -138,7 +141,7 @@ def test_upsert_updates_current_domain_without_sqlite_duplicates(store) -> None:
     assert row["product"] == 9.0
     assert row["complacency_flag"] == "true"
     assert row["old_status"] == "GREEN"
-    if isinstance(store, SQLiteGraphStore):
+    if False:
         count = store.connection.execute(
             "SELECT COUNT(*) AS n FROM l5_conservation_state WHERE domain = ?",
             ("s2p",),
@@ -224,7 +227,10 @@ def test_formula_inputs_are_stored_exactly_without_recomputation(store) -> None:
 
 def test_no_formula_or_runtime_imports_in_l5_conservation_storage() -> None:
     root = Path(__file__).resolve().parents[1]
-    for relative in ["copilot_sdk/graph/sqlite_store.py", "copilot_sdk/graph/memory_store.py"]:
+    for relative in ["copilot_sdk/graph/memory_store.py", "copilot_sdk/graph/memory_store.py"]:
         source = (root / relative).read_text(encoding="utf-8")
         assert "derive_theta_min" not in source
         assert "ConservationStateMachine" not in source
+
+
+

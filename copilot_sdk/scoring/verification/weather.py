@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import threading
-import time
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -34,12 +32,6 @@ _FORECAST_URL = (
     "?latitude=40.7128&longitude=-74.0060"
     "&current=temperature_2m,precipitation,wind_speed_10m"
 )
-_LIVE_CACHE: dict[str, tuple[float, WeatherForecast]] = {}
-_LIVE_CACHE_LOCK = threading.Lock()
-_LIVE_TTL_SECONDS = 300.0
-_FALLBACK_TTL_SECONDS = 15.0
-
-
 def get_weather_factor(
     zip_code: str = "10001",
     date=None,
@@ -51,18 +43,7 @@ def get_weather_factor(
         return frozen
     if not use_live:
         return _WEATHER_CACHE.get(zip_code, _WEATHER_CACHE["overcast"])
-    # Forecasts are external context, not learning authority. Coalesce refreshes
-    # so simultaneous dashboard/weather requests cannot stampede the provider.
-    with _LIVE_CACHE_LOCK:
-        cached = _LIVE_CACHE.get(zip_code)
-        if cached is not None and time.monotonic() < cached[0]:
-            return cached[1]
-        forecast = _fetch_live_weather(zip_code)
-        ttl = _LIVE_TTL_SECONDS if forecast.source == "live" else _FALLBACK_TTL_SECONDS
-        if len(_LIVE_CACHE) >= 128 and zip_code not in _LIVE_CACHE:
-            _LIVE_CACHE.pop(next(iter(_LIVE_CACHE)))
-        _LIVE_CACHE[zip_code] = (time.monotonic() + ttl, forecast)
-        return forecast
+    return _fetch_live_weather(zip_code)
 
 
 def _frozen_weather() -> WeatherForecast | None:

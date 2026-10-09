@@ -11,9 +11,10 @@ from copilot_sdk.config.graph_config import GraphConfig, GraphConfigError, Graph
 from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.production import (
-    GraphStoreWrapper, _probe_client_identity, validate_production_store,
+    GraphStoreWrapper, _probe_client_identity, is_production_ready_store,
+    validate_production_store,
 )
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.graph.tenant_store import TenantScopedGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
@@ -32,7 +33,7 @@ def config(monkeypatch, tmp_path):
     return GraphConfig.load("trading", profile="production")
 
 
-@pytest.mark.parametrize("backend", ["sqlite", "memory", "dual_write"])
+@pytest.mark.parametrize("backend", ["sqlite", "memory", "unsupported_backend"])
 def test_g042_production_factory_rejects_explicit_local_primary(config, backend, tmp_path):
     path = tmp_path / "must-not-exist.db"
     with pytest.raises(GraphConfigError):
@@ -43,7 +44,12 @@ def test_g042_production_factory_rejects_explicit_local_primary(config, backend,
 @pytest.mark.parametrize("profile", ["test", "offline", "development"])
 @pytest.mark.parametrize("backend", ["sqlite", "memory"])
 def test_g042_explicit_local_profiles_work(config, profile, backend, tmp_path):
-    store = create_graph_store(backend=backend, domain="trading", profile=profile, db_path=tmp_path / "test.db")
+    if backend == "sqlite":
+        with pytest.raises(GraphConfigError, match="invalid graph backend"):
+            create_graph_store(backend=backend, domain="trading", profile=profile, db_path=tmp_path / "test.db")
+        assert not (tmp_path / "test.db").exists()
+        return
+    store = create_graph_store(backend=backend, domain="trading", profile=profile)
     try:
         assert store.domain == "trading"
     finally:
@@ -73,9 +79,9 @@ def test_g042_profile_is_explicit_not_inferred(config, monkeypatch):
         GraphConfig.load("trading", profile="typo")
 
 
-@pytest.mark.parametrize("kind", ["sqlite", "memory", "tenant", "declared", "unknown", "fake_age", "dual"])
+@pytest.mark.parametrize("kind", ["memory", "tenant", "declared", "unknown", "fake_age"])
 def test_g042_scorer_checks_actual_primary_before_reads(config, kind):
-    local = SQLiteGraphStore(":memory:", domain="trading") if kind == "sqlite" else InMemoryGraphStore(domain="trading")
+    local = InMemoryGraphStore(domain="trading")
 
     class Declared(GraphStoreWrapper):
         domain = "trading"
@@ -95,16 +101,6 @@ def test_g042_scorer_checks_actual_primary_before_reads(config, kind):
         store = TenantScopedGraphStore(local)
     elif kind == "declared":
         store = Declared()
-    elif kind == "dual":
-        from copilot_sdk.graph.dual_write_store import DualWriteStore
-
-        # No outbox construction is needed to prove a wrapper cannot make its
-        # SQLite primary into an AGE primary.
-        dual = object.__new__(DualWriteStore)
-        dual.primary = local
-        dual.secondary = Unknown()
-        dual.domain = "trading"
-        store = TenantScopedGraphStore(dual)
     elif kind in {"unknown", "fake_age"}:
         store = Unknown()
     try:
@@ -116,7 +112,7 @@ def test_g042_scorer_checks_actual_primary_before_reads(config, kind):
 
 def test_g042_config_overrides_cannot_bypass_validation(config):
     for kwargs in ({"backend": "sqlite"}, {"profile": "test"}, {"domain": "s2p"}, {"dsn": "other"}, {"test_mode": True}):
-        with pytest.raises(GraphConfigError, match="conflicts"):
+        with pytest.raises(GraphConfigError, match="invalid graph backend" if kwargs.get("backend") == "sqlite" else "conflicts"):
             create_graph_store(config=config, **kwargs)
 
 
@@ -135,8 +131,8 @@ def test_g043_load_has_winning_key_provenance_without_mutation(config, monkeypat
 
 def test_g043_mapping_load_does_not_read_or_change_process_settings(config):
     before = dict(os.environ)
-    loaded = GraphConfig.load("dataops", profile="test", env={"GRAPH_BACKEND": "sqlite"})
-    assert loaded.backend == "sqlite"
+    loaded = GraphConfig.load("dataops", profile="test", env={"GRAPH_BACKEND": "memory"})
+    assert loaded.backend == "memory"
     assert dict(loaded.source_keys)["backend"] == "GRAPH_BACKEND"
     assert dict(os.environ) == before
 
@@ -196,6 +192,12 @@ def test_g043_probe_is_read_only_redacted_and_checks_graph_oid(config):
 def test_g042_age_adapter_binding_rechecks_injected_destination(config, monkeypatch):
     from ci_platform.graph.age_sdk_adapter import AGEGraphStoreAdapter
 
+    monkeypatch.setattr(
+        AGEGraphStoreAdapter,
+        "production_ready",
+        property(lambda self: True),
+        raising=False,
+    )
     canonical = GraphIdentity("same-db", "soc_graph", 42)
     monkeypatch.setattr("copilot_sdk.graph.production._probe_client_identity", lambda client: canonical)
     store = create_graph_store(config=config)
@@ -214,3 +216,25 @@ def test_g042_age_adapter_binding_rechecks_injected_destination(config, monkeypa
             wrong.close()
     finally:
         store.close()
+
+
+def test_production_readiness_accepts_protocol_stub():
+    class ReadyStoreStub:
+        @property
+        def production_ready(self) -> bool:
+            return True
+
+    assert is_production_ready_store(ReadyStoreStub()) is True
+
+
+def test_production_readiness_rejects_in_memory_store():
+    assert is_production_ready_store(InMemoryGraphStore(domain="trading")) is False
+
+
+def test_production_readiness_rejects_unknown_store():
+    class UnknownStore:
+        pass
+
+    assert is_production_ready_store(UnknownStore()) is False
+
+

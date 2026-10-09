@@ -13,13 +13,13 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
 
-from copilot_sdk.backend.signal_store import (
+from copilot_sdk.backend.graph_signals import (
     EVICTION_BATCH as EVICTION_BATCH,
     MAX_SIGNALS as MAX_SIGNALS,
     SIGNAL_TTL as SIGNAL_TTL,
-    SQLiteSignalStore,
+    GraphSignalEvents,
 )
-from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.graph.protocol import GraphStore
 
 
 class CrossCopilotSignal(BaseModel):
@@ -56,19 +56,16 @@ class CrossCopilotSignal(BaseModel):
 
 
 def create_cross_signal_router(
-    store: Any | None = None, *, profile: str | None = None,
+    graph_store: GraphStore,
 ) -> APIRouter:
-    """Create signal routes; production requires an injected graph-backed store."""
+    """Create signal routes over the application's configured graph."""
 
     router = APIRouter(tags=["platform"])
-    active_profile = resolve_profile(profile, domain="")
-    signal_store = store if store is not None else SQLiteSignalStore(
-        profile=active_profile if profile is not None else None
-    )
+    signals = GraphSignalEvents(graph_store)
 
     @router.post("/platform/cross-signals", status_code=201)
     def publish_signal(signal: CrossCopilotSignal) -> dict[str, Any]:
-        signal_id = signal_store.publish(signal.model_dump(mode="json"))
+        signal_id = signals.publish(signal.model_dump(mode="json"))
         return {
             "signal_id": signal_id,
             "status": "published",
@@ -82,7 +79,7 @@ def create_cross_signal_router(
         offset: int = Query(default=0, ge=0),
         source_copilot: str | None = Query(default=None),
     ) -> dict[str, Any]:
-        active, count = signal_store.page(limit, offset, source_copilot, target_copilot)
+        active, count = signals.page(limit, offset, source_copilot, target_copilot)
         return {
             "signals": active,
             "count": count,
@@ -93,7 +90,7 @@ def create_cross_signal_router(
 
     @router.get("/platform/cross-signals/{signal_id}")
     def get_signal(signal_id: str) -> dict[str, Any]:
-        record = signal_store.get(signal_id)
+        record = signals.get(signal_id)
         if record is None:
             raise HTTPException(status_code=404, detail="Signal not found")
         return {

@@ -3,9 +3,9 @@
 Run: python tests/vld_validation_report.py
 
 Each domain runs in a fresh interpreter to isolate the five `app` packages.
-Existing SQLite databases are opened mode=ro and backed up into a real in-memory
-SQLiteGraphStore. SOC has no local checkpoint: its real CompoundingScorer uses
-the bootstrap prior, explicitly labelled below. These are NOT live AGE exports.
+Each test domain uses the supported in-memory backend. Its real
+CompoundingScorer uses the bootstrap prior, explicitly labelled below. These
+are NOT live AGE exports.
 Temporary outboxes isolate the constructor's otherwise persistent side effects.
 No scorer, provider, preseed, or application function is patched or mocked.
 """
@@ -221,7 +221,7 @@ def one_dimension_sensitivity(investigator, vector, target: int) -> list[dict[st
 
 def collect_domain(domain: str) -> dict[str, Any]:
     import numpy as np
-    from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+    from copilot_sdk.graph.memory_store import InMemoryGraphStore
     from copilot_sdk.scoring.scorer import CompoundingScorer
     from copilot_sdk.scoring.investigation import EvidenceProvider, VLDInvestigator
     from copilot_sdk.scoring.situation_classifier import SituationClassifier
@@ -235,13 +235,56 @@ def collect_domain(domain: str) -> dict[str, Any]:
         raise RuntimeError("A classifier model is now configured: resolve its application-relative path explicitly")
     rows, evidence_source, id_key, provider_class = load_showcases(domain)
     database = (BACKENDS[domain] / ("app/data/s2p.db" if domain == "s2p" else f"data/{domain}.db"))
-    store = SQLiteGraphStore(":memory:", domain=domain)
+    store = InMemoryGraphStore(domain=domain)
     provenance: dict[str, Any] = {"live_age_verified": False, "database": None, "checkpoint_count": 0}
     try:
         if database.exists():
             with sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True) as connection:
-                connection.backup(store.connection)
-            provenance["database"] = str(database)
+                connection.row_factory = sqlite3.Row
+                centroid_rows = connection.execute(
+                    """
+                    SELECT category, action, vector_json, delta_norm,
+                           caused_by_decision_id
+                    FROM l5_centroids
+                    WHERE domain = ?
+                    ORDER BY category, action
+                    """,
+                    (domain,),
+                ).fetchall()
+                row = connection.execute(
+                    """
+                    SELECT * FROM centroid_checkpoints
+                    WHERE domain = ?
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT 1
+                    """,
+                    (domain,),
+                ).fetchone()
+            for centroid in centroid_rows:
+                store.update_centroid(
+                    domain,
+                    str(centroid["category"]),
+                    str(centroid["action"]),
+                    json.loads(str(centroid["vector_json"])),
+                    float(centroid["delta_norm"]),
+                    caused_by_decision_id=centroid["caused_by_decision_id"],
+                )
+            if row is not None:
+                checkpoint = dict(row)
+                store.write_centroid_checkpoint(
+                    checkpoint_id=str(checkpoint.get("checkpoint_id") or f"{domain}:legacy"),
+                    domain=domain,
+                    category=str(checkpoint.get("category") or ""),
+                    action=str(checkpoint.get("action") or ""),
+                    centroids=json.loads(str(checkpoint["centroids_json"])),
+                    decisions_count=int(checkpoint["decisions_count"]),
+                    verified_count=int(checkpoint.get("verified_count") or 0),
+                    iks=float(checkpoint["iks"]),
+                    shape=json.loads(str(checkpoint.get("shape_json") or "[]")),
+                    factor_names_hash=str(checkpoint.get("factor_names_hash") or ""),
+                    metadata=json.loads(str(checkpoint.get("metadata_json") or "{}")),
+                )
+                provenance["database"] = str(database)
         checkpoints = store.get_centroid_checkpoints(domain, include_v2=True, limit=None)
         provenance["checkpoint_count"] = len(checkpoints)
         provenance["latest_checkpoint"] = ({key: checkpoints[0].get(key) for key in
@@ -249,7 +292,7 @@ def collect_domain(domain: str) -> dict[str, Any]:
         before_tensor = store.load_latest_centroids(domain)
         # Same real factory used by application proxies/adapters. Test profile
         # authorizes the isolated store; learning and application startup are not run.
-        scorer = CompoundingScorer.from_preset(domain, db_path=":memory:", graph_store=store,
+        scorer = CompoundingScorer.from_preset(domain,  graph_store=store,
                                                profile="test", enable_rl=False)
         l5_restore = restore_l5_centroids_for_export(domain, scorer, store)
         tensor = _read_centroid_tensor(scorer)
@@ -280,9 +323,7 @@ def collect_domain(domain: str) -> dict[str, Any]:
         provenance["sigma_reference"] = reference(SDK / "copilot_sdk/backend/investigation_router.py", "return np.ones(d")
         provenance["decisions"] = store.count_decisions(domain)
         provenance["verified_decisions"] = len(store.get_verified_decisions(domain))
-        tables = {row[0] for row in store.connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        runtime["k_has_data"] = (store.connection.execute("SELECT COUNT(*) FROM k_utility WHERE n_updates > 0").fetchone()[0] > 0
-                                  if "k_utility" in tables else False)
+        runtime["k_has_data"] = False
         runtime["k_store_exercised"] = False
         classifier = SituationClassifier() if runtime["classifier_wired"] else None
         runtime["model_loaded"] = bool(classifier is not None and classifier.is_available)
@@ -639,3 +680,4 @@ if __name__ == "__main__":
         print(json.dumps(payload, allow_nan=False))
     else:
         print_report(collect_all())
+

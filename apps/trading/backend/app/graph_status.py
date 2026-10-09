@@ -9,6 +9,7 @@ import re
 
 from fastapi import APIRouter, Request
 
+from copilot_sdk.backend.health_builder import _backend, _primary_store
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph
 from copilot_sdk.config.graph_config import resolve_profile
 from copilot_sdk.graph.production import GraphStoreWrapper, validate_production_store
@@ -74,7 +75,7 @@ _GRAPH_CONFIG_ENV_KEYS = (
     "GRAPH_DOMAIN", "TRADING_ACTIVE_GRAPH_BACKEND", "TRADING_ACTIVE_AGE_DSN",
     "TRADING_ACTIVE_AGE_GRAPH", "TRADING_ACTIVE_AGE_DOMAIN",
     "TRADING_ACTIVE_AGE_TEST_MODE", "TRADING_SHADOW_AGE",
-    "CI_ALLOW_SQLITE_FALLBACK",
+
 )
 
 
@@ -84,8 +85,17 @@ def _load_trading_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
     if env is None:
         return GraphConfig.load(DOMAIN, profile=profile)
     overrides: dict[str, Any] = {}
-    if profile != "production" and "TRADING_ACTIVE_GRAPH_BACKEND" not in env:
-        overrides["backend"] = "sqlite"
+    if (
+        profile != "production"
+        and "TRADING_ACTIVE_GRAPH_BACKEND" not in env
+        and "GRAPH_BACKEND" not in env
+    ):
+        raw, _ = GraphConfig._read_file(DOMAIN, env=env)
+        configured_backend = raw.get("copilot", {}).get(DOMAIN, {}).get(
+            "backend", raw.get("defaults", {}).get("backend"),
+        )
+        if configured_backend is None:
+            overrides["backend"] = "memory"
     if env.get("TRADING_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
         for field in ("DSN", "GRAPH"):
             key = f"TRADING_ACTIVE_AGE_{field}"
@@ -97,7 +107,7 @@ def _load_trading_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
 
 @dataclass(frozen=True)
 class TradingActiveGraphConfig:
-    requested_backend: str = "sqlite"
+    requested_backend: str = "memory"
     dsn: str | None = None
     graph: str | None = None
     domain: str = DOMAIN
@@ -114,8 +124,7 @@ class TradingActiveGraphConfig:
             message = str(exc)
             if message.startswith("invalid backend"):
                 message = (
-                    "TRADING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'; "
-                    "'dual_write' is also supported"
+                    "TRADING_ACTIVE_GRAPH_BACKEND must be 'memory' or 'age'"
                 )
             raise TradingActiveGraphConfigError(message) from exc
         config = cls(
@@ -133,12 +142,11 @@ class TradingActiveGraphConfig:
         return config
 
     def validate(self, source: Mapping[str, str] | None = None) -> None:
-        if self.requested_backend not in {"sqlite", "age", "dual_write"}:
+        if self.requested_backend not in {"memory", "age"}:
             raise TradingActiveGraphConfigError(
-                "TRADING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'; "
-                "'dual_write' is also supported"
+                "TRADING_ACTIVE_GRAPH_BACKEND must be 'memory' or 'age'"
             )
-        if self.requested_backend == "sqlite":
+        if self.requested_backend == "memory":
             return
 
         source = source or {}
@@ -185,7 +193,7 @@ class TradingActiveGraphConfig:
             )
 
     def graph_kind(self) -> str:
-        if self.requested_backend not in {"age", "dual_write"} or not self.graph:
+        if self.requested_backend != "age" or not self.graph:
             return "none"
         return "test" if self.graph.strip().startswith("protocol_v2_test") else "product"
 
@@ -308,8 +316,25 @@ def create_trading_active_graph_store(
     *,
     store_factory: Any | None = None,
 ) -> Any | None:
-    if config.requested_backend not in {"age", "dual_write"}:
-        return None
+    config.validate()
+    if config.requested_backend == "memory":
+        profile = resolve_profile(domain=DOMAIN)
+        try:
+            require_shared_graph(
+                backend="memory", graph=config.graph, domain=DOMAIN, profile=profile,
+            )
+        except GraphConfigError as exc:
+            raise TradingActiveGraphConfigError(str(exc)) from exc
+        from copilot_sdk.graph.factory import create_graph_store
+
+        factory = store_factory or create_graph_store
+        memory_args: dict[str, Any] = {
+            "backend": "memory", "domain": DOMAIN, "profile": profile, "env": {},
+            "decision_id_prefix": "TRD-",
+        }
+        store = factory(**memory_args)
+        setattr(store, "penalty_ratio", TradingPreset().penalty_ratio)
+        return store
     if _parse_bool(os.environ.get("TRADING_SHADOW_AGE"), default=False):
         raise TradingActiveGraphConfigError("TRADING_SHADOW_AGE=1 conflicts with active AGE")
     config.validate({"TRADING_ACTIVE_GRAPH_BACKEND": config.requested_backend})
@@ -369,13 +394,9 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
     if not isinstance(config, TradingActiveGraphConfig):
         config = TradingActiveGraphConfig.from_env({})
     active_store = getattr(app_state, "trading_selected_graph_store", None)
-    active_backend = (
-        active_store.active_backend
-        if isinstance(active_store, TradingActiveAGEGraphStore)
-        else "sqlite"
-    )
+    active_backend = _backend(_primary_store(active_store))
     age_active = active_backend == "age"
-    requested_age = config.requested_backend in {"age", "dual_write"}
+    requested_age = config.requested_backend == "age"
     graph_kind = config.graph_kind()
     product_graph_allowed = (
         None
@@ -392,12 +413,12 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
     return {
         "active_backend": active_backend,
         "requested_backend": config.requested_backend,
-        "sqlite_authoritative": not age_active,
+        "memory_authoritative": active_backend == "memory",
         "age_active": age_active,
         "shadow_enabled": False,
         "shadow_allowed": not requested_age,
         "active_graph_name": config.graph if requested_age else None,
-        "graph_kind": "sqlite" if not requested_age else graph_kind,
+        "graph_kind": graph_kind if requested_age else active_backend,
         "active_domain": config.domain,
         "active_test_mode": config.test_mode,
         "ignored_generic_graph_env": config.ignored_generic_graph_env,
@@ -408,9 +429,9 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
         "evidence_receipt_mapping_status": "design_required",
         "historical_visibility_warning": HISTORICAL_VISIBILITY_WARNING,
         "rollback_instructions": [
-            "Unset TRADING_ACTIVE_GRAPH_BACKEND or set it to sqlite.",
+            "Keep production on AGE; restore connectivity or revert the application release.",
             "Restart Trading.",
-            "Rollback routes new writes to SQLite; it does not reconcile AGE data.",
+            "For disposable development only, select memory with an explicit test/offline profile.",
         ],
         "cutover_ready": bool(age_active and graph_kind == "test"),
         "new_decision_outcome_writes_ready": bool(age_active and graph_kind == "test"),
@@ -420,13 +441,14 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
         "warnings": [
             "Trading active AGE test mode is enabled for new Decision/Outcome writes."
             if age_active
-            else "Trading SQLite remains authoritative.",
+            else ("Trading uses disposable development memory."
+                  if active_backend == "memory" else "Trading graph store is unavailable or unrecognized."),
             "Historical SQLite migration/backfill is not in scope.",
             HISTORICAL_VISIBILITY_WARNING,
             "EvidenceReceipt mapping is excluded from first cutover.",
         ],
         "cutover_ready_flags": {
-            "backend_guard_valid": True,
+            "backend_guard_valid": active_backend == config.requested_backend and active_backend in {"memory", "age"},
             "graph_guard_valid": True,
             "test_mode_active": bool(age_active and graph_kind == "test"),
             "product_graph_allow_listed": bool(product_graph_allowed),
@@ -437,7 +459,10 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
             "active_age_writes_enabled": age_active,
             "product_claim_allowed": False,
         },
-        "last_error": None,
+        "last_error": (
+            "Requested AGE store is unavailable or not AGE-backed"
+            if requested_age and not age_active else None
+        ),
     }
 
 

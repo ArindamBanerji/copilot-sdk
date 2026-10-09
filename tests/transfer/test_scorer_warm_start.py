@@ -10,7 +10,6 @@ from copilot_sdk.transfer import SharedPatternRegistry, TransferPattern
 def _scorer(tmp_path) -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         "s2p",
-        db_path=str(tmp_path / "s2p.db"),
         profile="test",
         graph_store=InMemoryGraphStore(domain="s2p"),
     )
@@ -56,7 +55,7 @@ def test_warm_start_changes_active_centroid_state(tmp_path) -> None:
 
 def test_warm_start_category_mapping_works(tmp_path) -> None:
     scorer = _scorer(tmp_path)
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
     registry.register(_pattern(category="freshness_violation"))
 
     summary = scorer.warm_start(
@@ -72,7 +71,7 @@ def test_empty_registry_returns_zero_summary(tmp_path) -> None:
     scorer = _scorer(tmp_path)
     before = scorer.gae_scorer.centroids.copy()
 
-    summary = scorer.warm_start(SharedPatternRegistry())
+    summary = scorer.warm_start(SharedPatternRegistry(InMemoryGraphStore(), "test"))
 
     assert summary == {
         "applied": 0,

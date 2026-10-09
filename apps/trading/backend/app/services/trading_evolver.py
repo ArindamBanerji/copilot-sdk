@@ -505,6 +505,7 @@ class TradingAgentEvolver:
                 status = "pending"
             variants.append({
                 "variant_id": variant_id,
+                "provenance": str(variant.get("provenance") or "learned"),
                 "description": variant.get("description", ""),
                 "created_at": variant.get("created_at"),
                 "adjustments": dict(variant.get("adjustments") or {}),

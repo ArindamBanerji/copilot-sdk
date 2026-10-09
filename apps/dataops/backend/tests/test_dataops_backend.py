@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from fastapi.testclient import TestClient
+from copilot_sdk.graph.factory import create_graph_store
 from fastapi import FastAPI
 
 
@@ -51,11 +52,21 @@ def test_startup_seed_reports_partial_failure(tmp_path: Path, monkeypatch, capsy
     class Scorer:
         calls = 0
 
+        def __init__(self):
+            from copilot_sdk.scoring.presets.dataops import DataOpsPreset
+
+            self._preset = DataOpsPreset()
+
         def score(self, factors, category, metadata):
             self.calls += 1
             if self.calls == 2:
                 raise RuntimeError("seed write failed")
             return {"decision_id": "DOPS-SEED-1", "action": "investigate"}
+
+        def _learn_preseed(self, decision_id, actual_action, **kwargs):
+            assert decision_id == "DOPS-SEED-1"
+            assert actual_action == "investigate"
+            return {"status": "complete"}
 
     class Store:
         def write_outcome(self, *args, **kwargs):
@@ -66,6 +77,57 @@ def test_startup_seed_reports_partial_failure(tmp_path: Path, monkeypatch, capsy
     assert result["failed"] == 1
     assert result["total"] == 2
     assert "auto-seed skipped entry 1" in capsys.readouterr().out
+
+
+def _seed_dataops_fixture(tmp_path, monkeypatch):
+    from app import main
+    from copilot_sdk.graph import InMemoryGraphStore
+    from copilot_sdk.scoring.scorer import CompoundingScorer
+
+    store = InMemoryGraphStore(domain="dataops")
+    scorer = CompoundingScorer.from_preset(
+        "dataops", graph_store=store, profile="test", enable_rl=False
+    )
+    category = scorer._preset.shape.category_names[0]
+    factors = {name: 0.7 for name in scorer._preset.shape.factor_names}
+    fixture = tmp_path / "dataops_seed.json"
+    fixture.write_text(json.dumps([
+        {"category": category, "is_correct": label, "factors": factors}
+        for label in (True, False, False, True)
+    ]), encoding="utf-8")
+    monkeypatch.setattr(main, "SEED_FIXTURE_PATH", fixture)
+    return main, store, scorer
+
+
+def test_dataops_seed_uses_scorer_learn(tmp_path, monkeypatch):
+    main, store, scorer = _seed_dataops_fixture(tmp_path, monkeypatch)
+    calls = []
+    learn = scorer._learn_preseed
+
+    def tracked(*args, **kwargs):
+        calls.append(kwargs.copy())
+        return learn(*args, **kwargs)
+
+    monkeypatch.setattr(scorer, "_learn_preseed", tracked)
+    result = main._seed_from_fixtures(scorer, store)
+    assert result["outcomes_seeded"] == 4
+    assert len(calls) == 4
+    assert store.count_verified_decisions("dataops") == 4
+
+
+def test_dataops_seed_preserves_correct_incorrect_ratio(tmp_path, monkeypatch):
+    main, store, scorer = _seed_dataops_fixture(tmp_path, monkeypatch)
+    main._seed_from_fixtures(scorer, store)
+    verified = store.get_verified_decisions("dataops")
+    assert len(verified) == 4
+    assert sum(bool(row.get("is_correct")) for row in verified) == 2
+
+
+def test_dataops_seed_updates_centroids(tmp_path, monkeypatch):
+    main, store, scorer = _seed_dataops_fixture(tmp_path, monkeypatch)
+    before = scorer._scorer.centroids.copy()
+    main._seed_from_fixtures(scorer, store)
+    assert float(((scorer._scorer.centroids - before) ** 2).sum()) > 0.0
 
 
 def _score(client: TestClient) -> dict:
@@ -97,7 +159,7 @@ def test_health(client: TestClient) -> None:
     payload = response.json()
     assert payload["status"] == "error"
     assert payload["domain"] == "dataops"
-    assert payload["graph_backend"] == "sqlite"
+    assert payload["graph_backend"] == "memory"
     assert payload["graph_connected"] is True
     assert payload["ready"] is False
     assert payload["graph_source"] == "graph"
@@ -125,7 +187,7 @@ def test_api_health_returns_phase_alpha_and_engine(client: TestClient) -> None:
     root_payload["graph_status"].pop("checked_at")
     assert payload == root_payload
     assert payload["domain"] == "dataops"
-    assert payload["graph_backend"] == "sqlite"
+    assert payload["graph_backend"] == "memory"
     assert payload["graph_connected"] is True
     assert payload["ready"] is False
     assert "engine" in payload
@@ -157,29 +219,28 @@ def test_auto_seed_empty_db(tmp_path: Path) -> None:
         assert startup_client.get("/health").status_code == 503
 
     expected_verified, expected_correct = _fixture_outcome_counts(DATAOPS_SEED_PATH)
-    assert _count_decisions(db_path, "dataops") == 20
-    assert _count_verified(db_path, "dataops") == expected_verified
-    assert _count_correct(db_path, "dataops") == expected_correct
+    assert startup_client.app.state.graph_store.count_decisions("dataops") == 20
+    assert startup_client.app.state.graph_store.count_verified("dataops") == expected_verified
+    assert startup_client.app.state.graph_store.count_correct("dataops") == expected_correct
 
 
 def test_auto_seed_skips_populated(tmp_path: Path) -> None:
     from app.main import create_app
-    from copilot_sdk.graph import SQLiteGraphStore
 
     db_path = tmp_path / "dataops_populated.db"
-    store = SQLiteGraphStore(db_path, domain="dataops")
+    store = create_graph_store(backend="memory", domain="dataops", profile="test", env={})
     try:
         _save_proxy_decision(store, "existing")
     finally:
         store.close()
 
-    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False, active_store_factory=lambda **kwargs: store)) as startup_client:
         assert startup_client.get("/health").status_code == 503
 
-    assert _count_decisions(db_path, "dataops") == 1
+    assert startup_client.app.state.graph_store.count_decisions("dataops") == 1
 
 
-def test_ci_data_dir_creates_db(tmp_path: Path, monkeypatch) -> None:
+def test_ci_data_dir_keeps_graph_in_memory(tmp_path: Path, monkeypatch) -> None:
     from app.main import create_app
 
     data_dir = tmp_path / "ci-data"
@@ -188,12 +249,12 @@ def test_ci_data_dir_creates_db(tmp_path: Path, monkeypatch) -> None:
         assert startup_client.get("/health").status_code == 503
 
     db_path = data_dir / "dataops.db"
-    assert db_path.exists()
-    assert _count_decisions(db_path, "dataops") == 20
-    assert _count_verified(db_path, "dataops") == _fixture_outcome_counts(DATAOPS_SEED_PATH)[0]
+    assert not db_path.exists()
+    assert startup_client.app.state.graph_store.count_decisions("dataops") == 20
+    assert startup_client.app.state.graph_store.count_verified("dataops") == _fixture_outcome_counts(DATAOPS_SEED_PATH)[0]
 
 
-def test_explicit_db_path_wins(tmp_path: Path, monkeypatch) -> None:
+def test_local_db_path_does_not_select_graph_persistence(tmp_path: Path, monkeypatch) -> None:
     from app.main import create_app
 
     ci_dir = tmp_path / "ci-data"
@@ -203,12 +264,12 @@ def test_explicit_db_path_wins(tmp_path: Path, monkeypatch) -> None:
     with TestClient(create_app(db_path=explicit_db, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 503
 
-    assert explicit_db.exists()
+    assert not explicit_db.exists()
     assert not (ci_dir / "dataops.db").exists()
-    assert _count_decisions(explicit_db, "dataops") == 20
+    assert startup_client.app.state.graph_store.count_decisions("dataops") == 20
 
 
-def test_no_env_uses_explicit_fallback(tmp_path: Path, monkeypatch) -> None:
+def test_local_path_without_env_keeps_graph_in_memory(tmp_path: Path, monkeypatch) -> None:
     from app.main import create_app
 
     monkeypatch.delenv("CI_DATA_DIR", raising=False)
@@ -216,8 +277,8 @@ def test_no_env_uses_explicit_fallback(tmp_path: Path, monkeypatch) -> None:
     with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 503
 
-    assert db_path.exists()
-    assert _count_decisions(db_path, "dataops") == 20
+    assert not db_path.exists()
+    assert startup_client.app.state.graph_store.count_decisions("dataops") == 20
 
 
 def test_startup_records_l5_source_status(tmp_path: Path) -> None:
@@ -498,7 +559,7 @@ def test_ae_fresh_store_returns_empty_responses(tmp_path: Path) -> None:
 
 def test_dataops_audit_trail_uses_store_backed_recommendation(client: TestClient) -> None:
     client.app.state.graph_store.write_governed_decision(
-        decision_id="ALERT-TIRE-018",
+        decision_id="DOPS-ALERT-TIRE-018",
         domain="dataops",
         category="pipeline_failure",
         category_index=0,
@@ -511,7 +572,7 @@ def test_dataops_audit_trail_uses_store_backed_recommendation(client: TestClient
         source="test",
         metadata={"alert_id": "ALERT-TIRE-018", "recurrence_count": 8},
     )
-    payload = client.get("/api/context/audit-trail/ALERT-TIRE-018").json()
+    payload = client.get("/api/context/audit-trail/DOPS-ALERT-TIRE-018").json()
 
     ae_steps = [step for step in payload["chain"] if step.get("label") == "AE Recommendation"]
     assert ae_steps
@@ -859,7 +920,21 @@ def test_decisions_limit_applies_only_to_returned_rows(client: TestClient) -> No
     assert payload["summary"]["total_decisions"] == payload["total"]
 
 
+def _seed_accuracy_decision(client: TestClient) -> None:
+    store = cast(FastAPI, client.app).state.graph_store
+    decision_id = store.write_decision(
+        "dataops",
+        "pipeline_failure",
+        "investigate",
+        0.8,
+        {"impact_scope": 0.7},
+        metadata={"decision_id": "accuracy-live-1"},
+    )
+    store.write_outcome(decision_id, "investigate", True, domain="dataops")
+
+
 def test_accuracy_by_category_returns_all(client: TestClient) -> None:
+    _seed_accuracy_decision(client)
     response = client.get("/api/context/accuracy-by-category")
 
     assert response.status_code == 200
@@ -871,6 +946,7 @@ def test_accuracy_by_category_returns_all(client: TestClient) -> None:
 
 
 def test_accuracy_by_category_has_trend(client: TestClient) -> None:
+    _seed_accuracy_decision(client)
     payload = client.get("/api/context/accuracy-by-category").json()
 
     for category in payload["categories"].values():
@@ -1244,8 +1320,10 @@ def test_conservation_status_returns_live_counts(client: TestClient) -> None:
     assert payload["engine"]["gae"] == "gae.calibration"
 
 
-def test_in_memory_scoring_and_conservation_share_proxy_store(dataops_data_dir: Path) -> None:
+def test_in_memory_scoring_and_conservation_share_proxy_store(dataops_data_dir: Path, monkeypatch) -> None:
     from app.main import create_app
+
+    monkeypatch.setenv("DEMO_NO_RESEED", "1")
 
     with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as memory_client:
         score = _score(memory_client)
@@ -1463,35 +1541,6 @@ def _save_proxy_decision(store, decision_id: str) -> None:
         },
     )
 
-
-def _count_decisions(db_path: Path, domain: str) -> int:
-    from copilot_sdk.graph import SQLiteGraphStore
-
-    store = SQLiteGraphStore(db_path, domain=domain)
-    try:
-        return int(store.count_decisions(domain))
-    finally:
-        store.close()
-
-
-def _count_verified(db_path: Path, domain: str) -> int:
-    from copilot_sdk.graph import SQLiteGraphStore
-
-    store = SQLiteGraphStore(db_path, domain=domain)
-    try:
-        return int(store.count_verified(domain))
-    finally:
-        store.close()
-
-
-def _count_correct(db_path: Path, domain: str) -> int:
-    from copilot_sdk.graph import SQLiteGraphStore
-
-    store = SQLiteGraphStore(db_path, domain=domain)
-    try:
-        return int(store.count_correct(domain))
-    finally:
-        store.close()
 
 
 def _fixture_outcome_counts(path: Path) -> tuple[int, int]:

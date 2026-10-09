@@ -6,7 +6,8 @@ import time
 import hashlib
 import json
 import logging
-from pathlib import Path
+import math
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
@@ -17,13 +18,14 @@ from copilot_sdk.backend.transfer import (
     load_fingerprints_with_warnings,
 )
 from copilot_sdk.backend.models import FlexibleResponse, TransferDemoResponse, TransferListResponse
-from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.graph.protocol import GraphStore, L5LearningStore
 from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 from copilot_sdk.transfer import TransferPattern
 from copilot_sdk.transfer.category_mappings import get_mapping, list_available_transfers
 from copilot_sdk.transfer.registry import SharedPatternRegistry
 from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.state.cached_static import cached_static
+from gae.calibration import compute_theta_min
 
 
 log = logging.getLogger(__name__)
@@ -32,24 +34,25 @@ log = logging.getLogger(__name__)
 class TransferExecuteRequest(BaseModel):
     source_domain: str
     target_domain: str
+    source_artifact_ids: list[str]
     dry_run: bool = True
 
 
 class CrossCopilotTransferRequest(BaseModel):
     source_domain: str
     target_domain: str
+    source_artifact_ids: list[str]
 
 
 def create_transfer_router(
     scorer: Any,
     warm_start_info: dict[str, Any] | None = None,
-    fingerprint_base_path: Path | str | None = None,
     pattern_registry: SharedPatternRegistry | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/transfer", tags=["Transfer"])
 
     def _cache_domain() -> str:
-        if warm_start_info is not None or fingerprint_base_path is not None:
+        if warm_start_info is not None:
             return "__uncached__"
         return _own_domain(scorer)
 
@@ -62,12 +65,7 @@ def create_transfer_router(
     def transfer_opportunities(request: Request) -> dict[str, Any]:
         own_domain = _own_domain(scorer)
         graph_store = _graph_store(scorer)
-        fingerprints = {
-            str(item.get("domain")): dict(item)
-            for item in graph_store.list_fingerprints()
-            if isinstance(item, dict) and item.get("domain")
-        }
-        warnings: list[dict[str, str]] = []
+        fingerprints, warnings = load_fingerprints_with_warnings(graph_store=graph_store)
         own_fingerprint = fingerprints.get(own_domain)
         other_fingerprints = {
             domain: payload
@@ -130,18 +128,8 @@ def create_transfer_router(
             raise HTTPException(status_code=400, detail="Category mapping is empty")
 
         own_domain = _own_domain(scorer)
-        source_state = _source_conservation_state(scorer, source_domain)
-        if source_state != "GREEN":
-            return {
-                "executed": False,
-                "dry_run": bool(request.dry_run),
-                "source_domain": source_domain,
-                "target_domain": target_domain,
-                "categories_mapped": len(mapping),
-                "conservation_reset": False,
-                "reason": f"Source conservation must be GREEN, got {source_state}",
-            }
-
+        store = _graph_store(scorer)
+        source_artifact_ids = _normalize_source_artifact_ids(request.source_artifact_ids)
         patterns, provenance = _patterns_for_execute(
             scorer,
             source_domain,
@@ -149,6 +137,14 @@ def create_transfer_router(
             mapping,
             pattern_registry,
         )
+        if not patterns:
+            raise HTTPException(
+                status_code=422,
+                detail="No governed transfer patterns available. Register source artifacts first.",
+            )
+        _validate_source_artifacts(store, source_domain, source_artifact_ids)
+        source_conservation = _validate_conservation_threshold(store, source_domain)
+        target_conservation = _validate_conservation_threshold(store, target_domain)
 
         if request.dry_run:
             return {
@@ -170,6 +166,7 @@ def create_transfer_router(
             )
 
         summary = scorer.warm_start(patterns)
+        validation_timestamp = datetime.now(timezone.utc).isoformat()
         applied = int(summary.get("applied", 0)) if isinstance(summary, dict) else 0
         conservation_reset = False
         if applied > 0:
@@ -180,7 +177,12 @@ def create_transfer_router(
                 target_domain,
                 len(mapping),
                 applied,
-                provenance,
+                validation_timestamp=validation_timestamp,
+                transfer_provenance=provenance,
+                source_conservation_state=source_conservation,
+                target_conservation_state=target_conservation,
+                source_artifact_ids=source_artifact_ids,
+                mapping_details=mapping,
             )
         setattr(
             scorer,
@@ -287,21 +289,25 @@ def create_self_transfer_router(scorer: Any) -> APIRouter:
                 detail=f"No semantic transfer mapping for {source_domain} to {target_domain}",
             )
 
-        source_state = _source_conservation_state(scorer, source_domain)
-        target_state = _target_conservation_state(scorer, target_domain)
-        transfer_id = _transfer_id(source_domain, target_domain, mapping)
-        if source_state != "GREEN" or target_state != "GREEN":
-            return {
-                "status": "blocked",
-                "transfer_id": transfer_id,
-                "source_domain": source_domain,
-                "target_domain": target_domain,
-                "source_conservation": source_state,
-                "target_conservation": target_state,
-                "reason": "Transfer requires GREEN conservation for both copilots",
-            }
-
         store = _graph_store(scorer)
+        source_artifact_ids = _normalize_source_artifact_ids(request.source_artifact_ids)
+        patterns, provenance = _patterns_for_execute(
+            scorer,
+            source_domain,
+            target_domain,
+            mapping,
+            None,
+        )
+        if not patterns:
+            raise HTTPException(
+                status_code=422,
+                detail="No governed transfer patterns available. Register source artifacts first.",
+            )
+        _validate_source_artifacts(store, source_domain, source_artifact_ids)
+        source_conservation = _validate_conservation_threshold(store, source_domain)
+        target_conservation = _validate_conservation_threshold(store, target_domain)
+        transfer_id = _transfer_id(source_domain, target_domain, mapping)
+
         existing = [] if store is None else store.get_transfer_patterns(
             source_domain=source_domain,
             target_domain=target_domain,
@@ -315,15 +321,8 @@ def create_self_transfer_router(scorer: Any) -> APIRouter:
                 "patterns_applied": 0,
                 "reason": "transfer_already_recorded",
             }
-
-        patterns, provenance = _patterns_for_execute(
-            scorer,
-            source_domain,
-            target_domain,
-            mapping,
-            None,
-        )
         summary = scorer.warm_start(patterns)
+        validation_timestamp = datetime.now(timezone.utc).isoformat()
         applied = int(summary.get("applied", 0)) if isinstance(summary, dict) else 0
         if isinstance(summary, dict) and bool(summary.get("skipped")):
             return {
@@ -344,6 +343,20 @@ def create_self_transfer_router(scorer: Any) -> APIRouter:
                 "reason": "no_compatible_patterns",
             }
 
+        _log_transfer_event(
+            scorer,
+            source_domain,
+            target_domain,
+            len(mapping),
+            applied,
+            validation_timestamp=validation_timestamp,
+            transfer_provenance=provenance,
+            source_conservation_state=source_conservation,
+            target_conservation_state=target_conservation,
+            source_artifact_ids=source_artifact_ids,
+            mapping_details=mapping,
+        )
+
         store.write_transfer_pattern(
             pattern_id=transfer_id,
             source_domain=source_domain,
@@ -352,7 +365,7 @@ def create_self_transfer_router(scorer: Any) -> APIRouter:
             factor_mapping=mapping,
             confidence=float(summary.get("score", 0.0)) if isinstance(summary, dict) else 0.0,
             validation_status="validated",
-            conservation_status=target_state,
+            conservation_status=str(target_conservation["status"]),
             metadata={"provenance": provenance, "patterns_applied": applied},
         )
         return {
@@ -529,6 +542,73 @@ def _clean_domain(value: Any) -> str:
     return str(value or "").strip().lower()
 
 
+def _normalize_source_artifact_ids(values: list[str]) -> list[str]:
+    normalized = [str(value or "").strip() for value in values]
+    if not normalized or any(not value for value in normalized):
+        raise HTTPException(status_code=422, detail="source_artifact_ids must not be empty")
+    return list(dict.fromkeys(normalized))
+
+
+def _validate_source_artifacts(
+    store: Any,
+    source_domain: str,
+    source_artifact_ids: list[str],
+) -> None:
+    if not isinstance(store, GraphStore):
+        raise HTTPException(status_code=422, detail="Source governance store unavailable")
+    for artifact_id in source_artifact_ids:
+        if store.get_governance(source_domain, artifact_id) is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Source artifact {artifact_id} not found in governance store",
+            )
+
+
+def _validate_conservation_threshold(store: Any, domain: str) -> dict[str, Any]:
+    if not isinstance(store, L5LearningStore):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Conservation threshold not met for {domain}",
+        )
+    try:
+        state = store.get_conservation_state(domain)
+        if not isinstance(state, dict):
+            raise ValueError("conservation state unavailable")
+        verified_count = int(state.get("verified_count", state.get("V", 0)) or 0)
+        q = float(state.get("q") or 0.0)
+        alpha = float(state.get("alpha") or 0.0)
+        raw_correct_count = state.get("correct_count")
+        correct_count = int(
+            raw_correct_count
+            if raw_correct_count is not None
+            else round(q * verified_count)
+        )
+        theta_min = float(compute_theta_min(alpha, float(verified_count)))
+        status = _normalize_conservation_state(state.get("status"))
+        signal = alpha * q * verified_count
+        if (
+            status != "GREEN"
+            or not math.isfinite(theta_min)
+            or signal < theta_min
+        ):
+            raise ValueError("conservation threshold not met")
+    except HTTPException:
+        raise
+    except (AttributeError, TypeError, ValueError, OverflowError):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Conservation threshold not met for {domain}",
+        ) from None
+    return {
+        "verified_count": verified_count,
+        "correct_count": correct_count,
+        "q": q,
+        "alpha": alpha,
+        "theta_min": theta_min,
+        "status": status,
+    }
+
+
 def _target_conservation_state(scorer: Any, target_domain: str) -> str:
     store = _graph_store(scorer)
     graph_failed = False
@@ -628,6 +708,10 @@ def _patterns_for_execute(
     explicit_registry: SharedPatternRegistry | None,
 ) -> tuple[list[TransferPattern], str]:
     registry = _pattern_registry(scorer, explicit_registry)
+    if registry is None:
+        store = _graph_store(scorer)
+        if isinstance(store, GraphStore):
+            registry = SharedPatternRegistry(store, source_domain)
     if registry is not None:
         registered = [
             pattern
@@ -638,8 +722,8 @@ def _patterns_for_execute(
             if str(pattern.source_copilot).strip().lower() == source_domain
         ]
         if registered:
-            return registered, "transfer"
-    return _demo_patterns_for_mapping(scorer, source_domain, mapping), "demo"
+            return registered, "governed"
+    return [], "governed"
 
 
 def _pattern_registry(
@@ -677,7 +761,13 @@ def _log_transfer_event(
     target_domain: str,
     categories_mapped: int,
     patterns_applied: int,
-    provenance: str,
+    *,
+    validation_timestamp: str,
+    transfer_provenance: str,
+    source_conservation_state: dict[str, Any],
+    target_conservation_state: dict[str, Any],
+    source_artifact_ids: list[str],
+    mapping_details: dict[str, str],
 ) -> None:
     event = {
         "source": "transfer_event",
@@ -685,13 +775,37 @@ def _log_transfer_event(
         "target_domain": target_domain,
         "categories_mapped": categories_mapped,
         "patterns_applied": patterns_applied,
-        "provenance": provenance,
+        "provenance": transfer_provenance,
         "timestamp": int(time.time()),
     }
-    _save_transfer_checkpoint(_store_for_domain(scorer, target_domain), target_domain, scorer, event)
+    _save_transfer_checkpoint(
+        _store_for_domain(scorer, target_domain),
+        target_domain,
+        scorer,
+        event,
+        source_domain=source_domain,
+        validation_timestamp=validation_timestamp,
+        transfer_provenance=transfer_provenance,
+        source_conservation_state=source_conservation_state,
+        target_conservation_state=target_conservation_state,
+        source_artifact_ids=source_artifact_ids,
+        mapping_details=mapping_details,
+    )
     source_store = _source_store_for_domain(scorer, source_domain)
     if source_store is not None:
-        _save_transfer_checkpoint(source_store, source_domain, scorer, event)
+        _save_transfer_checkpoint(
+            source_store,
+            source_domain,
+            scorer,
+            event,
+            source_domain=source_domain,
+            validation_timestamp=validation_timestamp,
+            transfer_provenance=transfer_provenance,
+            source_conservation_state=source_conservation_state,
+            target_conservation_state=target_conservation_state,
+            source_artifact_ids=source_artifact_ids,
+            mapping_details=mapping_details,
+        )
 
 
 def _store_for_domain(scorer: Any, domain: str) -> Any:
@@ -713,46 +827,59 @@ def _source_store_for_domain(scorer: Any, source_domain: str) -> Any | None:
     return None
 
 
-def _save_transfer_checkpoint(store: Any, domain: str, scorer: Any, metadata: dict[str, Any]) -> None:
+def _save_transfer_checkpoint(
+    store: Any,
+    domain: str,
+    scorer: Any,
+    metadata: dict[str, Any],
+    *,
+    source_domain: str,
+    validation_timestamp: str,
+    transfer_provenance: str,
+    source_conservation_state: dict[str, Any],
+    target_conservation_state: dict[str, Any],
+    source_artifact_ids: list[str],
+    mapping_details: dict[str, str],
+) -> None:
     if not isinstance(store, GraphStore):
         raise RuntimeError("Transfer checkpoint requires a GraphStore")
     if not str(domain or "").strip():
         raise ValueError("Transfer checkpoint domain is invalid")
+    _validate_source_artifacts(store, source_domain, source_artifact_ids)
+    enriched = {
+        **metadata,
+        "source_conservation_state": _checkpoint_conservation(source_conservation_state),
+        "target_conservation_state": _checkpoint_conservation(target_conservation_state),
+        "source_artifact_ids": list(source_artifact_ids),
+        "mapping_details": dict(mapping_details),
+        "validation_timestamp": validation_timestamp,
+        "transfer_provenance": transfer_provenance,
+    }
+    checkpoint_material = json.dumps(
+        {
+            "domain": domain,
+            "source_domain": source_domain,
+            "source_artifact_ids": source_artifact_ids,
+            "validation_timestamp": validation_timestamp,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    checkpoint_key = "transfer_checkpoint:" + hashlib.sha256(
+        checkpoint_material.encode("utf-8")
+    ).hexdigest()[:32]
+    store.save_governance(
+        domain,
+        checkpoint_key,
+        {"kind": "transfer_checkpoint", **enriched},
+    )
     centroids = getattr(getattr(scorer, "gae_scorer", None), "centroids", None)
-    store.save_centroids(domain, "transfer_event", centroids, metadata=metadata)
+    store.save_centroids(domain, "transfer_event", centroids, metadata=enriched)
 
 
-def _demo_patterns_for_mapping(
-    scorer: Any,
-    source_domain: str,
-    mapping: dict[str, str],
-) -> list[TransferPattern]:
-    preset = getattr(scorer, "_preset", None)
-    shape = getattr(preset, "shape", None)
-    actions = list(getattr(shape, "action_names", []) or ["transfer"])
-    factors = list(getattr(shape, "factor_names", []) or [])
-    factor_count = max(len(factors), 1)
-    action = str(actions[0])
-    patterns: list[TransferPattern] = []
-    for index, source_category in enumerate(sorted(mapping)):
-        target_category = mapping[source_category]
-        patterns.append(
-            TransferPattern(
-                pattern_id=f"{source_domain}-transfer-{index}",
-                source_copilot=source_domain,
-                pattern_type="centroid_delta",
-                category=target_category,
-                action=action,
-                win_rate=0.75,
-                centroid_delta=[0.03 for _ in range(factor_count)],
-                confidence=0.8,
-                metadata={
-                    "source_category": source_category,
-                    "source_domain": source_domain,
-                    "source_fingerprint_id": f"demo-{source_domain}",
-                    "factor_mapping": {"semantic_category": target_category},
-                    "provenance": "demo",
-                },
-            )
-        )
-    return patterns
+def _checkpoint_conservation(state: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "verified_count": int(state["verified_count"]),
+        "correct_count": int(state["correct_count"]),
+        "q": float(state["q"]),
+    }

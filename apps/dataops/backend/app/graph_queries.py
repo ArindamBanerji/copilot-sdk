@@ -99,7 +99,7 @@ class DataOpsGraphClient:
         self.graph_store = graph_store
         if dsn is not None and dsn != active_config.dsn:
             raise GraphConfigError("topology DSN override conflicts with GraphConfig")
-        self._age_required = active_config.backend in {"age", "dual_write"} or age_client is not None
+        self._age_required = active_config.backend == "age" or age_client is not None
         graph_dsn = active_config.dsn
         graph_name = active_config.graph
         if active_config.profile == "production":
@@ -118,7 +118,7 @@ class DataOpsGraphClient:
             self._age_client = age_client
             self._serializer = getattr(age_client, "serialize_for_age", self._fixture_serializer)
             self._graph_connected = True
-        elif graph_dsn and active_config.backend in {"age", "dual_write"}:
+        elif graph_dsn and active_config.backend == "age":
             cls = age_client_cls or _load_age_client_class()
             if cls is not None:
                 self._age_client = cls(dsn=graph_dsn, graph_name=graph_name)

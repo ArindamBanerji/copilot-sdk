@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-import json
+import pytest
+
+from copilot_sdk.graph import InMemoryGraphStore
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -84,10 +86,9 @@ def test_rejection_summary_empty_when_no_rejections():
     assert body["rejected_variants"] == []
 
 
-def test_rejection_summary_reads_persisted_preseed_log(tmp_path, monkeypatch):
-    log_path = tmp_path / "evolution_log.json"
-    log_path.write_text(
-        json.dumps(
+def test_rejection_summary_reads_persisted_preseed_log():
+    graph = InMemoryGraphStore()
+    graph.save_evolution("trading", "preseed_rejection_summary",
             {
                 "total_tested": 5,
                 "total_promoted": 0,
@@ -106,16 +107,14 @@ def test_rejection_summary_reads_persisted_preseed_log(tmp_path, monkeypatch):
                     }
                     for index in range(1, 6)
                 ],
-                "provenance": "learned",
+                "provenance": "synthetic",
             }
-        ),
-        encoding="utf-8",
     )
-    monkeypatch.setenv("TRADING_EVOLUTION_LOG_PATH", str(log_path))
     app = FastAPI()
     app.include_router(
         create_trading_evolution_router(
             conservation_provider=lambda: {"status": "UNKNOWN"},
+            graph_store_factory=lambda: graph,
         )
     )
 
@@ -125,3 +124,46 @@ def test_rejection_summary_reads_persisted_preseed_log(tmp_path, monkeypatch):
     assert body["total_rejected"] == 5
     assert body["rejection_breakdown"]["conservation"] == 5
     assert body["rejected_variants"][0]["variant_id"] == "TRADING_AE_v1"
+    assert body["provenance"] == "synthetic"
+    assert all(entry["provenance"] == "synthetic" for entry in body["rejected_variants"])
+
+
+@pytest.mark.parametrize(
+    ("origins", "expected"),
+    [(("synthetic",), "synthetic"), (("learned",), "learned"),
+     (("synthetic", "learned"), "mixed")],
+)
+def test_rejection_summary_preserves_evidence_origins(tmp_path, origins, expected) -> None:
+    from copilot_sdk.backend.scorer_proxy import FreshScorerProxy
+
+    graph = InMemoryGraphStore(domain="trading")
+    proxy = FreshScorerProxy(
+        "trading", tmp_path / "unused.db", lambda path: graph, profile="test",
+    )
+    evolver = TradingAgentEvolver(
+        baseline_scorer=proxy, store_factory=lambda: graph,
+        factor_names=TRADING_FACTOR_NAMES,
+        conservation_provider=proxy.get_conservation_state,
+    )
+    entries = [
+        {"variant_id": f"evidence-{index}", "reason": "conservation",
+         "detail": "conservation gate not passed", "provenance": origin}
+        for index, origin in enumerate(origins)
+    ]
+    graph.save_evolution("trading", "preseed_rejection_summary", {
+        "total_tested": len(entries), "total_promoted": 0,
+        # Entry origins override a stale summary-level label.
+        "rejected_variants": entries, "provenance": "learned",
+    })
+    app = FastAPI()
+    app.include_router(create_trading_evolution_router(
+        evolver=evolver, graph_store_factory=lambda: graph,
+        include_persisted_rejections=True,
+    ))
+    with TestClient(app) as client:
+        response = client.get("/api/trading/evolution/rejection-summary")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provenance"] == expected
+    assert [entry["provenance"] for entry in body["rejected_variants"]] == list(origins)
+    assert body["total_rejected"] == len(origins)

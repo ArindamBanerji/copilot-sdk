@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import cast
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import sys
@@ -12,7 +13,8 @@ import numpy as np
 import psycopg
 import pytest
 
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.config import GraphConfig
 from copilot_sdk.migrate.sqlite_to_age import run_migration
 from copilot_sdk.scoring import CompoundingScorer
@@ -30,8 +32,8 @@ DEFAULT_AGE_DSN = "postgresql://localhost:5432/soc_copilot"
 
 
 @pytest.fixture()
-def sqlite_store(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "protocol_v2.sqlite", domain="test")
+def memory_store(tmp_path):
+    store = make_memory_store(tmp_path / "protocol_v2.sqlite", domain="test")
     try:
         yield store
     finally:
@@ -63,7 +65,7 @@ def age_store(request, age_test_graph):
 
 
 def _write_governed_decision(
-    store: SQLiteGraphStore,
+    store: InMemoryGraphStore,
     decision_id: str,
     *,
     domain: str = "test",
@@ -215,7 +217,7 @@ def _age_get_outcome(age_store, decision_id: str) -> dict | None:
     )
     if not rows:
         return None
-    return age_store._store._node_to_dict(rows[0].get("o", rows[0]))
+    return cast(dict | None, age_store._store._node_to_dict(rows[0].get("o", rows[0])))
 
 
 def _age_observation_count(age_store, observation_id: str) -> int:
@@ -238,7 +240,7 @@ def _age_get_observation(age_store, observation_id: str) -> dict | None:
     )
     if not rows:
         return None
-    return age_store._store._node_to_dict(rows[0].get("o", rows[0]))
+    return cast(dict | None, age_store._store._node_to_dict(rows[0].get("o", rows[0])))
 
 
 def _age_domain_outcome_count(age_store, domain: str) -> int:
@@ -282,7 +284,7 @@ def _age_get_conservation_status(age_store, status_id: str) -> dict | None:
     )
     if not rows:
         return None
-    return age_store._store._node_to_dict(rows[0].get("c", rows[0]))
+    return cast(dict | None, age_store._store._node_to_dict(rows[0].get("c", rows[0])))
 
 
 def _age_node_count(age_store, label: str, key: str, value: str) -> int:
@@ -316,7 +318,7 @@ def _age_get_node(age_store, label: str, key: str, value: str) -> dict | None:
     )
     if not rows:
         return None
-    return age_store._store._node_to_dict(rows[0].get("n", rows[0]))
+    return cast(dict | None, age_store._store._node_to_dict(rows[0].get("n", rows[0])))
 
 
 def _age_get_receipts_for_domain(age_store, domain: str) -> list[dict]:
@@ -395,7 +397,7 @@ def _json_value(value):
 
 
 def _write_observation(
-    store: SQLiteGraphStore,
+    store: InMemoryGraphStore,
     observation_id: str = "OBS-1",
     *,
     domain: str = "test",
@@ -417,13 +419,13 @@ def _write_observation(
 
 
 def _append_receipt(
-    store: SQLiteGraphStore,
+    store: InMemoryGraphStore,
     receipt_intent_id: str,
     *,
     payload_value: str = "approved",
     domain: str = "test",
 ) -> tuple[int, str]:
-    return store.append_evidence_receipt(
+    return cast(tuple[int, str], store.append_evidence_receipt(
         receipt_intent_id=receipt_intent_id,
         domain=domain,
         decision_id="GOV-1",
@@ -437,13 +439,13 @@ def _append_receipt(
         actor="scorer",
         source_route="/api/test",
         metadata={"purpose": "conformance"},
-    )
+    ))
 
 
-def test_write_decision(sqlite_store):
+def test_write_decision(memory_store):
     """Creates Decision(pending), counted by count_decisions."""
     # Protocol v2 invariant: v1 write_decision remains compatible.
-    decision_id = sqlite_store.write_decision(
+    decision_id = memory_store.write_decision(
         "test",
         category="category_a",
         action="approve",
@@ -452,22 +454,22 @@ def test_write_decision(sqlite_store):
         metadata={"created_at": 100.0},
     )
 
-    decision = sqlite_store.get_decision(decision_id, domain="test")
+    decision = memory_store.get_decision(decision_id, domain="test")
 
     assert isinstance(decision_id, str)
     assert decision is not None
     assert decision["decision_id"] == decision_id
     assert decision["status"] == "pending"
-    assert sqlite_store.count_decisions("test") == 1
-    assert sqlite_store.count_verified_decisions("test") == 0
+    assert memory_store.count_decisions("test") == 1
+    assert memory_store.count_verified_decisions("test") == 0
 
 
-def test_v1_write_decision_generates_distinct_ids(sqlite_store):
+def test_v1_write_decision_generates_distinct_ids(memory_store):
     """Repeated v1 write_decision calls create distinct pending Decisions."""
     # Protocol v2 invariant: v1 compatibility is additive; idempotent replay belongs
     # to caller-supplied v2 IDs and receipt/outbox semantics, not generated v1 IDs.
     memory = InMemoryGraphStore(domain="test")
-    for store in (sqlite_store, memory):
+    for store in (memory_store, memory):
         first_id = store.write_decision(
             "test",
             category="category_a",
@@ -494,12 +496,12 @@ def test_v1_write_decision_generates_distinct_ids(sqlite_store):
         assert store.count_verified_decisions("test") == 0
 
 
-def test_v2_governed_decision_caller_id(sqlite_store):
+def test_v2_governed_decision_caller_id(memory_store):
     """write_governed_decision persists the caller-supplied decision_id."""
     # Protocol v2 method/invariant: v2 decision writes are additive to v1.
-    _write_governed_decision(sqlite_store, "GOV-1")
+    _write_governed_decision(memory_store, "GOV-1")
 
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
+    decision = memory_store.get_decision("GOV-1", domain="test")
 
     assert decision is not None
     assert decision["decision_id"] == "GOV-1"
@@ -507,8 +509,8 @@ def test_v2_governed_decision_caller_id(sqlite_store):
     assert decision["factor_vector"] == [0.25, 0.75]
     assert decision["metadata"]["source"] == "test"
     assert decision["status"] == "pending"
-    assert sqlite_store.count_decisions("test") == 1
-    assert sqlite_store.count_verified_decisions("test") == 0
+    assert memory_store.count_decisions("test") == 1
+    assert memory_store.count_verified_decisions("test") == 0
 
 
 @pytest.mark.age
@@ -574,17 +576,17 @@ def test_age_governed_decision_conflict_raises(age_store):
     assert _age_decision_node_count(age_store, decision_id, domain) == 1
 
 
-def test_write_outcome_confirmed(sqlite_store):
+def test_write_outcome_confirmed(memory_store):
     """write_outcome with is_correct=True transitions status to confirmed."""
     # Protocol v2 method/invariant: write_outcome atomically updates Decision.status.
-    _write_governed_decision(sqlite_store, "GOV-1")
+    _write_governed_decision(memory_store, "GOV-1")
 
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
+    memory_store.write_outcome("GOV-1", "approve", True, domain="test")
+    decision = memory_store.get_decision("GOV-1", domain="test")
 
     assert decision is not None
     assert decision["status"] == "confirmed"
-    assert sqlite_store.count_verified_decisions("test") == 1
+    assert memory_store.count_verified_decisions("test") == 1
 
 
 @pytest.mark.age
@@ -617,17 +619,17 @@ def test_age_write_outcome_confirmed(age_store):
     assert age_store.count_verified_decisions(domain) == 1
 
 
-def test_write_outcome_overridden(sqlite_store):
+def test_write_outcome_overridden(memory_store):
     """write_outcome with is_correct=False transitions status to overridden."""
     # Protocol v2 method/invariant: write_outcome atomically updates Decision.status.
-    _write_governed_decision(sqlite_store, "GOV-1")
+    _write_governed_decision(memory_store, "GOV-1")
 
-    sqlite_store.write_outcome("GOV-1", "manual_review", False, domain="test")
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
+    memory_store.write_outcome("GOV-1", "manual_review", False, domain="test")
+    decision = memory_store.get_decision("GOV-1", domain="test")
 
     assert decision is not None
     assert decision["status"] == "overridden"
-    assert sqlite_store.count_verified_decisions("test") == 1
+    assert memory_store.count_verified_decisions("test") == 1
 
 
 @pytest.mark.age
@@ -660,40 +662,13 @@ def test_age_write_outcome_overridden(age_store):
     assert age_store.count_verified_decisions(domain) == 1
 
 
-def test_outcome_atomic(sqlite_store):
-    """Outcome insert and Decision.status update commit or roll back together."""
-    # Protocol v2 invariant: no orphan Outcome and no orphan status transition.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.connection.execute(
-        """
-        CREATE TEMP TRIGGER fail_decision_status_update
-        BEFORE UPDATE OF status ON decisions
-        BEGIN
-            SELECT RAISE(ABORT, 'status update blocked');
-        END
-        """
-    )
-    sqlite_store.connection.commit()
-
-    with pytest.raises(sqlite3.IntegrityError, match="status update blocked"):
-        sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-
-    outcome = sqlite_store.connection.execute(
-        "SELECT * FROM outcomes WHERE decision_id = ?",
-        ("GOV-1",),
-    ).fetchone()
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
-
-    assert outcome is None
-    assert decision is not None
-    assert decision["status"] == "pending"
 
 
-def test_outcome_missing_decision(sqlite_store):
+def test_outcome_missing_decision(memory_store):
     """write_outcome for a missing decision_id raises."""
     # Protocol v2 method/invariant: write_outcome requires an existing Decision.
     with pytest.raises(KeyError):
-        sqlite_store.write_outcome("missing", "approve", True, domain="test")
+        memory_store.write_outcome("missing", "approve", True, domain="test")
 
 
 @pytest.mark.age
@@ -806,33 +781,6 @@ def test_age_outcome_no_orphan_on_duplicate(age_store):
     assert age_store.count_verified_decisions(domain) == 0
 
 
-def test_write_observation(sqlite_store):
-    """write_observation creates a queryable Observation, not a Decision."""
-    # Protocol v2 method/invariant: write_observation is separate from write_decision.
-    _write_observation(sqlite_store)
-    _write_observation(sqlite_store)
-
-    observation = sqlite_store.connection.execute(
-        "SELECT * FROM observations WHERE observation_id = ?",
-        ("OBS-1",),
-    ).fetchone()
-    edge_count = sqlite_store.connection.execute(
-        "SELECT COUNT(*) AS n FROM observation_entity_edges WHERE observation_id = ?",
-        ("OBS-1",),
-    ).fetchone()["n"]
-    factor_vector = sqlite_store.connection.execute(
-        "SELECT * FROM observation_factor_vectors WHERE observation_id = ?",
-        ("OBS-1",),
-    ).fetchone()
-
-    assert observation is not None
-    assert observation["domain"] == "test"
-    assert observation["source_route"] == "preview"
-    assert int(edge_count) == 1
-    assert factor_vector is not None
-    assert factor_vector["factor_vector_json"] == "[0.2, 0.8]"
-    assert sqlite_store.count_decisions("test") == 0
-    assert sqlite_store.count_verified_decisions("test") == 0
 
 
 @pytest.mark.age
@@ -859,15 +807,15 @@ def test_age_write_observation(age_store):
     assert _age_domain_outcome_count(age_store, domain) == 0
 
 
-def test_observation_not_in_V(sqlite_store):
+def test_observation_not_in_V(memory_store):
     """Observations never increment conservation V."""
     # Protocol v2 invariant: count_verified_decisions excludes Observation nodes.
-    _write_observation(sqlite_store)
-    _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
+    _write_observation(memory_store)
+    _write_governed_decision(memory_store, "GOV-1")
+    memory_store.write_outcome("GOV-1", "approve", True, domain="test")
 
-    assert sqlite_store.count_decisions("test") == 1
-    assert sqlite_store.count_verified_decisions("test") == 1
+    assert memory_store.count_decisions("test") == 1
+    assert memory_store.count_verified_decisions("test") == 1
 
 
 @pytest.mark.age
@@ -887,12 +835,12 @@ def test_age_observation_not_in_V(age_store):
     assert _age_observation_count(age_store, observation_id) == 1
 
 
-def test_observation_not_in_flywheel(sqlite_store):
+def test_observation_not_in_flywheel(memory_store):
     """Observations do not create AgentEvolver flywheel edges."""
     # Protocol v2 invariant: no TRIGGERED_EVOLUTION edge from Observation.
-    _write_observation(sqlite_store)
+    _write_observation(memory_store)
 
-    events = sqlite_store.get_evolution_events("test")
+    events = memory_store.get_evolution_events("test")
 
     assert events == []
 
@@ -909,10 +857,10 @@ def test_age_observation_not_in_flywheel(age_store):
     assert _age_observation_triggered_evolution_count(age_store, observation_id) == 0
 
 
-def test_count_verified_empty(sqlite_store):
+def test_count_verified_empty(memory_store):
     """count_verified_decisions returns zero on an empty store."""
     # Protocol v2 method/invariant: count_verified_decisions defines V.
-    assert sqlite_store.count_verified_decisions("test") == 0
+    assert memory_store.count_verified_decisions("test") == 0
 
 
 @pytest.mark.age
@@ -923,16 +871,16 @@ def test_age_count_verified_empty(age_store):
     assert age_store.count_verified_decisions(age_store.protocol_v2_test_domain) == 0
 
 
-def test_count_verified_pending(sqlite_store):
+def test_count_verified_pending(memory_store):
     """Pending decisions are excluded from count_verified_decisions."""
     # Protocol v2 invariant: only verified decisions count.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    _write_governed_decision(sqlite_store, "GOV-2", created_at=101.0)
+    _write_governed_decision(memory_store, "GOV-1")
+    _write_governed_decision(memory_store, "GOV-2", created_at=101.0)
 
-    assert sqlite_store.get_decision("GOV-1", domain="test")["status"] == "pending"
-    assert sqlite_store.get_decision("GOV-2", domain="test")["status"] == "pending"
-    assert sqlite_store.count_decisions("test") == 2
-    assert sqlite_store.count_verified_decisions("test") == 0
+    assert memory_store.get_decision("GOV-1", domain="test")["status"] == "pending"
+    assert memory_store.get_decision("GOV-2", domain="test")["status"] == "pending"
+    assert memory_store.count_decisions("test") == 2
+    assert memory_store.count_verified_decisions("test") == 0
 
 
 @pytest.mark.age
@@ -946,21 +894,21 @@ def test_age_count_verified_pending(age_store):
     assert age_store.count_verified_decisions(domain) == 0
 
 
-def test_count_verified_mixed(sqlite_store):
+def test_count_verified_mixed(memory_store):
     """count_verified_decisions counts only decisions with outcomes in Slice 1."""
     # Protocol v2 invariant: pending rows are excluded from V.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    _write_governed_decision(sqlite_store, "GOV-2", created_at=101.0)
-    _write_governed_decision(sqlite_store, "GOV-3", created_at=102.0)
+    _write_governed_decision(memory_store, "GOV-1")
+    _write_governed_decision(memory_store, "GOV-2", created_at=101.0)
+    _write_governed_decision(memory_store, "GOV-3", created_at=102.0)
 
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-    sqlite_store.write_outcome("GOV-2", "manual_review", False, domain="test")
+    memory_store.write_outcome("GOV-1", "approve", True, domain="test")
+    memory_store.write_outcome("GOV-2", "manual_review", False, domain="test")
 
-    assert sqlite_store.get_decision("GOV-1", domain="test")["status"] == "confirmed"
-    assert sqlite_store.get_decision("GOV-2", domain="test")["status"] == "overridden"
-    assert sqlite_store.get_decision("GOV-3", domain="test")["status"] == "pending"
-    assert sqlite_store.count_decisions("test") == 3
-    assert sqlite_store.count_verified_decisions("test") == 2
+    assert memory_store.get_decision("GOV-1", domain="test")["status"] == "confirmed"
+    assert memory_store.get_decision("GOV-2", domain="test")["status"] == "overridden"
+    assert memory_store.get_decision("GOV-3", domain="test")["status"] == "pending"
+    assert memory_store.count_decisions("test") == 3
+    assert memory_store.count_verified_decisions("test") == 2
 
 
 @pytest.mark.age
@@ -997,89 +945,14 @@ def test_age_count_verified_status_based_without_outcomes(age_store):
     assert age_store.count_verified_decisions(domain) == 2
 
 
-def test_sqlite_status_migration_backfills_from_outcomes(tmp_path):
-    """Existing pre-status SQLite rows are backfilled from reliable outcomes."""
-    db_path = tmp_path / "legacy.sqlite"
-    conn = sqlite3.connect(db_path)
-    conn.executescript(
-        """
-        CREATE TABLE decisions (
-            decision_id TEXT PRIMARY KEY,
-            domain TEXT NOT NULL,
-            category TEXT NOT NULL,
-            category_index INTEGER NOT NULL,
-            factors_json TEXT NOT NULL,
-            factor_vector_json TEXT NOT NULL,
-            recommended_action TEXT NOT NULL,
-            recommended_index INTEGER NOT NULL,
-            confidence REAL NOT NULL,
-            probabilities_json TEXT NOT NULL,
-            created_at REAL NOT NULL
-        );
-        CREATE TABLE outcomes (
-            decision_id TEXT PRIMARY KEY REFERENCES decisions(decision_id),
-            domain TEXT NOT NULL DEFAULT '',
-            actual_action TEXT NOT NULL,
-            actual_index INTEGER NOT NULL,
-            is_correct INTEGER NOT NULL,
-            verified_at REAL NOT NULL,
-            context_json TEXT
-        );
-        INSERT INTO decisions VALUES
-            ('D-1', 'test', 'category_a', 0, '{}', '[0.1]', 'approve', 0, 0.9, '[0.9]', 100.0),
-            ('D-2', 'test', 'category_a', 0, '{}', '[0.2]', 'approve', 0, 0.8, '[0.8]', 101.0),
-            ('D-3', 'test', 'category_a', 0, '{}', '[0.3]', 'approve', 0, 0.7, '[0.7]', 102.0);
-        INSERT INTO outcomes VALUES
-            ('D-1', 'test', 'approve', 0, 1, 200.0, NULL),
-            ('D-2', 'test', 'manual_review', 1, 0, 201.0, NULL);
-        """
-    )
-    conn.commit()
-    conn.close()
-
-    store = SQLiteGraphStore(db_path, domain="test")
-    try:
-        assert store.get_decision("D-1", domain="test")["status"] == "confirmed"
-        assert store.get_decision("D-2", domain="test")["status"] == "overridden"
-        assert store.get_decision("D-3", domain="test")["status"] == "pending"
-        assert store.count_verified_decisions("test") == 2
-    finally:
-        store.close()
 
 
-def test_evidence_receipt_chain(sqlite_store):
-    """append_evidence_receipt maintains chain_index and previous_hash order."""
-    # Protocol v2 method/invariant: append_evidence_receipt owns hash-chain append.
-    first = _append_receipt(sqlite_store, "RCP-1", payload_value="approved")
-    second = _append_receipt(sqlite_store, "RCP-2", payload_value="review")
-    third = _append_receipt(sqlite_store, "RCP-3", payload_value="blocked")
-
-    rows = sqlite_store.connection.execute(
-        """
-        SELECT chain_index, previous_hash, payload_hash
-        FROM evidence_receipts
-        WHERE domain = ?
-        ORDER BY chain_index
-        """,
-        ("test",),
-    ).fetchall()
-
-    assert [first[0], second[0], third[0]] == [0, 1, 2]
-    assert [row["chain_index"] for row in rows] == [0, 1, 2]
-    assert rows[0]["previous_hash"] == "GENESIS"
-    assert rows[1]["previous_hash"] == rows[0]["payload_hash"]
-    assert rows[2]["previous_hash"] == rows[1]["payload_hash"]
-    assert first[1] == rows[0]["payload_hash"]
-    assert second[1] == rows[1]["payload_hash"]
-    assert third[1] == rows[2]["payload_hash"]
-    assert sqlite_store.count_decisions("test") == 0
-    assert sqlite_store.count_verified_decisions("test") == 0
 
 
 def test_evidence_receipt_hash_json_parity(tmp_path):
     """Memory and SQLite receipt hashing use the same canonical JSON rules."""
     # Protocol v2 invariant: local adapters agree on canonical receipt payload hashes.
-    sqlite = SQLiteGraphStore(tmp_path / "receipt-parity.sqlite", domain="test")
+    sqlite = make_memory_store(tmp_path / "receipt-parity.sqlite", domain="test")
     memory = InMemoryGraphStore(domain="test")
     try:
         payload = {
@@ -1385,80 +1258,6 @@ def test_age_evidence_receipt_rollback_on_failure(age_store):
     assert decision["status"] == "pending"
 
 
-def test_conservation_status_write(sqlite_store):
-    """write_conservation_status persists an auditable conservation snapshot."""
-    # Protocol v2 method/invariant: snapshots record V, q, alpha, theta_min, status.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-    decisions_before = sqlite_store.count_decisions("test")
-    verified_before = sqlite_store.count_verified_decisions("test")
-
-    sqlite_store.write_conservation_status(
-        status_id="CS-1",
-        domain="test",
-        V=verified_before,
-        q=1.0,
-        alpha=0.5,
-        theta_min=47.06,
-        verified_count=verified_before,
-        correct_count=1,
-        status="GREEN",
-        policy_version="slice-6",
-    )
-    sqlite_store.write_conservation_status(
-        status_id="CS-1",
-        domain="test",
-        V=verified_before,
-        q=1.0,
-        alpha=0.5,
-        theta_min=47.06,
-        verified_count=verified_before,
-        correct_count=1,
-        status="GREEN",
-        policy_version="slice-6",
-    )
-
-    rows = sqlite_store.connection.execute(
-        """
-        SELECT *
-        FROM conservation_snapshots
-        WHERE snapshot_id = ?
-        """,
-        ("CS-1",),
-    ).fetchall()
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
-
-    assert len(rows) == 1
-    assert rows[0]["domain"] == "test"
-    assert rows[0]["V"] == verified_before
-    assert rows[0]["q"] == 1.0
-    assert rows[0]["alpha"] == 0.5
-    assert rows[0]["theta_min"] == 47.06
-    assert rows[0]["verified_count"] == verified_before
-    assert rows[0]["correct_count"] == 1
-    assert rows[0]["status"] == "GREEN"
-    assert rows[0]["policy_version"] == "slice-6"
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
-    assert decision is not None
-    assert decision["status"] == "confirmed"
-
-    with pytest.raises(ValueError, match="conflicting conservation status_id"):
-        sqlite_store.write_conservation_status(
-            status_id="CS-1",
-            domain="test",
-            V=verified_before + 1,
-            q=1.0,
-            alpha=0.5,
-            theta_min=47.06,
-            verified_count=verified_before + 1,
-            correct_count=1,
-            status="GREEN",
-            policy_version="slice-6",
-        )
-
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
 
 
 @pytest.mark.age
@@ -1578,69 +1377,6 @@ def test_age_conservation_status_conflict_raises(age_store):
     assert age_store.count_verified_decisions(domain) == 0
 
 
-def test_fingerprint_write_read(sqlite_store):
-    """write_fingerprint persists and retrieves canonical fingerprint data."""
-    # Protocol v2 method/invariant: fingerprint snapshots are queryable by domain.
-    decisions_before = sqlite_store.count_decisions("test")
-    verified_before = sqlite_store.count_verified_decisions("test")
-    memory = InMemoryGraphStore(domain="test")
-
-    for store in (sqlite_store, memory):
-        store.write_fingerprint(
-            fingerprint_id="FPR-1",
-            domain="test",
-            factor_names=["factor_a", "factor_b"],
-            factor_stats={
-                "factor_a": {"mean": 0.2, "sigma": 0.01, "weight": 1.0},
-                "factor_b": {"mean": 0.8, "sigma": 0.05, "weight": 0.75},
-            },
-            skipped_incompatible=2,
-            window=50,
-            metadata={"policy": "slice-7"},
-        )
-        store.write_fingerprint(
-            fingerprint_id="FPR-1",
-            domain="test",
-            factor_names=["factor_a", "factor_b"],
-            factor_stats={
-                "factor_a": {"mean": 0.2, "sigma": 0.01, "weight": 1.0},
-                "factor_b": {"mean": 0.8, "sigma": 0.05, "weight": 0.75},
-            },
-            skipped_incompatible=2,
-            window=50,
-            metadata={"policy": "slice-7"},
-        )
-
-    row = sqlite_store.connection.execute(
-        "SELECT * FROM fingerprints WHERE fingerprint_id = ?",
-        ("FPR-1",),
-    ).fetchone()
-    assert row is not None
-    assert row["domain"] == "test"
-    assert row["factor_names_json"] == '["factor_a", "factor_b"]'
-    assert '"factor_a"' in row["factor_stats_json"]
-    assert row["skipped_incompatible"] == 2
-    assert row["window"] == 50
-    assert row["metadata_json"] == '{"policy": "slice-7"}'
-    assert len(memory._fingerprints) == 1
-    assert memory._fingerprints["FPR-1"]["domain"] == "test"
-    assert memory._fingerprints["FPR-1"]["window"] == 50
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
-
-    with pytest.raises(ValueError, match="conflicting fingerprint_id"):
-        sqlite_store.write_fingerprint(
-            fingerprint_id="FPR-1",
-            domain="test",
-            factor_names=["factor_a"],
-            factor_stats={"factor_a": {"mean": 0.1}},
-            skipped_incompatible=0,
-            window=10,
-            metadata={"policy": "conflict"},
-        )
-
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
 
 
 @pytest.mark.age
@@ -1743,84 +1479,6 @@ def test_age_fingerprint_conflict_raises(age_store):
     assert age_store.count_verified_decisions(domain) == 0
 
 
-def test_centroid_checkpoint(sqlite_store):
-    """write_centroid_checkpoint persists judgment geometry checkpoints."""
-    # Protocol v2 method/invariant: centroid checkpoints are auditable.
-    decisions_before = sqlite_store.count_decisions("test")
-    verified_before = sqlite_store.count_verified_decisions("test")
-    memory = InMemoryGraphStore(domain="test")
-    centroids = {"approve": [0.1, 0.9], "review": [0.7, 0.3]}
-
-    for store in (sqlite_store, memory):
-        store.write_centroid_checkpoint(
-            checkpoint_id="CKP-1",
-            domain="test",
-            category="category_a",
-            action="approve",
-            centroids=centroids,
-            decisions_count=12,
-            verified_count=7,
-            iks=0.88,
-            shape=[2, 2],
-            factor_names_hash="factor-hash",
-            metadata={"policy": "slice-7"},
-        )
-        store.write_centroid_checkpoint(
-            checkpoint_id="CKP-1",
-            domain="test",
-            category="category_a",
-            action="approve",
-            centroids=centroids,
-            decisions_count=12,
-            verified_count=7,
-            iks=0.88,
-            shape=[2, 2],
-            factor_names_hash="factor-hash",
-            metadata={"policy": "slice-7"},
-        )
-
-    row = sqlite_store.connection.execute(
-        """
-        SELECT *
-        FROM centroid_checkpoints
-        WHERE checkpoint_id = ?
-        """,
-        ("CKP-1",),
-    ).fetchone()
-    assert row is not None
-    assert row["domain"] == "test"
-    assert row["category"] == "category_a"
-    assert row["action"] == "approve"
-    assert '"approve": [0.1, 0.9]' in row["centroids_json"]
-    assert row["decisions_count"] == 12
-    assert row["verified_count"] == 7
-    assert row["iks"] == 0.88
-    assert row["shape_json"] == "[2, 2]"
-    assert row["factor_names_hash"] == "factor-hash"
-    assert row["metadata_json"] == '{"policy": "slice-7"}'
-    assert len(memory._protocol_centroid_checkpoints) == 1
-    assert memory._protocol_centroid_checkpoints["CKP-1"]["domain"] == "test"
-    assert memory._protocol_centroid_checkpoints["CKP-1"]["verified_count"] == 7
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
-
-    with pytest.raises(ValueError, match="conflicting checkpoint_id"):
-        sqlite_store.write_centroid_checkpoint(
-            checkpoint_id="CKP-1",
-            domain="test",
-            category="category_a",
-            action="review",
-            centroids=centroids,
-            decisions_count=12,
-            verified_count=7,
-            iks=0.88,
-            shape=[2, 2],
-            factor_names_hash="factor-hash",
-            metadata={"policy": "slice-7"},
-        )
-
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
 
 
 @pytest.mark.age
@@ -1941,10 +1599,10 @@ def test_age_centroid_checkpoint_conflict_raises(age_store):
     assert age_store.count_verified_decisions(domain) == 0
 
 
-def test_protocol_v2_checkpoint_does_not_break_legacy_centroid_load(sqlite_store):
+def test_protocol_v2_checkpoint_does_not_break_legacy_centroid_load(memory_store):
     """Legacy centroid reads ignore Protocol v2 checkpoint rows."""
     # Protocol v2 checkpoint rows are distinct from legacy save_centroids rows.
-    sqlite_store.write_centroid_checkpoint(
+    memory_store.write_centroid_checkpoint(
         checkpoint_id="CKP-1",
         domain="test",
         category="category_a",
@@ -1958,17 +1616,17 @@ def test_protocol_v2_checkpoint_does_not_break_legacy_centroid_load(sqlite_store
         metadata={"policy": "slice-8"},
     )
 
-    assert sqlite_store.load_latest_centroids("test") is None
+    assert memory_store.load_latest_centroids("test") is None
 
     legacy_centroids = np.asarray([[0.3, 0.7], [0.6, 0.4]], dtype=float)
-    sqlite_store.save_centroids(
+    memory_store.save_centroids(
         "test",
         "category_a",
         legacy_centroids,
         metadata={"iks": 0.42},
     )
-    loaded = sqlite_store.load_latest_centroids("test")
-    checkpoints = sqlite_store.get_centroid_checkpoints("test", limit=None)
+    loaded = memory_store.load_latest_centroids("test")
+    checkpoints = memory_store.get_centroid_checkpoints("test", limit=None)
 
     assert loaded is not None
     np.testing.assert_allclose(loaded, legacy_centroids)
@@ -1976,127 +1634,8 @@ def test_protocol_v2_checkpoint_does_not_break_legacy_centroid_load(sqlite_store
     assert checkpoints[0]["category"] == "category_a"
 
 
-def test_evolution_event(sqlite_store):
-    """write_evolution_event records procedural-memory lineage."""
-    # Protocol v2 method/invariant: EvolutionEvent writes preserve AgentEvolver trace.
-    decisions_before = sqlite_store.count_decisions("test")
-    verified_before = sqlite_store.count_verified_decisions("test")
-    memory = InMemoryGraphStore(domain="test")
-
-    for store in (sqlite_store, memory):
-        store.write_evolution_event(
-            event_id="EVO-1",
-            domain="test",
-            event_type="promoted",
-            rule_name="amount_rule",
-            variant_id="variant-a",
-            source_copilot="s2p",
-            source_rule="legacy_rule",
-            metric=0.91,
-            shadow_batch_size=20,
-            min_shadow_batches=3,
-            metadata={"policy": "slice-8"},
-        )
-        store.write_evolution_event(
-            event_id="EVO-1",
-            domain="test",
-            event_type="promoted",
-            rule_name="amount_rule",
-            variant_id="variant-a",
-            source_copilot="s2p",
-            source_rule="legacy_rule",
-            metric=0.91,
-            shadow_batch_size=20,
-            min_shadow_batches=3,
-            metadata={"policy": "slice-8"},
-        )
-
-    row = sqlite_store.connection.execute(
-        "SELECT * FROM evolution_events WHERE event_id = ?",
-        ("EVO-1",),
-    ).fetchone()
-    assert row is not None
-    assert row["domain"] == "test"
-    assert row["event_type"] == "promoted"
-    assert row["rule_name"] == "amount_rule"
-    assert row["variant_id"] == "variant-a"
-    assert row["source_copilot"] == "s2p"
-    assert row["source_rule"] == "legacy_rule"
-    assert row["metric"] == 0.91
-    assert row["shadow_batch_size"] == 20
-    assert row["min_shadow_batches"] == 3
-    assert row["metadata_json"] == '{"policy": "slice-8"}'
-    assert len(memory._protocol_evolution_events) == 1
-    assert memory._protocol_evolution_events["EVO-1"]["event_type"] == "promoted"
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
-
-    with pytest.raises(ValueError, match="conflicting evolution event_id"):
-        sqlite_store.write_evolution_event(
-            event_id="EVO-1",
-            domain="test",
-            event_type="rejected",
-            rule_name="amount_rule",
-            variant_id="variant-a",
-            metadata={"policy": "slice-8"},
-        )
-
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
 
 
-def test_entity_link(sqlite_store):
-    """link_entity connects a Decision to DomainContext without duplication."""
-    # Protocol v2 method/invariant: entity links are domain-scoped and idempotent.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    memory = InMemoryGraphStore(domain="test")
-    _write_governed_decision(memory, "GOV-1")
-    decisions_before = sqlite_store.count_decisions("test")
-    verified_before = sqlite_store.count_verified_decisions("test")
-
-    for store in (sqlite_store, memory):
-        store.link_entity(
-            decision_id="GOV-1",
-            entity_id="invoice-1",
-            entity_type="invoice",
-            domain="test",
-        )
-        store.link_entity(
-            decision_id="GOV-1",
-            entity_id="invoice-1",
-            entity_type="invoice",
-            domain="test",
-        )
-
-    rows = sqlite_store.connection.execute(
-        """
-        SELECT decision_id, entity_id, entity_type, domain
-        FROM decision_entity_edges
-        WHERE decision_id = ?
-        """,
-        ("GOV-1",),
-    ).fetchall()
-
-    assert len(rows) == 1
-    assert rows[0]["decision_id"] == "GOV-1"
-    assert rows[0]["entity_id"] == "invoice-1"
-    assert rows[0]["entity_type"] == "invoice"
-    assert rows[0]["domain"] == "test"
-    assert len(memory.get_decision_links("GOV-1", domain="test")) == 1
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
-
-    with pytest.raises(KeyError):
-        sqlite_store.link_entity(
-            decision_id="missing",
-            entity_id="invoice-2",
-            entity_type="invoice",
-            domain="test",
-        )
-
-    assert sqlite_store.get_decision("missing", domain="test") is None
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
 
 
 @pytest.mark.age
@@ -2596,103 +2135,15 @@ def test_age_domain_scoped_reset_rejects_unsafe_domain(age_store):
     assert age_store.count_decisions(unsafe_domain) == 1
 
 
-def test_entity_link_migration_deduplicates_legacy_edges(tmp_path):
-    """Legacy duplicate entity edges do not break the uniqueness migration."""
-    # Protocol v2 invariant: local adapter migrations are non-destructive except duplicates.
-    db_path = tmp_path / "legacy-links.sqlite"
-    conn = sqlite3.connect(db_path)
-    conn.executescript(
-        """
-        CREATE TABLE decisions (
-            decision_id TEXT PRIMARY KEY,
-            domain TEXT NOT NULL,
-            category TEXT NOT NULL,
-            category_index INTEGER NOT NULL,
-            factors_json TEXT NOT NULL,
-            factor_vector_json TEXT NOT NULL,
-            recommended_action TEXT NOT NULL,
-            recommended_index INTEGER NOT NULL,
-            confidence REAL NOT NULL,
-            probabilities_json TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
-            created_at REAL NOT NULL
-        );
-        CREATE TABLE decision_entity_edges (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            domain TEXT NOT NULL DEFAULT '',
-            decision_id TEXT NOT NULL,
-            entity_id TEXT NOT NULL,
-            edge_type TEXT NOT NULL,
-            created_at REAL NOT NULL
-        );
-        INSERT INTO decisions VALUES
-            ('D-1', 'test', 'category_a', 0, '{}', '[0.1]', 'approve', 0, 0.9, '[0.9]', 'pending', 100.0),
-            ('D-2', 'test', 'category_a', 0, '{}', '[0.2]', 'approve', 0, 0.8, '[0.8]', 'pending', 101.0);
-        INSERT INTO decision_entity_edges (domain, decision_id, entity_id, edge_type, created_at) VALUES
-            ('test', 'D-1', 'invoice-1', 'DECIDED_ON', 10.0),
-            ('test', 'D-1', 'invoice-1', 'DECIDED_ON', 11.0),
-            ('test', 'D-2', 'invoice-2', 'DECIDED_ON', 12.0);
-        """
-    )
-    conn.commit()
-    conn.close()
-
-    store = SQLiteGraphStore(db_path, domain="test")
-    try:
-        rows = store.connection.execute(
-            """
-            SELECT decision_id, entity_id, entity_type, domain, created_at
-            FROM decision_entity_edges
-            ORDER BY decision_id
-            """
-        ).fetchall()
-
-        assert len(rows) == 2
-        assert rows[0]["decision_id"] == "D-1"
-        assert rows[0]["entity_id"] == "invoice-1"
-        assert rows[0]["entity_type"] == "DECIDED_ON"
-        assert rows[0]["created_at"] == 10.0
-        assert rows[1]["decision_id"] == "D-2"
-        assert rows[1]["entity_id"] == "invoice-2"
-        assert store.count_decisions("test") == 2
-        assert store.count_verified_decisions("test") == 0
-    finally:
-        store.close()
 
 
-def test_legacy_link_decision_to_entity_duplicate_is_harmless(sqlite_store):
-    """Legacy link_decision_to_entity remains duplicate-safe after Protocol v2 indexing."""
-    # Protocol v2 link identity is (decision_id, entity_id, domain); legacy duplicates skip.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    decisions_before = sqlite_store.count_decisions("test")
-    verified_before = sqlite_store.count_verified_decisions("test")
-
-    sqlite_store.link_decision_to_entity("GOV-1", "invoice-1", domain="test")
-    sqlite_store.link_decision_to_entity("GOV-1", "invoice-1", domain="test")
-
-    rows = sqlite_store.connection.execute(
-        """
-        SELECT decision_id, entity_id, entity_type, domain
-        FROM decision_entity_edges
-        WHERE decision_id = ?
-        """,
-        ("GOV-1",),
-    ).fetchall()
-
-    assert len(rows) == 1
-    assert rows[0]["decision_id"] == "GOV-1"
-    assert rows[0]["entity_id"] == "invoice-1"
-    assert rows[0]["entity_type"] == "DECIDED_ON"
-    assert rows[0]["domain"] == "test"
-    assert sqlite_store.count_decisions("test") == decisions_before
-    assert sqlite_store.count_verified_decisions("test") == verified_before
 
 
-def test_archive_pending(sqlite_store):
+def test_archive_pending(memory_store):
     """Archiving pending decisions does not change conservation V."""
     # Protocol v2 method/invariant: archive_decisions preserves verified-only V.
     memory = InMemoryGraphStore(domain="test")
-    for store in (sqlite_store, memory):
+    for store in (memory_store, memory):
         _write_governed_decision(store, "P-OLD", created_at=10.0)
         _write_governed_decision(store, "P-NEW", created_at=60.0)
         _write_governed_decision(store, "C-OLD", created_at=20.0)
@@ -2711,11 +2162,11 @@ def test_archive_pending(sqlite_store):
         assert store.count_archived("test") == 1
 
 
-def test_archive_verified(sqlite_store):
+def test_archive_verified(memory_store):
     """Archiving verified decisions removes them from active V."""
     # Protocol v2 method/invariant: active V excludes archived verified decisions.
     memory = InMemoryGraphStore(domain="test")
-    for store in (sqlite_store, memory):
+    for store in (memory_store, memory):
         _write_governed_decision(store, "C-OLD", created_at=10.0)
         _write_governed_decision(store, "O-OLD", created_at=11.0)
         _write_governed_decision(store, "C-NEW", created_at=60.0)
@@ -2826,173 +2277,8 @@ def _populate_reset_domain(store, domain: str, prefix: str) -> None:
     store.archive_decisions(domain, before=5.0, status_filter="pending")
 
 
-def test_domain_scoped_reset(sqlite_store):
-    """domain_scoped_reset clears only the target domain partition."""
-    # Protocol v2 method/invariant: no cross-domain deletion.
-    memory = InMemoryGraphStore(domain="alpha")
-    for store in (sqlite_store, memory):
-        _populate_reset_domain(store, "alpha", "A")
-        _populate_reset_domain(store, "beta", "B")
-
-        store.domain_scoped_reset("alpha")
-        store.domain_scoped_reset("alpha")
-
-        assert store.count_decisions("alpha") == 0
-        assert store.count_verified_decisions("alpha") == 0
-        assert store.count_archived("alpha") == 0
-        assert store.get_decision("A-D", domain="alpha") is None
-        assert store.count_decisions("beta") == 1
-        assert store.count_verified_decisions("beta") == 1
-        assert store.count_archived("beta") == 1
-        assert store.get_decision("B-D", domain="beta") is not None
-
-    sqlite_tables = (
-        "observations",
-        "observation_entity_edges",
-        "observation_factor_vectors",
-        "evidence_receipts",
-        "conservation_snapshots",
-        "fingerprints",
-        "centroid_checkpoints",
-        "evolution_events",
-        "decision_entity_edges",
-        "decisions_archive",
-    )
-    for table in sqlite_tables:
-        alpha_count = sqlite_store.connection.execute(
-            f"SELECT COUNT(*) AS n FROM {table} WHERE domain = ?",
-            ("alpha",),
-        ).fetchone()["n"]
-        beta_count = sqlite_store.connection.execute(
-            f"SELECT COUNT(*) AS n FROM {table} WHERE domain = ?",
-            ("beta",),
-        ).fetchone()["n"]
-        assert alpha_count == 0
-        assert beta_count > 0
 
 
-def test_local_idempotent_replay_does_not_duplicate_class_a_records(sqlite_store):
-    """Repeating implemented local Protocol v2 writes preserves the same state."""
-    # Protocol v2 local invariant: identical Class A writes are idempotent without
-    # depending on the future outbox worker or AGE migration replay.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-    first_receipt = _append_receipt(sqlite_store, "RCP-1")
-    replay_receipt = _append_receipt(sqlite_store, "RCP-1")
-
-    sqlite_store.write_conservation_status(
-        status_id="CONS-1",
-        domain="test",
-        V=1,
-        q=1.0,
-        alpha=1.0,
-        theta_min=0.5,
-        verified_count=1,
-        correct_count=1,
-        status="green",
-        policy_version="slice-6",
-    )
-    sqlite_store.write_conservation_status(
-        status_id="CONS-1",
-        domain="test",
-        V=1,
-        q=1.0,
-        alpha=1.0,
-        theta_min=0.5,
-        verified_count=1,
-        correct_count=1,
-        status="green",
-        policy_version="slice-6",
-    )
-    sqlite_store.write_fingerprint(
-        fingerprint_id="FP-1",
-        domain="test",
-        factor_names=["factor_a"],
-        factor_stats={"factor_a": {"mean": 0.5}},
-        skipped_incompatible=0,
-        window=10,
-    )
-    sqlite_store.write_fingerprint(
-        fingerprint_id="FP-1",
-        domain="test",
-        factor_names=["factor_a"],
-        factor_stats={"factor_a": {"mean": 0.5}},
-        skipped_incompatible=0,
-        window=10,
-    )
-    sqlite_store.write_centroid_checkpoint(
-        checkpoint_id="CP-1",
-        domain="test",
-        category="category_a",
-        action="approve",
-        centroids={"approve": [0.1, 0.2]},
-        decisions_count=1,
-        verified_count=1,
-        iks=0.9,
-        shape=[1, 2],
-        factor_names_hash="hash-a",
-    )
-    sqlite_store.write_centroid_checkpoint(
-        checkpoint_id="CP-1",
-        domain="test",
-        category="category_a",
-        action="approve",
-        centroids={"approve": [0.1, 0.2]},
-        decisions_count=1,
-        verified_count=1,
-        iks=0.9,
-        shape=[1, 2],
-        factor_names_hash="hash-a",
-    )
-    sqlite_store.write_evolution_event(
-        event_id="EV-1",
-        domain="test",
-        event_type="rule_promoted",
-        rule_name="rule-a",
-        variant_id="variant-a",
-    )
-    sqlite_store.write_evolution_event(
-        event_id="EV-1",
-        domain="test",
-        event_type="rule_promoted",
-        rule_name="rule-a",
-        variant_id="variant-a",
-    )
-    sqlite_store.link_entity("GOV-1", "entity-1", "Invoice", "test")
-    sqlite_store.link_entity("GOV-1", "entity-1", "Invoice", "test")
-    _write_observation(sqlite_store, "OBS-1")
-    _write_observation(sqlite_store, "OBS-1")
-
-    counts = {
-        table: sqlite_store.connection.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
-        for table in (
-            "decisions",
-            "outcomes",
-            "observations",
-            "evidence_receipts",
-            "conservation_snapshots",
-            "fingerprints",
-            "centroid_checkpoints",
-            "evolution_events",
-            "decision_entity_edges",
-        )
-    }
-
-    assert first_receipt == replay_receipt
-    assert counts == {
-        "decisions": 1,
-        "outcomes": 1,
-        "observations": 1,
-        "evidence_receipts": 1,
-        "conservation_snapshots": 1,
-        "fingerprints": 1,
-        "centroid_checkpoints": 1,
-        "evolution_events": 1,
-        "decision_entity_edges": 1,
-    }
-    assert sqlite_store.count_decisions("test") == 1
-    assert sqlite_store.count_verified_decisions("test") == 1
 
 
 @pytest.mark.skipif(
@@ -3049,7 +2335,7 @@ def test_migration_replay(tmp_path, age_store):
 def test_v1_scorer_compatibility(tmp_path):
     """CompoundingScorer.score continues to work with v1 write_decision."""
     # Protocol v2 invariant: Protocol v2 is additive, not breaking.
-    scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.sqlite"), profile="test")
+    scorer = CompoundingScorer.from_preset("s2p",  profile="test")
     try:
         factors = {name: 0.5 for name in scorer._preset.shape.factor_names}
         category = scorer._preset.shape.category_names[0]
@@ -3066,67 +2352,10 @@ def test_v1_scorer_compatibility(tmp_path):
         scorer.graph_store.close()
 
 
-def test_outcome_direct_duplicate_raises(sqlite_store):
-    """A direct duplicate write_outcome call raises."""
-    # Protocol v2 invariant: one Outcome per Decision for direct calls.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-
-    with pytest.raises(ValueError, match="outcome already exists"):
-        sqlite_store.write_outcome("GOV-1", "manual_review", False, domain="test")
-
-    outcome = sqlite_store.connection.execute(
-        "SELECT actual_action, actual_index, is_correct FROM outcomes WHERE decision_id = ?",
-        ("GOV-1",),
-    ).fetchone()
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
-
-    assert outcome is not None
-    assert outcome["actual_action"] == "approve"
-    assert int(outcome["actual_index"]) == 0
-    assert bool(outcome["is_correct"]) is True
-    assert decision is not None
-    assert decision["status"] == "confirmed"
 
 
-def test_outcome_replay_identical_skips(sqlite_store):
-    """Outbox replay of an identical outcome skips without duplication."""
-    # Protocol v2 invariant: identical replay is idempotent.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-
-    replay_decision = sqlite_store._check_outcome_replay("GOV-1", "approve", True)
-    outcome_count = sqlite_store.connection.execute(
-        "SELECT COUNT(*) AS n FROM outcomes WHERE decision_id = ?",
-        ("GOV-1",),
-    ).fetchone()["n"]
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
-
-    assert replay_decision == "already_applied"
-    assert int(outcome_count) == 1
-    assert decision is not None
-    assert decision["status"] == "confirmed"
 
 
-def test_outcome_replay_conflicting_errors(sqlite_store):
-    """Outbox replay of a conflicting outcome quarantines or errors."""
-    # Protocol v2 invariant: conflicting Class A replay is never silently ignored.
-    _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
-
-    replay_decision = sqlite_store._check_outcome_replay("GOV-1", "manual_review", False)
-    outcome = sqlite_store.connection.execute(
-        "SELECT actual_action, actual_index, is_correct FROM outcomes WHERE decision_id = ?",
-        ("GOV-1",),
-    ).fetchone()
-    decision = sqlite_store.get_decision("GOV-1", domain="test")
-
-    assert replay_decision == "conflict"
-    assert outcome is not None
-    assert outcome["actual_action"] == "approve"
-    assert bool(outcome["is_correct"]) is True
-    assert decision is not None
-    assert decision["status"] == "confirmed"
 
 
 @pytest.mark.age
@@ -3167,13 +2396,13 @@ def test_age_transaction_rollback_preserves_domain_on_mid_reset_failure(age_stor
         age_store.domain_scoped_reset(other_domain)
 
 
-def test_preview_no_decision_write(sqlite_store):
+def test_preview_no_decision_write(memory_store):
     """Adapter-level preview persistence creates Observation, not Decision rows."""
     # Protocol v2 invariant: preview persistence uses Observation, not Decision.
-    _write_observation(sqlite_store, "OBS-PREVIEW")
+    _write_observation(memory_store, "OBS-PREVIEW")
 
-    assert sqlite_store.count_decisions("test") == 0
-    assert sqlite_store.get_decision("OBS-PREVIEW", domain="test") is None
+    assert memory_store.count_decisions("test") == 0
+    assert memory_store.get_decision("OBS-PREVIEW", domain="test") is None
 
 
 @pytest.mark.age
@@ -3190,212 +2419,27 @@ def test_age_preview_no_decision_write(age_store):
     assert age_store.get_decision(observation_id, domain=domain) is None
 
 
-def test_outbox_replay_ordering(sqlite_store):
-    """Outbox replay applies Decisions before dependent Outcomes and receipts."""
-    # Protocol v2 invariant: replay ordering preserves referential integrity.
-    decision_id = sqlite_store.enqueue_to_outbox(
-        "test",
-        "write_governed_decision",
-        "GOV-OUTBOX-1",
-        {"decision_id": "GOV-OUTBOX-1"},
-    )
-    outcome_id = sqlite_store.enqueue_to_outbox(
-        "test",
-        "write_outcome",
-        "GOV-OUTBOX-1",
-        {"decision_id": "GOV-OUTBOX-1", "actual_action": "approve"},
-        causal_decision_id="GOV-OUTBOX-1",
-    )
-    receipt_id = sqlite_store.enqueue_to_outbox(
-        "test",
-        "append_evidence_receipt",
-        "RCP-OUTBOX-1",
-        {"decision_id": "GOV-OUTBOX-1", "receipt_intent_id": "RCP-OUTBOX-1"},
-        causal_decision_id="GOV-OUTBOX-1",
-    )
-
-    rows = sqlite_store.connection.execute(
-        """
-        SELECT outbox_id, operation_type, causal_decision_id, status, schema_version
-        FROM outbox
-        WHERE domain = ?
-        ORDER BY outbox_id
-        """,
-        ("test",),
-    ).fetchall()
-
-    assert [int(row["outbox_id"]) for row in rows] == [decision_id, outcome_id, receipt_id]
-    assert [row["operation_type"] for row in rows] == [
-        "write_governed_decision",
-        "write_outcome",
-        "append_evidence_receipt",
-    ]
-    assert rows[0]["causal_decision_id"] is None
-    assert rows[1]["causal_decision_id"] == "GOV-OUTBOX-1"
-    assert rows[2]["causal_decision_id"] == "GOV-OUTBOX-1"
-    assert {row["status"] for row in rows} == {"pending"}
-    assert {int(row["schema_version"]) for row in rows} == {1}
 
 
-def test_evidence_replay_same_intent_skips(sqlite_store):
-    """Same receipt_intent_id and same payload returns the existing receipt."""
-    # Protocol v2 method/invariant: append_evidence_receipt replay is idempotent.
-    first = _append_receipt(sqlite_store, "RCP-1")
-    replay = _append_receipt(sqlite_store, "RCP-1")
-
-    receipt_count = sqlite_store.connection.execute(
-        "SELECT COUNT(*) AS n FROM evidence_receipts WHERE domain = ?",
-        ("test",),
-    ).fetchone()["n"]
-
-    assert replay == first
-    assert int(receipt_count) == 1
 
 
-def test_evidence_replay_conflict_quarantines(sqlite_store):
-    """Same receipt_intent_id with different payload quarantines or errors."""
-    # Protocol v2 invariant: evidence hash-chain conflicts are visible.
-    first = _append_receipt(sqlite_store, "RCP-1", payload_value="approved")
-
-    with pytest.raises(ValueError, match="conflicting evidence receipt_intent_id"):
-        _append_receipt(sqlite_store, "RCP-1", payload_value="blocked")
-
-    rows = sqlite_store.connection.execute(
-        """
-        SELECT chain_index, previous_hash, payload_hash
-        FROM evidence_receipts
-        WHERE domain = ?
-        ORDER BY chain_index
-        """,
-        ("test",),
-    ).fetchall()
-
-    assert len(rows) == 1
-    assert rows[0]["chain_index"] == 0
-    assert rows[0]["previous_hash"] == "GENESIS"
-    assert rows[0]["payload_hash"] == first[1]
 
 
-def test_governed_decision_conflict_quarantines(sqlite_store):
-    """Same governed decision_id with different payload quarantines or errors."""
-    # Protocol v2 method/invariant: write_governed_decision is Class A.
-    original_id = sqlite_store.enqueue_to_outbox(
-        "test",
-        "write_governed_decision",
-        "GOV-1",
-        {"decision_id": "GOV-1", "recommended_action": "approve"},
-    )
-
-    with pytest.raises(ValueError, match="payload_hash_conflict"):
-        sqlite_store.enqueue_to_outbox(
-            "test",
-            "write_governed_decision",
-            "GOV-1",
-            {"decision_id": "GOV-1", "recommended_action": "manual_review"},
-        )
-
-    outbox_rows = sqlite_store.connection.execute(
-        "SELECT outbox_id, payload_json FROM outbox WHERE domain = ? AND target_key = ?",
-        ("test", "GOV-1"),
-    ).fetchall()
-    quarantine_rows = sqlite_store.connection.execute(
-        "SELECT outbox_id, new_payload_json, reason FROM outbox_quarantine WHERE domain = ? AND target_key = ?",
-        ("test", "GOV-1"),
-    ).fetchall()
-    assert len(outbox_rows) == 1
-    assert int(outbox_rows[0]["outbox_id"]) == original_id
-    assert json.loads(outbox_rows[0]["payload_json"])["recommended_action"] == "approve"
-    assert len(quarantine_rows) == 1
-    assert int(quarantine_rows[0]["outbox_id"]) == original_id
-    assert json.loads(quarantine_rows[0]["new_payload_json"])["recommended_action"] == "manual_review"
-    assert quarantine_rows[0]["reason"] == "payload_hash_conflict"
 
 
-def test_evolution_event_conflict_quarantines(sqlite_store):
-    """Same event_id with different evolution payload quarantines or errors."""
-    # Protocol v2 method/invariant: write_evolution_event conflict policy is strict.
-    original_id = sqlite_store.enqueue_to_outbox(
-        "test",
-        "write_evolution_event",
-        "EVT-1",
-        {"event_id": "EVT-1", "variant_id": "variant-a"},
-    )
-
-    with pytest.raises(ValueError, match="payload_hash_conflict"):
-        sqlite_store.enqueue_to_outbox(
-            "test",
-            "write_evolution_event",
-            "EVT-1",
-            {"event_id": "EVT-1", "variant_id": "variant-b"},
-        )
-
-    outbox_rows = sqlite_store.connection.execute(
-        "SELECT outbox_id, payload_json FROM outbox WHERE domain = ? AND target_key = ?",
-        ("test", "EVT-1"),
-    ).fetchall()
-    quarantine_rows = sqlite_store.connection.execute(
-        "SELECT outbox_id, new_payload_json, reason FROM outbox_quarantine WHERE domain = ? AND target_key = ?",
-        ("test", "EVT-1"),
-    ).fetchall()
-    assert len(outbox_rows) == 1
-    assert int(outbox_rows[0]["outbox_id"]) == original_id
-    assert json.loads(outbox_rows[0]["payload_json"])["variant_id"] == "variant-a"
-    assert len(quarantine_rows) == 1
-    assert int(quarantine_rows[0]["outbox_id"]) == original_id
-    assert json.loads(quarantine_rows[0]["new_payload_json"])["variant_id"] == "variant-b"
-    assert quarantine_rows[0]["reason"] == "payload_hash_conflict"
 
 
-def test_outbox_quarantine_recorded(sqlite_store):
-    """Conflicting outbox replay records a quarantine trail."""
-    # Protocol v2 invariant: conflicts are auditable, not silently dropped.
-    original_id = sqlite_store.enqueue_to_outbox(
-        "test",
-        "operation",
-        "TARGET-1",
-        {"value": "original"},
-    )
-    with pytest.raises(ValueError, match="payload_hash_conflict"):
-        sqlite_store.enqueue_to_outbox(
-            "test",
-            "operation",
-            "TARGET-1",
-            {"value": "conflict"},
-        )
-
-    quarantine = sqlite_store.connection.execute(
-        """
-        SELECT *
-        FROM outbox_quarantine
-        WHERE domain = ? AND operation_type = ? AND target_key = ?
-        """,
-        ("test", "operation", "TARGET-1"),
-    ).fetchone()
-    original = sqlite_store.connection.execute(
-        "SELECT payload_hash, payload_json FROM outbox WHERE outbox_id = ?",
-        (original_id,),
-    ).fetchone()
-
-    assert quarantine is not None
-    assert int(quarantine["outbox_id"]) == original_id
-    assert quarantine["existing_payload_hash"] == original["payload_hash"]
-    assert quarantine["new_payload_hash"] != original["payload_hash"]
-    assert json.loads(original["payload_json"]) == {"value": "original"}
-    assert json.loads(quarantine["new_payload_json"]) == {"value": "conflict"}
-    assert quarantine["reason"] == "payload_hash_conflict"
-    assert quarantine["resolved_at"] is None
-    assert quarantine["resolution"] is None
 
 
-def test_write_outcome_domain_is_optional_and_scopes_sqlite_store(sqlite_store):
+def test_write_outcome_domain_is_optional_and_scopes_memory_store(memory_store):
     """Explicit domain succeeds; omitted domain keeps the v1 call path working."""
-    _write_governed_decision(sqlite_store, "OUTCOME-DOMAIN", domain="test")
-    sqlite_store.write_outcome("OUTCOME-DOMAIN", "approve", True, domain="test")
-    assert sqlite_store.get_decision("OUTCOME-DOMAIN", domain="test")["status"] == "confirmed"
+    _write_governed_decision(memory_store, "OUTCOME-DOMAIN", domain="test")
+    memory_store.write_outcome("OUTCOME-DOMAIN", "approve", True, domain="test")
+    assert memory_store.get_decision("OUTCOME-DOMAIN", domain="test")["status"] == "confirmed"
 
-    _write_governed_decision(sqlite_store, "OUTCOME-LEGACY", domain="test")
-    sqlite_store.write_outcome("OUTCOME-LEGACY", "approve", True, domain="test")
-    assert sqlite_store.get_decision("OUTCOME-LEGACY", domain="test")["status"] == "confirmed"
+    _write_governed_decision(memory_store, "OUTCOME-LEGACY", domain="test")
+    memory_store.write_outcome("OUTCOME-LEGACY", "approve", True, domain="test")
+    assert memory_store.get_decision("OUTCOME-LEGACY", domain="test")["status"] == "confirmed"
 
 
 def test_age_write_outcome_compound_domain_identity(age_store):
@@ -3586,3 +2630,4 @@ def test_age_checkpoint_receipt_per_decision_isolation(tmp_path, age_store):
     )
     assert checkpoint_edges == [{"decision_id": decision_one, "checkpoint_decision_id": decision_one, "cnt": 1}]
     assert receipt_edges == [{"decision_id": decision_two, "receipt_decision_id": decision_two, "cnt": 1}]
+

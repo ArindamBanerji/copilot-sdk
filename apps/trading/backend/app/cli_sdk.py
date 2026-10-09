@@ -7,13 +7,13 @@ argparse hook at the bottom serializes those objects for CLI use.
 
 from __future__ import annotations
 
+from typing import cast
 import argparse
 import csv
 import json
 import math
 import os
-import shutil
-import sqlite3
+import logging
 import sys
 import time
 from datetime import datetime
@@ -42,9 +42,9 @@ def _cli_profile() -> str:
 
 
 def _load_cli_graph_config(profile: str) -> GraphConfig:
-    """Load typed AGE graph configuration; never substitute SQLite."""
+    """Load the configured graph backend without substitution."""
     return GraphConfig.load(DOMAIN, profile=profile)
-DEFAULT_DB_PATH = os.path.expanduser("~/.ci-platform/trading/trading.db")
+DEFAULT_DB_PATH = None  # Retained public name; file-backed graph selection is retired.
 SELF_CONFIRM_WARNING = (
     "Recorded action matches system recommendation. If this is the "
     "recommendation echoed back (not a verified real-world outcome), use "
@@ -88,33 +88,24 @@ def _format_hint(values: list[str]) -> str:
     return ", ".join(values)
 
 
-def _db_path(db_path: str | None = None) -> str:
-    return os.path.expanduser(db_path or DEFAULT_DB_PATH)
+def _reject_db_path(db_path: str | None) -> None:
+    if db_path is not None:
+        raise CLIUsageError("--db-path is retired", "Configure the AGE graph instead.")
 
 
-def _get_scorer(db_path: str | None = None) -> CompoundingScorer:
-    path = _db_path(db_path)
-    parent = os.path.dirname(path)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
+def _get_scorer(
+    db_path: str | None = None, *, require_persistence: bool = True,
+) -> CompoundingScorer:
+    _reject_db_path(db_path)
     profile = _cli_profile()
     config = _load_cli_graph_config(profile)
-    store = create_graph_store(
-        backend=config.backend,
-        domain=config.domain,
-        db_path=path,
-        dsn=config.dsn,
-        graph_name=config.graph,
-        test_mode=config.active_test_mode,
-        shared_graph_authorization=config.authorized,
-        profile=profile,
-        # The typed GraphConfig is authoritative for backend, DSN, and graph;
-        # pass the live environment through for factory-level domain guards.
-        env=os.environ,
-    )
-    return CompoundingScorer.from_preset(
-        DOMAIN, db_path=path, graph_store=store, profile=profile
-    )
+    if require_persistence and config.backend != "age":
+        raise CLIUsageError(
+            "CLI operations requiring persistence need AGE backend. Current backend: memory",
+            "Configure AGE, or use 'ci-trading score' for a read-only preview.",
+        )
+    store = create_graph_store(config=config, decision_id_prefix="TRD-")
+    return CompoundingScorer.from_preset(DOMAIN, graph_store=store, profile=profile)
 
 
 def _close_scorer(scorer: CompoundingScorer) -> None:
@@ -219,15 +210,14 @@ def _score_payload(result: ScoreResult, persisted: bool) -> dict[str, Any]:
 
 
 def init_sdk(db_path: str | None = None) -> dict[str, Any]:
-    """Initialize the SDK-backed Trading database."""
-    path = _db_path(db_path)
-    existed = Path(path).exists()
-    scorer = _get_scorer(path)
+    """Initialize the configured graph connection and report its identity."""
+    scorer = _get_scorer(db_path, require_persistence=False)
     try:
+        config = _load_cli_graph_config(_cli_profile())
         shape = TradingPreset().shape
         return {
-            "db_path": path,
-            "created": not existed,
+            "backend": config.backend,
+            "graph": config.graph if config.backend == "age" else None,
             "categories": list(shape.category_names),
             "actions": list(shape.action_names),
             "factors": list(shape.factor_names),
@@ -240,7 +230,7 @@ def score_sdk(category: str, factors: str | dict[str, Any], db_path: str | None 
     """Preview a recommendation without persisting a Decision."""
     _validate_category(category)
     clean_factors = _validate_factors(parse_factors(factors))
-    scorer = _get_scorer(db_path)
+    scorer = _get_scorer(db_path, require_persistence=False)
     try:
         result = scorer.score_read_only(clean_factors, category)
         return _score_payload(result, persisted=False)
@@ -458,16 +448,15 @@ def conservation_sdk(db_path: str | None = None) -> dict[str, Any]:
 
 def status_sdk(db_path: str | None = None, output_format: str = "json") -> dict[str, Any] | str:
     """Return a one-screen Trading copilot summary."""
-    path = _db_path(db_path)
-    scorer = _get_scorer(path)
+    scorer = _get_scorer(db_path)
     try:
         counts = _counts(scorer)
         alpha = scorer.get_alpha()
         phase = scorer.get_phase()
-        conservation = conservation_sdk(path)
+        conservation = conservation_sdk(db_path)
         decisions = scorer.graph_store.get_decisions(DOMAIN, limit=10000)
         last_decision = decisions[-1]["decision_id"] if decisions else None
-        trust = trust_sdk(db_path=path)
+        trust = trust_sdk(db_path=db_path)
         top_factors: dict[str, float] = {}
         noise_factors: list[str] = []
         if isinstance(trust, dict) and trust.get("categories"):
@@ -475,7 +464,7 @@ def status_sdk(db_path: str | None = None, output_format: str = "json") -> dict[
             weights = first.get("weights", {})
             top_factors = dict(sorted(weights.items(), key=lambda item: item[1], reverse=True)[:3])
             noise_factors = list(first.get("noise_signals", []))
-        db_size_mb = round(Path(path).stat().st_size / (1024 * 1024), 3) if Path(path).exists() else 0.0
+        config = _load_cli_graph_config(_cli_profile())
         payload = {
             "phase": phase,
             "alpha": alpha,
@@ -486,8 +475,8 @@ def status_sdk(db_path: str | None = None, output_format: str = "json") -> dict[
             "last_decision": last_decision,
             "top_factors": top_factors,
             "noise_factors": noise_factors,
-            "db_path": path,
-            "db_size_mb": db_size_mb,
+            "backend": config.backend,
+            "graph": config.graph,
         }
         return _human_status(payload) if output_format == "human" else payload
     finally:
@@ -537,8 +526,7 @@ def export_sdk(
     if export_format not in {"json", "csv"}:
         raise CLIUsageError("Unknown export format", "Valid formats: json, csv")
 
-    path = _db_path(db_path)
-    out_path = Path(output_path) if output_path else Path(path).parent / f"decisions.{export_format}"
+    out_path = Path(output_path) if output_path else Path.cwd() / f"decisions.{export_format}"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     scorer = _get_scorer(db_path)
@@ -566,21 +554,14 @@ def export_sdk(
 
 
 def backup_sdk(backup_path: str | None = None, db_path: str | None = None) -> dict[str, Any]:
-    """Copy the SDK Trading DB to a backup file."""
-    src = _db_path(db_path)
-    scorer = _get_scorer(db_path)
-    _close_scorer(scorer)
-
-    if backup_path is None:
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        backup_dir = Path(src).parent / "backups"
-        backup_dir.mkdir(parents=True, exist_ok=True)
-        backup_path = str(backup_dir / f"trading_{timestamp}.db")
-    else:
-        Path(backup_path).parent.mkdir(parents=True, exist_ok=True)
-
-    shutil.copy2(src, backup_path)
-    return {"backed_up": src, "backup_path": str(backup_path)}
+    """Keep the public command, but leave durable backups to AGE administration."""
+    _reject_db_path(db_path)
+    config = _load_cli_graph_config(_cli_profile())
+    if config.backend == "memory":
+        message = "Backup is not applicable for in-memory backend."
+        logging.getLogger(__name__).warning(message)
+        return {"error": message, "backend": "memory"}
+    raise NotImplementedError("AGE backup is a database-level operation; use the managed PostgreSQL backup procedure.")
 
 
 def restore_sdk(
@@ -588,30 +569,16 @@ def restore_sdk(
     confirm: bool = False,
     db_path: str | None = None,
 ) -> dict[str, Any]:
-    """Restore the SDK Trading DB from a validated SQLite backup."""
+    """Keep the public command without pretending a file copy restores AGE."""
     if not confirm:
         return {"error": "Restore is destructive. Use --confirm."}
-
-    if not backup_path or not Path(backup_path).exists():
-        return {"error": "Backup file not found"}
-
-    conn = sqlite3.connect(backup_path)
-    try:
-        conn.execute("SELECT count(*) FROM sqlite_master").fetchone()
-    except sqlite3.DatabaseError:
-        return {"error": "Invalid backup file"}
-    finally:
-        conn.close()
-
-    if _load_cli_graph_config(_cli_profile()).backend != "sqlite":
-        return {"error": "SQLite restore is unavailable for AGE-backed Trading"}
-
-    dest = _db_path(db_path)
-    parent = os.path.dirname(dest)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    shutil.copy2(backup_path, dest)
-    return {"restored_from": str(backup_path), "restored_to": dest}
+    _reject_db_path(db_path)
+    config = _load_cli_graph_config(_cli_profile())
+    if config.backend == "memory":
+        message = "Restore is not applicable for in-memory backend."
+        logging.getLogger(__name__).warning(message)
+        return {"error": message, "backend": "memory"}
+    raise NotImplementedError("AGE restore is a database-level operation; use the managed PostgreSQL restore procedure.")
 
 
 def import_sdk(
@@ -714,7 +681,7 @@ def _load_csv_trades(file_path: str, preset: str | None) -> list[Any]:
             f"Valid presets: {_format_hint(sorted(BROKER_PRESETS))}",
         )
     connector = CSVConnector()
-    return connector.import_flexible(file_path, broker_preset=preset) if preset else connector.import_from_file(file_path)
+    return cast(list[Any], connector.import_flexible(file_path, broker_preset=preset) if preset else connector.import_from_file(file_path))
 
 
 def _load_broker_trades(broker: str, days: int) -> list[Any]:
@@ -737,12 +704,12 @@ def _load_broker_trades(broker: str, days: int) -> list[Any]:
             f"Broker '{broker}' does not support trade import",
             "Use a broker connector with import_trades(), such as ibkr.",
         )
-    return import_trades(days=days_int)
+    return cast(list[Any], import_trades(days=days_int))
 
 
 def _trade_to_dict(trade: Any) -> dict[str, Any]:
     if hasattr(trade, "to_dict"):
-        return trade.to_dict()
+        return cast(dict[str, Any], trade.to_dict())
     if isinstance(trade, dict):
         return dict(trade)
     return dict(getattr(trade, "__dict__", {}))
@@ -805,7 +772,7 @@ def _human_status(payload: dict[str, Any]) -> str:
             f"Conservation: {payload['conservation']}",
             f"Decisions:    {payload['total_decisions']} total ({payload['verified_count']} verified)",
             f"Accuracy:     {payload['accuracy'] * 100:0.0f}%",
-            f"DB:           {payload['db_path']}",
+            f"Graph:        {payload['backend']} / {payload['graph']}",
             "======================================",
         ]
     )
@@ -839,6 +806,8 @@ def _run_json_command(func: Callable[[], Any], output_format: str = "json") -> i
     except CLIUsageError as exc:
         print(json.dumps(exc.to_payload(), indent=2))
         return 1
+    except NotImplementedError as exc:
+        return _print_payload({"error": str(exc)})
     except KeyError as exc:
         print(
             json.dumps(

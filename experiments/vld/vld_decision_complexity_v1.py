@@ -30,6 +30,7 @@ Tier: REAL_COMPONENT exported geometry + SIMULATED cases; constructed S2P
 workflow/K updates are SIMULATED, not an observed enterprise fixture.
 """
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import csv
 import hashlib
 import json
@@ -269,7 +270,7 @@ def score_multi_k(profiles: list[R], seed: int) -> R:
     train = multi_cases(profiles, seed + 20000, 167)
     held = multi_cases(profiles, seed + 300000, 100)
     assert len(held) == 300
-    learned = kcurve.KUtilityStore(kcurve.SQLiteDecisionStore(), d=len(factors))
+    learned = kcurve.KUtilityStore(kcurve.InMemoryGraphStore(), d=len(factors))
     sources = {i: name for i, name in enumerate(factors)}
     # Independent train order is deterministic; labels stay within each profile's geometry.
     order = list(range(len(train)))
@@ -301,7 +302,7 @@ def score_multi_k(profiles: list[R], seed: int) -> R:
         good_learned += int(learned_run["final_action"] == target)
         b2_correct += int(learned_run["final_action"] == target)
         full_correct += int(inv.score(np.asarray(case["full"], dtype=np.float64))[0] == target)
-    learned.conn.close()
+    learned.graph_store.close()
     return {"k_curve_gain": 100.0 * (good_learned - good_frozen) / len(held),
             "budget_frontier_efficiency": b2_correct / max(full_correct, 1),
             "readout_gap": 100.0 * (full_correct - b2_correct) / len(held),

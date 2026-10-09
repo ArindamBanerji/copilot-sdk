@@ -4,7 +4,6 @@ import pytest
 
 from copilot_sdk.config import GraphConfigError
 from copilot_sdk.graph.factory import create_graph_store
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
 
 def test_config_driven_age_requires_dsn(monkeypatch):
@@ -15,23 +14,18 @@ def test_config_driven_age_requires_dsn(monkeypatch):
         create_graph_store(domain="trading")
 
 
-def test_explicit_sqlite_remains_available_for_tests(tmp_path):
-    store = create_graph_store(
-        backend="sqlite", domain="test", db_path=tmp_path / "test.db", profile="test"
-    )
-    try:
-        assert isinstance(store, SQLiteGraphStore)
-    finally:
-        store.close()
+def test_explicit_sqlite_remains_available_for_tests_rejected(tmp_path):
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(backend='sqlite', domain='test', db_path=tmp_path / 'test.db', profile='test')
+    assert not list(tmp_path.glob("*.db"))
 
 
-def test_dual_write_missing_dsn_fails_closed(tmp_path, monkeypatch):
+def test_unsupported_backend_missing_dsn_fails_closed_rejected(tmp_path, monkeypatch):
     for name in ("GRAPH_DSN", "AGE_DSN", "GRAPH_NAME", "AGE_GRAPH_NAME", "SHARED_GRAPH_AUTHORIZED"):
         monkeypatch.delenv(name, raising=False)
-    with pytest.raises(GraphConfigError, match="missing AGE DSN"):
-        create_graph_store(
-            backend="dual_write", domain="trading", db_path=tmp_path / "trading.db"
-        )
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(backend='unsupported_backend', domain='trading', db_path=tmp_path / 'trading.db')
+    assert not list(tmp_path.glob("*.db"))
 
 
 def test_expected_age_resolving_to_sqlite_raises(monkeypatch, tmp_path):
@@ -43,22 +37,18 @@ def test_expected_age_resolving_to_sqlite_raises(monkeypatch, tmp_path):
     ):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("TRADING_ACTIVE_GRAPH_BACKEND", "sqlite")
-    with pytest.raises(GraphConfigError, match="expected backend age"):
+    with pytest.raises(GraphConfigError, match="invalid backend"):
         create_graph_store(domain="trading", db_path=tmp_path / "trading.db")
 
 
-def test_development_profile_allows_sqlite_fallback(monkeypatch, tmp_path):
+def test_development_profile_rejects_sqlite_fallback(monkeypatch, tmp_path):
     monkeypatch.setenv("TRADING_ACTIVE_GRAPH_BACKEND", "sqlite")
     monkeypatch.setenv("CI_ALLOW_SQLITE_FALLBACK", "1")
-    store = create_graph_store(
-        domain="trading",
-        db_path=tmp_path / "trading.db",
-        profile="development",
-    )
-    try:
-        assert isinstance(store, SQLiteGraphStore)
-    finally:
-        store.close()
+    with pytest.raises(GraphConfigError, match="invalid backend"):
+        create_graph_store(
+            domain="trading", db_path=tmp_path / "trading.db", profile="development",
+        )
+    assert not (tmp_path / "trading.db").exists()
 
 
 def test_wrong_backend_rejection():
@@ -82,7 +72,7 @@ def test_age_construction_with_valid_config(monkeypatch):
         dsn="postgresql://example/test",
         graph_name="trading_graph",
     )
-    assert isinstance(store, FakeAGEAdapter)
+    assert isinstance(store.graph_primary, FakeAGEAdapter)
     assert store.dsn == "postgresql://example/test"
     assert store.graph_name == "trading_graph"
 
@@ -96,3 +86,4 @@ def test_soc_graph_authorization_preserved():
             dsn="postgresql://example/test",
             graph_name="soc_graph",
         )
+

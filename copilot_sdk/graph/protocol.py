@@ -13,8 +13,52 @@ from copilot_sdk.graph.enrichment import (
 
 
 @runtime_checkable
+class ScoringPersistenceStore(Protocol):
+    """Scoring state extension, staged separately until AGE implements it.
+
+    Adding required members to runtime-checkable GraphStore would invalidate
+    existing AGE adapters and change governed-write dispatch. Consumers can
+    use GraphScoringPersistence over the existing governance protocol meanwhile.
+    Saves upsert by (domain, episode_id, k) or (domain, decision_id), replacing
+    metadata. Reads return independent copies in deterministic key order.
+    """
+
+    def save_k_utility(self, domain: str, episode_id: str, k: int, utility: float,
+                       metadata: dict[str, Any] | None = None) -> str: ...
+
+    def get_k_utilities(self, domain: str, episode_id: str | None = None,
+                        limit: int = 100) -> list[dict[str, Any]]: ...
+
+    def save_holdout_decision(self, domain: str, decision_id: str, holdout_group: str,
+                              metadata: dict[str, Any] | None = None) -> str: ...
+
+    def get_holdout_decisions(self, domain: str,
+                              holdout_group: str | None = None) -> list[dict[str, Any]]: ...
+
+
+@runtime_checkable
+class ProductionReadyStore(Protocol):
+    """Marker for store backends reviewed and approved for production use.
+
+    InMemoryGraphStore and unverified backends must not implement this marker.
+    The AGEGraphStoreAdapter in ci-platform must expose ``production_ready``.
+    Runtime consumers use structural ``isinstance`` checks and do not read the
+    property's value.
+    """
+
+    @property
+    def production_ready(self) -> bool:
+        """Marker attribute required for runtime protocol membership."""
+        ...
+
+
+@runtime_checkable
 class GraphStore(Protocol):
-    """Domain-scoped decision/outcome persistence contract."""
+    """Domain-scoped decision/outcome persistence contract.
+
+    Timestamp types in dictionary projections follow AGE's field-level shape:
+    epoch-valued fields remain numeric, while ISO-valued fields remain strings.
+    """
 
     def write_decision(
         self,

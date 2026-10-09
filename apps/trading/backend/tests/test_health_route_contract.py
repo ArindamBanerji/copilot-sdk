@@ -17,13 +17,17 @@ def test_health_aliases_have_one_handler_and_matching_graph_fields(client: TestC
     api = client.get("/api/health").json()
     for key in ("ready", "graph_backend", "graph_connected", "node_count", "node_count_scope"):
         assert root[key] == api[key]
-    assert root["graph_backend"] == "sqlite"
+    assert root["graph_backend"] == "memory"
     assert root["graph_connected"] is True
     assert root["ready"] is False
 
 
 def test_health_aliases_survive_store_outage(client: TestClient) -> None:
-    with patch.object(cast(FastAPI, client.app).state.graph_store, "count_decisions", side_effect=OperationalError("offline")):
+    app = cast(FastAPI, client.app)
+    store = app.state.trading_selected_graph_store
+    while hasattr(store, "graph_primary"):
+        store = store.graph_primary
+    with patch.object(store, "count_decisions", side_effect=OperationalError("offline")):
         for path in ("/health", "/api/health"):
             response = client.get(path)
             assert response.status_code == 503

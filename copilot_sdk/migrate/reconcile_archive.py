@@ -1,31 +1,31 @@
-"""Resumable baseline reconciliation for SQLite and AGE archive state."""
+"""Resumable reconciliation of a historical archive into AGE state."""
 
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from ci_platform.graph.age_client import AGEClient
-from copilot_sdk.graph.read_diff_runner import ReadDiffRunner
+from copilot_sdk.graph.read_diff_runner import DiffReport
+from copilot_sdk.migrate.legacy_archive_reader import LegacySQLiteArchiveReader
 
 
 class ArchiveReconciler:
-    """Mark AGE Decisions archived when SQLite has archived the same IDs."""
+    """Mark AGE Decisions archived when the historical source archived them."""
 
     def __init__(
         self,
-        sqlite_store: Any,
+        archive_reader: LegacySQLiteArchiveReader,
         age_store: Any,
         domain: str,
         checkpoint_file: str | Path | None = None,
     ) -> None:
-        self.sqlite_store = sqlite_store
+        self.archive_reader = archive_reader
         self.age_store = age_store
         self.domain = str(domain)
-        data_dir = Path(getattr(sqlite_store, "db_path", ".")).parent
+        data_dir = archive_reader.source_path.parent
         self.checkpoint_file = (
             Path(checkpoint_file)
             if checkpoint_file is not None
@@ -47,9 +47,9 @@ class ArchiveReconciler:
 
         source_ids = sorted(
             {
-                str(record["decision_id"])
-                for record in self.sqlite_store.get_archived_decisions(self.domain)
-                if record.get("decision_id") is not None
+                record.decision_id
+                for record in self.archive_reader.iter_decisions(self.domain)
+                if record.decision_id
             }
         )
         checkpoint = self._read_checkpoint()
@@ -65,11 +65,11 @@ class ArchiveReconciler:
             "reconciled": int(checkpoint.get("reconciled", 0)) if checkpoint else 0,
             "already_archived": int(checkpoint.get("already_archived", 0)) if checkpoint else 0,
             "not_found_in_age": int(checkpoint.get("not_found_in_age", 0)) if checkpoint else 0,
-            "total_sqlite_archived": len(source_ids),
+            "total_source_archived": len(source_ids),
             "checkpoint_file": str(self.checkpoint_file),
             "dry_run": bool(dry_run),
         }
-        started_at = checkpoint.get("started_at") if checkpoint else self._timestamp()
+        started_at = str(checkpoint.get("started_at") or self._timestamp()) if checkpoint else self._timestamp()
 
         for start in range(0, len(source_ids), batch_size):
             batch = [decision_id for decision_id in source_ids[start : start + batch_size] if decision_id not in processed_ids]
@@ -107,7 +107,7 @@ class ArchiveReconciler:
         if report["not_found_in_age"]:
             report["status"] = "FAIL"
             report["fail_reason"] = (
-                f"{report['not_found_in_age']} SQLite archived decision IDs were not found in AGE"
+                f"{report['not_found_in_age']} archived decision IDs were not found in AGE"
             )
         if not dry_run:
             self._write_checkpoint(
@@ -120,9 +120,30 @@ class ArchiveReconciler:
         return report
 
     def verify(self) -> dict[str, Any]:
-        """Return the independent active and history parity reports."""
-        runner = ReadDiffRunner(self.sqlite_store, self.age_store, self.domain)
-        return {"active": runner.compare_active(), "history": runner.compare_history()}
+        """Compare the historical archive IDs with AGE archive state."""
+        source = list(self.archive_reader.iter_decisions(self.domain))
+        source_ids = {record.decision_id for record in source}
+        target = self.age_store.get_archived_decisions(self.domain)
+        target_ids = {
+            str(record["decision_id"])
+            for record in target
+            if record.get("decision_id") is not None
+        }
+        report = DiffReport(
+            domain=self.domain,
+            mode="history",
+            primary_archive_count=len(source_ids),
+            secondary_archive_count=len(target_ids),
+            archive_count_match=len(source_ids) == len(target_ids),
+            missing_in_secondary=sorted(source_ids - target_ids),
+            missing_in_primary=sorted(target_ids - source_ids),
+        )
+        report.passed = (
+            report.archive_count_match
+            and not report.missing_in_secondary
+            and not report.missing_in_primary
+        )
+        return {"history": report}
 
     def _age_rows(self, decision_ids: list[str]) -> dict[str, Any]:
         age = self._age
@@ -178,7 +199,10 @@ class ArchiveReconciler:
         if not self.checkpoint_file.exists():
             return None
         try:
-            return json.loads(self.checkpoint_file.read_text(encoding="utf-8"))
+            payload = json.loads(self.checkpoint_file.read_text(encoding="utf-8"))
+            if not isinstance(payload, dict):
+                raise ValueError(f"Reconciliation checkpoint must be an object: {self.checkpoint_file}")
+            return payload
         except json.JSONDecodeError as exc:
             raise ValueError(f"Reconciliation checkpoint is corrupted: {self.checkpoint_file}") from exc
 
@@ -198,7 +222,7 @@ class ArchiveReconciler:
             "reconciled": report["reconciled"],
             "already_archived": report["already_archived"],
             "not_found_in_age": report["not_found_in_age"],
-            "source_sqlite_archive_count": report["total_sqlite_archived"],
+            "source_archive_count": report["total_source_archived"],
             "started_at": started_at,
             "finished_at": self._timestamp() if status != "in_progress" else None,
             "status": status,

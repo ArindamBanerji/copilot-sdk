@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from copilot_sdk.graph import InMemoryGraphStore
 from app.services.claim_gate import (
     CLAIM_TRD_PATTERN,
     CLAIM_TRD_PROMOTION,
@@ -46,7 +47,7 @@ def test_measured_claim_gets_measured_label() -> None:
 
 
 def test_promotion_guard_blocks_without_observed_evidence() -> None:
-    guard = TradingPromotionGuard(TradingClaimRegistry())
+    guard = TradingPromotionGuard(TradingClaimRegistry(), graph_store=InMemoryGraphStore())
     decision = guard.authorize("trend_following", {"status": "GREEN"})
     assert decision.allowed is False
     assert decision.reason == "promotion_requires_observed_evidence"
@@ -55,7 +56,7 @@ def test_promotion_guard_blocks_without_observed_evidence() -> None:
 def test_promotion_guard_blocks_non_green_even_when_observed() -> None:
     registry = TradingClaimRegistry()
     registry.mark_observed((CLAIM_TRD_PROMOTION,))
-    decision = TradingPromotionGuard(registry).authorize("trend_following", {"status": "AMBER"})
+    decision = TradingPromotionGuard(registry, graph_store=InMemoryGraphStore()).authorize("trend_following", {"status": "AMBER"})
     assert decision.allowed is False
     assert decision.reason == "conservation_amber"
 
@@ -63,7 +64,7 @@ def test_promotion_guard_blocks_non_green_even_when_observed() -> None:
 def test_promotion_state_machine_advances_only_after_all_gates() -> None:
     registry = TradingClaimRegistry()
     registry.mark_observed((CLAIM_TRD_PROMOTION,))
-    result = TradingPromotionGuard(registry).advance_observed(
+    result = TradingPromotionGuard(registry, graph_store=InMemoryGraphStore()).advance_observed(
         "trend_following", {"status": "GREEN"}, shadow_decisions=10
     )
     assert result["advanced"] is True

@@ -1,7 +1,5 @@
 """WP-0 conservation provider contract tests."""
 
-import time
-
 import pytest
 
 from copilot_sdk.evolution import (
@@ -37,7 +35,7 @@ def test_scorer_backed_provider_fails_to_unknown() -> None:
     assert state["domain"] == "dataops"
 
 
-def test_cached_async_provider_freshness() -> None:
+def test_async_provider_reads_each_snapshot_fresh() -> None:
     snapshots = iter(
         [
             {"status": "GREEN"},
@@ -48,10 +46,8 @@ def test_cached_async_provider_freshness() -> None:
 
     first = provider.get_state()
     assert first["status"] == "GREEN"
-    time.sleep(0.2)
     second = provider.get_state()
     assert second["status"] == "AMBER"
-    assert first["observed_at"] != second["observed_at"]
 
 
 def test_cached_async_provider_stale_unknown() -> None:

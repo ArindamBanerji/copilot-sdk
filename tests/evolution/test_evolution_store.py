@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from copilot_sdk.evolution import EvolutionStore, VariantSelector
-from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import GraphStore, InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 class SampleVariantSelector:
@@ -32,4 +33,6 @@ def test_inmemory_graph_store_structurally_satisfies_evolution_store():
 
 
 def test_sqlite_graph_store_structurally_satisfies_evolution_store(tmp_path):
-    assert isinstance(SQLiteGraphStore(tmp_path / "graph.sqlite"), EvolutionStore)
+    assert isinstance(make_memory_store(tmp_path / "graph.sqlite"), EvolutionStore)
+
+

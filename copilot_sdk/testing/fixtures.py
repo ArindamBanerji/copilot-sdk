@@ -11,7 +11,7 @@ from typing import Any, Callable
 
 import pytest
 
-from copilot_sdk.config import GraphConfig
+from copilot_sdk.config import GraphConfig, GraphConfigError
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
@@ -20,10 +20,27 @@ log = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
-def age_available() -> bool:
-    """Return whether configured AGE is reachable, without an env gate."""
+def age_test_dsn() -> str:
+    """Capture test configuration before per-test fixtures change the environment."""
+    explicit = os.getenv("AGE_TEST_DSN", "").strip()
+    if explicit:
+        return explicit
     try:
-        dsn = os.getenv("AGE_TEST_DSN", "").strip() or (GraphConfig.load("trading").dsn or "")
+        return GraphConfig.load("trading").dsn or ""
+    except GraphConfigError:
+        # Missing/invalid production configuration means live tests are unavailable;
+        # it must not prevent collecting unrelated tests.
+        return ""
+
+
+def age_available(dsn: str | None = None) -> bool:
+    """Probe once per effective DSN; never share a mutable connection or graph."""
+    return _probe_age(age_test_dsn() if dsn is None else dsn)
+
+
+@lru_cache(maxsize=None)
+def _probe_age(dsn: str) -> bool:
+    try:
         if not dsn:
             return False
         import psycopg
@@ -88,8 +105,7 @@ def age_graph_store() -> Generator[Callable[[str], Any], None, None]:
     import psycopg
     from ci_platform.graph import AGEGraphStoreAdapter
 
-    config = GraphConfig.load("trading")
-    dsn = config.dsn
+    dsn = age_test_dsn()
     if not dsn:
         pytest.skip("AGE DSN is not configured")
     graph_name = f"sdk_test_{uuid.uuid4().hex[:12]}"

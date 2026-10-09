@@ -11,15 +11,15 @@ from __future__ import annotations
 
 import os
 import tempfile
-import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
+from copilot_sdk.graph.protocol import GraphStore
 from examples.jm_reference.generator import GeneratorConfig, SyntheticGenerator
 from examples.jm_reference.oracle import GroundTruthOracle, OracleConfig
 
@@ -54,7 +54,7 @@ class ArmResult:
 
 
 def _centroids(scorer: CompoundingScorer) -> np.ndarray:
-    return np.asarray(scorer._scorer.centroids, dtype=np.float64)
+    return cast(np.ndarray, np.asarray(scorer._scorer.centroids, dtype=np.float64))
 
 
 def compute_gt_distance(scorer: CompoundingScorer, oracle: GroundTruthOracle) -> float:
@@ -117,8 +117,8 @@ def _checkpoint(scorer: CompoundingScorer, scored: Any, regime: str, count: int)
     )
 
 
-def _new_scorer(db_path: str) -> tuple[CompoundingScorer, SQLiteGraphStore]:
-    store = SQLiteGraphStore(db_path, domain="trading")
+def _new_scorer() -> tuple[CompoundingScorer, GraphStore]:
+    store = create_graph_store(backend="memory", domain="trading", profile="offline", env={})
     scorer = CompoundingScorer.from_preset(
         domain="trading",
         graph_store=store,
@@ -140,13 +140,13 @@ def run_arm(
     convergence_threshold: float,
     output_dir: str | os.PathLike[str] | None = None,
 ) -> ArmResult:
-    """Run one arm with an isolated SQLite store."""
+    """Run one arm with an isolated memory store."""
 
     del output_dir  # reserved for future per-arm artifacts; stores stay temporary
     temp_dir = Path(tempfile.mkdtemp(prefix=f"exp_regime_{name}_"))
     previous_outbox = os.environ.get("CI_PERSISTENCE_OUTBOX_PATH")
     os.environ["CI_PERSISTENCE_OUTBOX_PATH"] = str(temp_dir / "outbox.db")
-    scorer, store = _new_scorer(str(temp_dir / "arm.db"))
+    scorer, store = _new_scorer()
     generator = SyntheticGenerator(gen_config)
     phase1_oracle = GroundTruthOracle(phase1_oracle_config)
     phase2_oracle = GroundTruthOracle(phase2_oracle_config)
@@ -167,7 +167,7 @@ def run_arm(
                     strategy=strategy,
                 )
                 result.reinitialize_called = True
-                if not result.reinitialize_result.get("success"):
+                if result.reinitialize_result is None or not result.reinitialize_result.get("success"):
                     raise RuntimeError(f"reinitialization failed: {result.reinitialize_result}")
                 result.post_reinit_centroids = _centroids(scorer).tolist()
             elif step == break_point and strategy == "cold":
@@ -214,7 +214,7 @@ def run_arm(
                 if _checkpoint(scorer, scored, REGIME_2, step + 1):
                     phase2_checkpoint_count += 1
     finally:
-        store.close()
+        scorer.close()
         if previous_outbox is None:
             os.environ.pop("CI_PERSISTENCE_OUTBOX_PATH", None)
         else:

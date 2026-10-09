@@ -191,6 +191,29 @@ def test_missing_fields(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "confidence" in result.detail and "decision_id" in result.detail
 
 
+@pytest.mark.parametrize(("field", "value"), [
+    ("decision_id", None), ("decision_id", ""), ("decision_id", " "),
+    ("probabilities", ["not a probability"]), ("probabilities", None),
+    ("probabilities", [True, False]), ("probabilities", [float("nan")]),
+    ("probabilities", [float("inf")]), ("probabilities", [10 ** 400]),
+    ("probabilities", [-0.1, 1.1]), ("probabilities", [0.0, 0.0]),
+    ("action_index", None), ("action_index", True), ("action_index", 2),
+    ("factors", None), ("factors", []), ("factors", {}),
+    ("factors", {"signal_alignment": "not a number"}),
+    ("engine", None), ("engine", ""), ("engine", {}),
+    ("engine", {"scoring": None}), ("engine", {"scoring": " "}),
+])
+def test_malformed_score_field_rejected(
+    field: str, value: object, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    body = _valid_score()
+    body[field] = value
+    _responses(monkeypatch, body)
+    result = smoke.run_check("trading")
+    assert not result.passed
+    assert field in result.detail
+
+
 @pytest.mark.parametrize("copilot", list(smoke.CHECKS))
 def test_valid_response_passes(copilot: str, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(smoke, "_http_request", Mock(side_effect=[
@@ -297,6 +320,48 @@ def test_urllib_truncated_response_fails_cleanly(monkeypatch: pytest.MonkeyPatch
     result = smoke.run_check("trading")
     assert not result.passed
     assert "incomplete HTTP response" in result.detail
+
+
+@pytest.mark.parametrize("failure", ["incomplete", "os_error"])
+def test_all_continues_after_truncated_http_error_body(
+    failure: str, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    class BrokenBody(BytesIO):
+        def read(self, size: int | None = -1) -> bytes:
+            if failure == "incomplete":
+                raise IncompleteRead(b"partial", 100)
+            raise OSError("connection reset while reading error body")
+
+    monkeypatch.setattr(smoke, "_requests", None)
+    body = BrokenBody(b"partial")
+    replies: list[Any] = []
+    for name, check in smoke.CHECKS.items():
+        health = MagicMock(status=200)
+        health.read.return_value = json.dumps({"domain": name}).encode()
+        health.__enter__.return_value = health
+        replies.append(health)
+        if name == "soc":
+            replies.append(HTTPError(
+                check.base_url + check.endpoint, 500, "failed", Message(), body,
+            ))
+        else:
+            score = MagicMock(status=200)
+            score.read.return_value = json.dumps(_valid_score(name)).encode()
+            score.__enter__.return_value = score
+            replies.append(score)
+    opener = Mock()
+    opener.open.side_effect = replies
+    monkeypatch.setattr(smoke, "build_opener", Mock(return_value=opener))
+
+    assert smoke.main(["--all"]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL soc" in output
+    assert "HTTP 500" in output and "truncated error response" in output
+    for name in ("s2p", "trading", "purchasing", "dataops"):
+        assert f"PASS {name}" in output
+    assert "4/5 passed" in output
+    assert opener.open.call_count == 10
+    assert body.closed
 
 
 def test_invalid_base_url_fails_without_network(monkeypatch: pytest.MonkeyPatch) -> None:

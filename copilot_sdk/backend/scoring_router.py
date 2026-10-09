@@ -39,7 +39,6 @@ from copilot_sdk.scoring.dk_persistence import (
 from copilot_sdk.scoring.measurement_state import compute_measurement_state
 from copilot_sdk.scoring.mutation_lock import mutation_lock_scope
 from copilot_sdk.state.invalidation import apply_cache_invalidation_event
-from copilot_sdk.state.cached_static import cached_static
 
 
 ENGINE = {
@@ -82,63 +81,6 @@ class LearnLockedResponse(BaseModel):
     reason: str
 
 
-_MUTABLE_CONTEXT_TOKENS = {
-    "decision",
-    "decisions",
-    "outcome",
-    "outcomes",
-    "reward",
-    "correct",
-    "conservation",
-    "dk",
-    "l5",
-    "verified",
-}
-
-
-def _stable_context(value: Any) -> Any:
-    """Return a JSON-like context snapshot without mutable authority state."""
-    if isinstance(value, dict):
-        return {
-            str(key): _stable_context(item)
-            for key, item in value.items()
-            if not any(token in str(key).lower() for token in _MUTABLE_CONTEXT_TOKENS)
-        }
-    if isinstance(value, list):
-        return [_stable_context(item) for item in value]
-    if isinstance(value, tuple):
-        return [_stable_context(item) for item in value]
-    if isinstance(value, (str, int, float, bool)) or value is None:
-        return value
-    return str(value)
-
-
-def _context_identifier(domain: str, category: str, context: Any) -> str:
-    """Build a stable cache identity without using decision identifiers."""
-    import hashlib
-    import json
-
-    if isinstance(context, dict):
-        for name in (
-            "ticker",
-            "symbol",
-            "supplier_id",
-            "supplier",
-            "pipeline_id",
-            "source_id",
-            "entity_id",
-        ):
-            value = context.get(name)
-            if value not in (None, ""):
-                return str(value)
-    encoded = json.dumps(
-        {"domain": domain, "category": category, "context": context},
-        sort_keys=True,
-        default=str,
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()[:24]
-
-
 def create_scoring_router(
     domain: str,
     db_path: str | None = None,
@@ -146,10 +88,8 @@ def create_scoring_router(
     learning_store: Any | None = None,
     dk_welford_tracker: DKWelfordTracker | None = None,
     profile: str = "production",
-    query_cache_invalidator: Callable[[], None] | None = None,
     outcome_recorder: Callable[[dict[str, Any], bool], None] | None = None,
     variant_selector: Callable[[str], str | None] | None = None,
-    entity_context_cache: Any | None = None,
     score_payload_enricher: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> APIRouter:
     """Create a domain-parametric scoring router."""
@@ -168,7 +108,7 @@ def create_scoring_router(
                     scorer_factory()
                     if scorer_factory is not None
                     else CompoundingScorer.from_preset(
-                        domain, db_path=db_path, profile=profile
+                        domain,  profile=profile
                     )
                 )
             except ValueError as exc:
@@ -179,44 +119,8 @@ def create_scoring_router(
             scorer_cache["scorer"] = scorer
         return scorer_cache["scorer"]
 
-    async def load_stable_context(request: ScoreRequest) -> None:
-        """Read-through cache only the stable context portion of a score request.
-
-        Decisions, outcomes, conservation, DK, and L5 state are deliberately
-        excluded by ``_stable_context``.  The scorer still receives the
-        request's current values; cached values only fill stable context that
-        is absent from a repeated request.
-        """
-        if entity_context_cache is None:
-            return
-        context = request.context or {}
-        stable = _stable_context(context)
-        identifier = _context_identifier(domain, request.category, stable)
-        kind = {
-            "trading": "instrument",
-            "purchasing": "supplier",
-            "dataops": "pipeline",
-        }.get(domain, "entity")
-        cached = await entity_context_cache.get_context(
-            domain,
-            kind,
-            identifier,
-            lambda: stable,
-            source=f"{domain}.score_context",
-        )
-        if isinstance(cached, dict):
-            request.context = {**cached, **context}
-
     @router.post("/score", response_model=ScoreResponse)
     async def score(request: ScoreRequest) -> dict[str, Any]:
-        # The context adapter can await. Never hold a threading lock across
-        # that await, or perform synchronous graph I/O on the ASGI event loop.
-        try:
-            await load_stable_context(request)
-        except (AssertionError, ValueError) as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except GRAPH_CONNECTION_ERRORS as exc:
-            raise graph_unavailable(exc) from exc
         return await run_in_threadpool(score_sync, request)
 
     def score_sync(request: ScoreRequest) -> dict[str, Any]:
@@ -242,8 +146,6 @@ def create_scoring_router(
             payload = _score_response_payload(payload)
             if score_payload_enricher is not None:
                 payload = score_payload_enricher(payload)
-            if query_cache_invalidator is not None:
-                query_cache_invalidator()
             apply_cache_invalidation_event(domain, "score")
             return payload
 
@@ -387,26 +289,18 @@ def create_scoring_router(
                 ),
             )
             _finalize_learn_persistence(payload)
-            if query_cache_invalidator is not None:
-                query_cache_invalidator()
             apply_cache_invalidation_event(domain, "learn")
             return payload
 
     @router.get("/fingerprint", response_model=FingerprintResponse)
-    def fingerprint(request: Request) -> dict[str, Any]:
-        materialized = _materialized_response(request, "fingerprint")
-        if materialized is not None:
-            return materialized
+    def fingerprint() -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(graph_call(scorer.fingerprint))
         payload["engine"] = ENGINE
         return payload
 
     @router.get("/trajectory", response_model=TrajectoryResponse)
-    def trajectory(request: Request) -> dict[str, Any]:
-        materialized = _materialized_response(request, "trajectory")
-        if materialized is not None:
-            return materialized
+    def trajectory() -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(graph_call(scorer.trajectory))
         payload["engine"] = ENGINE
@@ -452,31 +346,16 @@ def create_scoring_router(
         return _measurement_http_payload(payload)
 
     @router.get("/measurement-state", response_model=MeasurementStateResponse)
-    def measurement_state(request: Request) -> dict[str, Any]:
-        materialized = _materialized_response(request, "measurement_state")
-        if materialized is not None:
-            return _measurement_http_payload(materialized)
+    def measurement_state() -> dict[str, Any]:
         return measurement_payload()
 
     @router.get("/{copilot}/measurement-state", response_model=MeasurementStateResponse)
-    def prefixed_measurement_state(request: Request, copilot: str) -> dict[str, Any]:
+    def prefixed_measurement_state(copilot: str) -> dict[str, Any]:
         if copilot != domain:
             raise HTTPException(status_code=404, detail=f"Unknown copilot: {copilot}")
-        materialized = _materialized_response(request, "measurement_state")
-        if materialized is not None:
-            return _measurement_http_payload(materialized)
         return measurement_payload()
 
     return router
-
-
-def _materialized_response(request: Request, key: str) -> dict[str, Any] | None:
-    materializer = getattr(request.app.state, "materializer", None)
-    get = getattr(materializer, "get", None)
-    if not callable(get):
-        return None
-    result = get(key)
-    return result if isinstance(result, dict) else None
 
 
 def _decision_variant_id(decision: dict[str, Any]) -> str | None:

@@ -6,7 +6,6 @@ import json
 import asyncio
 import logging
 import os
-import sqlite3
 import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -104,12 +103,11 @@ from copilot_sdk.backend.response_materializer import ResponseMaterializer  # no
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
 from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
-from copilot_sdk.backend.signal_store import GraphSignalStore  # noqa: E402
 from copilot_sdk.backend.modeled_projection import modeled_projection  # noqa: E402
 from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
-from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph, resolve_profile  # noqa: E402
+from copilot_sdk.config import GraphConfig, resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
-from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
+from copilot_sdk.graph.factory import assert_production_graph, create_graph_store  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.reporting.weekly import (  # noqa: E402
@@ -126,7 +124,6 @@ from copilot_sdk.scoring.situation_classifier import SituationClassifier  # noqa
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from copilot_sdk.transfer.chain_transfer import ChainTransfer  # noqa: E402
-from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 
 
 DOMAIN = "purchasing"
@@ -149,17 +146,8 @@ def _demo_mode() -> bool:
 DB_FILENAME = "purchasing.db"
 
 
-class _VLDKDecisionConnection:
-    def __init__(self, path: Path):
-        self.conn = sqlite3.connect(path, check_same_thread=False)
-
-
-def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
-    return KUtilityStore(_VLDKDecisionConnection(path), dimensions)
-
-
-def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
-    return {"k_store": _create_vld_k_store(path, dimensions)}
+def _vld_k_router_kwargs(graph_store: GraphStore, dimensions: int) -> dict[str, KUtilityStore]:
+    return {"k_store": KUtilityStore(graph_store, dimensions, domain=DOMAIN)}
 
 
 async def _materializer_refresh_loop(app: FastAPI) -> None:
@@ -172,12 +160,6 @@ async def _materializer_refresh_loop(app: FastAPI) -> None:
                 await asyncio.to_thread(refresh)
             except Exception:
                 logger.exception("Purchasing materializer background refresh failed")
-
-
-def _invalidate_materializer(app: FastAPI) -> None:
-    materializer = getattr(app.state, "materializer", None)
-    if materializer is not None:
-        materializer.invalidate()
 
 
 def _accuracy_by_category_payload(verified: list[dict[str, Any]], threshold: float = 0.70) -> dict[str, Any]:
@@ -258,37 +240,11 @@ def _cors_origins() -> list[str]:
 
 
 def _graph_store(db_path: str | Path, *, backend: str | None = None, profile: str | None = None):
-    # Active AGE configuration is owned by PURCHASING_ACTIVE_*; generic AGE
-    # settings remain deliberately ignored by the graph-status contract.
+    # db_path remains a local-sidecar/proxy compatibility argument, not graph identity.
+    # Configuration errors propagate; no backend substitution is permitted.
     profile = profile or _resolve_profile()
-    graph_config = None
-    if backend is None:
-        try:
-            graph_config = GraphConfig.load(DOMAIN, profile=profile)
-            backend = graph_config.backend
-        except GraphConfigError:
-            if profile != "test":
-                raise
-            backend = "sqlite"
-    backend = backend.strip().lower()
-    if graph_config is not None:
-        require_shared_graph(
-            backend=graph_config.backend,
-            graph=graph_config.graph,
-            domain=DOMAIN,
-            profile=profile,
-            test_mode=graph_config.active_test_mode,
-        )
-    store = create_graph_store(
-        backend=backend,
-        domain=DOMAIN,
-        db_path=str(db_path),
-        decision_id_prefix="PUR-",
-        dsn=graph_config.dsn if graph_config is not None else None,
-        graph_name=graph_config.graph if graph_config is not None else None,
-        test_mode=graph_config.active_test_mode if graph_config is not None else False,
-        profile=profile,
-    )
+    graph_config = GraphConfig.load(DOMAIN, profile=profile, overrides={"backend": backend} if backend is not None else None)
+    store = create_graph_store(config=graph_config, decision_id_prefix="PUR-")
     setattr(store, "penalty_ratio", 3.0)
     return store
 
@@ -379,32 +335,33 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
                 metadata=_seed_metadata(entry, sequence, factors),
             )
             decision_id = _result_value(result, "decision_id")
-            action = (
-                entry.get("action_taken")
-                or entry.get("actual_action")
-                or entry.get("recommended_action")
-                or _result_value(result, "action")
-            )
+            recommended_action = _result_value(result, "action")
             if not decision_id:
                 raise ValueError("score result missing decision_id")
             decisions_seeded += 1
-            if "is_correct" in entry and action:
-                graph_store.write_outcome(
+            if "is_correct" in entry and recommended_action:
+                action_names = tuple(scorer._preset.shape.action_names)
+                recommended = str(recommended_action)
+                if recommended not in action_names:
+                    raise ValueError(f"score returned unknown action: {recommended}")
+                is_correct = bool(entry["is_correct"])
+                actual_action = recommended if is_correct else action_names[
+                    (action_names.index(recommended) + 1) % len(action_names)
+                ]
+                learned = scorer._learn_preseed(
                     str(decision_id),
-                    actual_action=str(action),
-                    is_correct=bool(entry["is_correct"]),
-                    domain=DOMAIN,
-                    metadata={
-                        "actual_index": 0,
-                        "context": {
-                            "source": "auto_seed",
-                            "seed_domain": DOMAIN,
-                            "seed_index": sequence,
-                            "seed_id": entry.get("order_id") or entry.get("item") or str(sequence),
-                            "source_seed_index": sequence,
-                        },
+                    actual_action,
+                    outcome="confirmed" if is_correct else "overridden",
+                    context={
+                        "source": "auto_seed",
+                        "seed_domain": DOMAIN,
+                        "seed_index": sequence,
+                        "seed_id": entry.get("order_id") or entry.get("item") or str(sequence),
+                        "source_seed_index": sequence,
                     },
                 )
+                if isinstance(learned, dict) and learned.get("status") == "paused":
+                    raise RuntimeError(str(learned.get("reason") or "preseed learn was paused"))
                 outcomes_seeded += 1
         except Exception as exc:
             failed += 1
@@ -579,14 +536,6 @@ def create_app(
     )
 
     scoring_db = _resolve_scoring_db(db_path)
-    # Stable supplier/item context only; mutable decisions and conservation
-    # authority remain graph-backed and are intentionally excluded.
-    entity_cache = EntityCache(
-        max_size=200,
-        ttl_seconds=300,
-        source="purchasing.entity_context_cache",
-    )
-    entity_context_cache = EntityContextCacheAdapter(entity_cache, enabled=True)
     outbox_store = OutboxStore(DATA_DIR / OUTBOX_DB_FILENAME)
     active_graph_config = initialize_purchasing_active_graph_config()
     active_graph_store = create_purchasing_active_graph_store(
@@ -621,7 +570,6 @@ def create_app(
     purchasing_control = PurchasingControlService(
         lambda: selected_graph_store_factory(scoring_db),
         lambda: scorer_proxy,
-        DATA_DIR,
     )
     app.state.purchasing_claim_registry = purchasing_claim_registry
     app.state.purchasing_control = purchasing_control
@@ -673,7 +621,7 @@ def create_app(
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
-            elif active_graph_store is not None:
+            elif active_graph_config.requested_backend == "age":
                 print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
             else:
                 if isinstance(_bundle_path, Path):
@@ -694,11 +642,10 @@ def create_app(
     app.state.purchasing_active_graph_config = active_graph_config
     app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
     app.state.graph_store = scorer_proxy.graph_store
+    assert_production_graph(app.state.graph_store, resolved_profile)
     app.state.purchasing_vld_showcase = seed_vld_purchasing_showcase()
     app.state.outbox_store = outbox_store
     app.state.l5_startup_status = l5_startup_status
-    app.state.entity_cache = entity_cache
-    app.state.entity_context_cache = entity_context_cache
     auto_order_gate = AutoOrderGate()
 
     app.state.materializer = ResponseMaterializer(
@@ -734,7 +681,6 @@ def create_app(
             except GRAPH_CONNECTION_ERRORS:
                 logger.exception("Purchasing health scoring read failed")
                 payload = build_graph_health(None, app.state.purchasing_active_graph_config, DOMAIN)
-        cache_stats = entity_cache.stats()
         payload.update(
             phase=phase,
             alpha=alpha,
@@ -742,9 +688,9 @@ def create_app(
                 "scoring": "copilot_sdk.scoring.CompoundingScorer",
                 "gae": "gae.profile_scorer.ProfileScorer",
             },
-            cache_hits=cache_stats.hits,
-            cache_misses=cache_stats.misses,
-            cache_size=cache_stats.size,
+            cache_hits=0,
+            cache_misses=0,
+            cache_size=0,
         )
         return JSONResponse(payload, status_code=health_status_code(payload))
 
@@ -924,8 +870,6 @@ def create_app(
             dk_welford_tracker=dk_welford_tracker,
             outcome_recorder=record_purchasing_outcome,
             variant_selector=select_purchasing_variant,
-            entity_context_cache=entity_context_cache,
-            query_cache_invalidator=lambda: _invalidate_materializer(app),
         ),
         prefix="/api",
     )
@@ -962,7 +906,7 @@ def create_app(
         prefix="/api",
     )
     app.include_router(
-        create_cross_signal_router(GraphSignalStore(app.state.graph_store, DOMAIN)), prefix="/api"
+        create_cross_signal_router(app.state.graph_store), prefix="/api"
     )
     app.include_router(create_concepts_router())
     mount_self_computation_router(
@@ -985,7 +929,7 @@ def create_app(
                 decision_id,
                 fixture_data=app.state.purchasing_vld_showcase,
             ),
-            **_vld_k_router_kwargs(DATA_DIR / "k_utility.db", PurchasingPreset().shape.n_factors),
+            **_vld_k_router_kwargs(scorer_proxy.graph_store, PurchasingPreset().shape.n_factors),
             classifier=SituationClassifier(),
             factor_names=INVESTIGATION_CONFIG["factor_names"],
             default_budget=2,
@@ -1076,11 +1020,10 @@ def create_app(
     @app.get("/health")
     def health() -> Any:
         payload = build_graph_health(app.state.purchasing_selected_graph_store, app.state.purchasing_active_graph_config, DOMAIN)
-        cache_stats = entity_cache.stats()
         payload.update(
-            cache_hits=cache_stats.hits,
-            cache_misses=cache_stats.misses,
-            cache_size=cache_stats.size,
+            cache_hits=0,
+            cache_misses=0,
+            cache_size=0,
         )
         return JSONResponse(payload, status_code=health_status_code(payload))
 

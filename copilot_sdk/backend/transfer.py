@@ -1,109 +1,66 @@
-"""Read-only transfer detection from copilot fingerprint files."""
+"""Transfer detection and fingerprint persistence through GraphStore."""
 
 from __future__ import annotations
 
-import json
-import hashlib
 import math
 import time
-from pathlib import Path
+from uuid import uuid4
 from typing import Any, Mapping
 
-from copilot_sdk.atomic_json import write_json_atomic
+from copilot_sdk.graph.protocol import ProtocolV2GraphStore
 
 
 LEARNED_SIGMA_THRESHOLD = 0.15
 UNLEARNED_SIGMA_THRESHOLD = 0.30
 
 
-def fingerprint_dir(base_path: Path | str | None = None) -> Path:
-    if base_path is not None:
-        return Path(base_path)
-    return Path(__file__).resolve().parents[1] / "data" / "fingerprints"
-
-
 def save_fingerprint(
     domain: str,
     fingerprint_data: Mapping[str, Any],
-    base_path: Path | str | None = None,
     *,
+    graph_store: ProtocolV2GraphStore,
     source_url: str | None = None,
-    graph_store: Any | None = None,
-    profile: str | None = None,
-) -> Path:
+) -> str:
     normalized_domain = _safe_domain(domain)
-    directory = fingerprint_dir(base_path)
-    directory.mkdir(parents=True, exist_ok=True)
-    payload = {
-        "domain": normalized_domain,
-        "exported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "fingerprint": _json_safe(dict(fingerprint_data)),
-    }
-    if source_url:
-        payload["source_url"] = str(source_url)
-    if profile == "production":
-        if graph_store is None:
-            raise RuntimeError("Production fingerprint persistence requires GraphStore.write_fingerprint")
-        graph_store.write_fingerprint(
-            fingerprint_id=f"{normalized_domain}-{hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]}",
-            domain=normalized_domain,
-            factor_names=list(payload["fingerprint"].get("factor_names", [])) if isinstance(payload["fingerprint"], Mapping) else [],
-            factor_stats=dict(payload["fingerprint"] if isinstance(payload["fingerprint"], Mapping) else {}),
-            skipped_incompatible=int(payload["fingerprint"].get("skipped_incompatible", 0)) if isinstance(payload["fingerprint"], Mapping) else 0,
-            window=int(payload["fingerprint"].get("window", 0)) if isinstance(payload["fingerprint"], Mapping) else 0,
-            metadata={"source_url": source_url, "provenance": "graph"},
-        )
-        return Path(f"graph://fingerprints/{normalized_domain}")
-    path = directory / f"{normalized_domain}.json"
-    write_json_atomic(path, payload)
-    return path
-
-
-def load_fingerprints(
-    base_path: Path | str | None = None,
-    *,
-    graph_store: Any | None = None,
-    profile: str | None = None,
-) -> dict[str, Any]:
-    loaded, _warnings = load_fingerprints_with_warnings(
-        base_path, graph_store=graph_store, profile=profile
+    fingerprint = _json_safe(dict(fingerprint_data))
+    fingerprint_id = f"exported-fingerprint:{normalized_domain}:{uuid4().hex}"
+    graph_store.write_fingerprint(
+        fingerprint_id=fingerprint_id, domain=normalized_domain,
+        factor_names=list(fingerprint.get("factor_names", [])),
+        factor_stats=fingerprint,
+        skipped_incompatible=int(fingerprint.get("skipped_incompatible", 0)),
+        window=int(fingerprint.get("window", 0)),
+        metadata={"source_url": source_url, "provenance": "graph",
+                  "exported_at": time.time(), "export_tick": time.perf_counter_ns()},
     )
+    return fingerprint_id
+
+
+def load_fingerprints(*, graph_store: ProtocolV2GraphStore) -> dict[str, Any]:
+    loaded, warnings = load_fingerprints_with_warnings(graph_store=graph_store)
+    if warnings:
+        raise ValueError(f"Invalid graph fingerprints: {warnings}")
     return loaded
 
 
 def load_fingerprints_with_warnings(
-    base_path: Path | str | None = None,
-    *,
-    graph_store: Any | None = None,
-    profile: str | None = None,
+    *, graph_store: ProtocolV2GraphStore,
 ) -> tuple[dict[str, Any], list[dict[str, str]]]:
-    if profile == "production":
-        if graph_store is None:
-            raise RuntimeError("Production fingerprint discovery requires GraphStore.list_fingerprints")
-        loaded: dict[str, Any] = {}
-        for payload in graph_store.list_fingerprints():
-            if isinstance(payload, Mapping):
-                domain = _safe_domain(payload.get("domain"))
-                if domain:
-                    loaded[domain] = dict(payload)
-        return loaded, []
-    directory = fingerprint_dir(base_path)
-    if not directory.exists():
-        return {}, []
-
     loaded: dict[str, Any] = {}
     warnings: list[dict[str, str]] = []
-    for path in sorted(directory.glob("*.json")):
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            warnings.append({"file": path.name, "warning": f"skipped malformed fingerprint: {exc}"})
+    # High-resolution ticks retain publication order when epoch clocks tie.
+    # The ID makes legacy records without ticks deterministic as well.
+    for payload in sorted(graph_store.list_fingerprints(), key=lambda row: (
+        float((row.get("metadata") or {}).get("exported_at", 0.0)),
+        int((row.get("metadata") or {}).get("export_tick", 0)),
+        str(row.get("fingerprint_id", "")),
+    )):
+        domain = str(payload.get("domain") or "").strip()
+        if not domain or not isinstance(payload.get("fingerprint"), dict):
+            warnings.append({"fingerprint_id": str(payload.get("fingerprint_id", "")),
+                             "warning": "invalid graph fingerprint: domain and fingerprint mapping required"})
             continue
-        if not isinstance(payload, dict):
-            warnings.append({"file": path.name, "warning": "skipped non-object fingerprint"})
-            continue
-        domain = _safe_domain(payload.get("domain") or path.stem)
-        loaded[domain] = payload
+        loaded[_safe_domain(domain)] = dict(payload)
     return loaded, warnings
 
 

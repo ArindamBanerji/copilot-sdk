@@ -1,11 +1,11 @@
-"""JM Reference App — the real SQLite-backed compounding loop.
+"""JM Reference App — the real graph-backed compounding loop.
 
 Run with:
 
     python -m examples.jm_reference.run
 
 The loop uses the SDK's real ``CompoundingScorer`` and
-``SQLiteGraphStore``.  ``CompoundingScorer.learn`` performs the real outcome
+a configured memory or AGE graph store.  ``CompoundingScorer.learn`` performs the real outcome
 write, centroid update, checkpointing, conservation evaluation, and (when
 enabled) evolution pass.  No server, mock, or fake is used.
 """
@@ -17,11 +17,12 @@ import os
 import tempfile
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.evolution.protocol import EvolutionStore
+from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.config import GraphConfig
 from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.scoring.measurement_state import compute_measurement_state
@@ -67,37 +68,33 @@ def _conservation_state(scorer: CompoundingScorer) -> dict[str, Any]:
     return {str(key): value for key, value in state.items()}
 
 
-def _evolution_events(store: SQLiteGraphStore, domain: str) -> list[dict[str, Any]]:
-    return [dict(event) for event in store.get_evolution_events(domain, limit=200)]
+def _evolution_events(store: GraphStore, domain: str) -> list[dict[str, Any]]:
+    return [dict(event) for event in cast(EvolutionStore, store).get_evolution_events(domain, limit=200)]
 
 
 def run_experiment(
     label: str,
     gen_config: GeneratorConfig,
     oracle_config: OracleConfig,
-    db_path: str | None = None,
     mode: str = "offline",
 ) -> dict[str, Any]:
     """Run one oracle-separated experiment with real SDK persistence."""
 
-    temporary_db = db_path is None
-    if db_path is None:
-        db_path = str(Path(tempfile.mkdtemp(prefix=f"jm_{label}_")) / f"{label}.db")
     if mode == "age":
         store = create_graph_store(config=GraphConfig.load("trading", profile="production"), domain="trading")
     elif mode == "offline":
-        store = SQLiteGraphStore(db_path, domain="trading")
+        store = create_graph_store(backend="memory", domain="trading", profile="offline", env={})
     else:
         raise ValueError("mode must be 'age' or 'offline'")
     previous_outbox_path = os.environ.get("CI_PERSISTENCE_OUTBOX_PATH")
-    outbox_path = str(Path(db_path).with_name(f"{label}_outbox.db"))
+    # Rule #89: isolated artifact recovery buffer; graph state itself is memory/AGE.
+    outbox_dir = Path(tempfile.mkdtemp(prefix="jm_outbox_"))
+    outbox_path = str(outbox_dir / "outbox.db")
     os.environ["CI_PERSISTENCE_OUTBOX_PATH"] = outbox_path
     try:
         scorer = CompoundingScorer.from_preset(
             domain="trading",
             graph_store=store,
-            # SQLite is intentionally a standalone reference-app store; the SDK
-            # test profile permits it while still executing the real scorer path.
             profile="production" if mode == "age" else "test",
             evolve=True,
             consolidation_enabled=True,
@@ -105,6 +102,10 @@ def run_experiment(
         )
     except Exception:
         store.close()
+        if previous_outbox_path is None:
+            os.environ.pop("CI_PERSISTENCE_OUTBOX_PATH", None)
+        else:
+            os.environ["CI_PERSISTENCE_OUTBOX_PATH"] = previous_outbox_path
         raise
     generator = SyntheticGenerator(gen_config)
     oracle = GroundTruthOracle(oracle_config)
@@ -140,14 +141,14 @@ def run_experiment(
                 if is_correct
                 else _correct_action(oracle, category, factors, action_names)
             )
-            learned = scorer.learn(
+            learned = scorer._learn_preseed(
                 decision_id=scored.decision_id,
                 actual_action=actual_action,
                 outcome="confirmed" if is_correct else "corrected",
                 # Synthetic reference runs must continue collecting the full
                 # trajectory after a low-quality window; production safety
                 # pauses remain visible through the live state below.
-                context={"reference_app": True, "preseed": True, "regime": label},
+                context={"reference_app": True, "regime": label},
             )
             distance = scorer.compute_centroid_distance_to_canonical()
             current_mu = np.asarray(scorer._scorer.mu, dtype=np.float64)
@@ -199,13 +200,12 @@ def run_experiment(
         trajectory["evolution_event_count"] = len(trajectory["evolution_events"])
         return trajectory
     finally:
-        store.close()
+        scorer.close()
         if previous_outbox_path is None:
             os.environ.pop("CI_PERSISTENCE_OUTBOX_PATH", None)
         else:
             os.environ["CI_PERSISTENCE_OUTBOX_PATH"] = previous_outbox_path
-        if temporary_db:
-            Path(db_path).unlink(missing_ok=True)
+        # Keep the recovery buffer available if any artifact needs later replay.
 
 
 def main() -> None:

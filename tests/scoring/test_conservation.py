@@ -108,6 +108,33 @@ class _FailingConservationStore(InMemoryGraphStore):
         raise RuntimeError("snapshot unavailable")
 
 
+class _OrderedHistoryStore(InMemoryGraphStore):
+    def __init__(self, rows: list[dict[str, object]]) -> None:
+        super().__init__(domain="mock")
+        self.rows = list(rows)
+
+    def get_verified_decisions(self, domain: str) -> list[dict[str, object]]:
+        assert domain == "mock"
+        return list(self.rows)
+
+
+def _history_rows(
+    *, old_correct: int, recent_correct: int, old_total: int = 2000
+) -> list[dict[str, object]]:
+    outcomes = ([True] * old_correct) + ([False] * (old_total - old_correct))
+    outcomes += ([True] * recent_correct) + ([False] * (400 - recent_correct))
+    return [
+        {
+            "decision_id": f"history-{index:04d}",
+            "created_at": float(index),
+            "category": "alpha",
+            "outcome": "confirmed" if correct else "overridden",
+            "is_correct": correct,
+        }
+        for index, correct in enumerate(outcomes)
+    ]
+
+
 def test_conservation_rejection_does_not_enqueue_snapshot(mock_preset, tmp_path):
     store = _FailingConservationStore(domain="mock")
     _add_verified(store, "mock", "alpha", 10, correct=False)
@@ -132,3 +159,75 @@ def test_all_five_domains_conservation_status(mock_preset):
         assert state is not None
         assert state["alpha"] == 1 / 3
         assert state["alpha"] != state["override_rate"]
+
+
+def test_recent_degradation_closes_gate_despite_high_lifetime_accuracy(mock_preset):
+    rows = _history_rows(old_correct=2000, recent_correct=0)
+    store = _OrderedHistoryStore(rows)
+    scorer = _make_scorer(mock_preset, store)
+
+    pause = scorer._conservation_pause()
+
+    assert sum(bool(row["is_correct"]) for row in rows) / len(rows) > 0.8
+    assert pause is not None
+    assert pause["conservation_status"] == "RED"
+    assert pause["q"] == 0.0
+    assert pause["verified_count"] == 2400
+
+
+def test_scorer_gate_sorts_before_rolling_q(mock_preset):
+    chronological = _history_rows(
+        old_correct=500,
+        recent_correct=0,
+        old_total=500,
+    )
+    store = _OrderedHistoryStore(list(reversed(chronological)))
+    scorer = _make_scorer(mock_preset, store)
+
+    pause = scorer._conservation_pause()
+
+    assert pause is not None
+    assert pause["conservation_status"] == "RED"
+    assert pause["q"] == 0.0
+    assert pause["verified_count"] == 900
+
+
+def test_status_and_gate_use_identical_rolling_q_v_and_alpha(mock_preset):
+    rows = [
+        {
+            "decision_id": f"parity-{index:04d}",
+            "created_at": float(index),
+            "category": "alpha",
+            "outcome": "overridden" if index == 0 else "confirmed",
+            "is_correct": index != 0,
+        }
+        for index in range(401)
+    ]
+    rows.extend(
+        [
+            {
+                "decision_id": "pending-observation-like-row",
+                "created_at": 402.0,
+                "category": "alpha",
+                "outcome": None,
+            },
+            {
+                "decision_id": "benchmark-row",
+                "created_at": 403.0,
+                "category": "alpha",
+                "outcome": "confirmed",
+                "is_correct": True,
+                "context": {"benchmark": True},
+            },
+        ]
+    )
+    store = _OrderedHistoryStore(rows)
+    scorer = _make_scorer(mock_preset, store)
+
+    gate_state = scorer._evolution_conservation_state()
+    status = scorer.get_conservation_state()
+
+    assert gate_state is not None
+    assert gate_state["q"] == status["q"] == 1.0
+    assert gate_state["verified_count"] == status["V"] == 401
+    assert gate_state["alpha"] == status["alpha"] == 1 / 3

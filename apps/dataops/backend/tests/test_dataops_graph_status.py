@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -29,18 +29,18 @@ DATAOPS_FACTORS = {
 }
 
 
-def test_graph_status_default_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_graph_status_default_memory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     _clear_active_env(monkeypatch)
-    _configure_explicit_sqlite(tmp_path, monkeypatch)
+    _configure_explicit_memory(tmp_path, monkeypatch)
     client = TestClient(create_app(db_path=tmp_path / "dataops.db", demo_bundle_path=False))
 
     response = client.get("/api/dataops/graph/status")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["active_backend"] == "sqlite"
-    assert payload["requested_backend"] == "sqlite"
-    assert payload["sqlite_authoritative"] is True
+    assert payload["active_backend"] == "memory"
+    assert payload["requested_backend"] == "memory"
+    assert payload["memory_authoritative"] is True
     assert payload["age_active"] is False
     assert payload["active_domain"] == "dataops"
     assert payload["active_graph_name"] is None
@@ -49,7 +49,7 @@ def test_graph_status_default_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
 def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     _clear_active_env(monkeypatch)
-    _configure_explicit_sqlite(tmp_path, monkeypatch)
+    _configure_explicit_memory(tmp_path, monkeypatch)
     monkeypatch.setenv("GRAPH_BACKEND", "age")
     monkeypatch.setenv("GRAPH_DSN", "postgresql://postgres:secret@example/db")
     monkeypatch.setenv("GRAPH_NAME", "protocol_v2_test")
@@ -57,7 +57,7 @@ def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pyt
     client = TestClient(create_app(db_path=tmp_path / "dataops.db", demo_bundle_path=False))
     payload = client.get("/api/dataops/graph/status").json()
 
-    assert payload["active_backend"] == "sqlite"
+    assert payload["active_backend"] == "memory"
     assert payload["ignored_generic_graph_env"] is True
     assert "secret" not in str(payload)
 
@@ -65,7 +65,7 @@ def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pyt
 @pytest.mark.parametrize(
     ("env", "message"),
     [
-        ({"DATAOPS_ACTIVE_GRAPH_BACKEND": "neo4j"}, "sqlite' or 'age"),
+        ({"DATAOPS_ACTIVE_GRAPH_BACKEND": "neo4j"}, "memory' or 'age"),
         (
             {
                 "DATAOPS_ACTIVE_GRAPH_BACKEND": "age",
@@ -174,7 +174,7 @@ def test_product_like_config_can_be_live_test_opted_in_for_construction():
     assert isinstance(active, DataOpsActiveAGEGraphStore)
 
 
-def test_active_age_status_redacts_dsn_and_reports_test_mode(
+def test_requested_age_status_detects_memory_and_redacts_dsn(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -189,8 +189,10 @@ def test_active_age_status_redacts_dsn_and_reports_test_mode(
 
     payload = client.get("/api/dataops/graph/status").json()
 
-    assert payload["active_backend"] == "age"
-    assert payload["age_active"] is True
+    assert payload["active_backend"] == "memory"
+    assert payload["age_active"] is False
+    assert payload["last_error"] is not None
+    assert payload["cutover_ready"] is False
     assert payload["graph_kind"] == "test"
     assert payload["active_domain"] == "dataops"
     assert payload["active_test_mode"] is True
@@ -263,7 +265,7 @@ def test_read_and_operational_routes_do_not_create_scorer_decisions_under_active
 
 
 @pytest.mark.age
-def test_rollback_to_sqlite_proves_no_hidden_reconciliation(
+def test_retired_sqlite_rollback_is_rejected_without_reconciliation(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     disposable_age,
@@ -275,15 +277,10 @@ def test_rollback_to_sqlite_proves_no_hidden_reconciliation(
     _clear_active_env(monkeypatch)
     _configure_explicit_sqlite(tmp_path, monkeypatch)
     sqlite_db = tmp_path / "rollback.sqlite"
-    sqlite_client = TestClient(create_app(db_path=sqlite_db, demo_bundle_path=False))
-    sqlite_score = _score(sqlite_client)
-    _learn(sqlite_client, sqlite_score["decision_id"], sqlite_score["action"])
-
-    status = sqlite_client.get("/api/dataops/graph/status").json()
-    assert status["active_backend"] == "sqlite"
-    assert status["age_active"] is False
+    with pytest.raises(ValueError, match="invalid backend|must be.*memory"):
+        create_app(db_path=sqlite_db, demo_bundle_path=False)
+    assert not sqlite_db.exists()
     assert active_score["decision_id"] in {row["decision_id"] for row in fake.get_all_decisions("dataops")}
-    assert _sqlite_decision_count(sqlite_db) == 1
 
 
 def test_active_store_constructs_with_factory_after_guards():
@@ -359,7 +356,7 @@ def _score(client: TestClient) -> dict[str, Any]:
         json={"category": "quality_anomaly", "factors": DATAOPS_FACTORS},
     )
     assert response.status_code == 200
-    return response.json()
+    return cast(dict[str, Any], response.json())
 
 
 def _learn(client: TestClient, decision_id: str, actual_action: str) -> dict[str, Any]:
@@ -368,7 +365,7 @@ def _learn(client: TestClient, decision_id: str, actual_action: str) -> dict[str
         json={"decision_id": decision_id, "actual_action": actual_action},
     )
     assert response.status_code == 200
-    return response.json()
+    return cast(dict[str, Any], response.json())
 
 
 def _active_config() -> DataOpsActiveGraphConfig:
@@ -434,18 +431,6 @@ def _clear_active_env(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(key, raising=False)
 
 
-def _sqlite_decision_count(db_path: Path) -> int:
-    from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
-
-    store = SQLiteGraphStore(db_path, domain="dataops")
-    try:
-        return store.count_decisions("dataops")
-    finally:
-        store.close()
-
-
-
-
 def test_shared_graph_authorization_is_derived_from_domain_and_graph() -> None:
     base = {
         "DATAOPS_ACTIVE_GRAPH_BACKEND": "age",
@@ -458,3 +443,63 @@ def test_shared_graph_authorization_is_derived_from_domain_and_graph() -> None:
     active = create_dataops_active_graph_store(config, store_factory=lambda **_: InMemoryGraphStore(domain="dataops"))
     assert isinstance(active, DataOpsActiveAGEGraphStore)
     assert active.generate_decision_id("dataops").startswith("DOPS-")
+
+
+def _configure_explicit_memory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    config_path = tmp_path / "graph_config.toml"
+    config_path.write_text(
+        """[defaults]
+backend = \"memory\"
+expected_backend = \"memory\"
+dsn = \"\"
+graph = \"soc_graph\"
+
+[copilot.dataops]
+domain = \"dataops\"
+backend = \"memory\"
+expected_backend = \"memory\"
+prefix = \"DOPS-\"
+graph = \"soc_graph\"
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "memory")
+
+
+@pytest.mark.parametrize("backend", ["sqlite", "unsupported_backend"])
+def test_retired_backend_is_rejected_before_factory(backend: str) -> None:
+    with pytest.raises(ValueError, match="must be.*memory"):
+        DataOpsActiveGraphConfig.from_env({"DATAOPS_ACTIVE_GRAPH_BACKEND": backend})
+    config = DataOpsActiveGraphConfig(requested_backend=backend)
+    with pytest.raises(ValueError, match="must be.*memory"):
+        create_dataops_active_graph_store(
+            config, store_factory=lambda **_: pytest.fail("retired backend reached factory"),
+        )
+
+
+def test_memory_is_rejected_for_production(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DATAOPS_PROFILE", "production")
+    with pytest.raises(ValueError, match="production requires AGE"):
+        create_dataops_active_graph_store(
+            DataOpsActiveGraphConfig(requested_backend="memory"),
+            store_factory=lambda **_: pytest.fail("production memory reached factory"),
+        )
+
+
+def test_requested_age_without_store_reports_unknown() -> None:
+    from types import SimpleNamespace
+    from app.graph_status import build_dataops_graph_status
+
+    payload = build_dataops_graph_status(SimpleNamespace(
+        dataops_active_graph_config=DataOpsActiveGraphConfig(
+            requested_backend="age", graph="soc_graph",
+        ),
+        dataops_selected_graph_store=None,
+    ))
+    assert payload["active_backend"] == "unknown"
+    assert payload["age_active"] is False
+    assert payload["memory_authoritative"] is False
+    assert payload["cutover_ready"] is False
+    assert payload["last_error"] is not None
+

@@ -22,7 +22,6 @@ class FreshScorerProxy:
         profile: str = "production",
     ) -> None:
         self._preset_name = preset_name
-        self._db_path = str(db_path)
         self.graph_store = graph_store_factory(db_path)
         self._profile = profile
         self._lock = threading.RLock()

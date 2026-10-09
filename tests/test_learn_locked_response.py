@@ -40,6 +40,7 @@ def test_gate_blocks_returns_structured_423(
             domain="trading", category=preset.shape.category_names[index % 5],
             action=preset.shape.action_names[0], confidence=0.85,
             factors={name: 0.8 for name in preset.shape.factor_names},
+            metadata={"created_at": float(index + 1)},
         )
         store.write_outcome(
             decision_id, preset.shape.action_names[0 if correct else 1],

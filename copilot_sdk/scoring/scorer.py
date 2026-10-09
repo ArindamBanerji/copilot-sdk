@@ -12,10 +12,11 @@ import os
 import sys
 import time
 import uuid
+from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Coroutine, Optional, cast
+from typing import Any, Coroutine, Mapping, Optional, Sequence, cast
 
 import numpy as np
 
@@ -33,7 +34,6 @@ from copilot_sdk.evolution.conservation_contract import (
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
 from copilot_sdk.config.graph_config import GraphConfig, GraphConfigError, resolve_profile
 from copilot_sdk.graph.production import validate_production_store
-from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.scoring.persistence_outbox import PersistenceOutbox
 from copilot_sdk.stats.bootstrap import block_bootstrap_mean_se
 
@@ -77,6 +77,28 @@ REGIME_CALIBRATION_THRESHOLD = 10
 CANONICAL_IKS_D_MAX = 0.20
 QUALITY_WINDOW_SIZE = 400
 QUALITY_POLICY_VERSION = "quality.v1"
+
+
+def _rolling_q(
+    decisions: Sequence[Mapping[str, Any]],
+    *,
+    window_size: int = QUALITY_WINDOW_SIZE,
+) -> float | None:
+    """Delegate to the shared conservation rolling-quality calculation."""
+    from copilot_sdk.backend.conservation_utils import _rolling_q as shared_rolling_q
+
+    return cast(float | None, shared_rolling_q(decisions, window_size=window_size))
+
+
+def _sort_decisions_chronological(
+    decisions: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Delegate to the shared canonical decision ordering."""
+    from copilot_sdk.backend.conservation_utils import (
+        _sort_decisions_chronological as shared_sort,
+    )
+
+    return cast(list[dict[str, Any]], shared_sort(decisions))
 
 
 def _factor_names_hash(factor_names: list[str]) -> str:
@@ -143,6 +165,7 @@ class CompoundingScorer:
         consolidation_enabled: bool = False,
         governed_writes: bool | None = None,
         profile: str | None = None,
+        storage_domain: str | None = None,
     ):
         self._preset = preset
         self._scorer = scorer
@@ -151,19 +174,30 @@ class CompoundingScorer:
         # comparable after a restart or checkpoint restore.
         self._canonical_mu = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
         self._graph_store = graph_store
-        self._domain = str(getattr(graph_store, "domain", preset.name) or preset.name)
+        if storage_domain is not None and not storage_domain.strip():
+            raise ValueError("storage_domain must be nonempty")
+        self._domain = (storage_domain if storage_domain is not None
+                        else str(getattr(graph_store, "domain", preset.name) or preset.name))
         self._profile = resolve_profile(profile, domain=self._domain)
         if self._profile == "production":
+            if self._domain != preset.name and storage_domain is not None:
+                raise GraphConfigError("production storage_domain must match the preset domain")
             try:
+                from copilot_sdk.graph.namespace import GraphStoreNamespace
                 from copilot_sdk.graph.production import age_client_for_store
 
-                age_client_for_store(graph_store, domain=preset.name)
-                bound_config = getattr(graph_store, "graph_config", None)
+                validation_store = (
+                    graph_store._store
+                    if isinstance(graph_store, GraphStoreNamespace)
+                    else graph_store
+                )
+                age_client_for_store(validation_store, domain=preset.name)
+                bound_config = getattr(validation_store, "graph_config", None)
                 if not isinstance(bound_config, GraphConfig):
                     bound_config = GraphConfig.load(preset.name, profile="production")
                 if bound_config.domain != preset.name:
                     raise GraphConfigError("scorer and GraphConfig domain mismatch")
-                validate_production_store(graph_store, bound_config)
+                validate_production_store(validation_store, bound_config)
             except GraphConfigError as exc:
                 raise RuntimeError(str(exc)) from exc
         self._reward_fn = reward_function
@@ -179,12 +213,8 @@ class CompoundingScorer:
         self._conservation_mode = "preseed" if self._preseed_mode else "normal"
         self._conservation_read_failures = 0
         if self._preseed_mode:
-            logger.info("COPILOT_PRESEED_MODE active for %s: conservation bypass is explicit for server-side preseed", self._domain)
-        governed_store = isinstance(graph_store, ProtocolV2GraphStore) or (
-            isinstance(graph_store, DualWriteStore)
-            and isinstance(graph_store.primary, ProtocolV2GraphStore)
-            and isinstance(graph_store.secondary, ProtocolV2GraphStore)
-        )
+            logger.info("COPILOT_PRESEED_MODE active for %s: synthetic-run optimizations enabled; public learning remains conservation-gated", self._domain)
+        governed_store = isinstance(graph_store, ProtocolV2GraphStore)
         if self._governed_writes and not governed_store:
             raise TypeError(
                 "Governed writes require a Protocol V2 graph store. "
@@ -198,8 +228,12 @@ class CompoundingScorer:
         self._last_checkpoint_action: str | None = None
         self._last_checkpoint_iks: float | None = None
         self._last_persisted_fingerprint_signature: str | None = None
-        self._verified_decisions_cache: list[dict[str, Any]] | None = None
-        self._fingerprint_cache: FingerprintResult | None = None
+        self._verified_snapshot_active: ContextVar[bool] = ContextVar(
+            f"verified_snapshot_active_{id(self)}", default=False
+        )
+        self._verified_snapshot_rows: ContextVar[list[dict[str, Any]] | None] = ContextVar(
+            f"verified_snapshot_rows_{id(self)}", default=None
+        )
         self._calibration_overlay: dict[str, Any] | None = None
         try:
             self._outbox: PersistenceOutbox | None = PersistenceOutbox(self._domain)
@@ -281,7 +315,6 @@ class CompoundingScorer:
     def from_preset(
         cls,
         domain: str,
-        db_path: Optional[str] = None,
         graph_store: GraphStore | None = None,
         reward_function: Any | None = None,
         credit_assigner: Any | None = None,
@@ -292,6 +325,8 @@ class CompoundingScorer:
         governed_writes: bool | None = None,
         profile: str | None = None,
         graph_config: GraphConfig | None = None,
+        storage_domain: str | None = None,
+        graph_namespace: str | None = None,
     ) -> "CompoundingScorer":
         profile = resolve_profile(profile, domain=domain)
         if graph_config is not None and graph_config.profile != profile:
@@ -302,28 +337,20 @@ class CompoundingScorer:
 
         preset_cls = PRESET_REGISTRY[domain]
         preset = preset_cls()
+        if storage_domain is not None and not storage_domain.strip():
+            raise ValueError("storage_domain must be nonempty")
+        if profile == "production" and storage_domain not in (None, preset.name):
+            raise GraphConfigError("production storage_domain must match the preset domain")
+        checkpoint_domain = storage_domain if storage_domain is not None else preset.name
         if graph_store is None and profile == "production":
             raise RuntimeError(
                 "Production scorer requires an injected GraphStore. "
                 "Use create_graph_store() or pass graph_store explicitly."
             )
-        if graph_store is None and profile == "test":
+        if graph_store is None:
             from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
             graph_store = InMemoryGraphStore(domain=preset.name)
-        elif graph_store is None:
-            # Explicit offline/development mode only. No local file is created
-            # as a side effect of rejected production construction.
-            from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
-
-            if db_path is None:
-                data_dir = Path(__file__).resolve().parents[1] / "data"
-                data_dir.mkdir(parents=True, exist_ok=True)
-                db_path = str(data_dir / f"{domain}.db")
-            graph_store = cast(
-                GraphStore,
-                SQLiteGraphStore(db_path, domain=preset.name),
-            )
         assert graph_store is not None
         if profile == "production":
             try:
@@ -339,9 +366,16 @@ class CompoundingScorer:
                 validate_production_store(graph_store, bound_config)
             except GraphConfigError as exc:
                 raise RuntimeError(str(exc)) from exc
-        centroids = graph_store.load_latest_centroids(preset.name)
+        if graph_namespace is not None:
+            from copilot_sdk.graph.namespace import GraphStoreNamespace
+
+            graph_store = GraphStoreNamespace(
+                cast(ProtocolV2GraphStore, graph_store),
+                graph_namespace,
+            )
+        centroids = graph_store.load_latest_centroids(checkpoint_domain)
         latest_checkpoints = graph_store.get_centroid_checkpoints(
-            preset.name,
+            checkpoint_domain,
             include_v2=True,
             limit=1,
         )
@@ -403,6 +437,7 @@ class CompoundingScorer:
             consolidation_enabled=consolidation_enabled,
             governed_writes=governed_writes,
             profile=profile,
+            **({"storage_domain": storage_domain} if storage_domain is not None else {}),
         )
 
     def score(
@@ -1002,8 +1037,6 @@ class CompoundingScorer:
         if not callable(reset):
             raise AttributeError("graph store does not support domain_scoped_reset")
         reset(self._domain)
-        self._verified_decisions_cache = None
-        self._fingerprint_cache = None
         if self._outbox is not None:
             self._outbox.clear()
 
@@ -1018,6 +1051,82 @@ class CompoundingScorer:
         persist_artifacts: bool = True,
         dk_refresh_min_verified: int = 400,
     ) -> LearnResult | dict[str, Any]:
+        return self._learn_impl(
+            decision_id,
+            actual_action,
+            outcome,
+            consolidate=consolidate,
+            context=context,
+            persist_artifacts=persist_artifacts,
+            dk_refresh_min_verified=dk_refresh_min_verified,
+            bypass_conservation_gate=False,
+        )
+
+    def _learn_preseed(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, Any] | None = None,
+        persist_artifacts: bool = True,
+        dk_refresh_min_verified: int = 400,
+    ) -> LearnResult | dict[str, Any]:
+        logger.debug("preseed mode: conservation gate bypassed")
+        return self._learn_impl(
+            decision_id,
+            actual_action,
+            outcome,
+            consolidate=consolidate,
+            context=context,
+            persist_artifacts=persist_artifacts,
+            dk_refresh_min_verified=dk_refresh_min_verified,
+            bypass_conservation_gate=True,
+        )
+
+    def _learn_impl(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, Any] | None = None,
+        persist_artifacts: bool = True,
+        dk_refresh_min_verified: int = 400,
+        bypass_conservation_gate: bool,
+    ) -> LearnResult | dict[str, Any]:
+        """Run one learning transaction against one request-local graph snapshot."""
+        active_token = self._verified_snapshot_active.set(True)
+        rows_token = self._verified_snapshot_rows.set(None)
+        try:
+            return self._learn_impl_from_snapshot(
+                decision_id,
+                actual_action,
+                outcome,
+                consolidate=consolidate,
+                context=context,
+                persist_artifacts=persist_artifacts,
+                dk_refresh_min_verified=dk_refresh_min_verified,
+                bypass_conservation_gate=bypass_conservation_gate,
+            )
+        finally:
+            self._verified_snapshot_rows.reset(rows_token)
+            self._verified_snapshot_active.reset(active_token)
+
+    def _learn_impl_from_snapshot(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, Any] | None = None,
+        persist_artifacts: bool = True,
+        dk_refresh_min_verified: int = 400,
+        bypass_conservation_gate: bool,
+    ) -> LearnResult | dict[str, Any]:
         decision = self._graph_store.get_decision(decision_id, domain=self._domain)
         if decision is None:
             raise KeyError(decision_id)
@@ -1031,10 +1140,17 @@ class CompoundingScorer:
         factor_vector = np.asarray(_decision_field(decision, "factor_vector", []), dtype=np.float64)
         category_index = int(_decision_field(decision, "category_index", 0))
         confidence = float(_decision_field(decision, "confidence", 0.0))
-        synthetic_preseed = self._preseed_mode
-        if context and context.get("preseed") is True and not self._preseed_mode:
+        synthetic_preseed = bool(bypass_conservation_gate or self._preseed_mode)
+        skip_iks_history = synthetic_preseed or bool(
+            context and context.get("benchmark") is True
+        )
+        if context and context.get("preseed") is True and not synthetic_preseed:
             logger.warning("Ignoring client-controlled preseed flag for %s decision=%s", self._domain, decision_id)
-        conservation_safety, conservation_pause = self._capture_conservation_safety()
+        if bypass_conservation_gate:
+            conservation_safety = evaluate_conservation_safety("PRESEED")
+            conservation_pause = None
+        else:
+            conservation_safety, conservation_pause = self._capture_conservation_safety()
         if conservation_pause is not None:
             conservation_pause["decision_id"] = decision_id
             return conservation_pause
@@ -1059,7 +1175,7 @@ class CompoundingScorer:
         bootstrap_learn = self._conservation_mode == "bootstrap"
         iks_before = self._compute_iks(
             persist_artifacts=False,
-            skip_history_scan=synthetic_preseed,
+            skip_history_scan=skip_iks_history,
         )
         before_centroids = self._scorer.centroids.copy()
 
@@ -1129,8 +1245,10 @@ class CompoundingScorer:
             # durable graph write (including centroid persistence) fails.
             self._scorer.centroids = before_centroids
             raise
-        self._verified_decisions_cache = None
-        self._fingerprint_cache = None
+        # The outcome committed above changes the graph snapshot. Subsequent
+        # calculations in this same learning request must observe that write.
+        if self._verified_snapshot_active.get():
+            self._verified_snapshot_rows.set(None)
         persistence: dict[str, bool] = {}
         persistence_failures: list[dict[str, str]] = []
         if persist_artifacts:
@@ -1172,7 +1290,7 @@ class CompoundingScorer:
         iks_after = self._compute_iks(
             persist_artifacts=persist_artifacts,
             decision_id=decision_id,
-            skip_history_scan=synthetic_preseed,
+            skip_history_scan=skip_iks_history,
         )
         self._last_checkpoint_decision_id = decision_id
         self._last_checkpoint_category = category
@@ -1258,7 +1376,7 @@ class CompoundingScorer:
                 metadata=outcome_metadata,
                 evidence_already_persisted=True,
                 checkpoint_already_persisted=checkpoint_already_persisted,
-                skip_history_scan=synthetic_preseed,
+                skip_history_scan=skip_iks_history,
             ))
         if persistence_failures:
             for failure in persistence_failures:
@@ -1291,12 +1409,10 @@ class CompoundingScorer:
         persist: bool = True,
         decision_id: str | None = None,
     ) -> FingerprintResult:
-        if self._fingerprint_cache is None:
-            self._fingerprint_cache = compute_fingerprint(
-                self._verified_decisions(),
-                list(self._preset.shape.factor_names),
-            )
-        result = self._fingerprint_cache
+        result = compute_fingerprint(
+            self._verified_decisions(),
+            list(self._preset.shape.factor_names),
+        )
         if persist:
             if not self._persist_fingerprint(result, decision_id=decision_id):
                 return replace(result, persistence_failed=True)
@@ -1652,11 +1768,18 @@ class CompoundingScorer:
                 "status": str(paused.get("conservation_status", "RED")),
             }
 
-        verified, correct, _override_rate = _conservation_stats(self._graph_store)
+        (
+            verified_decisions,
+            verified,
+            _correct,
+            _override_rate,
+            alpha,
+        ) = self._read_conservation_inputs_with_retry()
         if verified <= 0:
             return None
-        alpha = self._category_coverage()
-        q = correct / verified
+        q = _rolling_q(verified_decisions)
+        if q is None:
+            return None
         if verified < CONSERVATION_MIN_VERIFIED:
             return {
                 "V": int(verified),
@@ -1928,7 +2051,6 @@ class CompoundingScorer:
             self._scorer, "_paused_by_conservation"
         ):
             self._scorer._paused_by_conservation = bool(restored_paused)
-        self._verified_decisions_cache = None
 
         current_count = self.get_verified_count()
         checkpoint_count = int(checkpoint.get("verified_count") or checkpoint.get("decisions_count") or 0)
@@ -2183,9 +2305,10 @@ class CompoundingScorer:
         destination.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
     @classmethod
-    def load(cls, path: str | Path, db_path: Optional[str] = None) -> "CompoundingScorer":
+    def load(cls, path: str | Path, graph_store: GraphStore | None = None,
+             *, profile: str | None = None) -> "CompoundingScorer":
         state = json.loads(Path(path).read_text(encoding="utf-8"))
-        scorer = cls.from_preset(state["domain"], db_path=db_path)
+        scorer = cls.from_preset(state["domain"], graph_store=graph_store, profile=profile)
         scorer._scorer.centroids = np.asarray(state["centroids"], dtype=np.float64)
         return scorer
 
@@ -2196,6 +2319,17 @@ class CompoundingScorer:
         decision_id: str | None = None,
         skip_history_scan: bool = False,
     ) -> float:
+        if skip_history_scan:
+            # Synthetic/preseed learning deliberately omits fingerprint and
+            # coverage history. Read the two live graph aggregates directly
+            # instead of materializing and copying every verified decision.
+            verified = int(self._graph_store.count_verified(self._domain))
+            if verified == 0:
+                return 0.0
+            correct = int(self._graph_store.count_correct(self._domain))
+            accuracy = correct / verified
+            return round(min(verified / 500.0, 1.0) * 25.0 + accuracy * 25.0, 1)
+
         verified_decisions = self._verified_decisions()
         verified = len(verified_decisions)
         if verified == 0:
@@ -2204,26 +2338,22 @@ class CompoundingScorer:
         try:
             correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
         except Exception:
-            correct = self._graph_store.count_correct(self._domain)
+            correct = int(self._graph_store.count_correct(self._domain))
         accuracy = correct / verified
-        if skip_history_scan:
-            fingerprint_component = 0.0
-            coverage = 0.0
-        else:
-            fingerprint = self.fingerprint(
-                persist=False,
-                decision_id=decision_id,
-            )
-            mean_sigma = (
-                sum(factor.sigma for factor in fingerprint.factors) / len(fingerprint.factors)
-                if fingerprint.factors
-                else 0.5
-            )
-            fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
-            coverage = _count_categories_with_n(
-                self._conservation_verified_decisions(),
-                10,
-            ) / self._preset.shape.n_categories
+        fingerprint = self.fingerprint(
+            persist=False,
+            decision_id=decision_id,
+        )
+        mean_sigma = (
+            sum(factor.sigma for factor in fingerprint.factors) / len(fingerprint.factors)
+            if fingerprint.factors
+            else 0.5
+        )
+        fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
+        coverage = _count_categories_with_n(
+            self._conservation_verified_decisions(),
+            10,
+        ) / self._preset.shape.n_categories
 
         iks = (
             min(verified / 500.0, 1.0) * 25.0
@@ -2231,7 +2361,7 @@ class CompoundingScorer:
             + fingerprint_component
             + coverage * 25.0
         )
-        return round(iks, 1)
+        return float(round(iks, 1))
 
     def _compute_checkpoint_iks(self) -> float:
         """Return the JM canonical centroid-drift IKS for checkpoint history."""
@@ -2312,9 +2442,6 @@ class CompoundingScorer:
         return evaluate_conservation_safety(raw_status), None
 
     def _conservation_pause(self) -> dict[str, Any] | None:
-        if self._preseed_mode:
-            self._conservation_mode = "preseed"
-            return None
         try:
             verified_decisions, verified, correct, override_rate, category_coverage = self._read_conservation_inputs_with_retry()
         except BaseException as exc:
@@ -2357,7 +2484,22 @@ class CompoundingScorer:
             return None
 
         self._conservation_mode = "normal"
-        q = correct / verified
+        q = _rolling_q(verified_decisions)
+        if q is None:
+            self._conservation_mode = "unavailable"
+            return {
+                "status": "paused",
+                "reason": "conservation_unavailable",
+                "q": 0.0,
+                "theta_min": 1.0,
+                "verified_count": verified,
+                "correct_count": correct,
+                "alpha": category_coverage,
+                "category_coverage": category_coverage,
+                "override_rate": override_rate,
+                "conservation_status": "RED",
+                "conservation_mode": "unavailable",
+            }
         recent_window = max(int(getattr(self._preset, "conservation_recent_window", 100)), 1)
         recent_q_threshold = float(getattr(self._preset, "conservation_recent_q_threshold", 0.75))
         recent_quality = _recent_quality(
@@ -2387,17 +2529,13 @@ class CompoundingScorer:
             self._graph_store,
             verified_decisions=verified_decisions,
         )
-        effective_q = q
         if dispersion is not None and float(dispersion.get("inflation", 0.0)) > 1.3:
             logger.info(
                 "Conservation dispersion: inflation=%.2f",
                 float(dispersion["inflation"]),
             )
-            effective_q = max(0.0, q - float(dispersion.get("effective_se", 0.0)))
-        conservation_signal = category_coverage * effective_q * verified
+        conservation_signal = category_coverage * q * verified
         if theta_min is not None and conservation_signal < theta_min:
-            if dispersion is not None and float(dispersion.get("inflation", 0.0)) > 1.3:
-                dispersion = {**dispersion, "q_conservative": effective_q}
             result = {
                 "status": "paused",
                 "reason": "conservation_red",
@@ -2431,7 +2569,9 @@ class CompoundingScorer:
             return self._read_conservation_inputs_once()
 
     def _read_conservation_inputs_once(self) -> tuple[list[dict[str, Any]], int, int, float, float]:
-        verified_decisions = self._conservation_verified_decisions()
+        verified_decisions = _sort_decisions_chronological(
+            self._conservation_verified_decisions()
+        )
         verified, correct, override_rate = _conservation_stats(
             self._graph_store,
             verified_decisions=verified_decisions,
@@ -2747,8 +2887,13 @@ class CompoundingScorer:
                     "override_rate": 0.0,
                 }
         try:
-            verified, correct, override_rate = _conservation_stats(self._graph_store)
-            category_coverage = self._category_coverage()
+            (
+                verified_decisions,
+                verified,
+                correct,
+                override_rate,
+                category_coverage,
+            ) = self._read_conservation_inputs_with_retry()
         except Exception:
             return None
         if verified <= 0:
@@ -2762,18 +2907,20 @@ class CompoundingScorer:
                 "category_coverage": 0.0,
                 "override_rate": 0.0,
             }
+        q = _rolling_q(verified_decisions)
+        if q is None:
+            return None
         if verified < CONSERVATION_MIN_VERIFIED:
             return {
                 "status": "BOOTSTRAP",
                 "verified_count": verified,
                 "correct_count": correct,
-                "q": correct / verified,
+                "q": q,
                 "theta_min": None,
                 "alpha": category_coverage,
                 "category_coverage": category_coverage,
                 "override_rate": override_rate,
             }
-        q = correct / verified
         theta_min = compute_theta_min(category_coverage, verified)
         conservation_signal = category_coverage * q * verified
         return {
@@ -2806,12 +2953,15 @@ class CompoundingScorer:
         return min(1.0, covered_categories / total_categories)
 
     def _verified_decisions(self) -> list[dict[str, Any]]:
-        if self._verified_decisions_cache is None:
-            decisions = self._graph_store.get_verified_decisions(self._domain)
-            self._verified_decisions_cache = [
-                decision for decision in decisions if _is_verified_decision(decision)
-            ]
-        return self._verified_decisions_cache
+        if self._verified_snapshot_active.get():
+            snapshot = self._verified_snapshot_rows.get()
+            if snapshot is not None:
+                return snapshot
+        decisions = self._graph_store.get_verified_decisions(self._domain)
+        verified = [decision for decision in decisions if _is_verified_decision(decision)]
+        if self._verified_snapshot_active.get():
+            self._verified_snapshot_rows.set(verified)
+        return verified
 
     def _conservation_verified_decisions(self) -> list[dict[str, Any]]:
         return [
@@ -2852,7 +3002,7 @@ def _conservation_dispersion(
         return None
     q_window = [
         1.0 if _is_correct_decision(decision) else 0.0
-        for decision in verified_decisions[-400:]
+        for decision in verified_decisions[-QUALITY_WINDOW_SIZE:]
     ]
     if len(q_window) < 20:
         return None

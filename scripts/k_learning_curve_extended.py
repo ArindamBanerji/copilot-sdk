@@ -7,11 +7,12 @@ modify scorer, investigation, router, app, fixture, or database source.
 
 from __future__ import annotations
 
+from typing import cast
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import hashlib
 import json
 from pathlib import Path
 import random
-import sqlite3
 import tempfile
 from typing import Any
 
@@ -49,14 +50,11 @@ DIMENSION_SOURCES = {
 }
 
 
-class SQLiteDecisionStore:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def load_dataops_geometry() -> dict[str, Any]:
     data = json.loads(CENTROIDS_PATH.read_text(encoding="utf-8"))
-    return data["copilots"]["dataops"]
+    return cast(dict[str, Any], data["copilots"]["dataops"])
 
 
 def geometry_hash(info: dict[str, Any]) -> str:
@@ -301,10 +299,10 @@ def main() -> None:
     mu_by_category = {category: np.asarray(info["all_category_mu"][category], dtype=np.float64) for category in categories}
 
     with tempfile.TemporaryDirectory(prefix="k-learning-extended-") as tmp:
-        CompoundingScorer.from_preset("dataops", db_path=str(Path(tmp) / "dataops.db"), profile="test")
+        CompoundingScorer.from_preset("dataops",  profile="test")
 
-    learning_store = KUtilityStore(SQLiteDecisionStore(), d=len(factor_names))
-    control_store = KUtilityStore(SQLiteDecisionStore(), d=len(factor_names))
+    learning_store = KUtilityStore(InMemoryGraphStore(), d=len(factor_names))
+    control_store = KUtilityStore(InMemoryGraphStore(), d=len(factor_names))
     rng = random.Random(SEED)
     checkpoints: list[dict[str, Any]] = []
 

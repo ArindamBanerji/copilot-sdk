@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import sqlite3
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from unittest.mock import MagicMock
 from datetime import datetime, timezone
 from dataclasses import dataclass
@@ -44,11 +44,6 @@ class MutatingEvidenceProvider(MockEvidenceProvider):
     def read_evidence(self, decision_id: str, dimension: int, factor_name: str):
         self.array_to_mutate[:] = 0.0
         return super().read_evidence(decision_id, dimension, factor_name)
-
-
-@dataclass
-class StoreWithConn:
-    conn: object
 
 
 @dataclass
@@ -100,12 +95,8 @@ def investigator(simple_geometry):
 
 
 @pytest.fixture
-def mock_decision_store(tmp_path):
-    conn = sqlite3.connect(tmp_path / "k.sqlite3")
-    try:
-        yield StoreWithConn(conn)
-    finally:
-        conn.close()
+def mock_decision_store():
+    return InMemoryGraphStore(domain="test")
 
 
 def test_evidence_provider_protocol_runtime() -> None:
@@ -696,7 +687,7 @@ def test_default_delta_and_max_flips(investigator) -> None:
     assert trace.halt_reason == "residual_below_threshold"
 
 
-def test_production_k_utility_rejects_sqlite(mock_decision_store) -> None:
-    with pytest.raises(RuntimeError, match="graph-backed connection"):
+def test_production_k_utility_rejects_memory(mock_decision_store) -> None:
+    with pytest.raises(RuntimeError, match="AGE-backed"):
         KUtilityStore(mock_decision_store, 6, profile="production")
 

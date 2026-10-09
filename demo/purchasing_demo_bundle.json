@@ -1,4 +1,5 @@
 {
+  "factor_names": ["expected_demand", "day_of_week", "weather_forecast", "event_flag", "historical_waste", "supplier_lead_time", "price_memory_index"],
   "centroid_checkpoints": [
     {
       "category": null,

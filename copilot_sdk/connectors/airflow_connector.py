@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Any, cast
+
+from copilot_sdk.timestamps import normalize_timestamp
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -112,7 +114,7 @@ class AirflowConnector:
         runs = [
             run
             for run in self.fetch(dag_id)
-            if not run.get("execution_date") or str(run.get("execution_date")) >= since.isoformat()
+            if not run.get("execution_date") or normalize_timestamp(run["execution_date"]) >= since.timestamp()
         ]
         completed = [run for run in runs if run.get("state") in {"success", "failed"}]
         success = sum(1 for run in completed if run.get("state") == "success")

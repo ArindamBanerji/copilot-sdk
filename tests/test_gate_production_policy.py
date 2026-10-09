@@ -97,11 +97,13 @@ def seed_verified(store: InMemoryGraphStore, outcomes: list[bool]) -> None:
     preset = TradingPreset()
     # Populate the actual persisted verified stream, without mocking the scorer
     # or bypassing learn() during the enforcement/replay assertions below.
+    latest_time = max((row["created_at"] for row in store.get_all_decisions("trading")), default=0.0)
     for index, correct in enumerate(outcomes):
         decision_id = store.write_decision(
             domain="trading", category=preset.shape.category_names[index % 5],
             action=preset.shape.action_names[0], confidence=0.85,
             factors={name: 0.8 for name in preset.shape.factor_names},
+            metadata={"created_at": float(latest_time + index + 1)},
         )
         store.write_outcome(
             decision_id, preset.shape.action_names[0 if correct else 1], correct, domain="trading"

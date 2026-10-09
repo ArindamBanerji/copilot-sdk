@@ -16,7 +16,7 @@ def _seed_store():
     return store
 
 
-def _service(*, cache_ttl_seconds: float = 300.0) -> DIQueryService:
+def _service() -> DIQueryService:
     backend_root = Path(__file__).resolve().parents[1]
     provider = DataOpsEnterpriseProvider(
         _seed_store(),
@@ -26,7 +26,7 @@ def _service(*, cache_ttl_seconds: float = 300.0) -> DIQueryService:
             "celonis_p2p": {"source_name": "Celonis P2P", "trust": 0.87, "freshness_hours": 2.0},
         },
     )
-    return DIQueryService(provider, allowed_domains={"dataops"}, cache_ttl_seconds=cache_ttl_seconds)
+    return DIQueryService(provider, allowed_domains={"dataops"})
 
 
 def test_revenue_query_uses_governed_sap_amounts_and_cross_source_attribution() -> None:
@@ -51,16 +51,13 @@ def test_unmatched_invoice_query_reports_count_and_gap() -> None:
     assert response.confidence_label == "moderate"
 
 
-def test_query_cache_hits_and_invalidates() -> None:
+def test_each_query_executes_fresh() -> None:
     service = _service()
     request = {"question": "What was revenue last month?", "context": {"domain": "dataops"}}
 
     first = service.execute(request)
     second = service.execute(request)
     assert first.metadata.cache == "miss"
-    assert second.metadata.cache == "hit"
+    assert second.metadata.cache == "miss"
     assert second.answer == first.answer
-
-    service.invalidate_cache()
-    third = service.execute(request)
-    assert third.metadata.cache == "miss"
+    assert second.metadata.query_id != first.metadata.query_id

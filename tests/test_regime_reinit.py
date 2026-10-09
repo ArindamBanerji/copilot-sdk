@@ -4,6 +4,7 @@ import asyncio
 import time
 from dataclasses import dataclass
 from typing import Any, cast
+from unittest.mock import patch
 
 import numpy as np
 from fastapi import FastAPI
@@ -34,13 +35,13 @@ class RegimePreset:
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
-        return np.asarray(
+        return cast(np.ndarray, np.asarray(
             [
                 [[0.2, 0.3], [0.7, 0.6]],
                 [[0.3, 0.4], [0.8, 0.7]],
             ],
             dtype=np.float64,
-        )
+        ))
 
 
 def _make_scorer(store: InMemoryGraphStore) -> CompoundingScorer:
@@ -92,10 +93,11 @@ def _seed_verified(store: InMemoryGraphStore, count: int, start: int = 0) -> Non
 
 def test_load_latest_checkpoint_for_regime_and_missing() -> None:
     store = InMemoryGraphStore(domain="regime-test")
-    _checkpoint(store, "trending", 1.0, 1)
-    _checkpoint(store, "ranging", 2.0, 1)
-    _checkpoint(store, "volatile", 3.0, 1)
-    _checkpoint(store, "trending", 4.0, 2)
+    with patch("time.time", side_effect=[1.0, 2.0, 3.0, 4.0]):
+        _checkpoint(store, "trending", 1.0, 1)
+        _checkpoint(store, "ranging", 2.0, 1)
+        _checkpoint(store, "volatile", 3.0, 1)
+        _checkpoint(store, "trending", 4.0, 2)
     latest = store.load_latest_checkpoint_for_regime("regime-test", "trending")
     assert latest is not None
     assert latest["checkpoint_id"] == "cp-trending-2"

@@ -9,6 +9,7 @@ import re
 
 from fastapi import APIRouter, Request
 
+from copilot_sdk.backend.health_builder import _backend, _primary_store
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph
 from copilot_sdk.config.graph_config import resolve_profile
 from copilot_sdk.graph.production import GraphStoreWrapper, validate_production_store
@@ -75,7 +76,7 @@ _GRAPH_CONFIG_ENV_KEYS = (
     "GRAPH_DOMAIN", "DATAOPS_ACTIVE_GRAPH_BACKEND", "DATAOPS_ACTIVE_AGE_DSN",
     "DATAOPS_ACTIVE_AGE_GRAPH", "DATAOPS_ACTIVE_AGE_DOMAIN",
     "DATAOPS_ACTIVE_AGE_TEST_MODE", "DATAOPS_ACTIVE_LIVE_AGE_TEST",
-    "DATAOPS_SHARED_GRAPH_AUTHORIZED", "CI_ALLOW_SQLITE_FALLBACK",
+    "DATAOPS_SHARED_GRAPH_AUTHORIZED",
 )
 
 
@@ -85,8 +86,17 @@ def _load_dataops_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
     if env is None:
         return GraphConfig.load(DOMAIN, profile=profile)
     overrides: dict[str, Any] = {}
-    if profile != "production" and "DATAOPS_ACTIVE_GRAPH_BACKEND" not in env:
-        overrides["backend"] = "sqlite"
+    if (
+        profile != "production"
+        and "DATAOPS_ACTIVE_GRAPH_BACKEND" not in env
+        and "GRAPH_BACKEND" not in env
+    ):
+        raw, _ = GraphConfig._read_file(DOMAIN, env=env)
+        configured_backend = raw.get("copilot", {}).get(DOMAIN, {}).get(
+            "backend", raw.get("defaults", {}).get("backend"),
+        )
+        if configured_backend is None:
+            overrides["backend"] = "memory"
     if env.get("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
         for field in ("DSN", "GRAPH"):
             key = f"DATAOPS_ACTIVE_AGE_{field}"
@@ -98,7 +108,7 @@ def _load_dataops_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
 
 @dataclass(frozen=True)
 class DataOpsActiveGraphConfig:
-    requested_backend: str = "sqlite"
+    requested_backend: str = "memory"
     dsn: str | None = None
     graph: str | None = None
     domain: str = DOMAIN
@@ -116,7 +126,7 @@ class DataOpsActiveGraphConfig:
         except GraphConfigError as exc:
             message = str(exc)
             if message.startswith("invalid backend"):
-                message = "DATAOPS_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'"
+                message = "DATAOPS_ACTIVE_GRAPH_BACKEND must be 'memory' or 'age'"
             raise DataOpsActiveGraphConfigError(message) from exc
         config = cls(
             requested_backend=graph_config.backend,
@@ -134,11 +144,11 @@ class DataOpsActiveGraphConfig:
         return config
 
     def validate(self, source: Mapping[str, str] | None = None) -> None:
-        if self.requested_backend not in {"sqlite", "age"}:
+        if self.requested_backend not in {"memory", "age"}:
             raise DataOpsActiveGraphConfigError(
-                "DATAOPS_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'"
+                "DATAOPS_ACTIVE_GRAPH_BACKEND must be 'memory' or 'age'"
             )
-        if self.requested_backend == "sqlite":
+        if self.requested_backend == "memory":
             return
 
         source = source or {}
@@ -294,8 +304,27 @@ def create_dataops_active_graph_store(
     store_factory: Any | None = None,
     graph_config: GraphConfig | None = None,
 ) -> Any | None:
-    if config.requested_backend != "age":
-        return None
+    config.validate()
+    if config.requested_backend == "memory":
+        profile = graph_config.profile if graph_config is not None else resolve_profile(domain=DOMAIN)
+        try:
+            require_shared_graph(
+                backend="memory", graph=config.graph, domain=DOMAIN, profile=profile,
+            )
+        except GraphConfigError as exc:
+            raise DataOpsActiveGraphConfigError(str(exc)) from exc
+        from copilot_sdk.graph.factory import create_graph_store
+
+        factory = store_factory or create_graph_store
+        memory_args: dict[str, Any] = {
+            "backend": "memory", "domain": DOMAIN, "profile": profile, "env": {},
+            "decision_id_prefix": "DOPS-",
+        }
+        if graph_config is not None:
+            memory_args = {"config": graph_config, "decision_id_prefix": "DOPS-"}
+        store = factory(**memory_args)
+        setattr(store, "penalty_ratio", DataOpsPreset().penalty_ratio)
+        return store
     config.validate({"DATAOPS_ACTIVE_GRAPH_BACKEND": "age"})
     try:
         require_shared_graph(
@@ -349,9 +378,8 @@ def build_dataops_graph_status(app_state: Any) -> dict[str, Any]:
     if not isinstance(config, DataOpsActiveGraphConfig):
         config = DataOpsActiveGraphConfig.from_env({})
     active_store = getattr(app_state, "dataops_selected_graph_store", None)
-    age_active = bool(
-        config.requested_backend == "age" and isinstance(active_store, DataOpsActiveAGEGraphStore)
-    )
+    active_backend = _backend(_primary_store(active_store))
+    age_active = active_backend == "age"
     requested_age = config.requested_backend == "age"
     graph_kind = config.graph_kind()
     product_graph_allowed = (
@@ -360,12 +388,12 @@ def build_dataops_graph_status(app_state: Any) -> dict[str, Any]:
         else str(config.graph).strip() in ALLOWED_PRODUCT_AGE_GRAPHS
     )
     return {
-        "active_backend": "age" if age_active else "sqlite",
+        "active_backend": active_backend,
         "requested_backend": config.requested_backend,
-        "sqlite_authoritative": not age_active,
+        "memory_authoritative": active_backend == "memory",
         "age_active": age_active,
         "active_graph_name": config.graph if requested_age else None,
-        "graph_kind": "sqlite" if not requested_age else graph_kind,
+        "graph_kind": graph_kind if requested_age else active_backend,
         "active_domain": config.domain,
         "active_test_mode": config.test_mode,
         "active_live_age_test": config.live_age_test,
@@ -378,9 +406,9 @@ def build_dataops_graph_status(app_state: Any) -> dict[str, Any]:
         "operational_graph_client_status": "separate_dataops_graph_client",
         "historical_visibility_warning": HISTORICAL_VISIBILITY_WARNING,
         "rollback_instructions": [
-            "Unset DATAOPS_ACTIVE_GRAPH_BACKEND or set it to sqlite.",
+            "Keep production on AGE; restore connectivity or revert the application release.",
             "Restart DataOps.",
-            "Rollback routes new scorer writes to SQLite; it does not reconcile AGE data.",
+            "For disposable development only, select memory with an explicit test/offline profile.",
         ],
         "cutover_ready": bool(age_active and graph_kind == "test"),
         "new_decision_outcome_writes_ready": bool(age_active and graph_kind == "test"),
@@ -390,14 +418,15 @@ def build_dataops_graph_status(app_state: Any) -> dict[str, Any]:
         "warnings": [
             "DataOps active AGE test mode is enabled for new scorer Decision/Outcome writes."
             if age_active
-            else "DataOps SQLite remains authoritative for scorer decisions.",
+            else ("DataOps uses disposable development memory."
+                  if active_backend == "memory" else "DataOps graph store is unavailable or unrecognized."),
             "Operational DataOpsGraphClient queries are configured separately.",
             "Historical SQLite migration/backfill is not in scope.",
             HISTORICAL_VISIBILITY_WARNING,
             "EvidenceReceipt mapping is excluded from first cutover.",
         ],
         "cutover_ready_flags": {
-            "backend_guard_valid": True,
+            "backend_guard_valid": active_backend == config.requested_backend and active_backend in {"memory", "age"},
             "graph_guard_valid": True,
             "test_mode_active": bool(age_active and graph_kind == "test"),
             "product_graph_allow_listed": bool(product_graph_allowed),
@@ -408,7 +437,10 @@ def build_dataops_graph_status(app_state: Any) -> dict[str, Any]:
             "active_age_writes_enabled": age_active,
             "product_claim_allowed": False,
         },
-        "last_error": None,
+        "last_error": (
+            "Requested AGE store is unavailable or not AGE-backed"
+            if requested_age and not age_active else None
+        ),
     }
 
 

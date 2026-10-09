@@ -8,6 +8,8 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from copilot_sdk.timestamps import normalize_timestamp
+
 
 @dataclass
 class CategorySummary:
@@ -93,13 +95,13 @@ class WeeklyReportGenerator:
         if not all_decisions:
             return self._empty_report()
 
-        period_end = max(float(decision.get("created_at", 0.0)) for decision in all_decisions)
+        period_end = max(normalize_timestamp(decision.get("created_at", 0.0)) for decision in all_decisions)
         period_start = period_end - (int(period_days) * self.SECONDS_PER_DAY)
 
         window = [
             decision
             for decision in all_decisions
-            if float(decision.get("created_at", 0.0)) >= period_start
+            if normalize_timestamp(decision.get("created_at", 0.0)) >= period_start
         ]
         verified = self._window_verified(period_start)
         verified_ids = {str(decision.get("decision_id")) for decision in verified}
@@ -160,7 +162,7 @@ class WeeklyReportGenerator:
         return [
             decision
             for decision in verified
-            if float(decision.get("created_at", 0.0)) >= period_start
+            if normalize_timestamp(decision.get("created_at", 0.0)) >= period_start
         ]
 
     def _compute_categories(self, window: list[dict[str, Any]]) -> list[CategorySummary]:

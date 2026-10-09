@@ -8,7 +8,6 @@ import pytest
 
 from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 from copilot_sdk.config import GraphConfigError
 
 
@@ -17,36 +16,22 @@ def test_graphstore_factory_requires_domain_when_backend_unset():
         create_graph_store(profile="test", env={})
 
 
-def test_graphstore_factory_explicit_sqlite_returns_sqlite():
-    store = create_graph_store(profile="test", backend="sqlite", domain="s2p", env={})
-    try:
-        assert isinstance(store, SQLiteGraphStore)
-        assert store.domain == "s2p"
-    finally:
-        store.close()
+def test_graphstore_factory_explicit_sqlite_returns_sqlite_rejected():
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(profile='test', backend='sqlite', domain='s2p', env={})
 
 
-def test_graphstore_factory_sqlite_uses_explicit_db_path(tmp_path: Path):
+def test_graphstore_factory_sqlite_uses_explicit_db_path_rejected(tmp_path: Path):
     db_path = tmp_path / "explicit.db"
-    store = create_graph_store(profile="test", backend="sqlite", domain="trading", db_path=db_path, env={})
-    try:
-        assert isinstance(store, SQLiteGraphStore)
-        assert store.db_path == str(db_path)
-    finally:
-        store.close()
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(profile='test', backend='sqlite', domain='trading', db_path=db_path, env={})
+    assert not list(tmp_path.glob("*.db"))
 
 
-def test_graphstore_factory_sqlite_can_resolve_ci_data_dir(tmp_path: Path):
-    store = create_graph_store(profile="test",
-        backend="sqlite",
-        domain="purchasing",
-        env={"CI_DATA_DIR": str(tmp_path)},
-    )
-    try:
-        assert isinstance(store, SQLiteGraphStore)
-        assert store.db_path == str(tmp_path / "purchasing.db")
-    finally:
-        store.close()
+def test_graphstore_factory_sqlite_can_resolve_ci_data_dir_rejected(tmp_path: Path):
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(profile='test', backend='sqlite', domain='purchasing', env={'CI_DATA_DIR': str(tmp_path)})
+    assert not list(tmp_path.glob("*.db"))
 
 
 def test_graphstore_factory_rejects_invalid_backend():
@@ -116,7 +101,7 @@ def test_graphstore_factory_age_allows_protocol_v2_test_graph_only_in_test_mode(
         env={},
         test_mode=True,
     )
-    assert isinstance(store, fake_adapter)
+    assert isinstance(store.graph_primary, fake_adapter)
     assert store.graph_name == "protocol_v2_test_factory"
 
 
@@ -132,7 +117,7 @@ def test_graphstore_factory_age_alias_env_works_when_canonical_absent(monkeypatc
         },
     )
 
-    assert isinstance(store, fake_adapter)
+    assert isinstance(store.graph_primary, fake_adapter)
     assert store.dsn == "postgresql://example/alias"
     assert store.graph_name == "product_graph"
 
@@ -148,7 +133,7 @@ def test_graphstore_factory_alias_precedence_uses_graphconfig(monkeypatch):
             "AGE_GRAPH_NAME": "other_product_graph",
         },
     )
-    assert isinstance(store, fake_adapter)
+    assert isinstance(store.graph_primary, fake_adapter)
     assert store.dsn == "postgresql://example/canonical"
     assert store.graph_name == "product_graph"
     assert dict(store.graph_config.source_keys)["dsn"] == "GRAPH_DSN"
@@ -170,7 +155,7 @@ def test_graphstore_factory_explicit_args_override_env_conflict(monkeypatch):
         },
     )
 
-    assert isinstance(store, fake_adapter)
+    assert isinstance(store.graph_primary, fake_adapter)
     assert store.dsn == "postgresql://example/explicit"
     assert store.graph_name == "explicit_graph"
 
@@ -222,12 +207,9 @@ def test_graphstore_factory_age_import_error_is_clear(monkeypatch):
         )
 
 
-def test_graphstore_factory_close_remains_store_owned():
-    store = create_graph_store(profile="test", backend="sqlite", domain="test", db_path=":memory:")
-    assert isinstance(store, SQLiteGraphStore)
-    store.close()
-    with pytest.raises(RuntimeError, match="closed"):
-        _ = store.connection
+def test_graphstore_factory_close_remains_store_owned_rejected():
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(profile='test', backend='sqlite', domain='test', db_path=':memory:')
 
 
 def _install_fake_age_adapter(monkeypatch):

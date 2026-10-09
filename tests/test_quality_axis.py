@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from fastapi import FastAPI
@@ -7,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from copilot_sdk.backend.self_computation_router import mount_self_computation_router
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
@@ -60,6 +61,8 @@ def test_checkpoint_carries_quality_fields() -> None:
     assert checkpoint["quality_correct_count"] == 6
     assert checkpoint["rolling_accuracy"] == 0.75
     assert checkpoint["quality_window_end"] == "2026-08-07T00:00:00+00:00"
+    assert isinstance(checkpoint["quality_window_end"], str)
+    datetime.fromisoformat(checkpoint["quality_window_end"])
     assert checkpoint["quality_policy_version"] == "quality.v1"
 
 
@@ -139,21 +142,30 @@ def test_quality_in_history_response() -> None:
 def test_quality_cross_adapter_parity(tmp_path: Any) -> None:
     stores = [
         InMemoryGraphStore(),
-        SQLiteGraphStore(str(tmp_path / "quality.db")),
+        make_memory_store(str(tmp_path / "quality.db")),
     ]
     values = []
-    for store in stores:
+    for index, store in enumerate(stores):
         _write_v2(store, "quality-parity", **_quality_payload(verified=20, correct=15))
         checkpoint = store.get_centroid_checkpoints("quality-test", include_v2=True)[0]
+        window_end = checkpoint["quality_window_end"]
+        if index == 0:
+            assert window_end == "2026-08-07T00:00:00+00:00"
+            window_end = datetime.fromisoformat(window_end).timestamp()
+        else:
+            # Retired storage retains ISO serialization; compare the same instant.
+            assert isinstance(window_end, str)
+            window_end = datetime.fromisoformat(window_end).timestamp()
         values.append(
             (
                 checkpoint["quality_window_size"],
                 checkpoint["quality_verified_count"],
                 checkpoint["quality_correct_count"],
                 checkpoint["rolling_accuracy"],
-                checkpoint["quality_window_end"],
+                window_end,
                 checkpoint["quality_policy_version"],
             )
         )
 
     assert values[0] == values[1]
+

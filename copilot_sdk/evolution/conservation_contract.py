@@ -221,15 +221,11 @@ class CachedAsyncProvider:
         clock: Any = time.time,
     ) -> None:
         self._snapshot_fn = snapshot_fn
+        # Retain compatibility parameters without retaining graph-derived data.
         self._ttl = float(freshness_ttl)
         self._clock = clock
-        self._cached: ConservationState | None = None
-        self._cached_at = 0.0
 
     def get_state(self) -> ConservationState:
-        now = float(self._clock())
-        if self._cached is not None and now - self._cached_at <= self._ttl:
-            return self._cached
         try:
             raw = self._snapshot_fn()
             if inspect.isawaitable(raw):
@@ -237,13 +233,11 @@ class CachedAsyncProvider:
                 raise RuntimeError("async snapshot requires a synchronous adapter")
             if not isinstance(raw, dict):
                 raise TypeError("conservation snapshot must be a mapping")
-            self._cached = normalize_conservation_state(
+            return normalize_conservation_state(
                 raw,
                 domain=str(raw.get("domain") or "unknown"),
                 source=str(raw.get("source") or "learning_health_monitor"),
             )
-            self._cached_at = now
-            return self._cached
         except Exception as exc:
             logger.warning(
                 "[EVOLUTION] domain conservation stale, returning UNKNOWN: %s", exc
@@ -255,9 +249,7 @@ class CachedAsyncProvider:
             )
 
     def invalidate(self) -> None:
-        """Discard the synchronous cache after an async source refreshes."""
-        self._cached = None
-        self._cached_at = 0.0
+        """Compatibility no-op; every call reads a fresh snapshot."""
 
     def __call__(self) -> ConservationState:
         return self.get_state()

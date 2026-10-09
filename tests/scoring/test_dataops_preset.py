@@ -1,3 +1,4 @@
+from typing import cast
 import json
 import sys
 from collections import Counter
@@ -27,7 +28,7 @@ BOOTSTRAP_PATH = PRESET_DIR / "dataops_bootstrap.json"
 
 def load_seed_events() -> list[dict]:
     raw = json.loads(SEED_PATH.read_text(encoding="utf-8"))
-    return raw["events"] if isinstance(raw, dict) else raw
+    return cast(list[dict], raw["events"] if isinstance(raw, dict) else raw)
 
 
 def build_verified_decisions(events: list[dict], preset: DataOpsPreset) -> list[dict]:
@@ -73,10 +74,9 @@ def test_preset_in_registry():
     assert "purchasing" in PRESET_REGISTRY
 
 
-def test_from_preset_dataops_works(tmp_path):
-    db_path = tmp_path / "dataops.db"
+def test_from_preset_dataops_works():
 
-    scorer = CompoundingScorer.from_preset("dataops", db_path=str(db_path), profile="test")
+    scorer = CompoundingScorer.from_preset("dataops",  profile="test")
 
     assert scorer is not None
     scorer.graph_store.close()
@@ -243,9 +243,8 @@ def test_fingerprint_shows_recurrence_signal_if_stable():
     assert factors["recurrence_frequency"].sigma <= factors["source_reliability"].sigma
 
 
-def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
-    db_path = tmp_path / "dataops_smoke.db"
-    scorer = CompoundingScorer.from_preset("dataops", db_path=str(db_path), profile="test")
+def test_end_to_end_score_learn_fingerprint_smoke():
+    scorer = CompoundingScorer.from_preset("dataops",  profile="test")
     event = next(
         event for event in load_seed_events() if event["category"] == "pipeline_failure"
     )

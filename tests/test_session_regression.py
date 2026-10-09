@@ -59,11 +59,11 @@ def test_theta_min_single_implementation() -> None:
     assert result.returncode == 0, result.stderr
 
 
-def test_conservation_has_required_fields(tmp_path: Path) -> None:
-    from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+def test_conservation_has_required_fields() -> None:
+    from copilot_sdk.graph.factory import create_graph_store
     from copilot_sdk.scoring.scorer import CompoundingScorer
 
-    store = SQLiteGraphStore(str(tmp_path / "test.db"), domain="trading")
+    store = create_graph_store(backend="memory", domain="trading", profile="test", env={})
     scorer = CompoundingScorer.from_preset(
         domain="trading", graph_store=store, profile="test", enable_rl=False
     )

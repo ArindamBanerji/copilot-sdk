@@ -15,7 +15,7 @@ def test_twin_replays_real_cohort_without_mutation(tmp_path: Path) -> None:
     store = InMemoryGraphStore(domain="purchasing")
     scorer = CompoundingScorer.from_preset("purchasing", graph_store=store, profile="test", enable_rl=False)
     proxy = GateEnforcedScorer(FreshScorerProxy("purchasing", ":memory:", lambda _: store, profile="test"), CompositeGate())
-    service = service_type(lambda: store, lambda: proxy, tmp_path)
+    service = service_type(lambda: store, lambda: proxy)
     try:
         assert service.frozen_status()["learning_curve"] == []
         frozen = service.freeze()

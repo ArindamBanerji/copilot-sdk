@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from pathlib import Path
 from typing import Any
 
@@ -8,20 +9,32 @@ import pytest
 from ci_platform.graph.age_client import AGEClient
 
 from copilot_sdk.migrate.reconcile_archive import ArchiveReconciler
+from copilot_sdk.migrate.legacy_archive_reader import LegacySQLiteArchiveReader
 
 
 def _reconciler(tmp_path: Path, source_ids: list[str], age_states: dict[str, bool | None], environment: Any) -> ArchiveReconciler:
-    from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
-    source = SQLiteGraphStore(tmp_path / "trading.db", domain="trading")
-    for decision_id in source_ids:
-        source.write_decision("trading", "risk", "buy", 0.8, {"x": 0.5}, metadata={"decision_id": decision_id, "created_at": 1.0})
-    source.archive_decisions("trading", before=1e20)
+    source_path = tmp_path / "trading.db"
+    with sqlite3.connect(source_path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE decisions_archive (
+                archive_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                decision_id TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                created_at REAL NOT NULL
+            )
+            """
+        )
+        connection.executemany(
+            "INSERT INTO decisions_archive(decision_id, domain, created_at) VALUES (?, ?, ?)",
+            [(decision_id, "trading", float(index)) for index, decision_id in enumerate(source_ids)],
+        )
     age = environment.store("trading")
     for decision_id, archived in age_states.items():
         age.write_decision("trading", "risk", "buy", 0.8, {"x": 0.5}, metadata={"decision_id": decision_id})
         if archived is not None:
             age._store._run_query(f"MATCH (d:Decision {{decision_id: {AGEClient.serialize_for_age(decision_id)}}}) SET d.archived = {str(archived).lower()} RETURN d")
-    return ArchiveReconciler(source, age, "trading")
+    return ArchiveReconciler(LegacySQLiteArchiveReader(source_path), age, "trading")
 
 
 def _states(age: Any) -> dict[str, Any]:
@@ -127,11 +140,10 @@ def test_reconcile_is_idempotent(tmp_path: Path, disposable_age: Any) -> None:
 
 
 @pytest.mark.age
-def test_verify_returns_passing_active_and_history_reports_after_reconciliation(tmp_path: Path, disposable_age: Any) -> None:
+def test_verify_returns_passing_history_report_after_reconciliation(tmp_path: Path, disposable_age: Any) -> None:
     reconciler = _reconciler(tmp_path, [], {}, disposable_age)
     reports = reconciler.verify()
 
-    assert reports["active"].mode == "active"
     assert reports["history"].mode == "history"
 
 
@@ -141,3 +153,4 @@ def test_reconcile_uses_canonical_age_escaping(tmp_path: Path, decision_id: str,
     reconciler = _reconciler(tmp_path, [decision_id], {decision_id: None}, disposable_age)
     assert reconciler.reconcile()["reconciled"] == 1
     assert _states(reconciler.age_store)[decision_id] is True
+

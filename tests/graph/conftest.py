@@ -7,8 +7,8 @@ import uuid
 
 import pytest
 
-from copilot_sdk.config import GraphConfig
 from copilot_sdk.testing import age_available
+from copilot_sdk.testing.fixtures import age_test_dsn
 
 
 _MISSING = object()
@@ -21,9 +21,7 @@ def age_test_graph():
     if not age_available():
         pytest.skip("AGE not available")
 
-    dsn = os.getenv("AGE_TEST_DSN", "").strip()
-    if not dsn:
-        dsn = (GraphConfig.load("trading").dsn or "").strip()
+    dsn = age_test_dsn()
     if not dsn or dsn == _DEFAULT_AGE_DSN:
         pytest.skip("AGE not available")
 

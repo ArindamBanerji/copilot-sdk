@@ -302,6 +302,21 @@ async function safeApiGet<T>(path: string): Promise<T | null> {
   }
 }
 
+export interface SourceTrustRow {
+  source: string;
+  trust: number;
+  status: "GREEN" | "AMBER" | "RED";
+  verified: number;
+  totalVerified: number;
+  trend: "improving" | "stable" | "declining";
+  dkContribution: Record<string, number>;
+  provenance: string;
+}
+
+export function fetchSourceTrust(): Promise<SourceTrustRow[]> {
+  return apiGet<SourceTrustRow[]>("/api/dataops/intelligence/source-trust");
+}
+
 async function safeRawApiGet<T>(path: string): Promise<T | null> {
   try {
     const response = await fetch(`${BASE}${path}`);

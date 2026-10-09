@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from unittest.mock import Mock
+from typing import cast
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
@@ -28,7 +29,7 @@ def _score(client: TestClient, category: str = "protein") -> dict:
         json={"category": category, "factors": PURCHASING_FACTORS},
     )
     assert response.status_code == 200
-    return response.json()
+    return cast(dict, response.json())
 
 
 def _verify(
@@ -56,7 +57,7 @@ def _stored_context(client: TestClient, decision_id: str) -> dict:
     store = client.app.state.purchasing_selected_graph_store
     verified = store.get_verified_decisions("purchasing")
     match = next(row for row in verified if row["decision_id"] == decision_id)
-    return match["context"]
+    return cast(dict, match["outcome_metadata"]["context"])
 
 
 def test_verify_confirm(client):

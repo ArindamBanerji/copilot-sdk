@@ -16,13 +16,13 @@ def _graph_environment(directory: Path) -> Iterator[None]:
     config.write_text(
         '[defaults]\ndsn = ""\ngraph = "test_graph"\n'
         '[copilot.purchasing]\ndomain = "purchasing"\n'
-        'backend = "sqlite"\nexpected_backend = "sqlite"\nprefix = "PUR-"\n',
+        'backend = "memory"\nexpected_backend = "memory"\nprefix = "PUR-"\n',
         encoding="utf-8",
     )
     with pytest.MonkeyPatch.context() as env:
         env.setenv("GRAPH_CONFIG_PATH", str(config))
-        env.setenv("GRAPH_BACKEND", "sqlite")
-        env.setenv("PURCHASING_ACTIVE_GRAPH_BACKEND", "sqlite")
+        env.setenv("GRAPH_BACKEND", "memory")
+        env.setenv("PURCHASING_ACTIVE_GRAPH_BACKEND", "memory")
         env.setenv("PURCHASING_PROFILE", "test")
         env.setenv("PURCHASING_SAMPLE_DATA", "1")
         env.setenv("CROSS_SIGNAL_DB_PATH", str(directory / "signals.db"))

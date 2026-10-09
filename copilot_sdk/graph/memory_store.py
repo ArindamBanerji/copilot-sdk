@@ -8,8 +8,11 @@ import time
 import uuid
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
+from dataclasses import fields, is_dataclass, replace
 from datetime import datetime, timezone
-from typing import Any, cast
+from typing import Any, TypeVar, cast
+
+from copilot_sdk.timestamps import normalize_timestamp
 
 import numpy as np
 
@@ -35,6 +38,121 @@ def _timestamp_value(value: Any) -> float:
             return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
         except ValueError:
             return time.time()
+
+
+def _read_timestamp(value: Any) -> float | None:
+    """Normalize persisted timestamps without inventing a time for missing data."""
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.timestamp()
+
+
+def _read_timestamp_string(value: Any) -> str | None:
+    """Preserve string-shaped AGE timestamps in public record projections."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.isoformat().replace("+00:00", "Z")
+    return str(value)
+
+
+_ReadValue = TypeVar("_ReadValue")
+_READ_SCALAR_TYPES = {str, int, float, bool, bytes, complex, type(None)}
+
+
+def _copy_read_value(value: _ReadValue) -> _ReadValue:
+    """Copy stored containers, arrays and enrichment models, sharing scalar values."""
+    # manual copy: caller isolation without deepcopy overhead
+    if isinstance(value, dict):
+        return cast(_ReadValue, {
+            key: item if type(item) in _READ_SCALAR_TYPES else _copy_read_value(item)
+            for key, item in value.items()
+        })
+    if isinstance(value, list):
+        return cast(_ReadValue, [
+            item if type(item) in _READ_SCALAR_TYPES else _copy_read_value(item)
+            for item in value
+        ])
+    if isinstance(value, tuple):
+        return cast(_ReadValue, tuple(_copy_read_value(item) for item in value))
+    if isinstance(value, (set, frozenset)):
+        return cast(_ReadValue, type(value)(_copy_read_value(item) for item in value))
+    if isinstance(value, bytearray):
+        return cast(_ReadValue, bytearray(value))
+    if isinstance(value, np.ndarray):
+        result = value.copy()
+        if value.dtype.hasobject:
+            for index in np.ndindex(value.shape):
+                result[index] = _copy_read_value(value[index])
+        return cast(_ReadValue, result)
+    if is_dataclass(value) and not isinstance(value, type):
+        return cast(_ReadValue, replace(value, **{
+            field.name: _copy_read_value(getattr(value, field.name)) for field in fields(value)
+        }))
+    return value
+
+
+def _read_decision(record: dict[str, Any]) -> dict[str, Any]:
+    """Project a Decision without exposing storage bookkeeping."""
+    # manual copy: caller isolation without deepcopy overhead
+    result = dict(record)
+    if "factors" in result:
+        result["factors"] = _copy_read_value(result["factors"])
+    result["metadata"] = _copy_read_value(result.get("metadata") or {})
+    if "factor_vector" in result:
+        result["factor_vector"] = list(result["factor_vector"])
+    if "probabilities" in result:
+        result["probabilities"] = list(result["probabilities"])
+    result.pop("_sequence", None)
+    metadata = result.get("metadata") or {}
+    for field in ("factor_names", "source", "scorer_version", "preset_version", "factor_schema_version"):
+        # manual copy: caller isolation without deepcopy overhead
+        value = record.get(field)
+        if value is None:
+            value = metadata.get(field)
+        result[field] = list(value) if isinstance(value, list) else value
+    for field in ("correct", "outcome", "verified_at_epoch", "quality_signal", "override_comment",
+                  "verified_by", "analyst_action", "final_action", "was_override"):
+        result.setdefault(field, None)
+    for field in ("created_at", "verified_at_epoch"):
+        if field in result:
+            result[field] = _read_timestamp(result[field])
+    return result
+
+
+_CHECKPOINT_OPTIONAL_FIELDS = (
+    "checkpoint_id", "decision_id", "action", "verified_count", "shape", "factor_names_hash",
+    "quality_window_size", "quality_verified_count", "quality_correct_count", "rolling_accuracy",
+    "quality_window_end", "quality_policy_version", "decision_time_start", "decision_time_end",
+    "checkpoint_time",
+)
+
+
+def _read_checkpoint(record: dict[str, Any]) -> dict[str, Any]:
+    result = _copy_read_value(record)  # manual copy: caller isolation without deepcopy overhead
+    for field in _CHECKPOINT_OPTIONAL_FIELDS:
+        result.setdefault(field, None)
+    result["decision_id"] = result.get("decision_id") or result.get("metadata", {}).get("decision_id") or None
+    result["created_at"] = _read_timestamp(result.get("created_at"))
+    for field in ("checkpoint_time", "decision_time_start", "decision_time_end", "quality_window_end"):
+        result[field] = _read_timestamp_string(result.get(field))
+    return result
+
+
+def _read_limit(value: Any) -> int | None:
+    return None if value is None else max(int(value), 0)
+
+
+def _checkpoint_order_key(record: dict[str, Any]) -> tuple[float, str, float, str]:
+    return (-(_read_timestamp(record["created_at"]) or 0.0), str(record.get("checkpoint_id") or ""),
+            -(_read_timestamp(record.get("checkpoint_time")) or 0.0),
+            json.dumps(record, sort_keys=True, default=_json_default))
 
 
 def _json_default(value: Any) -> Any:
@@ -360,6 +478,31 @@ class InMemoryGraphStore:
         self._quarantine_counter = 0
         self._sequence = 0
 
+    def save_k_utility(self, domain: str, episode_id: str, k: int, utility: float,
+                       metadata: dict[str, Any] | None = None) -> str:
+        from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
+
+        return str(GraphScoringPersistence(self).save_k_utility(domain, episode_id, k, utility, metadata))
+
+    def get_k_utilities(self, domain: str, episode_id: str | None = None,
+                        limit: int = 100) -> list[dict[str, Any]]:
+        from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
+
+        effective_limit = len(self.list_governance(domain)) if limit is None else limit
+        return cast(list[dict[str, Any]], GraphScoringPersistence(self).get_k_utilities(domain, episode_id, effective_limit))
+
+    def save_holdout_decision(self, domain: str, decision_id: str, holdout_group: str,
+                              metadata: dict[str, Any] | None = None) -> str:
+        from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
+
+        return str(GraphScoringPersistence(self).save_holdout_decision(domain, decision_id, holdout_group, metadata))
+
+    def get_holdout_decisions(self, domain: str,
+                              holdout_group: str | None = None) -> list[dict[str, Any]]:
+        from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
+
+        return cast(list[dict[str, Any]], GraphScoringPersistence(self).get_holdout_decisions(domain, holdout_group))
+
     def enqueue_to_outbox(
         self,
         domain: str,
@@ -443,17 +586,23 @@ class InMemoryGraphStore:
         factors: dict[str, Any],
         metadata: dict[str, Any] | None = None,
     ) -> str:
-        self._sequence += 1
         decision_id = str((metadata or {}).get("decision_id") or uuid.uuid4().hex[:12])
         if self._decision_id_prefix and not decision_id.startswith(self._decision_id_prefix):
             decision_id = f"{self._decision_id_prefix}{decision_id}"
+        return self._store_decision(decision_id, domain, category, action, confidence, factors, metadata)
+
+    def _store_decision(
+        self, decision_id: str, domain: str, category: str, action: str,
+        confidence: float, factors: dict[str, Any], metadata: dict[str, Any] | None,
+    ) -> str:
+        self._sequence += 1
         decision_metadata = deepcopy(metadata or {})
         if self._decision_id_prefix or "decision_id" in decision_metadata:
             decision_metadata["decision_id"] = decision_id
         entity_id = str(decision_metadata.get("entity_id") or decision_id)
         if "entity_id" not in decision_metadata:
             decision_metadata["entity_id"] = entity_id
-        created_at = float((metadata or {}).get("created_at", time.time()))
+        created_at = normalize_timestamp((metadata or {}).get("created_at", time.time()))
         category_index = int((metadata or {}).get("category_index", 0))
         recommended_index = int((metadata or {}).get("recommended_index", 0))
         factor_vector = deepcopy((metadata or {}).get("factor_vector"))
@@ -540,13 +689,11 @@ class InMemoryGraphStore:
             if current == proposed:
                 return None
             raise ValueError(f"conflicting governed decision_id: {decision_id}")
-        self.write_decision(
-            str(domain),
-            category,
-            recommended_action,
-            float(confidence),
-            factors,
-            metadata=meta,
+        # Governed IDs are caller-owned identities, including historical imports.
+        # Prefix generation belongs to write_decision, not replay of an explicit ID.
+        self._store_decision(
+            str(decision_id), str(domain), category, recommended_action,
+            float(confidence), factors, metadata=meta,
         )
         return None
 
@@ -598,7 +745,7 @@ class InMemoryGraphStore:
             "is_correct": bool(is_correct),
             "metadata": deepcopy(meta),
             "context": deepcopy(meta.get("context", {})),
-            "verified_at": float(meta.get("verified_at", time.time())),
+            "verified_at": normalize_timestamp(meta.get("verified_at", time.time())),
         }
         decision = self._decisions[decision_id]
         decision["correct"] = bool(is_correct)
@@ -636,7 +783,7 @@ class InMemoryGraphStore:
         observation_id = str(observation_id)
         if observation_id in self._observations:
             return None
-        created_at = float((metadata or {}).get("created_at", time.time()))
+        created_at = normalize_timestamp((metadata or {}).get("created_at", time.time()))
         self._observations[observation_id] = {
             "observation_id": observation_id,
             "domain": str(domain),
@@ -895,7 +1042,7 @@ class InMemoryGraphStore:
                 "rule_name": rule_name,
                 "variant_id": variant_id,
                 "metadata": deepcopy(metadata or {}),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": str((metadata or {}).get("timestamp") or datetime.now(timezone.utc).isoformat()),
                 "event_id": event_id,
                 "source_copilot": source_copilot,
                 "source_rule": source_rule,
@@ -1034,7 +1181,7 @@ class InMemoryGraphStore:
             if (source_domain is None or pattern["source_domain"] == str(source_domain))
             and (target_domain is None or pattern["target_domain"] == str(target_domain))
         ]
-        result = deepcopy(sorted(patterns, key=lambda item: (item["created_at"], item["pattern_id"])))
+        result = _copy_read_value(sorted(patterns, key=lambda item: (item["created_at"], item["pattern_id"])))  # manual copy: caller isolation without deepcopy overhead
         for pattern in result:
             metadata = pattern.get("metadata")
             raw_similarity = (
@@ -1063,6 +1210,8 @@ class InMemoryGraphStore:
             ):
                 latest[domain] = {
                     "status_id": snapshot["snapshot_id"],
+                    "snapshot_id": snapshot["snapshot_id"],
+                    "counts_scope": "verified_only",
                     "domain": domain,
                     "V": int(snapshot["V"]),
                     "q": float(snapshot["q"]),
@@ -1074,7 +1223,7 @@ class InMemoryGraphStore:
                     "policy_version": snapshot["policy_version"],
                     "computed_at": float(snapshot["computed_at"]),
                 }
-        return [deepcopy(latest[domain]) for domain in sorted(latest)]
+        return [dict(latest[domain]) for domain in sorted(latest)]  # manual copy: caller isolation without deepcopy overhead
 
     def get_iks_trajectory(
         self,
@@ -1087,13 +1236,13 @@ class InMemoryGraphStore:
         for checkpoint in self._centroid_checkpoints:
             if checkpoint.get("iks") is None:
                 continue
-            record = deepcopy(checkpoint)
+            record = _copy_read_value(checkpoint)  # manual copy: caller isolation without deepcopy overhead
             records.append(record)
         for checkpoint in self._protocol_centroid_checkpoints.values():
             if checkpoint.get("iks") is None:
                 continue
-            record = deepcopy(checkpoint)
-            record["decision_id"] = record.get("metadata", {}).get("decision_id")
+            record = _copy_read_value(checkpoint)  # manual copy: caller isolation without deepcopy overhead
+            record["decision_id"] = record.get("decision_id") or record.get("metadata", {}).get("decision_id")
             records.append(record)
         if allowed is not None:
             records = [record for record in records if str(record.get("domain")) in allowed]
@@ -1122,7 +1271,7 @@ class InMemoryGraphStore:
             ):
                 selected[key] = record
         return sorted(
-            selected.values(),
+            [_read_checkpoint(record) for record in selected.values()],
             key=lambda item: (
                 str(item["domain"]),
                 _timestamp_value(item["created_at"]),
@@ -1196,7 +1345,7 @@ class InMemoryGraphStore:
             return None
         if decision is None:
             return None
-        result = deepcopy(decision)
+        result = _read_decision(decision)
         if include_outcome:
             outcome = self._outcomes.get(decision_id)
             if outcome is not None:
@@ -1205,8 +1354,7 @@ class InMemoryGraphStore:
                     "actual_index": outcome["actual_index"],
                     "is_correct": outcome["is_correct"],
                     "verified_at": outcome["verified_at"],
-                    "context": deepcopy(outcome["context"]),
-                    "outcome_metadata": deepcopy(outcome["metadata"]),
+                    "outcome_metadata": _copy_read_value(outcome.get("metadata") or {}),  # manual copy: caller isolation without deepcopy overhead
                 })
         return result
 
@@ -1222,10 +1370,36 @@ class InMemoryGraphStore:
             if decision.get("domain") == domain
             and (category is None or decision["category"] == category)
         ]
-        return deepcopy(decisions[: max(int(limit), 0)])
+        return [_read_decision(row) for row in decisions[:_read_limit(limit)]]
 
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
         return self.get_decisions(domain, category=None, limit=len(self._decisions))
+
+    def _decision_page(
+        self, domain: str, *, category: str | None = None,
+        limit: int = 256, offset: int = 0, archived: bool = False, metadata_only: bool = True,
+    ) -> list[dict[str, Any]]:
+        """Read a bounded page, optionally projecting only IDs and metadata."""
+        from itertools import islice
+
+        records = (
+            sorted((row["decision"] for row in self._archive),
+                   key=lambda row: (row["created_at"], row["decision_id"]))
+            # Private migration paging retains its existing chronological cursor
+            # semantics until the shared paging protocol replaces this hook.
+            if archived else sorted(self._decisions.values(),
+                                    key=lambda row: (row["created_at"], row["_sequence"], row["decision_id"]))
+        )
+        matching = (row for row in records if row.get("domain") == domain
+                    and (category is None or row.get("category") == category))
+        start = max(int(offset), 0)
+        page = list(islice(matching, start, start + max(int(limit), 0)))
+        if not metadata_only:
+            return [_read_decision(row) for row in page]
+        return [
+            {"decision_id": row["decision_id"], "metadata": _copy_read_value(row.get("metadata"))}  # manual copy: caller isolation without deepcopy overhead
+            for row in page
+        ]
 
     def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
         verified = []
@@ -1237,17 +1411,16 @@ class InMemoryGraphStore:
             outcome = self._outcomes.get(decision["decision_id"])
             if outcome is None:
                 continue
-            merged = dict(decision)
+            merged = _read_decision(decision)
             merged.update({
                 "actual_action": outcome["actual_action"],
                 "actual_index": outcome["actual_index"],
                 "is_correct": outcome["is_correct"],
                 "verified_at": outcome["verified_at"],
-                "context": deepcopy(outcome["context"]),
-                "outcome_metadata": deepcopy(outcome["metadata"]),
+                "outcome_metadata": _copy_read_value(outcome.get("metadata") or {}),  # manual copy: caller isolation without deepcopy overhead
             })
             verified.append(merged)
-        return deepcopy(verified)
+        return verified
 
     def count_verified(self, domain: str) -> int:
         return self.count_verified_decisions(domain)
@@ -1274,7 +1447,7 @@ class InMemoryGraphStore:
     def count_decisions(self, domain: str) -> int:
         return sum(1 for decision in self._decisions.values() if decision.get("domain") == domain)
 
-    def count_categories_with_n(self, domain: str, n: int) -> int:
+    def count_categories_with_n(self, domain: str, n: int = 1) -> int:
         counts: dict[str, int] = {}
         for decision in self._decisions.values():
             if decision.get("domain") != domain:
@@ -1325,7 +1498,7 @@ class InMemoryGraphStore:
                 "vector_json": list(cast(list[float], row["vector_json"])),
                 "delta_norm": row["delta_norm"],
                 "caused_by_decision_id": row["caused_by_decision_id"],
-                "updated_at": row["updated_at"],
+                "updated_at": _read_timestamp(row["updated_at"]),
             }
             for row in ordered
         ]
@@ -1387,10 +1560,10 @@ class InMemoryGraphStore:
             "weight_json": [list(row) for row in tensor],
             "n_decisions_used": current["n_decisions_used"],
             "computed_at": current["computed_at"],
-            "supersedes_id": current["supersedes_id"],
-            "created_at": current["created_at"],
+            "supersedes_id": None if current["supersedes_id"] is None else str(current["supersedes_id"]),
+            "created_at": _read_timestamp(current["created_at"]),
             "domain": current["domain"],
-            "welford_state": deepcopy(current.get("welford_state")),
+            "welford_state": _copy_read_value(current.get("welford_state")),  # manual copy: caller isolation without deepcopy overhead
             "n_confirmed": current.get("n_confirmed"),
             "n_overridden": current.get("n_overridden"),
             "entity_group": current.get("entity_group"),
@@ -1443,11 +1616,11 @@ class InMemoryGraphStore:
         }
         return state_id
 
-    def get_conservation_state(self, domain: str) -> dict[str, object] | None:
+    def get_conservation_state(self, domain: str) -> dict | None:
         row = self._l5_conservation_state.get(str(domain))
         if row is None:
             return None
-        return dict(row)
+        return dict(row)  # manual copy: caller isolation without deepcopy overhead
 
     def save_centroids(
         self,
@@ -1463,10 +1636,11 @@ class InMemoryGraphStore:
                 "decision_id": kwargs.get("decision_id"),
                 "category": category,
                 "centroids": deepcopy(centroids),
-                "decisions_count": self.count_decisions(str(domain)),
+                "decisions_count": (int(kwargs["decisions_count"]) if "decisions_count" in kwargs
+                                    else self.count_decisions(str(domain))),
                 "iks": float((metadata or {}).get("iks", 0.0)),
                 "metadata": deepcopy(metadata or {}),
-                "created_at": time.time(),
+                "created_at": normalize_timestamp(kwargs.get("created_at", time.time())),
                 "decision_time_start": kwargs.get("decision_time_start"),
                 "decision_time_end": kwargs.get("decision_time_end"),
                 "checkpoint_time": kwargs.get("checkpoint_time") or _utc_iso_now(),
@@ -1486,18 +1660,19 @@ class InMemoryGraphStore:
         )
         if not checkpoints:
             return None
-        latest = max(
-            checkpoints,
-            key=lambda checkpoint: _timestamp_value(checkpoint.get("created_at", 0.0)),
-        )
-        return deepcopy(latest["centroids"])
+        latest = min(checkpoints, key=_checkpoint_order_key)
+        try:
+            value = np.array(latest["centroids"], dtype=np.float64, copy=True)
+        except (TypeError, ValueError):
+            return None
+        return value if value.ndim > 0 else None
 
     def save_rl_state(self, key: str, data: dict) -> None:
         self._rl_state[(self.domain, str(key))] = deepcopy(dict(data))
 
     def load_rl_state(self, key: str) -> dict | None:
         data = self._rl_state.get((self.domain, str(key)))
-        return deepcopy(data) if data is not None else None
+        return _copy_read_value(data) if data is not None else None  # manual copy: caller isolation without deepcopy overhead
 
     def _save_platform_state(self, kind: str, domain: str, key: str, state: dict[str, Any]) -> None:
         if not str(domain).strip() or not str(key).strip():
@@ -1506,12 +1681,12 @@ class InMemoryGraphStore:
 
     def _get_platform_state(self, kind: str, domain: str, key: str) -> dict[str, Any] | None:
         value = self._platform_state.get((str(kind), str(domain), str(key)))
-        return deepcopy(value) if value is not None else None
+        return _copy_read_value(value) if value is not None else None  # manual copy: caller isolation without deepcopy overhead
 
     def _list_platform_state(self, kind: str, domain: str) -> list[dict[str, Any]]:
         return [
-            {"key": key, **deepcopy(value)}
-            for (stored_kind, stored_domain, key), value in self._platform_state.items()
+            {"key": key, **_copy_read_value(value)}  # manual copy: caller isolation without deepcopy overhead
+            for (stored_kind, stored_domain, key), value in sorted(self._platform_state.items())
             if stored_kind == kind and stored_domain == str(domain)
         ]
 
@@ -1590,19 +1765,11 @@ class InMemoryGraphStore:
         include_v2: bool = False,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
-        limit_value = kwargs.get("limit", 50)
+        limit_value = _read_limit(kwargs.get("limit"))
         checkpoints = [
             checkpoint
             for checkpoint in self._centroid_checkpoints
             if checkpoint.get("domain") == domain
-            and _matches_checkpoint_filters(
-                checkpoint,
-                checkpoint_time_start=kwargs.get("checkpoint_time_start"),
-                checkpoint_time_end=kwargs.get("checkpoint_time_end"),
-                decision_time_start=kwargs.get("decision_time_start"),
-                decision_time_end=kwargs.get("decision_time_end"),
-                category=kwargs.get("category"),
-            )
         ]
         if include_v2:
             checkpoints.extend(
@@ -1612,20 +1779,29 @@ class InMemoryGraphStore:
             )
         normalized: list[dict[str, Any]] = []
         for checkpoint in checkpoints:
-            item = deepcopy(checkpoint)
-            item["created_at"] = _timestamp_value(item.get("created_at", 0.0))
-            normalized.append(item)
+            item = _read_checkpoint(checkpoint)
+            if _matches_checkpoint_filters(
+                item,
+                checkpoint_time_start=kwargs.get("checkpoint_time_start"),
+                checkpoint_time_end=kwargs.get("checkpoint_time_end"),
+                decision_time_start=kwargs.get("decision_time_start"),
+                decision_time_end=kwargs.get("decision_time_end"),
+                category=kwargs.get("category"),
+            ):
+                normalized.append(item)
         checkpoints = sorted(
             normalized,
-            key=lambda checkpoint: checkpoint["created_at"],
-            reverse=limit_value is None,
+            key=_checkpoint_order_key,
         )
         if limit_value is None:
             return checkpoints
-        limit_value = max(int(limit_value), 0)
-        if limit_value == 0:
-            return []
-        return checkpoints[-limit_value:]
+        # Preserve chronological chart windows while selecting the newest N.
+        selected = checkpoints[:limit_value]
+        return sorted(selected, key=lambda row: (
+            _read_timestamp(row["created_at"]) or 0.0, str(row.get("checkpoint_id") or ""),
+            _read_timestamp(row.get("checkpoint_time")) or 0.0,
+            json.dumps(row, sort_keys=True, default=_json_default),
+        ))
 
     def load_latest_checkpoint_for_regime(
         self, domain: str, regime_tag: str
@@ -1641,18 +1817,7 @@ class InMemoryGraphStore:
         ]
         if not matching:
             return None
-        return max(
-            enumerate(matching),
-            key=lambda item: (
-                float(
-                    item[1].get(
-                        "created_at_epoch", item[1].get("created_at", 0.0)
-                    )
-                    or 0.0
-                ),
-                item[0],
-            ),
-        )[1]
+        return matching[0]
 
     def get_checkpoint_lineage(
         self, domain: str, checkpoint_id: str
@@ -1669,9 +1834,9 @@ class InMemoryGraphStore:
         self, domain: str, decision_id: str
     ) -> list[dict[str, Any]]:
         return [
-            deepcopy(checkpoint)
-            for checkpoint in self._protocol_centroid_checkpoints.values()
-            if checkpoint.get("domain") == str(domain)
+            checkpoint
+            for checkpoint in self.get_centroid_checkpoints(domain, include_v2=True)
+            if checkpoint.get("checkpoint_id") is not None
             and str(checkpoint.get("decision_id") or checkpoint.get("metadata", {}).get("decision_id") or "") == str(decision_id)
         ]
 
@@ -1695,15 +1860,20 @@ class InMemoryGraphStore:
         )
 
     def get_evolution_events(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]:
-        rule_name = kwargs.get("rule_name")
-        limit = max(int(kwargs.get("limit", 100)), 0)
-        events = [
-            event
-            for event in self._evolution_events
-            if event.get("domain") == domain
-            and (rule_name is None or event.get("rule_name") == rule_name)
-        ]
-        return deepcopy(events[-limit:] if limit else [])
+        events = []
+        for event in self._evolution_events:
+            if event.get("domain") != domain or any(
+                kwargs.get(field) is not None and event.get(field) != kwargs[field]
+                for field in ("event_type", "rule_name", "variant_id")
+            ):
+                continue
+            item = _copy_read_value(event)  # manual copy: caller isolation without deepcopy overhead
+            for field in ("event_id", "source_copilot", "source_rule", "metric", "shadow_batch_size", "min_shadow_batches"):
+                item.setdefault(field, None)
+            events.append(item)
+        events.sort(key=lambda item: (-(_read_timestamp(item["timestamp"]) or 0.0), str(item["event_id"] or ""),
+                                     json.dumps(item, sort_keys=True, default=_json_default)))
+        return events[:_read_limit(kwargs.get("limit"))]
 
     def write_entity_enrichment(
         self,
@@ -1816,7 +1986,7 @@ class InMemoryGraphStore:
             if namespace is not None and row_namespace != str(namespace):
                 continue
             key = metric_name if namespace is not None else f"{row_namespace}.{metric_name}"
-            result[key] = deepcopy(record.value)
+            result[key] = _copy_read_value(record.value)  # manual copy: caller isolation without deepcopy overhead
         return result
 
     def list_entity_enrichments(
@@ -1827,11 +1997,7 @@ class InMemoryGraphStore:
         namespace: str | None = None,
         limit: int = 500,
     ) -> list[EntityEnrichmentRecord]:
-        try:
-            limit_value = int(limit)
-        except (TypeError, ValueError):
-            limit_value = 500
-        limit_value = max(0, limit_value)
+        limit_value = _read_limit(limit)
         records = [
             record
             for (row_domain, row_type, _row_id, row_namespace, _metric), record in sorted(
@@ -1841,13 +2007,13 @@ class InMemoryGraphStore:
             and (entity_type is None or row_type == str(entity_type))
             and (namespace is None or row_namespace == str(namespace))
         ]
-        return deepcopy(records[:limit_value])
+        return _copy_read_value(records[:limit_value])  # manual copy: caller isolation without deepcopy overhead
 
     def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
         keep_recent = max(int(keep_recent), 0)
         decisions = [
             decision
-            for decision in self._ordered_decisions()
+            for decision in sorted(self._decisions.values(), key=lambda row: (row["created_at"], row["_sequence"], row["decision_id"]))
             if decision.get("domain") == domain
         ]
         if len(decisions) <= keep_recent:
@@ -1904,6 +2070,7 @@ class InMemoryGraphStore:
                     "verified_at": float(verified_at) if verified_at is not None else None,
                     "archived_at": float(archived["archived_at"]),
                     "archive_reason": archived["archive_reason"],
+                    "metadata": _copy_read_value(decision.get("metadata")),  # manual copy: caller isolation without deepcopy overhead
                 }
             )
         return sorted(records, key=lambda record: (record["created_at"], record["decision_id"]))
@@ -2030,6 +2197,9 @@ class InMemoryGraphStore:
             for key, value in self._rl_state.items()
             if key[0] != domain
         }
+        self._platform_state = {
+            key: value for key, value in self._platform_state.items() if key[1] != domain
+        }
         self._archive = [row for row in self._archive if row.get("domain") != domain]
         self._outbox = [row for row in self._outbox if row.get("domain") != domain]
         self._outbox_quarantine = [
@@ -2076,20 +2246,23 @@ class InMemoryGraphStore:
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
         domain_value = _normalize_domain(domain)
-        limit_value = _bounded_traversal_limit(limit) if limit is not None else None
+        limit_value = _read_limit(limit)
         links = [
             {
-                key: value
-                for key, value in edge.items()
-                if key != "domain"
+                "decision_id": edge["decision_id"],
+                "entity_id": edge["entity_id"],
+                "edge_type": edge["edge_type"],
+                "created_at": _read_timestamp(edge.get("created_at")),
             }
             for edge in self._edges
             if edge.get("domain") == domain_value
+            and edge.get("entity_id") is not None
             and (decision_id is None or edge["decision_id"] == decision_id)
         ]
+        links.sort(key=lambda edge: (-(edge["created_at"] or 0.0), edge["decision_id"], edge["entity_id"], edge["edge_type"]))
         if limit_value is not None:
             links = links[:limit_value]
-        return deepcopy(links)
+        return [dict(edge) for edge in links]  # manual copy: caller isolation without deepcopy overhead
 
     def query_context(
         self,
@@ -2097,6 +2270,11 @@ class InMemoryGraphStore:
         max_depth: int,
         *,
         domain: str,
+    ) -> list[dict[str, Any]]:
+        return self._query_context_with_view(self, entity_id, max_depth, domain=domain)
+
+    def _query_context_with_view(
+        self, view: Any, entity_id: str, max_depth: int, *, domain: str,
     ) -> list[dict[str, Any]]:
         domain_value = _normalize_domain(domain)
         depth = _bounded_traversal_depth(max_depth)
@@ -2111,9 +2289,9 @@ class InMemoryGraphStore:
         ]
         if depth == 0:
             return rows
-        root_links = self._entity_links(root_id, domain=domain_value, limit=100)
+        root_links = view._entity_links(root_id, domain=domain_value, limit=100)
         linked_decision_ids = [str(edge["decision_id"]) for edge in root_links]
-        if self.get_decision(root_id, domain=domain_value) is not None and root_id not in linked_decision_ids:
+        if view.get_decision(root_id, domain=domain_value) is not None and root_id not in linked_decision_ids:
             linked_decision_ids.insert(0, root_id)
         seen: set[str] = set()
         seen_entities: set[str] = {root_id}
@@ -2121,7 +2299,7 @@ class InMemoryGraphStore:
             if decision_id in seen:
                 continue
             seen.add(decision_id)
-            decision = self.get_decision(decision_id, domain=domain_value)
+            decision = view.get_decision(decision_id, domain=domain_value)
             if decision is None:
                 continue
             rows.append(
@@ -2129,12 +2307,12 @@ class InMemoryGraphStore:
                     "node": "decision",
                     "id": decision_id,
                     "depth": 1,
-                    "properties": deepcopy(decision),
+                    "properties": dict(decision),  # manual copy: caller isolation without deepcopy overhead
                 }
             )
             if depth < 2:
                 continue
-            for edge in self.get_decision_links(
+            for edge in view.get_decision_links(
                 decision_id, domain=domain_value, limit=100
             ):
                 if edge.get("decision_id") != decision_id:
@@ -2157,13 +2335,13 @@ class InMemoryGraphStore:
                 )
                 if depth < 3:
                     continue
-                for neighbor_edge in self._entity_links(
+                for neighbor_edge in view._entity_links(
                     neighbor_id, domain=domain_value, limit=100
                 ):
                     neighbor_decision_id = str(neighbor_edge.get("decision_id") or "")
                     if not neighbor_decision_id or neighbor_decision_id in seen:
                         continue
-                    neighbor_decision = self.get_decision(
+                    neighbor_decision = view.get_decision(
                         neighbor_decision_id, domain=domain_value
                     )
                     if neighbor_decision is None:
@@ -2174,10 +2352,10 @@ class InMemoryGraphStore:
                             "node": "decision",
                             "id": neighbor_decision_id,
                             "depth": 3,
-                            "properties": deepcopy(neighbor_decision),
+                            "properties": dict(neighbor_decision),  # manual copy: caller isolation without deepcopy overhead
                         }
                     )
-        return deepcopy(rows[:100])
+        return [dict(row) for row in rows[:100]]  # manual copy: caller isolation without deepcopy overhead
 
     def _entity_links(
         self, entity_id: str, *, domain: str, limit: int = 100
@@ -2185,11 +2363,23 @@ class InMemoryGraphStore:
         domain_value = _normalize_domain(domain)
         limit_value = _bounded_traversal_limit(limit)
         return [
-            deepcopy(edge)
+            dict(edge)  # manual copy: caller isolation without deepcopy overhead
             for edge in self._edges
             if edge.get("domain") == domain_value
             and str(edge.get("entity_id")) == str(entity_id)
         ][:limit_value]
+
+    def _entity_link_page(
+        self, entity_id: str, *, domain: str, limit: int, offset: int,
+    ) -> list[dict[str, Any]]:
+        """Read one ordered entity-edge page for a composed decision view."""
+        from itertools import islice
+
+        domain_value = _normalize_domain(domain)
+        edges = (edge for edge in self._edges if edge.get("domain") == domain_value
+                 and str(edge.get("entity_id")) == str(entity_id))
+        start = max(int(offset), 0)
+        return [dict(edge) for edge in islice(edges, start, start + max(int(limit), 0))]  # manual copy: caller isolation without deepcopy overhead
 
     def decision_movement(self, domain: str, decision_id: str) -> list[dict[str, Any]]:
         domain_value = _normalize_domain(domain)
@@ -2200,10 +2390,15 @@ class InMemoryGraphStore:
     def contextual_judgment(
         self, domain: str, entity_group: str, category: str
     ) -> list[dict[str, Any]]:
+        return self._contextual_judgment_with_view(self, domain, entity_group, category)
+
+    def _contextual_judgment_with_view(
+        self, view: Any, domain: str, entity_group: str, category: str,
+    ) -> list[dict[str, Any]]:
         domain_value = _normalize_domain(domain)
         group_value = str(entity_group)
         rows: list[dict[str, Any]] = []
-        for decision in self._ordered_decisions():
+        for decision in view.get_all_decisions(domain_value):
             if decision.get("domain") != domain_value or decision.get("category") != str(category):
                 continue
             metadata = decision.get("metadata")
@@ -2215,14 +2410,14 @@ class InMemoryGraphStore:
                 str(metadata.get("entity_id") or ""),
             }:
                 continue
-            rows.append({"decision": deepcopy(decision)})
+            rows.append({"decision": dict(decision)})  # manual copy: caller isolation without deepcopy overhead
         return rows[:100]
 
     def promotion_basis(self, domain: str, rule_id: str) -> list[dict[str, Any]]:
         domain_value = _normalize_domain(domain)
         rule_value = str(rule_id)
         return [
-            {"evolution_event": deepcopy(event)}
+            {"evolution_event": dict(event)}  # manual copy: caller isolation without deepcopy overhead
             for event in self.get_evolution_events(domain_value, limit=1000)
             if rule_value in {
                 str(event.get("rule_name") or ""),
@@ -2254,23 +2449,33 @@ class InMemoryGraphStore:
             ),
         )
         return [
-            {**deepcopy(row), "fingerprint": deepcopy(row.get("factor_stats", {}))}
+            {"domain": row["domain"], "fingerprint_id": row["fingerprint_id"],
+             "fingerprint": _copy_read_value(row.get("factor_stats", {})),  # manual copy: caller isolation without deepcopy overhead
+             "factor_names": list(row.get("factor_names", [])),  # manual copy: caller isolation without deepcopy overhead
+             "metadata": _copy_read_value(row.get("metadata", {}))}  # manual copy: caller isolation without deepcopy overhead
             for row in rows
             if domain_value is None or row.get("domain") == domain_value
-        ][:500]
+        ]
 
     def query_similar(
         self, entity_id: str, limit: int, *, domain: str
     ) -> list[dict[str, Any]]:
+        return self._query_similar_with_view(self, entity_id, limit, domain=domain)
+
+    def _query_similar_with_view(
+        self, view: Any, entity_id: str, limit: int, *, domain: str,
+    ) -> list[dict[str, Any]]:
         domain_value = _normalize_domain(domain)
-        limit_value = _bounded_traversal_limit(limit)
-        source = self.get_decision(str(entity_id), domain=domain_value)
+        limit_value = _read_limit(limit)
+        if limit_value == 0:
+            return []
+        source = view.get_decision(str(entity_id), domain=domain_value)
         if source is None:
-            for edge in self._entity_links(
+            for edge in view._entity_links(
                 str(entity_id), domain=domain_value, limit=100
             ):
                 if str(edge.get("entity_id")) == str(entity_id):
-                    source = self.get_decision(
+                    source = view.get_decision(
                         str(edge.get("decision_id")), domain=domain_value
                     )
                     break
@@ -2279,7 +2484,7 @@ class InMemoryGraphStore:
         category = str(source.get("category") or "")
         source_supplier = _decision_supplier(source)
         matches: list[dict[str, Any]] = []
-        for candidate in self._ordered_decisions():
+        for candidate in view.get_all_decisions(domain_value):
             if candidate.get("domain") != domain_value:
                 continue
             if category and candidate.get("category") != category:
@@ -2288,8 +2493,8 @@ class InMemoryGraphStore:
                 continue
             if source_supplier and _decision_supplier(candidate) != source_supplier:
                 continue
-            matches.append(deepcopy(candidate))
-            if len(matches) >= limit_value:
+            matches.append(dict(candidate))  # manual copy: caller isolation without deepcopy overhead
+            if limit_value is not None and len(matches) >= limit_value:
                 break
         return matches
 
@@ -2306,6 +2511,7 @@ class InMemoryGraphStore:
         self._protocol_evolution_events.clear()
         self._evolution_events.clear()
         self._rl_state.clear()
+        self._platform_state.clear()
         self._archive.clear()
         self._outbox.clear()
         self._outbox_quarantine.clear()
@@ -2321,7 +2527,9 @@ class InMemoryGraphStore:
     def _ordered_decisions(self) -> list[dict[str, Any]]:
         return sorted(
             self._decisions.values(),
-            key=lambda decision: (decision["created_at"], decision["_sequence"], decision["decision_id"]),
+            key=lambda decision: (decision["created_at"] is None,
+                                  -(_read_timestamp(decision["created_at"]) or 0.0),
+                                  decision["decision_id"]),
         )
 
 
@@ -2338,18 +2546,26 @@ def _matches_checkpoint_filters(
         return False
     checkpoint_time = checkpoint.get("checkpoint_time")
     if checkpoint_time_start is not None:
-        if checkpoint_time is None or checkpoint_time < checkpoint_time_start:
+        actual = _read_timestamp(checkpoint_time)
+        start = _read_timestamp(checkpoint_time_start)
+        if actual is None or start is None or actual < start:
             return False
     if checkpoint_time_end is not None:
-        if checkpoint_time is None or checkpoint_time > checkpoint_time_end:
+        actual = _read_timestamp(checkpoint_time)
+        end = _read_timestamp(checkpoint_time_end)
+        if actual is None or end is None or actual > end:
             return False
     stored_decision_start = checkpoint.get("decision_time_start")
     if decision_time_start is not None:
-        if stored_decision_start is None or stored_decision_start < decision_time_start:
+        actual = _read_timestamp(stored_decision_start)
+        start = _read_timestamp(decision_time_start)
+        if actual is None or start is None or actual < start:
             return False
     stored_decision_end = checkpoint.get("decision_time_end")
     if decision_time_end is not None:
-        if stored_decision_end is None or stored_decision_end > decision_time_end:
+        actual = _read_timestamp(stored_decision_end)
+        end = _read_timestamp(decision_time_end)
+        if actual is None or end is None or actual > end:
             return False
     return True
 

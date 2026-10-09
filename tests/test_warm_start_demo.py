@@ -23,12 +23,11 @@ def test_warm_start_transfers_patterns(tmp_path) -> None:
     demo = _load_demo_module()
     target = CompoundingScorer.from_preset(
         "trading",
-        db_path=str(tmp_path / "trading.db"),
         profile="test",
     )
     try:
         summary = target.warm_start(
-            demo.build_transfer_registry(),
+            demo.build_transfer_registry(target.graph_store),
             category_mapping={
                 "freshness_violation": "trend_following",
                 "pipeline_failure": "mean_reversion",

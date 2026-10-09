@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from copilot_sdk.backend.platform_router import create_platform_router
 from copilot_sdk.demo.bundle import restore_bundle_if_empty
+from copilot_sdk.graph.protocol import ProtocolV2GraphStore
 from copilot_sdk.evolution.evolver import AgentEvolver
 from copilot_sdk.evolution.prompt_evolver import PromptVariantEvolver
 from copilot_sdk.scoring.presets import dataops, purchasing, trading
@@ -92,18 +93,19 @@ def test_restore_report_exposes_bundle_read_failure(tmp_path: Path, payload: str
     assert report.failed_stores == ["bundle"]
 
 
-def test_restore_report_exposes_partial_age_write(tmp_path: Path) -> None:
+def test_restore_report_exposes_partial_store_write(tmp_path: Path) -> None:
     path = tmp_path / "bundle.json"
     path.write_text(json.dumps({
         "domain": "trading",
+        "factor_names": [],
         "decisions": [
             {"decision_id": "ok", "category": "c", "recommended_action": "a"},
             {"decision_id": "bad", "category": "c", "recommended_action": "a"},
         ],
     }), encoding="utf-8")
-    store = MagicMock()
-    store.graph_config.backend = "age"
+    store = MagicMock(spec=ProtocolV2GraphStore)
     store.count_decisions.return_value = 0
+    store.get_decision.return_value = None
     store.write_governed_decision.side_effect = [None, ConnectionError("down")]
 
     report = restore_bundle_if_empty(store, path, domain="trading")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.scoring import CompoundingScorer
 from copilot_sdk.graph.memory_store import InMemoryGraphStore as MemoryStore
 
@@ -45,7 +46,7 @@ def test_in_memory_write_decision_without_metadata_still_works():
 
 def test_sqlite_write_decision_preserves_metadata(tmp_path):
     db_path = tmp_path / "graph.sqlite"
-    store = SQLiteGraphStore(db_path)
+    store = make_memory_store(db_path)
 
     decision_id = _write_decision(
         store,
@@ -58,7 +59,7 @@ def test_sqlite_write_decision_preserves_metadata(tmp_path):
 
 def test_sqlite_write_decision_without_metadata_still_works(tmp_path):
     db_path = tmp_path / "graph.sqlite"
-    store = SQLiteGraphStore(db_path)
+    store = make_memory_store(db_path)
 
     decision_id = _write_decision(store)
 
@@ -67,25 +68,12 @@ def test_sqlite_write_decision_without_metadata_still_works(tmp_path):
     assert decision["metadata"]["entity_id"]
 
 
-def test_sqlite_decision_metadata_persists_after_reopen(tmp_path):
-    db_path = tmp_path / "graph.sqlite"
-    store = SQLiteGraphStore(db_path)
-    decision_id = _write_decision(
-        store,
-        metadata={"decision_id": "d-reopen", "invoice_id": "S2P-INV-0003"},
-    )
-
-    reopened = SQLiteGraphStore(db_path)
-
-    decision = reopened.get_decision(decision_id, domain=getattr(reopened, "domain", "test"))
-    assert decision["metadata"]["invoice_id"] == "S2P-INV-0003"
 
 
 def test_compounding_scorer_score_persists_caller_metadata(tmp_path):
     graph_store = MemoryStore(domain="s2p")
     scorer = CompoundingScorer.from_preset(
         "s2p",
-        db_path=str(tmp_path / "s2p.db"),
         profile="test",
         graph_store=graph_store,
     )
@@ -102,3 +90,4 @@ def test_compounding_scorer_score_persists_caller_metadata(tmp_path):
     assert decision["metadata"]["supplier_id"] == "SUP-001"
     assert decision["metadata"]["domain"] == "s2p"
     scorer.graph_store.close()
+

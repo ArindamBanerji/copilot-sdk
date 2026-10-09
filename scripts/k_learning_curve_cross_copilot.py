@@ -8,12 +8,13 @@ scoring, evidence-provider, preseed, or database source.
 
 from __future__ import annotations
 
+from typing import cast
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import argparse
 import hashlib
 import json
 from pathlib import Path
 import random
-import sqlite3
 import tempfile
 from typing import Any
 
@@ -92,13 +93,10 @@ DIMENSION_SOURCES = {
 }
 
 
-class SQLiteDecisionStore:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def load_export() -> dict[str, Any]:
-    return json.loads(CENTROIDS_PATH.read_text(encoding="utf-8"))["copilots"]
+    return cast(dict[str, Any], json.loads(CENTROIDS_PATH.read_text(encoding="utf-8"))["copilots"])
 
 
 def geometry_hash(info: dict[str, Any]) -> str:
@@ -338,12 +336,12 @@ def run_copilot(copilot: str) -> dict[str, Any]:
     construction_error = None
     try:
         with tempfile.TemporaryDirectory(prefix=f"k-learning-{copilot}-") as tmp:
-            CompoundingScorer.from_preset(preset_name, db_path=str(Path(tmp) / f"{copilot}.db"), profile="test")
+            CompoundingScorer.from_preset(preset_name,  profile="test")
     except Exception as exc:  # recorded, not fatal to exported-geometry protocol
         construction_error = repr(exc)
 
-    learning_store = KUtilityStore(SQLiteDecisionStore(), d=len(factor_names))
-    control_store = KUtilityStore(SQLiteDecisionStore(), d=len(factor_names))
+    learning_store = KUtilityStore(InMemoryGraphStore(), d=len(factor_names))
+    control_store = KUtilityStore(InMemoryGraphStore(), d=len(factor_names))
     rng = random.Random(SEED + sum(ord(ch) for ch in copilot))
     checkpoints: list[dict[str, Any]] = []
 
@@ -430,7 +428,7 @@ def load_or_run(copilot: str) -> dict[str, Any]:
             payload = add_starvation_from_payload(payload)
         if "tensor_shape" not in payload:
             payload = add_tensor_metadata(payload)
-        return payload
+        return cast(dict[str, Any], payload)
     return run_copilot(copilot)
 
 

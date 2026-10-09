@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from copilot_sdk.graph import InMemoryGraphStore
@@ -27,7 +29,7 @@ def _factors(scorer: CompoundingScorer) -> dict[str, float]:
 
 
 def _category(scorer: CompoundingScorer) -> str:
-    return scorer._preset.shape.category_names[0]
+    return cast(str, scorer._preset.shape.category_names[0])
 
 
 def _close(scorer: CompoundingScorer) -> None:
@@ -143,12 +145,11 @@ def test_rl_setup_failure_does_not_block_from_preset(monkeypatch):
         _close(scorer)
 
 
-def test_from_preset_preserves_old_positional_evolve_argument_order():
+def test_from_preset_positional_evolve_order_without_db_path():
     graph_store = InMemoryGraphStore(domain="trading")
 
     scorer = CompoundingScorer.from_preset(
         "trading",
-        None,
         graph_store,
         None,
         None,
@@ -158,6 +159,7 @@ def test_from_preset_preserves_old_positional_evolve_argument_order():
         profile="test",
     )
     try:
+        assert scorer.graph_store is graph_store
         assert scorer._evolve is True
         assert scorer._consolidation_enabled is True
     finally:

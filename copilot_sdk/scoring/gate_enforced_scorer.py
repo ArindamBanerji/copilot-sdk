@@ -6,7 +6,7 @@ from collections.abc import Callable
 import logging
 from typing import Any, cast
 
-from copilot_sdk.scoring.composite_gate import CompositeGate
+from copilot_sdk.scoring.composite_gate import CompositeGate, chronological_decisions
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +136,7 @@ class GateEnforcedScorer:
             rows = getter(domain)
         except TypeError:
             rows = getter()
-        return [_outcome_value(row) for row in (rows or [])]
+        return [_outcome_value(row) for row in chronological_decisions(rows or [])]
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._wrapped_scorer, name)

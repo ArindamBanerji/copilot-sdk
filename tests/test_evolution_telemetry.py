@@ -1,11 +1,8 @@
 """WP-4 unified evolution telemetry contract tests."""
 
-import json
-import importlib
-import sys
-from pathlib import Path
 from typing import Any, cast
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -13,13 +10,27 @@ from copilot_sdk.backend.evolution_router import build_evolution_summary
 from copilot_sdk.backend.self_computation_router import create_self_computation_router
 from copilot_sdk.evolution import PromptVariantEvolver, VariantSpec
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from tests.evolution_contract_helpers import make_contract_app
 
 
-ROOT = Path(__file__).resolve().parents[1]
 COPILOTS = ["soc", "s2p", "trading", "purchasing", "dataops"]
 REQUIRED_KEYS = {"domain", "evolution_enabled", "schema_version"}
 ENABLED_KEYS = {"conservation_state", "inventory", "variant_stats"}
 VALID_EVENT_TYPES = {"generated", "shadow", "promoted", "rejected"}
+
+
+@pytest.fixture(autouse=True)
+def _block_age_connections(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Trap psycopg connections so these contract tests cannot contact AGE."""
+    try:
+        import psycopg
+    except ImportError:
+        return
+
+    def _blocked(*args: object, **kwargs: object) -> None:
+        raise AssertionError("Contract test attempted AGE connection via psycopg.connect")
+
+    monkeypatch.setattr(psycopg, "connect", _blocked)
 
 
 def test_sdk_normalizer_schema() -> None:
@@ -98,73 +109,40 @@ def test_self_summary_endpoint_shape() -> None:
     }
 
 
-def _summary(domain: str) -> dict[str, Any]:
-    """Read one copilot's contract through its in-process application."""
-    for name in list(sys.modules):
-        if name == "app" or name.startswith("app."):
-            del sys.modules[name]
-
-    if domain in {"trading", "purchasing", "dataops"}:
-        backend = ROOT / "apps" / domain / "backend"
-    elif domain == "s2p":
-        backend = ROOT.parent / "s2p-copilot" / "backend"
-    else:
-        backend = ROOT.parent / "gen-ai-roi-demo-v4-v50" / "backend"
-
-    sys.path.insert(0, str(backend))
-    try:
-        if domain == "soc":
-            from copilot_sdk.backend.self_computation_router import create_self_computation_router
-            from app.services.evolver import get_sdk_evolver
-
-            app = FastAPI()
-            app.include_router(
-                create_self_computation_router(
-                    InMemoryGraphStore(domain="soc"),
-                    domain="soc",
-                    evolver_provider=get_sdk_evolver,
-                )
-            )
-        else:
-            module = importlib.import_module("app.main")
-        if domain in {"trading", "purchasing", "dataops"}:
-            app = module.create_app(db_path=":memory:", demo_bundle_path=False)
-        elif domain == "s2p":
-            app = module.app
-        with TestClient(app) as client:
-            response = client.get("/api/self/evolution/summary")
-            assert response.status_code == 200
-            return cast(dict[str, Any], json.loads(response.text))
-    finally:
-        sys.path.remove(str(backend))
+def _contract_payload(domain: str) -> dict[str, Any]:
+    app = make_contract_app(domain)
+    with TestClient(app) as client:
+        response = client.get("/api/self/evolution/summary")
+        assert response.status_code == 200
+        return cast(dict[str, Any], response.json())
 
 
-def test_summary_schema_version() -> None:
+def test_contract_schema_version() -> None:
     for domain in COPILOTS:
-        assert _summary(domain)["schema_version"] == 1
+        assert _contract_payload(domain)["schema_version"] == 1
 
 
-def test_summary_has_required_keys() -> None:
+def test_contract_has_required_keys() -> None:
     for domain in COPILOTS:
-        summary = _summary(domain)
-        assert REQUIRED_KEYS <= set(summary)
-        if summary["evolution_enabled"]:
-            assert ENABLED_KEYS <= set(summary)
+        payload = _contract_payload(domain)
+        assert REQUIRED_KEYS <= set(payload)
+        if payload["evolution_enabled"]:
+            assert ENABLED_KEYS <= set(payload)
 
 
-def test_summary_event_types_valid() -> None:
+def test_contract_event_types_valid() -> None:
     for domain in COPILOTS:
-        events = _summary(domain).get("recent_events", [])
+        events = _contract_payload(domain).get("recent_events", [])
         assert all(event.get("event_type") in VALID_EVENT_TYPES for event in events)
 
 
-def test_summary_domain_matches() -> None:
+def test_contract_domain_matches() -> None:
     for domain in COPILOTS:
-        assert _summary(domain)["domain"] == domain
+        assert _contract_payload(domain)["domain"] == domain
 
 
-def test_summary_cross_copilot_parity() -> None:
-    summaries = [_summary(domain) for domain in COPILOTS]
-    assert {frozenset(summary) for summary in summaries} == {
-        frozenset(summaries[0])
+def test_contract_cross_copilot_parity() -> None:
+    payloads = [_contract_payload(domain) for domain in COPILOTS]
+    assert {frozenset(payload) for payload in payloads} == {
+        frozenset(payloads[0])
     }

@@ -1,4 +1,5 @@
 {
+  "factor_names": ["signal_alignment", "market_regime", "position_sizing", "timing_quality", "risk_reward_actual", "emotional_indicator", "signal_confidence", "options_delta_exposure", "options_iv_percentile", "options_gamma_risk"],
   "centroid_checkpoints": [
     {
       "category": null,

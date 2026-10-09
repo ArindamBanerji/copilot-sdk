@@ -5,9 +5,10 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.evolution import GraphProofLedger
 from app.services.purchasing_control import (
     CLAIMS,
-    ProofLedger,
     PurchasingClaimRegistry,
     PurchasingEvidenceMiddleware,
 )
@@ -57,8 +58,8 @@ def test_evidence_middleware_adds_post_headers_and_fields() -> None:
 
 
 def test_proof_ledger_persists_and_is_thread_safe(tmp_path) -> None:
-    path = tmp_path / "proof.sqlite3"
-    ledger = ProofLedger(path)
+    graph = InMemoryGraphStore()
+    ledger = GraphProofLedger(graph, "purchasing")
 
     def write(index: int) -> None:
         ledger.record("decision", {"decision_id": f"PUR-{index}", "evidence_tier": "T_S"})
@@ -66,7 +67,7 @@ def test_proof_ledger_persists_and_is_thread_safe(tmp_path) -> None:
     with ThreadPoolExecutor(max_workers=4) as pool:
         list(pool.map(write, range(20)))
     assert len(ledger.list_entries()) == 20
-    reopened = ProofLedger(path)
+    reopened = GraphProofLedger(graph, "purchasing")
     assert len(reopened.list_entries()) == 20
 
 
@@ -139,3 +140,30 @@ def test_verified_outcome_enters_proof_ledger(client) -> None:
     assert response.status_code == 200
     entries = client.get("/api/purchasing/proof-ledger").json()["entries"]
     assert any(entry["payload"].get("decision_id") == payload["decision_id"] for entry in entries)
+
+
+def test_purchasing_proof_window_keeps_newest_hundred(tmp_path) -> None:
+    from freezegun import freeze_time
+    from copilot_sdk.backend.scorer_proxy import FreshScorerProxy
+    from app.services.purchasing_control import PurchasingControlService
+
+    graph = InMemoryGraphStore(domain="purchasing")
+    proxy = FreshScorerProxy(
+        "purchasing", tmp_path / "unused.db", lambda path: graph, profile="test",
+    )
+    service = PurchasingControlService(lambda: graph, lambda: proxy)
+    with freeze_time("2026-01-01") as clock:
+        for index in range(105):
+            service.proof.record("decision", {"index": index})
+            clock.tick(delta=1)
+        graph.write_evolution_event(
+            "unrelated", "purchasing", "variant_registered", "family", "v",
+            metadata={"spec": {"id": "v", "family": "family"}},
+        )
+    entries = service.list_entries()
+    assert len(entries) == 100
+    indices = [entry["payload"]["index"] for entry in entries]
+    assert indices == list(range(104, 4, -1))
+    assert 104 in indices
+    assert 4 not in indices
+    assert all(entry["kind"] == "decision" for entry in entries)

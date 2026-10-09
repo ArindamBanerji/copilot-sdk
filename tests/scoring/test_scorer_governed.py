@@ -11,9 +11,9 @@ import pytest
 
 from gae.profile_scorer import ProfileScorer
 
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.scoring.config import DomainShape
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
@@ -80,7 +80,7 @@ def _metadata(decision: dict) -> dict:
 
 def test_raw_write_is_default_and_preserves_prefixed_id(monkeypatch, tmp_path) -> None:
     monkeypatch.delenv("SCORER_GOVERNED_WRITES", raising=False)
-    store = SQLiteGraphStore(tmp_path / "raw.sqlite", domain="mock", decision_id_prefix="TRD-")
+    store = make_memory_store(tmp_path / "raw.sqlite", domain="mock", decision_id_prefix="TRD-")
     try:
         result = _build_scorer(store, governed_writes=None).score(_factors(), "alpha")
         assert result.decision_id
@@ -123,19 +123,6 @@ def test_governed_in_memory_uses_bare_generated_id() -> None:
 def test_governed_writes_require_protocol_v2_store() -> None:
     with pytest.raises(TypeError, match="Governed writes require a Protocol V2 graph store"):
         _build_scorer(object())
-
-
-def test_governed_dual_write_preserves_identity_in_both_stores() -> None:
-    primary = InMemoryGraphStore(domain="mock")
-    secondary = InMemoryGraphStore(domain="mock")
-    store = DualWriteStore(primary, secondary)
-    try:
-        result = _build_scorer(store).score(_factors(), "alpha")
-        assert result.decision_id
-        assert primary.get_decision(result.decision_id, domain="mock") is not None
-        assert secondary.get_decision(result.decision_id, domain="mock") is not None
-    finally:
-        store.close()
 
 
 def test_governed_score_then_learn_uses_compound_outcome_identity() -> None:
@@ -182,3 +169,4 @@ def test_environment_gate_is_default_but_explicit_false_wins(monkeypatch) -> Non
     finally:
         enabled_store.close()
         disabled_store.close()
+

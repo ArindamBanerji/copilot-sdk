@@ -4,24 +4,24 @@ from collections.abc import Iterator
 import os
 from pathlib import Path
 import time
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
 from copilot_sdk.config import GraphConfig
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.testing import age_available
 
 
-@pytest.fixture(params=["memory", "sqlite", "age"])
+@pytest.fixture(params=["memory", "age"])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore]:
     graph_store: GraphStore
     if request.param == "memory":
         graph_store = InMemoryGraphStore(domain="test")
     elif request.param == "sqlite":
-        graph_store = SQLiteGraphStore(tmp_path / "no-amend.sqlite", domain="test")
+        graph_store = make_memory_store(tmp_path / "no-amend.sqlite", domain="test")
     else:
         if not age_available():
             pytest.skip("AGE not available")
@@ -43,13 +43,13 @@ def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore
 
 
 def _write_decision(store: GraphStore) -> str:
-    return store.write_decision(
+    return cast(str, store.write_decision(
         "test",
         category="quality",
         action="approve",
         confidence=0.9,
         factors={"risk": 0.1},
-    )
+    ))
 
 
 def _archive_decision(store: GraphStore, decision_id: str) -> int:
@@ -117,3 +117,5 @@ def test_archived_decision_not_in_verified(store: GraphStore) -> None:
     assert store.count_verified("test") == 0
     assert store.count_correct("test") == 0
     assert decision_id in {row["decision_id"] for row in store.get_archived_decisions("test")}
+
+

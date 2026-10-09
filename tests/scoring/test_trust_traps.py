@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from types import SimpleNamespace
 
 from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
@@ -17,7 +18,7 @@ def _store(rows: list[tuple[str, bool]]) -> InMemoryGraphStore:
             action="investigate",
             confidence=0.8,
             factors={"signal": 0.7},
-            metadata={"decision_id": f"d-{index}"},
+            metadata={"decision_id": f"d-{index}", "created_at": float(index + 1)},
         )
         store.write_outcome(
             decision_id,
@@ -50,9 +51,106 @@ def test_recency_bias_detected() -> None:
     assert "RECENCY_BIAS" in _types(TrustTrapDetector(None, _store(rows), "trust"))
 
 
+@pytest.mark.parametrize("newest_first", [False, True])
+def test_recency_bias_is_independent_of_read_order(newest_first: bool) -> None:
+    rows = [
+        {"decision_id": f"d{index:03d}", "created_at": float(index + 1),
+         "category": "mixed", "is_correct": index >= 150 or index % 2 == 0}
+        for index in range(200)
+    ]
+    if newest_first:
+        rows.reverse()
+    original = [dict(row) for row in rows]
+    detector = TrustTrapDetector(None, SimpleNamespace(get_verified_decisions=lambda domain: rows), "trust")
+    trap = next(trap for trap in detector.scan() if trap.trap_type == "RECENCY_BIAS")
+    assert trap.evidence["recent_accuracy"] == 1.0
+    assert trap.evidence["long_window_accuracy"] == 0.625
+    assert rows == original
+
+
 def test_no_traps_on_healthy_data() -> None:
     rows = [(f"category-{index % 4}", True) for index in range(200)]
     assert TrustTrapDetector(None, _store(rows), "trust").scan() == []
+
+
+def _gaming_rows() -> list[dict[str, object]]:
+    return ([{"category": "easy", "is_correct": True}] * 40
+            + [{"category": "hard", "is_correct": False}] * 10)
+
+
+def test_trust_trap_reads_conservation_state() -> None:
+    store = InMemoryGraphStore(domain="trading")
+    scorer = CompoundingScorer.from_preset(
+        "trading", graph_store=store, profile="test", enable_rl=False
+    )
+    detector = TrustTrapDetector(
+        scorer,
+        SimpleNamespace(get_verified_decisions=lambda _domain: _gaming_rows()),
+        "trading",
+    )
+    traps = detector.scan()
+    gaming = next(trap for trap in traps if trap.trap_type == "CONSERVATION_GAMING")
+    assert gaming.evidence["conservation"]["status"] == "COLD_START"
+    assert detector.unavailable_checks == []
+
+
+def test_trust_trap_no_scorer_marks_conservation_unavailable() -> None:
+    detector = TrustTrapDetector(
+        None,
+        SimpleNamespace(get_verified_decisions=lambda _domain: _gaming_rows()),
+        "trading",
+    )
+    detector.scan()
+    assert detector.unavailable_checks == ["conservation_gaming"]
+
+
+def test_trust_trap_missing_reader_reports_unavailable() -> None:
+    store = InMemoryGraphStore(domain="trading")
+    scorer = CompoundingScorer.from_preset(
+        "trading", graph_store=store, profile="test", enable_rl=False
+    )
+    detector = TrustTrapDetector(scorer, SimpleNamespace(), "trading")
+    detector.scan()
+    assert detector.unavailable_checks == ["conservation_gaming"]
+
+
+def test_verified_reader_raises_sets_unavailable() -> None:
+    def raise_read_error(_domain: str) -> list[dict[str, object]]:
+        raise RuntimeError("verified history unavailable")
+
+    detector = TrustTrapDetector(
+        None,
+        SimpleNamespace(get_verified_decisions=raise_read_error),
+        "trading",
+    )
+
+    traps = detector.scan()
+
+    assert isinstance(traps, list)
+    assert "conservation_gaming" in detector.unavailable_checks
+
+
+def test_verified_reader_malformed_data_handled() -> None:
+    detector = TrustTrapDetector(
+        None,
+        SimpleNamespace(get_verified_decisions=lambda _domain: None),
+        "trading",
+    )
+
+    traps = detector.scan()
+
+    assert isinstance(traps, list)
+    assert "conservation_gaming" in detector.unavailable_checks
+
+
+def test_trust_trap_genuine_empty_is_cold_start() -> None:
+    store = InMemoryGraphStore(domain="trading")
+    scorer = CompoundingScorer.from_preset(
+        "trading", graph_store=store, profile="test", enable_rl=False
+    )
+    detector = TrustTrapDetector(scorer, store, "trading")
+    assert detector.scan() == []
+    assert detector.unavailable_checks == []
 
 
 def test_rollback_restores_centroids() -> None:

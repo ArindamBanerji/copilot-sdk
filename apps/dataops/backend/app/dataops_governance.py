@@ -3,49 +3,37 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 import threading
 import time
 from dataclasses import asdict
-from pathlib import Path
 from typing import Any, cast
 
 from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
-from copilot_sdk.outcome import OutcomeLedger, OutcomeProcessor, VerifiedOutcome
+from copilot_sdk.outcome import OutcomeProcessor, VerifiedOutcome
 from copilot_sdk.evolution import GraphOutcomeLedger, GraphPromotionStore
 from copilot_sdk.promotion import DataOpsPromotionPolicy, PromotionEngine, PromotionStage
 from copilot_sdk.twin import FrozenTwin
 from copilot_sdk.twin.store import GraphFrozenTwinStore
 from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.graph.protocol import GraphStore, ScoringPersistenceStore
+from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
+from copilot_sdk.graph.production import age_client_for_store
 
 
 class DataOpsGovernance:
     """Own DataOps policy state while delegating scoring mechanisms to the SDK."""
 
-    def __init__(self, db_path: str | Path, graph_store: Any, scorer: Any, conservation: Any, *, profile: str | None = None) -> None:
+    def __init__(self, graph_store: GraphStore, scorer: Any, conservation: Any, *, profile: str | None = None) -> None:
         active_profile = resolve_profile(profile, domain="dataops")
-        age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
-        if active_profile == "production" and not age_events:
-            raise RuntimeError("production DataOps governance requires graph-backed holdout storage")
+        if active_profile == "production":
+            age_client_for_store(graph_store, domain="dataops")
+        self.persistence: ScoringPersistenceStore = GraphScoringPersistence(graph_store)
         self.graph_store = graph_store
         self.scorer = scorer
         self.conservation = conservation
         self.evidence = EvidenceGate()
         self._lock = threading.RLock()
-        self._db = sqlite3.connect(str(db_path), check_same_thread=False)
-        self._db.row_factory = sqlite3.Row
-        self._db.execute("""CREATE TABLE IF NOT EXISTS dataops_holdout (
-            decision_id TEXT PRIMARY KEY, source_id TEXT NOT NULL,
-            decision_class TEXT NOT NULL, factor_vector TEXT,
-            score_payload TEXT, evidence_tier TEXT NOT NULL,
-            verdict TEXT, verified_at REAL, outcome_receipt_id TEXT)""")
-        self._db.commit()
-        try:
-            self._db.execute("ALTER TABLE dataops_holdout ADD COLUMN outcome_receipt_id TEXT")
-            self._db.commit()
-        except sqlite3.OperationalError:
-            pass
-        self._outcomes = GraphOutcomeLedger(graph_store, "dataops") if age_events else OutcomeLedger(":memory:" if str(db_path) == ":memory:" else str(Path(db_path).with_name("dataops_outcomes.sqlite3")))
+        self._outcomes = GraphOutcomeLedger(graph_store, "dataops")
         self.outcome_processor = OutcomeProcessor(self._outcomes)
         promotion_store_type = GraphPromotionStore
         promotion_store = promotion_store_type(graph_store, "dataops")
@@ -77,25 +65,25 @@ class DataOpsGovernance:
             state = "PENDING"
         return {"state": state, "label": _evidence_state_label(state), "claims": claims}
 
-    def _rows(self, source_id: str | None = None) -> list[sqlite3.Row]:
-        query = "SELECT * FROM dataops_holdout"
-        args: tuple[Any, ...] = ()
-        if source_id:
-            query += " WHERE source_id = ?"
-            args = (source_id,)
-        query += " ORDER BY COALESCE(verified_at, 0) DESC, decision_id DESC"
-        return list(self._db.execute(query, args).fetchall())
+    def _rows(self, source_id: str | None = None) -> list[dict[str, Any]]:
+        rows = [dict(record["metadata"], decision_id=record["decision_id"])
+                for record in self.persistence.get_holdout_decisions("dataops", source_id)]
+        return sorted(rows, key=lambda row: (row.get("verified_at") or 0, row["decision_id"]), reverse=True)
+
+    def _find(self, decision_id: str) -> dict[str, Any] | None:
+        return next((row for row in self._rows() if row["decision_id"] == decision_id), None)
 
     def register_holdout(self, decision_id: str, source_id: str, decision_class: str, factor_vector: list[float] | None = None, score_payload: dict[str, Any] | None = None) -> dict[str, Any]:
         with self._lock:
-            self._db.execute("""INSERT INTO dataops_holdout
-                (decision_id, source_id, decision_class, factor_vector, score_payload, evidence_tier)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(decision_id) DO UPDATE SET source_id=excluded.source_id,
-                decision_class=excluded.decision_class, factor_vector=excluded.factor_vector,
-                score_payload=excluded.score_payload""", (decision_id, source_id, decision_class, json.dumps(factor_vector), json.dumps(score_payload or {}), EvidenceTier.T_S.value))
-            self._db.commit()
-            return self.holdout_status(source_id=source_id)[0]
+            row = self._find(decision_id) or {
+                "evidence_tier": EvidenceTier.T_S.value, "verdict": None,
+                "verified_at": None, "outcome_receipt_id": None,
+            }
+            row.update(decision_id=decision_id, source_id=source_id,
+                       decision_class=decision_class, factor_vector=factor_vector,
+                       score_payload=score_payload or {})
+            self.persistence.save_holdout_decision("dataops", decision_id, source_id, row)
+            return self._row_payload(row)
 
     def holdout_status(self, source_id: str | None = None) -> list[dict[str, Any]]:
         with self._lock:
@@ -103,22 +91,23 @@ class DataOpsGovernance:
 
     def verify_holdout(self, decision_id: str, verdict: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
-            row = self._db.execute("SELECT * FROM dataops_holdout WHERE decision_id = ?", (decision_id,)).fetchone()
+            row = self._find(decision_id)
             if row is None:
                 raise KeyError(decision_id)
             verified_at = time.time()
             receipt_id: str | None = None
-            factor_vector = json.loads(row["factor_vector"] or "null")
-            score_payload = json.loads(row["score_payload"] or "{}")
+            factor_vector = row["factor_vector"]
+            score_payload = row["score_payload"]
             predicted_action = score_payload.get("action") or score_payload.get("recommended_action")
             if isinstance(factor_vector, list) and predicted_action:
                 outcome = VerifiedOutcome.create(copilot="dataops", decision_id=decision_id, category=str(row["decision_class"]), factor_vector=factor_vector, predicted_action=str(predicted_action), human_disposition="override" if verdict.get("override_action") else "confirm", override_action=verdict.get("override_action"), override_reason=verdict.get("override_reason"), correct=bool(verdict.get("correct", False)), measured_impact=verdict.get("financial_impact"), evidence_provenance="dataops.30_day_holdout.expert_verification")
                 result = self.outcome_processor.process(outcome)
                 receipt_id = result.receipt_id
-            self._db.execute("UPDATE dataops_holdout SET evidence_tier = ?, verdict = ?, verified_at = ?, outcome_receipt_id = ? WHERE decision_id = ?", (EvidenceTier.T_O.value, json.dumps(verdict), verified_at, receipt_id, decision_id))
-            self._db.commit()
+            row.update(evidence_tier=EvidenceTier.T_O.value, verdict=verdict,
+                       verified_at=verified_at, outcome_receipt_id=receipt_id)
+            self.persistence.save_holdout_decision("dataops", decision_id, row["source_id"], row)
             self.evidence.register(ClaimRecord(claim_id=f"DATAOPS-CLASS-{row['decision_class']}", description=f"Verified DataOps decisions in class {row['decision_class']}", tier=EvidenceTier.T_O, evidence_basis="expert-verified holdout outcome", copilot="dataops"))
-            return self._row_payload(self._db.execute("SELECT * FROM dataops_holdout WHERE decision_id = ?", (decision_id,)).fetchone())
+            return self._row_payload(row)
 
     def abstention(self, source_id: str, evidence_floor: int = 10) -> dict[str, Any]:
         verified = sum(1 for row in self._rows(source_id) if row["evidence_tier"] == EvidenceTier.T_O.value)
@@ -128,7 +117,7 @@ class DataOpsGovernance:
     def provenance(self, decision_id: str) -> dict[str, Any]:
         decision = self.graph_store.get_decision(decision_id, domain="dataops")
         if decision is None:
-            row = self._db.execute("SELECT * FROM dataops_holdout WHERE decision_id = ?", (decision_id,)).fetchone()
+            row = self._find(decision_id)
             if row is None:
                 raise KeyError(decision_id)
             holdout = self._row_payload(row)
@@ -204,8 +193,12 @@ class DataOpsGovernance:
         return payload
 
     @staticmethod
-    def _row_payload(row: sqlite3.Row) -> dict[str, Any]:
-        return {"decision_id": row["decision_id"], "source_id": row["source_id"], "decision_class": row["decision_class"], "factor_vector": json.loads(row["factor_vector"] or "null"), "score_payload": json.loads(row["score_payload"] or "{}"), "evidence_tier": row["evidence_tier"], "verdict": json.loads(row["verdict"] or "null"), "verified_at": row["verified_at"], "outcome_receipt_id": row["outcome_receipt_id"]}
+    def _row_payload(row: dict[str, Any]) -> dict[str, Any]:
+        return {key: row.get(key) for key in (
+            "decision_id", "source_id", "decision_class", "factor_vector", "score_payload",
+            "evidence_tier", "verdict", "verified_at", "outcome_receipt_id",
+        )}
+
 
 
 def _claim_state(payload: dict[str, Any]) -> str:

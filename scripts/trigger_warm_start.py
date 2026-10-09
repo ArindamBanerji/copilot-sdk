@@ -41,7 +41,7 @@ def _decode_json(value: Any, default: Any) -> Any:
 def build_registry(store: Any, source: str, target: str) -> SharedPatternRegistry:
     """Build a compatibility registry from the latest graph fingerprint."""
     fingerprint = _latest_source_fingerprint(store, source)
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(store, target)
     if fingerprint is None or not fingerprint.get("fingerprint_id"):
         print(f"NOT_PROVEN: no fingerprint found for source domain '{source}'")
         print("Run score/learn cycles for the source domain first (P6.3a)")

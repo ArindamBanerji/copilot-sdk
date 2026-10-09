@@ -202,6 +202,7 @@ def build_bundle(config: DomainConfig, seed_entries: list[dict[str, Any]]) -> di
     rl_alpha, rl_beta = build_rl_state(config, decisions)
     return {
         "schema_version": "1.0",
+        "factor_names": list(config.factors),
         "domain": config.name,
         "generated_by": "scripts/regenerate_demo_bundles.py",
         "deterministic_seed": RANDOM_SEED,
@@ -346,12 +347,12 @@ def probabilities_for(actions: tuple[str, ...], recommended_index: int, confiden
 
 
 def build_centroids(config: DomainConfig, decisions: list[dict[str, Any]]) -> list[list[list[float]]]:
-    by_cell = {
+    by_cell: dict[tuple[str, str], list[list[float]]] = {
         (category, action): []
         for category in config.categories
         for action in config.actions
     }
-    by_category = {category: [] for category in config.categories}
+    by_category: dict[str, list[list[float]]] = {category: [] for category in config.categories}
     for decision in decisions:
         category = decision["category"]
         action = decision["recommended_action"]

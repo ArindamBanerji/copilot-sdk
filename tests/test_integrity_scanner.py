@@ -3,11 +3,49 @@ from __future__ import annotations
 import subprocess
 import sys
 from dataclasses import replace
+import os
 from pathlib import Path
 
 import pytest
 
 from integrity import architecture_scan
+
+
+def test_scanner_prunes_before_entering_excluded_directories(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    excluded = {".codex_tmp", "node_modules", "__pycache__", ".git", "dist", "build",
+                ".pytest_cache", ".mypy_cache", ".tox", "htmlcov", ".eggs", "tests"}
+    for name in excluded | {"src"}:
+        directory = root / name / "nested"
+        directory.mkdir(parents=True)
+        (directory / "source.py").write_text("value = 1\n", encoding="utf-8")
+    visited = []
+    walk = os.walk
+
+    def tracked_walk(*args, **kwargs):
+        for row in walk(*args, **kwargs):
+            visited.append(Path(row[0]))
+            yield row
+
+    monkeypatch.setattr(architecture_scan.os, "walk", tracked_walk)
+    assert list(architecture_scan._iter_files(root, (".py",))) == [root / "src/nested/source.py"]
+    assert visited, "The scanner must traverse the source root"
+    assert not any(excluded.intersection(path.relative_to(root).parts) for path in visited)
+
+
+def test_scanner_preserves_source_roots_and_file_selection(tmp_path):
+    root = tmp_path / "repo"
+    expected = set()
+    for name in ("copilot_sdk", "apps", "scripts", "other_source"):
+        directory = root / name
+        directory.mkdir(parents=True)
+        for filename in ("source.py", "source.tsx", "source.ts", "test_example.py", "notes.txt"):
+            path = directory / filename
+            path.write_text("", encoding="utf-8")
+            if filename in ("source.py", "source.tsx", "source.ts"):
+                expected.add(path)
+    assert set(architecture_scan._iter_files(root, (".py", ".tsx", ".ts"))) == expected
+    assert list(architecture_scan._iter_files(root / "missing", (".py",))) == []
 
 
 def test_scanner_imports_and_defines_all_literal_checks() -> None:
@@ -91,7 +129,7 @@ def test_missing_directory_is_skipped_cleanly(tmp_path: Path) -> None:
 
 
 def test_age02_catches_new_sqlite_in_formerly_exempt_file(tmp_path: Path) -> None:
-    target = tmp_path / "copilot-sdk" / "copilot_sdk" / "backend" / "signal_store.py"
+    target = tmp_path / "copilot-sdk" / "copilot_sdk" / "backend" / "graph_signals.py"
     target.parent.mkdir(parents=True)
     target.write_text(
         "extra_connection = sqlite3.connect('unexpected.db')\n",

@@ -102,6 +102,9 @@ B1's verdict is superseded/retracted as a moat inference; its artifacts untouche
 """
 from __future__ import annotations
 
+from copy import deepcopy
+from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
+
 from dataclasses import dataclass, field
 import hashlib
 import json
@@ -170,7 +173,7 @@ class Learner:
         self.factors=list(self.info["factor_names"])
         self.mu={c:np.array(self.info["all_category_mu"][c],dtype=float).copy() for c in self.categories}
         self.sigma=np.array(self.info["sigma"],dtype=float).copy()
-        self.store=h.KUtilityStore(h.SQLiteDecisionStore(),len(self.factors))
+        self.store=h.KUtilityStore(h.InMemoryGraphStore(),len(self.factors))
         self.inv={c:h.VLDInvestigator(self.mu[c],self.sigma,self.factors,tau=self.info["tau"])
                   for c in self.categories}
 
@@ -178,8 +181,7 @@ class Learner:
         return {c:self.store.get_weights(c).tolist() for c in self.categories}
 
     def state(self) -> R:
-        records=[list(r) for r in self.store.conn.execute(
-            "SELECT category,dimension,weight,n_updates FROM k_utility ORDER BY category,dimension").fetchall()]
+        records=[[r["episode_id"], r["k"], r["utility"], r["metadata"].get("n_updates", 0)] for r in self.store.persistence.get_k_utilities(self.store.domain, limit=2**31-1)]
         return {"K":self.weights(),"K_records":records,"mu":{c:m.tolist() for c,m in self.mu.items()},
                 "sigma":self.sigma.tolist(),"tau":self.info["tau"]}
 
@@ -193,16 +195,17 @@ class Learner:
                                 self.inv[c],run,set(case["informative"]) if informative is None else informative)
 
     def close(self) -> None:
-        self.store.conn.close()
+        self.store.graph_store.close()
 
 
 def migrate(source: Learner,target: Learner) -> None:
-    source.store.conn.backup(target.store.conn)
+    target.store.graph_store = deepcopy(source.store.graph_store)
+    target.store.persistence = GraphScoringPersistence(target.store.graph_store)
     target.mu={c:m.copy() for c,m in source.mu.items()}
     target.sigma=source.sigma.copy()
     target.inv={c:h.VLDInvestigator(target.mu[c],target.sigma,target.factors,tau=target.info["tau"])
                 for c in target.categories}
-    assert target.store.conn is not source.store.conn
+    assert target.store.graph_store is not source.store.graph_store
     assert not any(np.shares_memory(target.mu[c],source.mu[c]) for c in source.categories)
     assert target.state()==source.state()
 
@@ -370,9 +373,10 @@ def project_k(source: Learner,target: Learner) -> None:
         target_cat=target.categories[index]
         for dim,value in enumerate(source.store.get_weights(source_cat)):
             rows.append((target_cat,dim,float(value),0))
-    target.store.conn.execute("DELETE FROM k_utility")
-    target.store.conn.executemany("INSERT INTO k_utility VALUES (?,?,?,?)",rows)
-    target.store.conn.commit()
+    for record in target.store.persistence.get_k_utilities(target.store.domain, limit=2**31-1):
+        target.store.graph_store.delete_governance(target.store.domain, record["id"])
+    for category, dim, weight, count in rows:
+        target.store.persistence.save_k_utility(target.store.domain, category, dim, weight, {"n_updates": count})
 
 
 def run_arm(name: str,learner: Learner,train: Cohort,development: Cohort,test: Cohort,
@@ -636,7 +640,7 @@ def compute_all() -> R:
                    "migrated_snapshot":{"source_decision_count":a1["processed_decisions"],
                                         "state":copied_state,"mu_delta_on_copy":0.0,
                                         "serialized_state_bytes":len(canonical(copied_state)),
-                                        "independent_memory_and_sqlite":True,"tier":"REAL_COMPONENT"},
+                                        "independent_memory_stores":True,"tier":"REAL_COMPONENT"},
                    "staleness_pre_drift":old_metrics,"staleness_post_drift":stale_metrics,
                    "drift_heldout_sha256":drift_pool["test"].fingerprint,
                    "switching_cost_summary":

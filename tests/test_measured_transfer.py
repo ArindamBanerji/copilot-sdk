@@ -22,7 +22,8 @@ from copilot_sdk.pilot import (
     VerifiedCountCheck,
     create_measured_transfer_router,
 )
-from copilot_sdk.promotion import PromotionEngine, S2PPromotionPolicy
+from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.promotion import PromotionEngine, PromotionStore, S2PPromotionPolicy
 
 
 class _FrozenTwin:
@@ -40,7 +41,7 @@ def _transfer(
 ) -> MeasuredTransfer:
     return MeasuredTransfer(
         _FrozenTwin(),
-        store=store,
+        store=store if store is not None else MeasuredTransferStore(InMemoryGraphStore(), "test"),
         average_value=100.0,
         authority_threshold=threshold,
         minimum_decisions=minimum,
@@ -96,7 +97,7 @@ def test_mt_04_financial_impact_uses_decisions_delta_and_value() -> None:
 
 
 def test_mt_05_positive_measured_delta_recommends_authority() -> None:
-    promotion = PromotionEngine(S2PPromotionPolicy())
+    promotion = PromotionEngine(S2PPromotionPolicy(), PromotionStore(InMemoryGraphStore(), "test"))
     promotion.create("trading", "trend")
     transfer = _transfer(promotion=promotion)
     session = _session(transfer)
@@ -179,12 +180,12 @@ def test_mt_14_cli_help_is_available() -> None:
 
 
 def test_mt_15_session_persists_across_store_restart(tmp_path: Path) -> None:
-    db = tmp_path / "pilot.sqlite3"
-    first_store = MeasuredTransferStore(str(db))
+    graph = InMemoryGraphStore()
+    first_store = MeasuredTransferStore(graph, "test")
     session = _session(_transfer(first_store))
     _record(_transfer(first_store), session.session_id, 1, True, False)
     first_store.close()
-    second_store = MeasuredTransferStore(str(db))
+    second_store = MeasuredTransferStore(graph, "test")
     assert second_store.get_session(session.session_id) is not None
     assert len(second_store.observations(session.session_id)) == 1
     second_store.close()
@@ -208,7 +209,7 @@ def test_mt_17_report_is_json_safe() -> None:
 def test_mt_18_qualification_can_precede_pilot() -> None:
     gate = EvidenceGate()
     gate.register(ClaimRecord("C1", "Measured claim", EvidenceTier.T_O, "site outcomes", "trading"))
-    promotion = PromotionEngine(S2PPromotionPolicy())
+    promotion = PromotionEngine(S2PPromotionPolicy(), PromotionStore(InMemoryGraphStore(), "test"))
     promotion.create("trading", "trend")
     checks: list[QualificationCheck] = [FrozenTwinCheck(_FrozenTwin()), EvidenceGateCheck(gate), PromotionRecordsCheck(promotion), ConservationHealthCheck({"phase": "GREEN"}), VerifiedCountCheck(1),]
     assert QualificationGate().run("trading", checks).passed

@@ -20,7 +20,7 @@ ProfileScorer = profile_module.ProfileScorer
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring import scorer as scorer_module
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.backend.scoring_router import _json_safe
 from copilot_sdk.rl import BinaryRewardFunction
 
@@ -77,7 +77,6 @@ def test_from_preset_with_graph_store(monkeypatch, mock_preset, tmp_path):
 
     scorer = CompoundingScorer.from_preset(
         mock_preset.name,
-        db_path=str(tmp_path / "scorer.sqlite"),
         profile="test",
         graph_store=graph_store,
     )
@@ -87,16 +86,15 @@ def test_from_preset_with_graph_store(monkeypatch, mock_preset, tmp_path):
         scorer.graph_store.close()
 
 
-def test_scorer_from_preset_creates_sqlite_graph_store(monkeypatch, mock_preset, tmp_path):
+def test_scorer_from_preset_creates_memory_graph_store(monkeypatch, mock_preset, tmp_path):
     monkeypatch.setitem(PRESET_REGISTRY, mock_preset.name, type(mock_preset))
 
     scorer = CompoundingScorer.from_preset(
         mock_preset.name,
-        db_path=str(tmp_path / "scorer.sqlite"),
         profile="development",
     )
     try:
-        assert isinstance(scorer._graph_store, SQLiteGraphStore)
+        assert isinstance(scorer._graph_store, InMemoryGraphStore)
     finally:
         scorer.graph_store.close()
 
@@ -107,7 +105,6 @@ def test_scorer_from_preset_accepts_custom_graph_store(monkeypatch, mock_preset,
 
     scorer = CompoundingScorer.from_preset(
         mock_preset.name,
-        db_path=str(tmp_path / "scorer.sqlite"),
         graph_store=graph_store,
         profile="test",
     )
@@ -125,7 +122,6 @@ def test_from_preset_with_rl_components(monkeypatch, mock_preset, tmp_path):
 
     scorer = CompoundingScorer.from_preset(
         mock_preset.name,
-        db_path=str(tmp_path / "scorer.sqlite"),
         reward_function=reward_function,
         credit_assigner=credit,
         exploration_policy=explorer,
@@ -682,7 +678,7 @@ def test_compounding_scorer_conservation_from_graph_store(mock_preset, store):
     assert store.count_verified("mock") == 0
 
 
-def test_compounding_scorer_no_graph_store_uses_sqlite(mock_preset, store):
+def test_compounding_scorer_uses_supplied_memory_store(mock_preset, store):
     scorer = build_compounding_scorer(mock_preset, store)
     _seed_verified_history(store, total=1, correct=0)
     result = scorer.score(sample_factors(), "alpha")
@@ -705,7 +701,7 @@ def test_compounding_scorer_graph_store_counts_match(mock_preset, store):
     assert scorer._conservation_pause()["correct_count"] == graph_store.count_correct("test")
 
 
-def test_scorer_conservation_reads_from_graph_store(mock_preset, store):
+def test_scorer_reads_conservation_from_graph_store(mock_preset, store):
     graph_store = InMemoryGraphStore()
     _seed_graph_history(graph_store, total=25, correct=0)
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
@@ -869,7 +865,7 @@ def test_load_restores_centroids(monkeypatch, mock_preset, store, tmp_path):
 
     monkeypatch.setattr(CompoundingScorer, "from_preset", classmethod(test_from_preset))
 
-    restored = CompoundingScorer.load(export_path, db_path=str(tmp_path / "restored.sqlite"))
+    restored = CompoundingScorer.load(export_path, profile="test")
     try:
         np.testing.assert_allclose(restored.gae_scorer.centroids, expected)
     finally:
@@ -1021,18 +1017,46 @@ def test_compounding_scorer_client_preseed_does_not_bypass_conservation(mock_pre
     assert learn["reason"] == "conservation_red"
 
 
-def test_compounding_scorer_server_preseed_mode_bypasses_explicitly(monkeypatch, mock_preset, store):
+def test_compounding_scorer_explicit_preseed_bypasses_conservation(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=25, correct=0)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    result = scorer.score(sample_factors(), "alpha")
+
+    learned = scorer._learn_preseed(result.decision_id, result.action)
+
+    assert not isinstance(learned, dict)
+    assert graph_store.count_verified_decisions("test") == 26
+    assert scorer._scorer.centroids.any()
+
+
+def test_compounding_scorer_server_preseed_mode_private_bypass_remains(monkeypatch, mock_preset, store):
     monkeypatch.setenv("COPILOT_PRESEED_MODE", "true")
     graph_store = InMemoryGraphStore()
     _seed_graph_history(graph_store, total=25, correct=0)
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
     result = scorer.score(sample_factors(), "alpha")
 
-    learn = scorer.learn(result.decision_id, result.action)
+    learn = scorer._learn_preseed(result.decision_id, result.action)
 
     assert not isinstance(learn, dict)
     assert scorer.get_conservation_state()["status"] == "PRESEED"
     assert scorer.get_conservation_state()["conservation_mode"] == "preseed"
+
+
+def test_learn_gated_when_preseed_env_set(monkeypatch, mock_preset, store):
+    monkeypatch.setenv("COPILOT_PRESEED_MODE", "true")
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=25, correct=0)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    result = scorer.score(sample_factors(), "alpha")
+
+    learned = scorer.learn(result.decision_id, result.action)
+
+    assert isinstance(learned, dict)
+    assert learned["status"] == "paused"
+    assert learned["reason"] == "conservation_red"
+    assert graph_store.count_verified_decisions("test") == 25
 
 
 def test_compounding_scorer_preseed_mode_inactive_when_unset(monkeypatch, mock_preset, store):

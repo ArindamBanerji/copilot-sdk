@@ -4,7 +4,7 @@ import pytest
 
 import copilot_sdk.evolution.ledger as ledger_module
 from copilot_sdk.evolution import EvolutionEvent, InMemoryEvolutionLedger
-from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 class KeywordOnlyEvolutionStore:
@@ -60,8 +60,8 @@ def test_ledger_without_store_still_records_events():
     assert ledger.get_events()[0]["event_type"] == "variant_generated"
 
 
-def test_ledger_with_sqlite_store_persists_correct_domain(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+def test_ledger_with_memory_store_persists_correct_domain(tmp_path):
+    store = InMemoryGraphStore()
     ledger = InMemoryEvolutionLedger(evolution_store=store, domain="dataops")
 
     ledger.append(EvolutionEvent("promoted", "rule-a", "variant-a"))
@@ -82,3 +82,4 @@ def test_legacy_graph_store_keyword_is_removed():
 
 def test_pre_domain_adapter_is_removed():
     assert not hasattr(ledger_module, "_PreDomainEvolutionStoreAdapter")
+

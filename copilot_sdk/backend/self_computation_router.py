@@ -111,7 +111,6 @@ def create_self_computation_router(
 
     @router.get("/centroid-history", response_model=CentroidHistoryResponse)
     def centroid_history(
-        request: Request,
         limit: int = Query(50, ge=1, le=500),
         checkpoint_time_start: str | None = None,
         checkpoint_time_end: str | None = None,
@@ -120,18 +119,6 @@ def create_self_computation_router(
         category: str | None = None,
         include_superseded: bool = False,
     ) -> dict[str, Any]:
-        if (
-            limit == 50
-            and checkpoint_time_start is None
-            and checkpoint_time_end is None
-            and decision_time_start is None
-            and decision_time_end is None
-            and category is None
-            and include_superseded is False
-        ):
-            materialized = _materialized_response(request, "centroid_history")
-            if materialized is not None:
-                return materialized
         filters = {
             "checkpoint_time_start": checkpoint_time_start,
             "checkpoint_time_end": checkpoint_time_end,
@@ -188,12 +175,11 @@ def create_self_computation_router(
 
     @router.get("/centroid-timeline", response_model=CentroidHistoryResponse)
     def centroid_timeline(
-        request: Request,
         limit: int = Query(50, ge=1, le=500),
         category: str | None = None,
     ) -> dict[str, Any]:
         """Expose centroid evolution under the self-computation surface name."""
-        return centroid_history(request, limit=limit, category=category)
+        return centroid_history(limit=limit, category=category)
 
     @router.post("/regime-reinit", response_model=FlexibleResponse)
     def regime_reinit(
@@ -215,9 +201,6 @@ def create_self_computation_router(
 
     @router.get("/evolution/summary", response_model=EvolutionSummaryResponse)
     def evolution_summary(request: Request) -> dict[str, Any]:
-        materialized = _materialized_response(request, "evolution_summary")
-        if materialized is not None:
-            return materialized
         provider = evolver_provider
         if provider is None:
             provider = lambda: getattr(request.app.state, "evolver", None)
@@ -459,13 +442,8 @@ def create_self_computation_router(
 
     @router.get("/accuracy-by-category", response_model=AccuracyByCategoryResponse)
     def accuracy_by_category(
-        request: Request,
         threshold: float = Query(0.70, ge=0.0, le=1.0),
     ) -> dict[str, Any]:
-        if threshold == 0.70:
-            materialized = _materialized_response(request, "accuracy_by_category")
-            if materialized is not None:
-                return materialized
         verified = _verified(_gs())
         grouped: dict[str, dict[str, int]] = {}
         for decision in verified:
@@ -498,17 +476,19 @@ def create_self_computation_router(
 
     @router.get("/accuracy-alerts", response_model=AccuracyByCategoryResponse)
     def accuracy_alerts(
-        request: Request,
         threshold: float = Query(0.70, ge=0.0, le=1.0),
     ) -> dict[str, Any]:
         """Return category accuracy data with below-threshold alert flags."""
-        return accuracy_by_category(request, threshold=threshold)
+        return accuracy_by_category(threshold=threshold)
 
     @router.get("/trust-traps", response_model=FlexibleResponse)
     def trust_traps() -> dict[str, Any]:
         detector = TrustTrapDetector(_trap_scorer(), _gs(), _domain())
         traps = detector.scan()
-        return {"traps": [trap_asdict(trap) for trap in traps], "total": len(traps)}
+        response = {"traps": [trap_asdict(trap) for trap in traps], "total": len(traps)}
+        if detector.unavailable_checks:
+            response["unavailable_checks"] = list(detector.unavailable_checks)
+        return response
 
     @router.post("/rollback", response_model=FlexibleResponse)
     def rollback(checkpoint_id: str = Query(..., min_length=1)) -> dict[str, Any]:
@@ -634,15 +614,6 @@ def create_self_computation_router(
         )
 
     return router
-
-
-def _materialized_response(request: Request, key: str) -> dict[str, Any] | None:
-    materializer = getattr(request.app.state, "materializer", None)
-    get = getattr(materializer, "get", None)
-    if not callable(get):
-        return None
-    result = get(key)
-    return result if isinstance(result, dict) else None
 
 
 def mount_self_computation_router(

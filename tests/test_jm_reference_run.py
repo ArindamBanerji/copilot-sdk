@@ -1,4 +1,4 @@
-"""APP-1B tests using the real SQLite scorer path."""
+"""APP-1B tests using the real memory-backed scorer path."""
 
 from __future__ import annotations
 

@@ -17,7 +17,6 @@ from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
 from copilot_sdk.promotion import (
     PromotionEngine,
     PromotionStage,
-    PromotionStore,
     TradingPromotionPolicy,
 )
 from copilot_sdk.evolution import GraphPromotionStore
@@ -128,13 +127,9 @@ class PromotionDecision:
 class TradingPromotionGuard:
     """Fail-closed claim and safety gate around promotion authority."""
 
-    def __init__(self, registry: TradingClaimRegistry, store_path: str = ":memory:", graph_store: Any = None) -> None:
+    def __init__(self, registry: TradingClaimRegistry, *, graph_store: Any) -> None:
         self.registry = registry
-        promotion_store = (
-            GraphPromotionStore(graph_store, "trading")
-            if graph_store is not None
-            else PromotionStore(store_path)
-        )
+        promotion_store = GraphPromotionStore(graph_store, "trading")
         self.engine = PromotionEngine(TradingPromotionPolicy(), promotion_store)
 
     def authorize(self, category: str, conservation: Mapping[str, Any] | None = None) -> PromotionDecision:

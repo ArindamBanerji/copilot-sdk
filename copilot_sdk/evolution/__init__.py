@@ -30,7 +30,6 @@ from copilot_sdk.evolution.shadow import DefaultShadowRunner
 from copilot_sdk.evolution.variant_store import (
     CategoryVariantStats,
     InMemoryVariantStore,
-    SQLiteVariantStore,
     VariantStore,
     VariantSpec,
     VariantStats,
@@ -56,7 +55,6 @@ __all__ = [
     "EvolutionStore",
     "InMemoryEvolutionLedger",
     "InMemoryVariantStore",
-    "SQLiteVariantStore",
     "VariantStore",
     "PromotionGate",
     "PromotionDecision",

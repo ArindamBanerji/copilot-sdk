@@ -8,15 +8,18 @@ ablation keeps the centroid decision architecture but freezes its objective.
 
 from __future__ import annotations
 
+from typing import cast
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import numpy as np
 
 from copilot_sdk.evolution import PromptEvolverConfig, PromptVariantEvolver, VariantSpec
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.graph.protocol import ProtocolV2GraphStore
 from copilot_sdk.rl.reward import RewardComputer
 from copilot_sdk.rl.reward_functions import BinaryRewardFunction
 from copilot_sdk.scoring.scorer import CompoundingScorer
@@ -29,6 +32,14 @@ from .config import (
     S2P_CATEGORIES,
     S2P_FACTORS,
 )
+
+
+class _NamespacedCompoundingScorer(CompoundingScorer):
+    """Expose the scorer's logical domain to shared conservation readers."""
+
+    @property
+    def domain(self) -> str:
+        return str(self._domain)
 
 
 @dataclass
@@ -91,7 +102,7 @@ class RewardMaxBaseline:
         self.promoted_poisoned_rule = False
 
     def _features(self, factors: dict[str, float]) -> np.ndarray:
-        return np.asarray([1.0, *[float(factors[name]) for name in S2P_FACTORS]], dtype=float)
+        return cast(np.ndarray, np.asarray([1.0, *[float(factors[name]) for name in S2P_FACTORS]], dtype=float))
 
     def score(self, factors: dict[str, float], category_index: int) -> tuple[int, list[float]]:
         if self._preferred_action is not None:
@@ -130,7 +141,7 @@ class RewardMaxBaseline:
         self._a[category_index, action_index] += np.outer(x, x)
         self._b[category_index, action_index] += reward * x
         self._counts[category_index, action_index] += 1
-        return reward
+        return cast(float, reward)
 
     def swap_reward_function(self, reward_function: Any) -> None:
         self._reward_computer = RewardComputer(reward_function, 5.0)
@@ -174,14 +185,19 @@ def _record_curve(result: ArmResult) -> None:
     )
 
 
-def _make_scorer(path: Path, *, enable_rl: bool) -> CompoundingScorer:
-    store = SQLiteGraphStore(path, domain="s2p")
-    return CompoundingScorer.from_preset(
+def _make_scorer(
+    graph_store: ProtocolV2GraphStore,
+    *,
+    graph_namespace: str,
+    enable_rl: bool,
+) -> CompoundingScorer:
+    return _NamespacedCompoundingScorer.from_preset(
         "s2p",
-        db_path=str(path),
-        graph_store=store,
+        graph_store=graph_store,
+        graph_namespace=graph_namespace,
         enable_rl=enable_rl,
         evolve=False,
+        governed_writes=True,
         profile="development",
     )
 
@@ -235,12 +251,19 @@ def run_tg1(
     generator_config: GeneratorConfig,
     oracle_config: OracleConfig,
     output_dir: str | Path,
+    *,
+    graph_store: ProtocolV2GraphStore,
+    graph_namespace: str,
 ) -> dict[str, Any]:
     """Run the reward swap proof on one fixed S2P input."""
 
     path = Path(output_dir)
     path.mkdir(parents=True, exist_ok=True)
-    scorer = _make_scorer(path / "tg1.db", enable_rl=True)
+    scorer = _make_scorer(
+        graph_store,
+        graph_namespace=graph_namespace,
+        enable_rl=True,
+    )
     try:
         generator = SyntheticGenerator(generator_config)
         category, factors = generator.generate()
@@ -263,20 +286,23 @@ def run_tg1(
         _close_scorer(scorer)
 
 
-def run_three_arms(
+def _run_three_arms_with_scorers(
     config: GeneratorConfig,
     oracle_config: OracleConfig,
     n_decisions: int = 500,
     output_dir: str | Path = ".",
+    *,
+    ci: CompoundingScorer,
+    hand: CompoundingScorer,
+    shared_store: ProtocolV2GraphStore,
+    run_id: str,
 ) -> dict[str, Any]:
-    """Run governed CI, faithful reward-max, and frozen-reward arms."""
+    """Run the three arms after their namespaced scorers are wired."""
 
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     records = SyntheticGenerator(config).generate_batch(n_decisions)
     oracle = GroundTruthOracle(oracle_config)
-    ci = _make_scorer(output / "ci.db", enable_rl=True)
-    hand = _make_scorer(output / "hand_specified.db", enable_rl=False)
     baseline = RewardMaxBaseline(len(S2P_CATEGORIES), len(S2P_ACTIONS), len(S2P_FACTORS))
     ci_result = ArmResult("ci_governed")
     baseline_result = ArmResult("reward_max")
@@ -307,7 +333,9 @@ def run_three_arms(
         canonical = np.asarray(ci._canonical_mu, dtype=float)
         ci_result.centroid_distances.append(float(np.linalg.norm(current - canonical)))
         ci_result.gt_distances.append(float(np.linalg.norm(current - oracle.ground_truth_centroids)))
-        ci_result.iks_values.append(float(ci._compute_iks(persist_artifacts=False)))
+        ci_result.iks_values.append(
+            float(ci._compute_iks(persist_artifacts=False, skip_history_scan=True))
+        )
 
         if baseline.promoted_poisoned_rule:
             base_index, base_probabilities = baseline.poisoned_score(factors, category, oracle)
@@ -337,12 +365,20 @@ def run_three_arms(
         hand_result.conservation_states.append(hand.get_conservation_state())
         hand_result.centroid_distances.append(float(np.linalg.norm(np.asarray(hand._scorer.centroids) - hand._canonical_mu)))
         hand_result.gt_distances.append(float(np.linalg.norm(np.asarray(hand._scorer.centroids) - oracle.ground_truth_centroids)))
-        hand_result.iks_values.append(float(hand._compute_iks(persist_artifacts=False)))
+        hand_result.iks_values.append(
+            float(hand._compute_iks(persist_artifacts=False, skip_history_scan=True))
+        )
 
         if step == poison_at:
             _evaluate_poisoned_rule(ci_result, baseline_result, baseline)
 
-    tg1 = run_tg1(config, oracle_config, output)
+    tg1 = run_tg1(
+        config,
+        oracle_config,
+        output,
+        graph_store=shared_store,
+        graph_namespace=f"s2p:{run_id}:tg1",
+    )
     result = {
         "arm_1_ci": ci_result.to_dict(),
         "arm_2_reward_max": baseline_result.to_dict(),
@@ -350,6 +386,7 @@ def run_three_arms(
         "tg1": tg1,
         "metadata": {
             "domain": "s2p",
+            "run_id": run_id,
             "n_decisions": n_decisions,
             "same_stream": True,
             "poisoned_rule": {
@@ -360,6 +397,53 @@ def run_three_arms(
         },
     }
     (output / "engine_result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
-    _close_scorer(ci)
-    _close_scorer(hand)
     return result
+
+
+def run_three_arms(
+    config: GeneratorConfig,
+    oracle_config: OracleConfig,
+    n_decisions: int = 500,
+    output_dir: str | Path = ".",
+    *,
+    profile: str | None = "development",
+    run_id: str | None = None,
+) -> dict[str, Any]:
+    """Run all arms over one shared graph with per-arm namespace isolation."""
+
+    if profile is not None and profile.strip().lower() == "production":
+        raise ValueError(
+            "The S2P differentiation engine uses an in-memory graph store; "
+            "profile='production' is unsupported"
+        )
+    shared_store = InMemoryGraphStore(domain="s2p")
+    run_id = run_id or uuid4().hex[:8]
+    ci: CompoundingScorer | None = None
+    hand: CompoundingScorer | None = None
+    try:
+        ci = _make_scorer(
+            shared_store,
+            graph_namespace=f"s2p:{run_id}:ci",
+            enable_rl=True,
+        )
+        hand = _make_scorer(
+            shared_store,
+            graph_namespace=f"s2p:{run_id}:hand",
+            enable_rl=False,
+        )
+        return _run_three_arms_with_scorers(
+            config,
+            oracle_config,
+            n_decisions,
+            output_dir,
+            ci=ci,
+            hand=hand,
+            shared_store=shared_store,
+            run_id=run_id,
+        )
+    finally:
+        if ci is not None:
+            _close_scorer(ci)
+        if hand is not None:
+            _close_scorer(hand)
+        shared_store.close()

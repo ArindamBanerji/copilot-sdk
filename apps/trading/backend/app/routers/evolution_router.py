@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import json
-import os
-from pathlib import Path
 from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException, Request
@@ -25,8 +22,6 @@ from app.services.trading_evolver import (
 )
 
 GraphStoreFactory = Callable[[], Any]
-DEFAULT_REJECTION_LOG_PATH = Path(__file__).resolve().parents[2] / "state" / "evolution_log.json"
-REJECTION_LOG_ENV = "TRADING_EVOLUTION_LOG_PATH"
 
 
 class ShadowTestRequest(BaseModel):
@@ -89,10 +84,15 @@ def create_trading_evolution_router(
 
     @router.get("/rejection-summary")
     def rejection_summary(request: Request) -> dict[str, Any]:
-        persisted = _load_persisted_rejection_summary() if use_persisted_rejections else None
+        persisted = (graph_store_factory().get_evolution(domain, "preseed_rejection_summary")
+                     if use_persisted_rejections and graph_store_factory is not None else None)
+        persisted_entries = [
+            {**entry, "provenance": entry.get("provenance") or persisted.get("provenance") or "learned"}
+            for entry in persisted.get("rejected_variants", []) if isinstance(entry, dict)
+        ] if persisted else []
         entries = _merge_rejection_entries(
             _trading_rejection_entries(service),
-            persisted.get("rejected_variants", []) if persisted else [],
+            persisted_entries,
         )
         promoted = [
             entry for entry in service.evolution_log()
@@ -113,13 +113,15 @@ def create_trading_evolution_router(
                 breakdown[reason] += 1
         persisted_tested = int(persisted.get("total_tested") or 0) if persisted else 0
         persisted_promoted = int(persisted.get("total_promoted") or 0) if persisted else 0
+        origins = {entry["provenance"] for entry in entries}
+        provenance = next(iter(origins)) if len(origins) == 1 else "mixed" if origins else "learned"
         return {
             "total_tested": max(len(tested), persisted_tested),
             "total_promoted": max(len(promoted), persisted_promoted),
             "total_rejected": len(entries),
             "rejection_breakdown": breakdown,
             "rejected_variants": entries[:10],
-            "provenance": "learned",
+            "provenance": provenance,
         }
 
     @router.get("/active")
@@ -152,7 +154,7 @@ def create_trading_evolution_router(
     @router.post("/generate")
     @serialize_mutation(domain, event="evolution")
     def generate_variant() -> dict[str, Any]:
-        return service.generate_variant()
+        return dict(service.generate_variant())
 
     @router.post("/shadow-test")
     @serialize_mutation(domain, event="evolution")
@@ -167,12 +169,12 @@ def create_trading_evolution_router(
             if variant is None:
                 variant = service.generate_variant()
         decisions = request.decisions or _demo_decisions()
-        return service.shadow_test(variant, decisions, batch_size=request.batch_size)
+        return dict(service.shadow_test(variant, decisions, batch_size=request.batch_size))
 
     @router.post("/promote")
     @serialize_mutation(domain, event="evolution")
     def promote(request: PromoteRequest) -> dict[str, Any]:
-        return service.promote(request.variant_id)
+        return dict(service.promote(request.variant_id))
 
     @router.post("/apply")
     @serialize_mutation(domain, event="evolution")
@@ -286,26 +288,9 @@ def _trading_rejection_entries(service: TradingAgentEvolver) -> list[dict[str, A
             "reason": reason,
             "detail": _rejection_detail(reason, check, entry),
             "tested_at": entry.get("created_at"),
+            "provenance": entry.get("provenance") or "learned",
         })
     return rejected
-
-
-def _rejection_log_path() -> Path:
-    configured = os.environ.get(REJECTION_LOG_ENV)
-    return Path(configured) if configured else DEFAULT_REJECTION_LOG_PATH
-
-
-def _load_persisted_rejection_summary(path: Path | None = None) -> dict[str, Any] | None:
-    log_path = path or _rejection_log_path()
-    if not log_path.exists():
-        return None
-    try:
-        payload = json.loads(log_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    if not isinstance(payload, dict):
-        return None
-    return payload
 
 
 def _merge_rejection_entries(
@@ -324,6 +309,7 @@ def _merge_rejection_entries(
             "reason": str(raw_entry.get("reason") or "correctness_floor"),
             "detail": str(raw_entry.get("detail") or "promotion gate rejected variant"),
             "tested_at": raw_entry.get("tested_at") or raw_entry.get("created_at"),
+            "provenance": str(raw_entry.get("provenance") or "learned"),
         }
     return list(merged.values())
 

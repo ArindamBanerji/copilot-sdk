@@ -17,7 +17,7 @@ from copilot_sdk.scoring.scorer import CompoundingScorer
 
 @pytest.mark.parametrize("domain", ["purchasing", "trading", "dataops"])
 def test_waiting_score_does_not_block_reads(tmp_path: Path, domain: str) -> None:
-    scorer = CompoundingScorer.from_preset(domain, db_path=str(tmp_path / "score.db"), profile="test")
+    scorer = CompoundingScorer.from_preset(domain,  profile="test")
     app = FastAPI()
     app.include_router(create_scoring_router(domain, scorer_factory=lambda: scorer))
 

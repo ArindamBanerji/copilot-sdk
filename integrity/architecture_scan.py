@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import os
 import re
 from collections import Counter
 from dataclasses import dataclass
@@ -12,7 +13,7 @@ from typing import Iterable, Pattern
 
 SDK_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = SDK_ROOT.parent
-SKIP_DIRS = {".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", "__pycache__", "node_modules", "dist", "build", ".venv", "venv"}
+SKIP_DIRS = {".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", "__pycache__", "node_modules", "dist", "build", ".venv", "venv", ".codex_tmp", ".tox", "htmlcov", ".eggs"}
 
 
 @dataclass(frozen=True)
@@ -68,18 +69,10 @@ MERGE_BASELINE_EXEMPTIONS = (
 # Exact known SQLite boundaries. Duplicate tuples preserve the number of known
 # occurrences, so an additional identical call in the same file is still caught.
 SQLITE_ALLOWED_OCCURRENCES = (
-    # SDK local signal cache.
-    ("copilot-sdk/copilot_sdk/backend/signal_store.py", 'sqlite3.connect(":memory:", check_same_thread=False)'),
-    ("copilot-sdk/copilot_sdk/backend/signal_store.py", "db = self._memory if self._memory is not None else sqlite3.connect(self.db_path, timeout=30)"),
     # SDK local variant, graph, outcome, pilot, promotion, and outbox stores.
-    ("copilot-sdk/copilot_sdk/evolution/variant_store.py", "self._connection = sqlite3.connect("),
     ("copilot-sdk/copilot_sdk/graph/outbox.py", "self._connection = sqlite3.connect(self.path, check_same_thread=False, timeout=30.0)"),
-    ("copilot-sdk/copilot_sdk/graph/sqlite_store.py", "self._conn: sqlite3.Connection | None = sqlite3.connect("),
     ("copilot-sdk/copilot_sdk/migration/rehearsal.py", "with sqlite3.connect(path) as connection:"),
     ("copilot-sdk/copilot_sdk/outbox/store.py", "self._conn = sqlite3.connect(str(self.db_path), check_same_thread=False)"),
-    ("copilot-sdk/copilot_sdk/outcome/ledger.py", "self._connection = sqlite3.connect(self.db_path, check_same_thread=False)"),
-    ("copilot-sdk/copilot_sdk/pilot/transfer.py", "self._connection = sqlite3.connect(db_path, check_same_thread=False)"),
-    ("copilot-sdk/copilot_sdk/promotion/core.py", "self._connection = sqlite3.connect(db_path, check_same_thread=False)"),
     ("copilot-sdk/copilot_sdk/scoring/persistence_outbox.py", "connection = sqlite3.connect(self.db_path, timeout=30.0)"),
     # SQLite-to-AGE migration source reads (four db_path and two source connections).
     ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as conn:"),
@@ -88,17 +81,16 @@ SQLITE_ALLOWED_OCCURRENCES = (
     ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as conn:"),
     ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(db_path) as source_conn:"),
     ("copilot-sdk/copilot_sdk/migrate/sqlite_to_age.py", "with sqlite3.connect(source_db) as source_conn:"),
+    ("copilot-sdk/copilot_sdk/migrate/legacy_archive_reader.py", "with sqlite3.connect(uri, uri=True) as connection:"),
     # App-local stores retained as known legacy boundaries.
     ("copilot-sdk/apps/dataops/backend/app/dataops_governance.py", "self._db = sqlite3.connect(str(db_path), check_same_thread=False)"),
     ("copilot-sdk/apps/dataops/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
     ("copilot-sdk/apps/purchasing/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
-    ("copilot-sdk/apps/purchasing/backend/app/services/purchasing_control.py", "self._db = sqlite3.connect(self.path, check_same_thread=False)"),
     ("copilot-sdk/apps/trading/backend/app/cli_sdk.py", "conn = sqlite3.connect(backup_path)"),
     ("copilot-sdk/apps/trading/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
     ("s2p-copilot/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
     ("s2p-copilot/backend/app/services/proposal_service.py", "self._connection = sqlite3.connect(db_path, check_same_thread=False)"),
     ("gen-ai-roi-demo-v4-v50/backend/app/main.py", "self.conn = sqlite3.connect(path, check_same_thread=False)"),
-    ("gen-ai-roi-demo-v4-v50/backend/app/services/authority_ladder.py", "self._audit = sqlite3.connect(self.db_path, check_same_thread=False)"),
 )
 PURCHASING_LANGUAGE_BASELINE_EXEMPTIONS = (
     "copilot-sdk/apps/purchasing/backend/app/evidence_provider.py",
@@ -148,16 +140,16 @@ LITERAL_CHECKS = (
 
 
 def _iter_files(root: Path, extensions: tuple[str, ...]) -> Iterable[Path]:
-    if not root.exists():
+    if not root.exists() or any(part in SKIP_DIRS or part == "tests" for part in root.parts):
         return
-    for path in root.rglob("*"):
-        if not path.is_file() or path.suffix not in extensions:
-            continue
-        if any(part in SKIP_DIRS for part in path.parts):
-            continue
-        if "tests" in path.parts or path.name.startswith("test_"):
-            continue
-        yield path
+    for directory, dirnames, filenames in os.walk(root, topdown=True):
+        # Prune before descent, rather than traversing generated trees then
+        # discarding their files. Source roots and scan rules are unchanged.
+        dirnames[:] = [name for name in dirnames if name not in SKIP_DIRS and name != "tests"]
+        for name in filenames:
+            path = Path(directory) / name
+            if path.suffix in extensions and not name.startswith("test_") and path.is_file():
+                yield path
 
 
 def _iter_py_files(root: Path) -> Iterable[Path]:

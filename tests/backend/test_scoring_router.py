@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
-from uuid import uuid4
 from unittest.mock import Mock
 
 import pytest
@@ -18,7 +17,7 @@ from copilot_sdk.backend import scoring_router as scoring_router_module
 from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
 from copilot_sdk.backend.models import LearnResponse
 from copilot_sdk.backend.scoring_router import create_scoring_router
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
@@ -314,10 +313,10 @@ class GraphStoreBackedScorer(FakeScorer):
         )
 
 
-class SQLiteL5Scorer(FakeScorer):
-    def __init__(self, db_path: Path) -> None:
+class MemoryL5Scorer(FakeScorer):
+    def __init__(self) -> None:
         super().__init__()
-        self.graph_store = SQLiteGraphStore(db_path, domain="test")
+        self.graph_store = InMemoryGraphStore(domain="test")
         self._preset = SimpleNamespace(
             shape=SimpleNamespace(n_categories=3),
             penalty_ratio=1.0,
@@ -589,7 +588,13 @@ def _count_store(*, verified, correct, total, categories):
             if index < verified[domain]:
                 store.write_outcome(decision_id, "approve" if index < correct[domain] else "review",
                                     index < correct[domain], domain=domain)
-    for method in ("count_verified", "count_correct", "count_verified_decisions", "count_categories_with_n"):
+    for method in (
+        "count_verified",
+        "count_correct",
+        "count_verified_decisions",
+        "count_categories_with_n",
+        "get_verified_decisions",
+    ):
         setattr(store, method, Mock(wraps=getattr(store, method)))
     return store
 
@@ -632,7 +637,6 @@ def build_client(
     scorer: FakeScorer | None = None,
     learning_store: Any | None = None,
     outcome_recorder: Any | None = None,
-    query_cache_invalidator: Any | None = None,
 ) -> TestClient:
     fake = scorer or FakeScorer()
     app = FastAPI()
@@ -642,7 +646,6 @@ def build_client(
             scorer_factory=lambda: fake,
             learning_store=learning_store,
             outcome_recorder=outcome_recorder,
-            query_cache_invalidator=query_cache_invalidator,
         )
     )
     return TestClient(app)
@@ -675,7 +678,7 @@ def test_score_and_learn_rebuild_tab_state_from_invalidated_materializer(monkeyp
     )
     monkeypatch.setattr(invalidation, "_CACHES", {})
     register_tab_state_cache(cache)
-    client = build_client(scorer=scorer, query_cache_invalidator=mat.invalidate)
+    client = build_client(scorer=scorer)
     response = client.post("/score", json={
         "category": "pipeline_failure", "factors": {"impact_scope": 0.5},
     })
@@ -792,22 +795,16 @@ def test_learn_conservation_pause_returns_learn_response_shape():
     assert payload["reason"] == "conservation_red"
 
 
-def test_learn_success_records_evolution_outcome_and_invalidates_cache():
+def test_learn_success_records_evolution_outcome():
     scorer = FakeScorer()
     recorded: list[tuple[dict[str, Any], bool]] = []
-    invalidations = 0
 
     def outcome_recorder(payload: dict[str, Any], success: bool) -> None:
         recorded.append((payload, success))
 
-    def query_cache_invalidator() -> None:
-        nonlocal invalidations
-        invalidations += 1
-
     client = build_client(
         scorer=scorer,
         outcome_recorder=outcome_recorder,
-        query_cache_invalidator=query_cache_invalidator,
     )
     client.post(
         "/score",
@@ -820,8 +817,6 @@ def test_learn_success_records_evolution_outcome_and_invalidates_cache():
             "metadata": {"variant_id": "variant-a"},
         },
     )
-    invalidations = 0
-
     response = client.post(
         "/learn",
         json={"decision_id": "dec-1", "actual_action": "auto_approve"},
@@ -833,7 +828,6 @@ def test_learn_success_records_evolution_outcome_and_invalidates_cache():
         {"decision_id": "dec-1", "category": "pipeline_failure", "variant_id": "variant-a"},
         True,
     )]
-    assert invalidations == 1
 
 
 @pytest.mark.parametrize(
@@ -849,21 +843,15 @@ def test_learn_blocked_skips_evolution_outcome_and_success_side_effects(
     expected_reason: str,
 ):
     recorded: list[tuple[dict[str, Any], bool]] = []
-    invalidations = 0
     learning_store = _learning_store()
 
     def outcome_recorder(payload: dict[str, Any], success: bool) -> None:
         recorded.append((payload, success))
 
-    def query_cache_invalidator() -> None:
-        nonlocal invalidations
-        invalidations += 1
-
     client = build_client(
         scorer=scorer,
         learning_store=learning_store,
         outcome_recorder=outcome_recorder,
-        query_cache_invalidator=query_cache_invalidator,
     )
     client.post(
         "/score",
@@ -876,8 +864,6 @@ def test_learn_blocked_skips_evolution_outcome_and_success_side_effects(
             "metadata": {"variant_id": "variant-a"},
         },
     )
-    invalidations = 0
-
     response = client.post(
         "/learn",
         json={"decision_id": "dec-1", "actual_action": "auto_approve"},
@@ -888,7 +874,6 @@ def test_learn_blocked_skips_evolution_outcome_and_success_side_effects(
     assert payload["paused"] is True
     assert payload["pause_reason"] == expected_reason
     assert recorded == []
-    assert invalidations == 0
     assert _updates(learning_store, "update_centroid") == []
 
 
@@ -1014,7 +999,7 @@ def test_learn_with_explicit_zero_previous_reward_keeps_zero_and_default_multipl
 
 
 def test_conservation_metrics_use_real_category_coverage(tmp_path):
-    scorer = SQLiteL5Scorer(tmp_path / "metrics.sqlite")
+    scorer = MemoryL5Scorer()
     decision_id = scorer.score({"business_criticality": 0.8}, "pipeline_failure").decision_id
     scorer.learn(decision_id, "auto_approve")
 
@@ -1050,8 +1035,8 @@ def test_conservation_metrics_use_explicit_domain_for_all_counts():
         ("count_verified", "dataops"),
         ("count_correct", "dataops"),
         ("count_verified_decisions", "dataops"),
-        ("count_categories_with_n", "dataops"),
-    }.issubset({(method, call.args[0]) for method in ("count_verified", "count_correct", "count_verified_decisions", "count_categories_with_n") for call in getattr(store, method).call_args_list})
+        ("get_verified_decisions", "dataops"),
+    }.issubset({(method, call.args[0]) for method in ("count_verified", "count_correct", "count_verified_decisions", "get_verified_decisions") for call in getattr(store, method).call_args_list})
 
 
 def test_conservation_metrics_do_not_bleed_between_live_domains():
@@ -1074,7 +1059,7 @@ def test_conservation_metrics_do_not_bleed_between_live_domains():
 
 
 def test_learn_persists_l5_conservation_state_with_graph_store(tmp_path):
-    scorer = SQLiteL5Scorer(tmp_path / "l5.sqlite")
+    scorer = MemoryL5Scorer()
     client = build_client(domain="test", scorer=scorer)
     decision_id = client.post(
         "/score",
@@ -1099,7 +1084,7 @@ def test_learn_persists_l5_conservation_state_with_graph_store(tmp_path):
 
 
 def test_learn_persists_old_status_from_l5_store(tmp_path):
-    scorer = SQLiteL5Scorer(tmp_path / "old-status.sqlite")
+    scorer = MemoryL5Scorer()
     learning_store = _learning_store(status="RED")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
@@ -1138,7 +1123,7 @@ def test_learn_without_l5_store_remains_silent_noop():
 
 
 def test_learn_l5_get_failure_is_non_fatal(tmp_path):
-    scorer = SQLiteL5Scorer(tmp_path / "get-failure.sqlite")
+    scorer = MemoryL5Scorer()
     learning_store = _learning_store(fail_method="get_conservation_state")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(
@@ -1157,7 +1142,7 @@ def test_learn_l5_get_failure_is_non_fatal(tmp_path):
 
 
 def test_learn_l5_update_failure_is_non_fatal(tmp_path):
-    scorer = SQLiteL5Scorer(tmp_path / "update-failure.sqlite")
+    scorer = MemoryL5Scorer()
     learning_store = _learning_store(fail_method="update_conservation_state")
     client = build_client(domain="test", scorer=scorer, learning_store=learning_store)
     decision_id = client.post(

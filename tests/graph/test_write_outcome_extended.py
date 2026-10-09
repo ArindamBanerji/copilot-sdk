@@ -2,21 +2,22 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore]:
     graph_store: GraphStore
     if request.param == "memory":
         graph_store = InMemoryGraphStore(domain="test")
     else:
-        graph_store = SQLiteGraphStore(tmp_path / "extended.sqlite", domain="test")
+        graph_store = make_memory_store(tmp_path / "extended.sqlite", domain="test")
     try:
         yield graph_store
     finally:
@@ -24,13 +25,13 @@ def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore
 
 
 def _write_decision(store: GraphStore) -> str:
-    return store.write_decision(
+    return cast(str, store.write_decision(
         "test",
         category="quality",
         action="approve",
         confidence=0.9,
         factors={"risk": 0.1},
-    )
+    ))
 
 
 def test_write_outcome_sets_quality_signal(store: GraphStore) -> None:
@@ -91,3 +92,5 @@ def test_write_outcome_without_soc_metadata_still_sets_core_projection(
     assert decision["correct"] is True
     assert decision["status"] == "confirmed"
     assert decision.get("quality_signal") is None
+
+

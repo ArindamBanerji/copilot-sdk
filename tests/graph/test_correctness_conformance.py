@@ -3,20 +3,21 @@ from __future__ import annotations
 import inspect
 from pathlib import Path
 from collections.abc import Iterator
+from typing import cast
 
 import pytest
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.protocol import GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore]:
     if request.param == "memory":
         graph_store: GraphStore = InMemoryGraphStore(domain="test")
     else:
-        graph_store = SQLiteGraphStore(tmp_path / "correctness.sqlite", domain="test")
+        graph_store = make_memory_store(tmp_path / "correctness.sqlite", domain="test")
     try:
         yield graph_store
     finally:
@@ -24,13 +25,13 @@ def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[GraphStore
 
 
 def _write_decision(store: GraphStore, index: int) -> str:
-    return store.write_decision(
+    return cast(str, store.write_decision(
         "test",
         category="correctness",
         action=f"action-{index}",
         confidence=0.9,
         factors={"index": index},
-    )
+    ))
 
 
 def test_write_outcome_sets_d_correct(store) -> None:
@@ -92,3 +93,5 @@ def test_age_count_correct_query_is_property_only() -> None:
     assert "HAS_OUTCOME" not in method_source
     assert "o.is_correct" not in method_source
     assert "d.correct = true" in method_source
+
+

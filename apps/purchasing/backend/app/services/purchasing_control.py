@@ -2,23 +2,20 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
-import sqlite3
-import threading
 from pathlib import Path
 from typing import Any, Mapping, cast
 
 from starlette.datastructures import MutableHeaders
 
 from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
-from copilot_sdk.outcome import OutcomeLedger, OutcomeProcessor, VerifiedOutcome
+from copilot_sdk.outcome import OutcomeProcessor, VerifiedOutcome
 from copilot_sdk.promotion import PromotionEngine, PromotionStage, PurchasingPromotionPolicy
 from copilot_sdk.evolution import GraphOutcomeLedger, GraphProofLedger, GraphPromotionStore
-from copilot_sdk.twin import FrozenTwin, FrozenTwinStore
+from copilot_sdk.twin import FrozenTwin
 from copilot_sdk.twin.store import GraphFrozenTwinStore
-from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.graph.protocol import ProtocolV2GraphStore
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 
 
@@ -168,46 +165,17 @@ class PurchasingEvidenceMiddleware:
         await send({"type": "http.response.body", "body": encoded})
 
 
-class ProofLedger:
-    """Persistent, thread-safe decision/outcome evidence ledger."""
-
-    def __init__(self, path: str | Path) -> None:
-        self.path = str(path)
-        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
-        self._lock = threading.RLock()
-        self._db = sqlite3.connect(self.path, check_same_thread=False)
-        self._db.row_factory = sqlite3.Row
-        self._db.execute("CREATE TABLE IF NOT EXISTS proof_entries (entry_id TEXT PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL, created_at REAL NOT NULL DEFAULT (unixepoch('now')))" )
-        self._db.commit()
-
-    def record(self, kind: str, payload: Mapping[str, Any]) -> None:
-        entry_id = hashlib.sha256(json.dumps([kind, payload], sort_keys=True, default=str).encode()).hexdigest()
-        with self._lock:
-            self._db.execute("INSERT OR IGNORE INTO proof_entries(entry_id, kind, payload) VALUES (?, ?, ?)", (entry_id, kind, json.dumps(dict(payload), sort_keys=True, default=str)))
-            self._db.commit()
-
-    def list_entries(self, limit: int = 100) -> list[dict[str, Any]]:
-        with self._lock:
-            rows = self._db.execute("SELECT kind, payload, created_at FROM proof_entries ORDER BY created_at DESC LIMIT ?", (max(1, min(int(limit), 1000)),)).fetchall()
-        return [{"kind": str(row["kind"]), "payload": json.loads(str(row["payload"])), "created_at": row["created_at"]} for row in rows]
-
-
 class PurchasingControlService:
-    def __init__(self, graph_store_factory: Any, scorer_provider: Any, data_dir: Path, *, profile: str | None = None) -> None:
+    def __init__(self, graph_store_factory: Any, scorer_provider: Any) -> None:
         self.graph_store_factory = graph_store_factory
         self.scorer_provider = scorer_provider
         graph_store = graph_store_factory()
-        age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
-        if resolve_profile(profile, domain="purchasing") == "production" and not age_events:
-            raise RuntimeError("production Purchasing control requires graph-backed proof and outcome ledgers")
-        self.proof = GraphProofLedger(graph_store, "purchasing") if age_events else ProofLedger(data_dir / "purchasing_proof_ledger.sqlite3")
-        self.outcomes = GraphOutcomeLedger(graph_store, "purchasing") if age_events else OutcomeLedger(data_dir / "purchasing_verified_outcomes.sqlite3")
+        if not isinstance(graph_store, ProtocolV2GraphStore):
+            raise RuntimeError("Purchasing control requires a protocol-v2 graph store")
+        self.proof = GraphProofLedger(graph_store, "purchasing")
+        self.outcomes = GraphOutcomeLedger(graph_store, "purchasing")
         self.processor = OutcomeProcessor(self.outcomes)
-        self.twin = FrozenTwin(
-            GraphFrozenTwinStore(graph_store, "purchasing")
-            if callable(getattr(graph_store, "save_promotion", None))
-            else FrozenTwinStore(data_dir / "frozen_twins")
-        )
+        self.twin = FrozenTwin(GraphFrozenTwinStore(graph_store, "purchasing"))
         try:
             self.twin.load("purchasing")
         except FileNotFoundError:
@@ -266,7 +234,27 @@ class PurchasingControlService:
         return {"proof_curve": {"decisions": len(decisions), "verified": len(verified), "correct": correct}, "competence_curve": {"accuracy": round(correct / len(verified), 4) if verified else 0.0}, "entries": entries, "attribution": "verified outcomes only; no synthetic uplift", "honest_dollars": 0.0, "source": "graphstore + proof ledger"}
 
     def list_entries(self) -> list[dict[str, Any]]:
-        return cast(list[dict[str, Any]], self.proof.list_entries())
+        """Return the latest 100 proof entries in the adapter's newest-first order."""
+        if not isinstance(self.proof, GraphProofLedger):
+            return cast(list[dict[str, Any]], self.proof.list_entries())
+        # Optional backend filters are hints. Enforce the proof contract before
+        # limiting results, so unrelated evolution events cannot crowd out proof.
+        rows = self._store().get_evolution_events(
+            "purchasing", event_type="proof_record", limit=PURCHASING_EVOLUTION_EVENT_CAP,
+        )
+        entries: list[dict[str, Any]] = []
+        for row in rows:
+            if row.get("event_type") != "proof_record":
+                continue
+            metadata = row.get("metadata") or {}
+            if isinstance(metadata, str):
+                metadata = json.loads(metadata)
+            entries.append({
+                "kind": metadata.get("kind"),
+                "payload": metadata.get("payload", {}),
+                "created_at": row.get("created_at"),
+            })
+        return entries[:100]
 
     def readiness(self) -> dict[str, Any]:
         decisions, outcomes = self._decisions(), self._verified()

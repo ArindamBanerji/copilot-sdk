@@ -12,7 +12,7 @@ from integrity.load_benchmark import load_benchmark
 
 
 def _trading_scorer() -> CompoundingScorer:
-    return CompoundingScorer.from_preset("trading", db_path=":memory:", profile="test")
+    return CompoundingScorer.from_preset("trading",  profile="test")
 
 
 def _feed_decisions(scorer: CompoundingScorer, count: int) -> None:

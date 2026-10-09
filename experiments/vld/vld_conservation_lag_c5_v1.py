@@ -16,10 +16,10 @@ it reuses the same case-generation utility style as the K-learning script and
 reimplements the two checks so each per-decision gate state is observable.
 """
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import argparse
 import json
 import random
-import sqlite3
 from collections import Counter
 from pathlib import Path
 from statistics import mean, pstdev
@@ -316,9 +316,6 @@ def _category_distribution_for_break(categories: list[str], pre_break: bool) -> 
     return [value / total for value in dist]
 
 
-class SQLiteDecisionStore:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def _run_stream(
@@ -344,7 +341,7 @@ def _run_stream(
     drift_direction = np.zeros(len(factor_names), dtype=np.float64)
     drift_seen = False
 
-    learning_store = KUtilityStore(SQLiteDecisionStore(), d=len(factor_names))
+    learning_store = KUtilityStore(InMemoryGraphStore(), d=len(factor_names))
     verified_decisions: list[dict[str, Any]] = []
     per_decision: list[dict[str, Any]] = []
     gate_pause_at: int | None = None

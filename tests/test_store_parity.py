@@ -10,7 +10,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.scorer import CompoundingScorer, _factor_names_hash
 
@@ -21,7 +22,7 @@ DOMAIN = "parity_test"
 def _stores(tmp_path: Path) -> list[Any]:
     stores: list[Any] = [
         InMemoryGraphStore(domain=DOMAIN),
-        SQLiteGraphStore(str(tmp_path / "parity.sqlite"), domain=DOMAIN),
+        make_memory_store(str(tmp_path / "parity.sqlite"), domain=DOMAIN),
     ]
 
     # AGE is opt-in and always receives a fresh disposable graph.
@@ -256,3 +257,4 @@ def test_count_verified_correct_parity(stores: list[Any]) -> None:
         store.write_outcome(second, "reject", False, domain=DOMAIN)
         assert store.count_verified(DOMAIN) == 2
         assert store.count_correct(DOMAIN) == 1
+

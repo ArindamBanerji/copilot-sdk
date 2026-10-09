@@ -7,6 +7,7 @@ import numpy as np
 from copilot_sdk.evolution.conservation_contract import evaluate_conservation_safety
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
 from gae.kernels import L2Kernel
 from integrity.load_benchmark import (
@@ -54,37 +55,41 @@ def test_dk_weights_improve_scoring_when_active() -> None:
 
 def test_conservation_prevents_bad_automation() -> None:
     train, _ = load_benchmark_split()
-    scorer = train_scorer("trading", train, 200)
-    green_state = scorer.get_conservation_state()
-    green = evaluate_conservation_safety(green_state)
-    assert green.promotion_allowed is True
-
-    gate = DefaultPromotionGate(
-        min_shadow_decisions=1,
-        accuracy_floor=0.0,
-        superiority_threshold_pp=-100.0,
-        alpha=1.0,
-    )
+    gate = DefaultPromotionGate()
     promotable_shadow = {
-        "total": 100,
-        "baseline_total": 100,
+        "total": 1000,
+        "baseline_total": 1000,
         "sufficient": True,
         "accuracy": 0.9,
         "baseline_accuracy": 0.1,
         "batch_accuracies": [0.9, 0.9, 0.9],
     }
-    green_gate = gate.evaluate(promotable_shadow, conservation_state=green_state)
-    assert green_gate["checks"]["conservation"] is True
+    for correct, expected_status in ((True, "GREEN"), (False, "RED")):
+        scorer = _fresh()
+        for row in train[:10]:
+            scored = scorer.score(row["factors"], str(row["category"]))
+            actual = scored.action if correct else next(
+                action for action in scorer._preset.shape.action_names
+                if action != scored.action
+            )
+            learned = scorer.learn(
+                scored.decision_id, actual,
+                persist_artifacts=False,
+            )
+            assert not isinstance(learned, dict)
 
-    # Exercise the production contract with a concrete unsafe snapshot. The
-    # scorer's conservation panel is derived from its store and cannot be
-    # forced RED by replacing fixture outcomes after the fact.
-    red_state = {"status": "RED"}
-    red = evaluate_conservation_safety(red_state)
-    assert red.available is True
-    assert red.promotion_allowed is False
-    red_gate = gate.evaluate(promotable_shadow, conservation_state=red_state)
-    assert red_gate["checks"]["conservation"] is False
+        state = scorer.get_conservation_state()
+        assert state["verified_count"] == 10
+        assert state["correct_count"] == (10 if correct else 0)
+        signal = state["alpha"] * state["q"] * state["verified_count"]
+        assert (signal > state["theta_min"]) is correct
+        assert state["status"] == expected_status
+        safety = evaluate_conservation_safety(state)
+        assert safety.available
+        assert safety.promotion_allowed is correct
+        result = gate.evaluate(promotable_shadow, conservation_state=state)
+        assert result["promoted"] is correct
+        assert result["failed_checks"] == ([] if correct else ["conservation"])
 
 
 def test_sparse_disruption_preserves_learned_predictions() -> None:
@@ -168,39 +173,44 @@ def test_iks_increases_monotonically() -> None:
     assert values[0] < values[1] < values[2]
 
 
-def test_penalty_asymmetry_is_conservative() -> None:
+def test_penalty_multiplier_increases_override_movement() -> None:
+    class UnitPenaltyPreset(TradingPreset):
+        @property
+        def penalty_ratio(self) -> float:
+            return 1.0
+
     train, _ = load_benchmark_split()
     row = train[0]
     action = row["outcome"]["actual_action"]
 
-    confirmed = _fresh()
-    confirmed_decision = confirmed.score(row["factors"], str(row["category"]))
-    confirmed_before = np.asarray(confirmed._scorer.centroids).copy()
-    confirmed.learn(
-        confirmed_decision.decision_id,
-        confirmed_decision.action,
-        context={"benchmark": True},
-        persist_artifacts=False,
+    penalized = _fresh()
+    unpenalized = _fresh()
+    unpenalized._preset = UnitPenaltyPreset()
+    assert penalized._preset.penalty_ratio > unpenalized._preset.penalty_ratio == 1.0
+    np.testing.assert_array_equal(
+        penalized.gae_scorer.centroids, unpenalized.gae_scorer.centroids
     )
-    confirmed_movement = float(
-        np.linalg.norm(np.asarray(confirmed._scorer.centroids) - confirmed_before)
-    )
+    decisions = [
+        scorer.score(row["factors"], str(row["category"]))
+        for scorer in (penalized, unpenalized)
+    ]
+    assert decisions[0].action == decisions[1].action != action
+    category_index = penalized._preset.shape.category_names.index(str(row["category"]))
+    action_index = penalized._preset.shape.action_names.index(decisions[0].action)
+    movements: list[float] = []
+    for scorer, decision in zip((penalized, unpenalized), decisions, strict=True):
+        before = scorer.gae_scorer.centroids[category_index, action_index].copy()
+        learned = scorer.learn(
+            decision.decision_id, action,
+            context={"benchmark": True}, persist_artifacts=False,
+        )
+        assert not isinstance(learned, dict)
+        movements.append(float(np.linalg.norm(
+            scorer.gae_scorer.centroids[category_index, action_index] - before
+        )))
 
-    overridden = _fresh()
-    overridden_decision = overridden.score(row["factors"], str(row["category"]))
-    assert overridden_decision.action != action
-    overridden_before = np.asarray(overridden._scorer.centroids).copy()
-    overridden.learn(
-        overridden_decision.decision_id,
-        action,
-        context={"benchmark": True},
-        persist_artifacts=False,
-    )
-    override_movement = float(
-        np.linalg.norm(np.asarray(overridden._scorer.centroids) - overridden_before)
-    )
-
-    assert override_movement > confirmed_movement
+    # Both updates override the same action from identical starting geometry.
+    assert movements[0] > movements[1] > 0.0
 
 
 def test_signal_transfer_works() -> None:

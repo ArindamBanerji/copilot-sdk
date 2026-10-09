@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime, timezone
 from typing import Any
@@ -15,8 +16,8 @@ from copilot_sdk.evolution.variant_store import (
     VariantStats,
     VARIANT_STATUSES,
 )
-from copilot_sdk.promotion.core import PromotionRecord
-from copilot_sdk.outcome.models import VerifiedOutcome
+from copilot_sdk.promotion.core import PromotionStore
+from copilot_sdk.outcome.ledger import OutcomeLedger
 
 _STATUS_ORDER = {"shadow": 0, "active": 1, "promoted": 2, "retired": 3}
 
@@ -25,7 +26,7 @@ def _events(
     store: ProtocolV2GraphStore, domain: str, event_type: str | None = None
 ) -> list[dict[str, Any]]:
     kwargs = {} if event_type is None else {"event_type": event_type}
-    return [dict(row) for row in store.get_evolution_events(domain, limit=10_000, **kwargs)]
+    return [dict(row) for row in store.get_evolution_events(domain, limit=None, **kwargs)]
 
 
 def create_variant_store(
@@ -62,18 +63,22 @@ def _event_epoch(event: dict[str, Any]) -> float | None:
             return None
 
 
+def _event_sequence(event: dict[str, Any]) -> int | None:
+    value = _metadata(event).get("replay_sequence")
+    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else None
+
+
 def _ordered_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [
-        event
-        for _index, event in sorted(
-            enumerate(events),
-            key=lambda item: (
-                _event_epoch(item[1]) is None,
-                _event_epoch(item[1]) if _event_epoch(item[1]) is not None else float(item[0]),
-                item[0],
-            ),
-        )
-    ]
+    def order(item: tuple[int, dict[str, Any]]) -> tuple[bool, float, bool, int, str]:
+        index, event = item
+        epoch = _event_epoch(event)
+        sequence = _event_sequence(event)
+        # Legacy ties retain their incoming order, before newly sequenced writes.
+        return (epoch is None, epoch if epoch is not None else float(index),
+                sequence is not None, sequence if sequence is not None else index,
+                str(event.get("event_id") or ""))
+
+    return [event for _index, event in sorted(enumerate(events), key=order)]
 
 
 def _events_after_latest_reset(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -96,7 +101,7 @@ def _latest_reset_epoch_id(events: list[dict[str, Any]]) -> str | None:
 
 def _latest_variant_specs(events: list[dict[str, Any]]) -> list[VariantSpec]:
     latest: dict[str, VariantSpec] = {}
-    times: dict[str, tuple[float | None, int]] = {}
+    times: dict[str, tuple[float | None, bool, int]] = {}
     for event in events:
         spec_data = _metadata(event).get("spec")
         if not isinstance(spec_data, dict):
@@ -104,7 +109,10 @@ def _latest_variant_specs(events: list[dict[str, Any]]) -> list[VariantSpec]:
         identifier = str(spec_data["id"])
         timestamp = _event_epoch(event)
         status = str(spec_data.get("status", "active"))
-        current = (timestamp, _STATUS_ORDER.get(status, -1))
+        sequence = _event_sequence(event)
+        # Sequence orders new writes; status rank only resolves legacy ties.
+        current = (timestamp, sequence is not None,
+                   sequence if sequence is not None else _STATUS_ORDER.get(status, -1))
         previous = times.get(identifier)
         if (
             timestamp is not None
@@ -132,11 +140,14 @@ class GraphVariantStore:
     def _all_events(self) -> list[dict[str, Any]]:
         return _events(self.graph_store, self.domain)
 
+    def _next_replay_sequence(self) -> int:
+        # Derive from persisted events so ordering survives adapter recreation.
+        return max((_event_sequence(event) or 0 for event in self._all_events()), default=0) + 1
+
     def _active_events(self, event_type: str | None = None) -> list[dict[str, Any]]:
         events = _events_after_latest_reset(self._all_events())
-        if event_type is not None:
-            events = [event for event in events if str(event.get("event_type") or "") == event_type]
-        return events
+        return [event for event in events
+                if event_type is None or event.get("event_type") == event_type]
 
     def _variant_events(self) -> list[dict[str, Any]]:
         return self._active_events("variant_registered")
@@ -164,11 +175,11 @@ class GraphVariantStore:
             event_type="variant_registered",
             rule_name=spec.family,
             variant_id=spec.id,
-            metadata={"spec": {"id": spec.id, "family": spec.family, "version": spec.version, "template": spec.template, "status": spec.status, "metadata": spec.metadata}},
+            metadata={"replay_sequence": self._next_replay_sequence(), "spec": {"id": spec.id, "family": spec.family, "version": spec.version, "template": spec.template, "status": spec.status, "metadata": spec.metadata}},
         )
 
     def _specs(self) -> list[VariantSpec]:
-        # AGE returns newest first; SQLite returns the selected rows oldest first.
+        # Reconstruct specifications from graph events in chronological order.
         return _latest_variant_specs(self._variant_events())
 
     def get_variant(self, variant_id: str) -> VariantSpec | None:
@@ -222,7 +233,7 @@ class GraphVariantStore:
         self.graph_store.write_evolution_event(
             event_id=f"variant-outcome:{self.domain}:{uuid4().hex}", domain=self.domain,
             event_type="variant_outcome", rule_name="variant", variant_id=variant_id,
-            metadata={"success": bool(success), "category": category, "recorded_at": datetime.now(timezone.utc).isoformat()},
+            metadata={"replay_sequence": self._next_replay_sequence(), "success": bool(success), "category": category, "recorded_at": datetime.now(timezone.utc).isoformat()},
         )
 
     def record_category_outcome(self, category: str, variant_id: str, success: bool) -> None:
@@ -237,7 +248,7 @@ class GraphVariantStore:
         self.graph_store.write_evolution_event(
             event_id=f"variant-status:{self.domain}:{uuid4().hex}", domain=self.domain,
             event_type="variant_registered", rule_name=spec.family, variant_id=variant_id,
-            metadata={"spec": {"id": spec.id, "family": spec.family, "version": spec.version, "template": spec.template, "status": new_status, "metadata": spec.metadata}},
+            metadata={"replay_sequence": self._next_replay_sequence(), "spec": {"id": spec.id, "family": spec.family, "version": spec.version, "template": spec.template, "status": new_status, "metadata": spec.metadata}},
         )
 
     def reset(self) -> None:
@@ -248,88 +259,22 @@ class GraphVariantStore:
             event_type="variant_reset",
             rule_name="variant_epoch",
             variant_id="epoch",
-            metadata={"epoch_id": epoch_id, "reset_at": datetime.now(timezone.utc).isoformat()},
+            metadata={"replay_sequence": self._next_replay_sequence(), "epoch_id": epoch_id, "reset_at": datetime.now(timezone.utc).isoformat()},
         )
 
     def reset_stats_only(self) -> None:
-        raise RuntimeError("AGE evolution history is append-only; reset is not supported")
-
-
-class GraphPromotionStore:
-    """PromotionStore-compatible adapter backed by domain-scoped AGE state."""
-
-    def __init__(self, graph_store: ProtocolV2GraphStore, domain: str) -> None:
-        self.graph_store = graph_store
-        self.domain = str(domain)
-
-    def save(self, record: PromotionRecord) -> None:
-        self.graph_store.save_promotion(
-            self.domain, record.record_id, {"record": record.to_dict()}
-        )
-
-    def _records(self) -> dict[str, PromotionRecord]:
-        result: dict[str, PromotionRecord] = {}
-        for event in self.graph_store.list_promotions(self.domain):
-            raw = event.get("record")
-            if isinstance(raw, dict):
-                record = PromotionRecord.from_dict(raw)
-                result[record.record_id] = record
-        return result
-
-    def load(self, record_id: str) -> PromotionRecord | None:
-        return self._records().get(record_id)
-
-    def load_by_class(self, copilot: str, decision_class: str) -> PromotionRecord | None:
-        return next((r for r in self._records().values() if r.copilot == copilot and r.decision_class == decision_class), None)
-
-    def list_all(self, copilot: str) -> list[PromotionRecord]:
-        return [r for r in self._records().values() if r.copilot == copilot]
+        raise RuntimeError("Evolution history is append-only; reset is not supported")
 
     def close(self) -> None:
-        return None
+        """The caller owns the injected graph store."""
 
 
-class GraphOutcomeLedger:
-    """OutcomeLedger-compatible AGE event adapter."""
+class GraphPromotionStore(PromotionStore):
+    """Compatibility name for graph-only promotion persistence."""
 
-    def __init__(self, graph_store: ProtocolV2GraphStore, domain: str) -> None:
-        self.graph_store = graph_store
-        self.domain = str(domain)
 
-    def append(self, outcome: VerifiedOutcome) -> bool:
-        receipt_id = outcome.receipt_id()
-        if self.get(receipt_id) is not None:
-            return False
-        self.graph_store.write_evolution_event(
-            event_id=f"verified-outcome:{self.domain}:{receipt_id}",
-            domain=self.domain, event_type="verified_outcome", rule_name=outcome.category,
-            variant_id=outcome.decision_id, metadata={"receipt": outcome.to_dict()},
-        )
-        return True
-
-    def _receipts(self) -> list[VerifiedOutcome]:
-        result: list[VerifiedOutcome] = []
-        for event in _events(self.graph_store, self.domain, "verified_outcome"):
-            raw = _metadata(event).get("receipt")
-            if isinstance(raw, dict):
-                result.append(VerifiedOutcome.from_dict(raw))
-        return result
-
-    def get(self, receipt_id: str) -> VerifiedOutcome | None:
-        return next((item for item in self._receipts() if item.receipt_id() == receipt_id), None)
-
-    def exists(self, receipt_id: str) -> bool:
-        return self.get(receipt_id) is not None
-
-    def count(self, copilot: str, category: str | None = None) -> int:
-        return sum(item.copilot == copilot and (category is None or item.category == category) for item in self._receipts())
-
-    def list_recent(self, copilot: str, limit: int = 100) -> list[VerifiedOutcome]:
-        rows = [item for item in self._receipts() if item.copilot == copilot]
-        return rows[-max(1, min(int(limit), 10_000)) :][::-1]
-
-    def close(self) -> None:
-        return None
+class GraphOutcomeLedger(OutcomeLedger):
+    """Compatibility name for graph-only verified outcome persistence."""
 
 
 class GraphProofLedger:
@@ -342,7 +287,7 @@ class GraphProofLedger:
     def record(self, kind: str, payload: dict[str, Any]) -> None:
         stable = json.dumps([kind, payload], sort_keys=True, default=str)
         self.graph_store.write_evolution_event(
-            event_id=f"proof:{self.domain}:{uuid4().hex}", domain=self.domain,
+            event_id=f"proof:{self.domain}:{hashlib.sha256(stable.encode()).hexdigest()}", domain=self.domain,
             event_type="proof_record", rule_name=str(kind), variant_id="proof",
             metadata={"kind": kind, "payload": dict(payload), "stable": stable},
         )
@@ -351,8 +296,8 @@ class GraphProofLedger:
         rows = self.graph_store.get_evolution_events(
             self.domain, event_type="proof_record", limit=max(1, min(int(limit), 1000))
         )
-        entries = [{"kind": _metadata(row).get("kind"), "payload": _metadata(row).get("payload", {}), "created_at": row.get("created_at")} for row in rows]
-        return entries[-max(1, min(int(limit), 1000)) :][::-1]
+        entries = [{"kind": _metadata(row).get("kind"), "payload": _metadata(row).get("payload", {}), "created_at": _event_epoch(row)} for row in rows]
+        return entries[:max(0, min(int(limit), 1000))]
 
     def close(self) -> None:
         return None

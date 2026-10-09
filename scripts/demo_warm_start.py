@@ -6,10 +6,9 @@ Usage:
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
 from typing import Any
 
+from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
 from copilot_sdk.transfer import SharedPatternRegistry, TransferPattern
 
@@ -18,8 +17,8 @@ SOURCE_COPILOT = "dataops"
 TARGET_COPILOT = "trading"
 
 
-def build_transfer_registry() -> SharedPatternRegistry:
-    registry = SharedPatternRegistry()
+def build_transfer_registry(graph_store: GraphStore) -> SharedPatternRegistry:
+    registry = SharedPatternRegistry(graph_store, TARGET_COPILOT)
     registry.register(
         TransferPattern(
             pattern_id="",
@@ -58,17 +57,14 @@ def build_transfer_registry() -> SharedPatternRegistry:
 
 
 def run_demo() -> dict[str, Any]:
-    db_dir = Path(tempfile.mkdtemp())
     source = CompoundingScorer.from_preset(
         SOURCE_COPILOT,
-        db_path=str(db_dir / f"{SOURCE_COPILOT}.db"),
     )
     target = CompoundingScorer.from_preset(
         TARGET_COPILOT,
-        db_path=str(db_dir / f"{TARGET_COPILOT}.db"),
     )
     try:
-        registry = build_transfer_registry()
+        registry = build_transfer_registry(target.graph_store)
         factors = {
             name: 0.5
             for name in target._preset.shape.factor_names

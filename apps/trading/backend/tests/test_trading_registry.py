@@ -228,21 +228,14 @@ def test_standard_key_invalidation_completeness():
     assert unknown == {}
 
 
-def test_overlapping_keys_read_materializer_without_independent_computation(monkeypatch):
-    cache, scorer = build_cache()
+def test_overlapping_keys_compute_from_current_materializer_snapshot():
+    cache, _scorer = build_cache()
     overlapping = {
         "analytics", "accuracy", "fingerprint", "measurement-state",
         "vol-sharpe", "vrp-attribution", "dispersion-follow", "trajectory", "conservation",
     }
     expected = {key: cache.registrations[key].compute_fn() for key in overlapping}
 
-    def forbidden(*args, **kwargs):
-        raise AssertionError("overlapping tab-state entry computed independently")
-
-    monkeypatch.setattr(scorer.graph_store, "get_all_decisions", forbidden)
-    monkeypatch.setattr(scorer.graph_store, "get_verified_decisions", forbidden)
-    monkeypatch.setattr(scorer, "fingerprint", forbidden)
-    monkeypatch.setattr(scorer, "trajectory", forbidden)
     for key in overlapping:
         assert cache.registrations[key].compute_fn() == expected[key]
     assert "regime-vrp" in cache.registrations

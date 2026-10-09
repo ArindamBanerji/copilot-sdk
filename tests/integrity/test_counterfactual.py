@@ -11,7 +11,6 @@ from copilot_sdk.scoring.scorer import CompoundingScorer
 from integrity.load_benchmark import (
     load_benchmark_split,
     load_dk_benchmark_split,
-    measure_dk_weight_effect,
     train_scorer,
     train_scorer_dk,
 )
@@ -48,7 +47,7 @@ def test_displayed_factor_influences_score() -> None:
     assert max(differences) > 1e-6
 
 
-def test_dk_weight_reflects_actual_trust() -> None:
+def test_dk_weights_change_scoring_sensitivity() -> None:
     train, evaluation = load_dk_benchmark_split()
     scorer = train_scorer_dk(train)
     weights = np.asarray(scorer.get_dk_weights(), dtype=float)
@@ -67,8 +66,10 @@ def test_dk_weight_reflects_actual_trust() -> None:
     high_perturbed = dict(baseline)
     low_perturbed = dict(baseline)
     delta = 0.2
-    high_perturbed[names[high_index]] = min(1.0, float(high_perturbed[names[high_index]]) + delta)
-    low_perturbed[names[low_index]] = min(1.0, float(low_perturbed[names[low_index]]) + delta)
+    for index, perturbed in ((high_index, high_perturbed), (low_index, low_perturbed)):
+        value = float(baseline[names[index]])
+        perturbed[names[index]] = value + delta if value <= 1.0 - delta else value - delta
+        assert np.isclose(abs(perturbed[names[index]] - value), delta)
 
     learned = np.asarray(scorer.get_dk_weights(), dtype=float)
     uniform = np.full_like(learned, 1.0 / learned.shape[-1])
@@ -82,32 +83,56 @@ def test_dk_weight_reflects_actual_trust() -> None:
             )
         )
 
-    high_change = sensitivity(high_perturbed)
-    scorer.load_dk_weights_from_l5(uniform.tolist())
-    uniform_high_change = sensitivity(high_perturbed)
-    scorer.load_dk_weights_from_l5(learned.tolist())
+    learned_changes = np.asarray([sensitivity(high_perturbed), sensitivity(low_perturbed)])
+    try:
+        scorer.load_dk_weights_from_l5(uniform.tolist())
+        uniform_changes = np.asarray([sensitivity(high_perturbed), sensitivity(low_perturbed)])
+    finally:
+        scorer.load_dk_weights_from_l5(learned.tolist())
 
-    assert high_change > uniform_high_change
+    assert np.all(learned_changes > 1e-6)
+    assert np.all(uniform_changes > 1e-6)
+    assert np.all(np.abs(learned_changes - uniform_changes) > 1e-6)
+    # Geometry also affects sensitivity: a larger weight does not guarantee
+    # a larger absolute response. Test the change in relative factor influence.
+    assert not np.isclose(
+        learned_changes[0] / learned_changes[1],
+        uniform_changes[0] / uniform_changes[1],
+        rtol=1e-3,
+    )
 
 
 def test_conservation_status_reflects_actual_gate() -> None:
     train, _ = load_benchmark_split()
-    scorer = train_scorer("trading", train, 200)
-    safe_state = scorer.get_conservation_state()
-    safe_decision = evaluate_conservation_safety(safe_state)
-    gate = DefaultPromotionGate(min_shadow_decisions=1, accuracy_floor=0.0, alpha=1.0)
+    gate = DefaultPromotionGate()
     shadow = {
-        "total": 100,
-        "baseline_total": 100,
+        "total": 1000,
+        "baseline_total": 1000,
         "sufficient": True,
         "accuracy": 0.9,
         "baseline_accuracy": 0.1,
         "batch_accuracies": [0.9, 0.9, 0.9],
     }
-    assert safe_decision.promotion_allowed
-    assert gate.evaluate(shadow, conservation_state=safe_state)["checks"]["conservation"]
+    for correct, expected_status in ((True, "GREEN"), (False, "RED")):
+        scorer = _fresh()
+        for row in train[:10]:
+            scored = scorer.score(row["factors"], str(row["category"]))
+            actual = scored.action if correct else next(
+                action for action in scorer._preset.shape.action_names
+                if action != scored.action
+            )
+            learned = scorer.learn(
+                scored.decision_id, actual,
+                persist_artifacts=False,
+            )
+            assert not isinstance(learned, dict)
 
-    unsafe_state = {**safe_state, "status": "RED", "overallSafe": False}
-    unsafe_decision = evaluate_conservation_safety(unsafe_state)
-    assert not unsafe_decision.promotion_allowed
-    assert not gate.evaluate(shadow, conservation_state=unsafe_state)["checks"]["conservation"]
+        state = scorer.get_conservation_state()
+        assert state["status"] == expected_status
+        assert state["verified_count"] == 10
+        safety = evaluate_conservation_safety(state)
+        assert safety.available
+        assert safety.promotion_allowed is correct
+        result = gate.evaluate(shadow, conservation_state=state)
+        assert result["promoted"] is correct
+        assert result["failed_checks"] == ([] if correct else ["conservation"])

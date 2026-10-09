@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -81,7 +81,7 @@ def _client(service: DIQueryService) -> TestClient:
 
     @app.post("/api/dataops/query")
     def compatibility_query(payload: dict[str, Any]) -> dict[str, Any]:
-        return service.execute(payload).model_dump()
+        return cast(dict[str, Any], service.execute(payload).model_dump())
 
     return TestClient(app)
 
@@ -134,6 +134,20 @@ def test_aggregation_executes_through_provider() -> None:
     body = _client(_service(provider=provider)).post("/api/di/query", json={"question": "Total revenue"}).json()
     assert provider.executed_plans[0].metric == "revenue"
     assert body["answer"] == "$1,266"
+
+
+def test_repeated_query_executes_provider_each_time() -> None:
+    provider = FakeProvider(_rows())
+    service = _service(provider=provider)
+    request = {"question": "How many decisions?"}
+
+    first = service.execute(request)
+    second = service.execute(request)
+
+    assert len(provider.executed_plans) == 2
+    assert first.metadata.cache == "miss"
+    assert second.metadata.cache == "miss"
+    assert first.metadata.query_id != second.metadata.query_id
 
 
 def test_time_window_filtering() -> None:

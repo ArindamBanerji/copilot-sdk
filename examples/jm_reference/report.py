@@ -188,7 +188,7 @@ th {{ background: #f5f5f5; }} footer {{ margin-top: 30px; color: #546e7a; }}
 </head>
 <body>
 <h1>Judgment Memory — Compounding Report</h1>
-<p>Oracle-separated synthetic reference run; SQLite-backed, zero server.</p>
+<p>Oracle-separated synthetic reference run; graph-backed; offline mode uses memory.</p>
 <div class="metrics">
 <div class="metric">Run A ε_firm: <strong>{a_eps:.4f}</strong> ({'above' if a_eps > 0.128 else 'below'} 0.128)</div>
 <div class="metric {'green' if b_eps <= 0.128 else 'amber'}">Run B ε_firm: <strong>{b_eps:.4f}</strong> ({'above' if b_eps > 0.128 else 'below'} 0.128)</div>

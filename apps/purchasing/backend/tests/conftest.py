@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.config import GraphConfig
 
 
@@ -95,13 +95,12 @@ def client(tmp_path, temp_data_dir) -> TestClient:
     create_app = import_module("app.main").create_app
 
     db_path = tmp_path / "purchasing_test.db"
-    store = SQLiteGraphStore(str(db_path), domain="purchasing", decision_id_prefix="PUR-")
-    _seed_ae_events(store)
     app = create_app(db_path=db_path, demo_bundle_path=False, profile="test")
+    _seed_ae_events(app.state.graph_store)
     return TestClient(app)
 
 
-def _seed_ae_events(store: SQLiteGraphStore) -> None:
+def _seed_ae_events(store: GraphStore) -> None:
     store.save_evolution_event(
         domain="purchasing",
         event_type="promotion_approved",

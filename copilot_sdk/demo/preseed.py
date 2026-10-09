@@ -2,39 +2,87 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
-import os
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 import numpy as np
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.outbox.models import OutboxEventType, SupplierReliabilitySignal
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.state import get_tab_state_cache
 
 
 DEFAULT_SEED = 20260711
 MIN_DEMO_IKS = 25.0
-TRADING_REJECTION_LOG_ENV = "TRADING_EVOLUTION_LOG_PATH"
 
 
-def _warm_tab_state_caches(copilots: dict[str, Any]) -> None:
-    async def warm_all() -> None:
-        for copilot in copilots:
-            cache = get_tab_state_cache(copilot)
-            if cache is not None:
-                await cache.warm_up()
+DEMO_DOMAINS = ("trading", "purchasing", "dataops", "s2p", "soc")
+CROSS_COPILOT_DOMAIN = "demo:cross_copilot"
+CROSS_COPILOT_SIGNAL_KEY = "demo-supplier-reliability"
 
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        asyncio.run(warm_all())
-    else:
-        loop.create_task(warm_all())
+
+def create_demo_graph() -> InMemoryGraphStore:
+    """Create a fresh offline demo graph; callers share the returned instance."""
+    return InMemoryGraphStore(domain="demo")
+
+
+def build_demo_scorers(
+    graph_store: GraphStore | None = None, *, profile: str | None = None,
+) -> dict[str, CompoundingScorer]:
+    """Build all demo scorers on one borrowed graph, with separate domains.
+
+    Omitting the store explicitly selects offline mode. Injected stores retain
+    normal profile resolution and production validation and are never closed.
+    """
+    if graph_store is None:
+        graph_store = create_demo_graph()
+        profile = profile if profile is not None else "offline"
+    return {
+        domain: CompoundingScorer.from_preset(
+            domain, graph_store=graph_store, storage_domain=domain,
+            enable_rl=False, profile=profile,
+        )
+        for domain in DEMO_DOMAINS
+    }
+
+
+def _cross_copilot_signal_payload() -> dict[str, Any]:
+    signal = SupplierReliabilitySignal(
+        supplier_name="Northstar Foods",
+        reliability_pct=74.0,
+        previous_pct=86.0,
+        delta=-12.0,
+        trend="declining",
+        source_copilot="purchasing",
+        target_copilot="s2p",
+        timestamp=1_785_000_000.0,
+        ttl_days=7,
+        provenance="signal",
+    )
+    payload = signal.__dict__.copy()
+    return {
+        "synthetic": True,
+        "evidence_tier": "T-sim",
+        "event_type": OutboxEventType.SUPPLIER_RELIABILITY_SIGNAL,
+        "payload": payload,
+        "active": True,
+        "banner": {
+            "supplier": payload["supplier_name"],
+            "message": "Purchasing flagged Northstar Foods: reliability 74%",
+            "provenance": "signal",
+        },
+    }
+
+
+def seed_cross_copilot_signal(graph_store: GraphStore) -> str:
+    """Persist the labelled demo signal and verify its complete graph readback."""
+    payload = _cross_copilot_signal_payload()
+    graph_store.save_governance(CROSS_COPILOT_DOMAIN, CROSS_COPILOT_SIGNAL_KEY, payload)
+    if graph_store.get_governance(CROSS_COPILOT_DOMAIN, CROSS_COPILOT_SIGNAL_KEY) != payload:
+        raise RuntimeError("Demo cross-copilot signal governance readback failed")
+    return CROSS_COPILOT_SIGNAL_KEY
 
 
 @dataclass
@@ -108,11 +156,17 @@ class DemoPreseed:
         "purchasing": 20,
     }
 
-    def __init__(self, seed: int = DEFAULT_SEED, fast_mode: bool = False):
+    def __init__(
+        self, seed: int = DEFAULT_SEED, fast_mode: bool = False, *,
+        graph_store: GraphStore | None = None, profile: str | None = None,
+    ) -> None:
         self.seed = int(seed)
         self.fast_mode = bool(fast_mode)
         self.rng = np.random.RandomState(self.seed)
         self._result: DemoPreseedResult | None = None
+        self.graph_store: GraphStore = graph_store if graph_store is not None else create_demo_graph()
+        effective_profile = profile if profile is not None or graph_store is not None else "offline"
+        self._scorers = build_demo_scorers(self.graph_store, profile=effective_profile)
 
     def preseed_all(self) -> DemoPreseedResult:
         """Preseed all five copilots. Idempotent for this instance."""
@@ -135,7 +189,6 @@ class DemoPreseed:
                 cross_copilot_signal=self.seed_cross_copilot_signal(),
             )
             self.verify(self._result)
-            _warm_tab_state_caches(self._result.copilots)
         return self._result
 
     def preseed_trading(self) -> CopilotPreseedResult:
@@ -144,7 +197,7 @@ class DemoPreseed:
             {
                 "variant_id": f"TRADING_AE_v{i}",
                 "reason": "conservation",
-                "detail": "conservation gate not GREEN",
+                "detail": "conservation gate not passed",
                 "tested_at": f"2026-07-11T00:0{i}:00Z",
                 "provenance": "synthetic",
             }
@@ -172,37 +225,28 @@ class DemoPreseed:
         return result
 
     def seed_cross_copilot_signal(self) -> dict[str, Any]:
-        signal = SupplierReliabilitySignal(
-            supplier_name="Northstar Foods",
-            reliability_pct=74.0,
-            previous_pct=86.0,
-            delta=-12.0,
-            trend="declining",
-            source_copilot="purchasing",
-            target_copilot="s2p",
-            timestamp=1_785_000_000.0,
-            ttl_days=7,
-            provenance="signal",
+        signal_id = seed_cross_copilot_signal(self.graph_store)
+        payload: dict[str, Any] | None = self.graph_store.get_governance(
+            CROSS_COPILOT_DOMAIN, signal_id,
         )
-        payload = signal.__dict__.copy()
-        return {
-            "event_type": OutboxEventType.SUPPLIER_RELIABILITY_SIGNAL,
-            "payload": payload,
-            "active": True,
-            "banner": {
-                "supplier": payload["supplier_name"],
-                "message": "Purchasing flagged Northstar Foods: reliability 74%",
-                "provenance": "signal",
-            },
-        }
+        if payload is None:
+            raise RuntimeError("Demo cross-copilot signal disappeared after readback")
+        return payload
 
     def verify(self, result: DemoPreseedResult | None = None) -> None:
         result = result or self.preseed_all()
         for name, copilot in result.copilots.items():
+            scorer = self._scorers.get(name)
+            if scorer is None:
+                raise ValueError(f"{name} live conservation scorer is unavailable")
+            conservation = scorer.get_conservation_state()
+            current_status = str(conservation.get("status") or conservation.get("state") or "")
+            if current_status != copilot.conservation:
+                raise ValueError(f"{name} conservation changed during verification")
+            if not bool(conservation.get("passed", False)):
+                raise ValueError(f"{name} live conservation check did not pass")
             if not self.fast_mode and copilot.iks <= MIN_DEMO_IKS:
                 raise ValueError(f"{name} IKS is too flat for demo: {copilot.iks}")
-            if copilot.conservation == "RED":
-                raise ValueError(f"{name} conservation is RED")
             for metric_name, metric in copilot.headline_metrics.items():
                 if metric.get("provenance") == "sample":
                     raise ValueError(f"F-26: sample headline metric {name}.{metric_name}")
@@ -214,17 +258,7 @@ class DemoPreseed:
             raise ValueError("S2P cross-copilot signal missing")
 
     def _preseed_domain(self, domain: str) -> CopilotPreseedResult:
-        from copilot_sdk.config import resolve_profile
-        if resolve_profile(domain=domain) == "production":
-            raise RuntimeError(
-                "InMemory demo preseed is restricted to explicit test/offline profiles"
-            )
-        store = InMemoryGraphStore(domain=domain)
-        scorer = CompoundingScorer.from_preset(
-            domain,
-            graph_store=store,
-            enable_rl=False,
-        )
+        scorer = self._scorers[domain]
         shape = scorer._preset.shape
         total = (
             self._FAST_TARGET_COUNTS.get(domain, self._TARGET_COUNTS[domain])
@@ -268,7 +302,7 @@ class DemoPreseed:
             else:
                 actual_action = shape.action_names[(score.action_index + 1) % len(shape.action_names)]
                 outcome = "overridden"
-            last_learn = scorer.learn(
+            last_learn = scorer._learn_preseed(
                 score.decision_id,
                 actual_action,
                 outcome=outcome,
@@ -288,7 +322,14 @@ class DemoPreseed:
         iks = float(scorer._compute_iks())
         scorer.fingerprint(persist=True)
         accuracy = round(correct_count / learned_count, 3) if learned_count else 0.0
-        conservation = "CALIBRATING" if domain == "soc" and total < 300 else "GREEN"
+        conservation_payload = scorer.get_conservation_state()
+        conservation = str(
+            conservation_payload.get("status")
+            or conservation_payload.get("state")
+            or ""
+        )
+        if not conservation:
+            raise RuntimeError(f"{domain} scorer returned no conservation status")
         return CopilotPreseedResult(
             name=domain,
             decisions=total,
@@ -333,8 +374,6 @@ class DemoPreseed:
         return values
 
     def _persist_trading_rejections(self, result: CopilotPreseedResult) -> None:
-        log_path = _trading_rejection_log_path()
-        log_path.parent.mkdir(parents=True, exist_ok=True)
         breakdown = {
             "correctness_floor": 0,
             "conservation": 0,
@@ -352,45 +391,6 @@ class DemoPreseed:
             "rejected_variants": result.rejected_variants,
             "provenance": "synthetic",
         }
-        log_path.write_text(
-            json.dumps(payload, sort_keys=True, indent=2) + "\n",
-            encoding="utf-8",
+        self._scorers["trading"].graph_store.save_evolution(
+            "trading", "preseed_rejection_summary", payload
         )
-
-
-def _trading_rejection_log_path() -> Path:
-    configured = os.environ.get(TRADING_REJECTION_LOG_ENV)
-    if configured:
-        return Path(configured)
-    return (
-        Path(__file__).resolve().parents[2]
-        / "apps"
-        / "trading"
-        / "backend"
-        / "state"
-        / "evolution_log.json"
-    )
-
-
-def run_preseed(seed: int = DEFAULT_SEED) -> DemoPreseedResult:
-    return DemoPreseed(seed=seed).preseed_all()
-
-
-def print_summary(result: DemoPreseedResult) -> None:
-    for name, copilot in sorted(result.copilots.items()):
-        print(
-            f"{name}: iks={copilot.iks:.1f} conservation={copilot.conservation} "
-            f"decisions={copilot.decisions}"
-        )
-    signal = result.cross_copilot_signal["payload"]
-    print(f"cross_signal: supplier={signal['supplier_name']} provenance={signal['provenance']}")
-
-
-__all__ = [
-    "DEFAULT_SEED",
-    "CopilotPreseedResult",
-    "DemoPreseed",
-    "DemoPreseedResult",
-    "print_summary",
-    "run_preseed",
-]

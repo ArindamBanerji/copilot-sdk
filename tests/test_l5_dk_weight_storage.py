@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from copilot_sdk.graph import GraphStore, InMemoryGraphStore, ProtocolV2GraphStore, SQLiteGraphStore
+from copilot_sdk.graph import GraphStore, InMemoryGraphStore, ProtocolV2GraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.graph.protocol import L5LearningStore
 
 
@@ -20,34 +21,20 @@ FORBIDDEN_WELFORD = {
 }
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Any:
     if request.param == "memory":
         return InMemoryGraphStore()
-    return SQLiteGraphStore(tmp_path / "l5-dk.sqlite")
+    return make_memory_store(tmp_path / "l5-dk.sqlite")
 
 
-def _parse_iso(value: object) -> datetime:
-    assert isinstance(value, str)
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+def _parse_timestamp(store: Any, value: object) -> datetime:
+    assert type(value) is float
+    return datetime.fromtimestamp(value, timezone.utc)
 
 
 def _sqlite_rows(store: Any, domain: str) -> list[dict[str, Any]]:
-    if not isinstance(store, SQLiteGraphStore):
-        return list(store._l5_dk_weights.get(domain, []))
-    return [
-        dict(row)
-        for row in store.connection.execute(
-            """
-            SELECT id, domain, weight_json, n_decisions_used, computed_at,
-                   supersedes_id, is_current, created_at
-            FROM l5_dk_weights
-            WHERE domain = ?
-            ORDER BY id
-            """,
-            (domain,),
-        ).fetchall()
-    ]
+    return list(store._l5_dk_weights.get(domain, []))
 
 
 def test_l5_dk_architecture_boundary() -> None:
@@ -57,8 +44,8 @@ def test_l5_dk_architecture_boundary() -> None:
     assert not hasattr(ProtocolV2GraphStore, "get_dk_weights")
     assert hasattr(L5LearningStore, "update_dk_weights")
     assert hasattr(L5LearningStore, "get_dk_weights")
-    assert hasattr(SQLiteGraphStore, "update_dk_weights")
-    assert hasattr(SQLiteGraphStore, "get_dk_weights")
+    assert hasattr(InMemoryGraphStore, "update_dk_weights")
+    assert hasattr(InMemoryGraphStore, "get_dk_weights")
     assert hasattr(InMemoryGraphStore, "update_dk_weights")
     assert hasattr(InMemoryGraphStore, "get_dk_weights")
 
@@ -87,7 +74,7 @@ def test_first_write_read_shape_and_types(store: Any) -> None:
     assert row["n_decisions_used"] == 12
     assert row["computed_at"] == 123.5
     assert row["supersedes_id"] is None
-    assert _parse_iso(row["created_at"])
+    assert _parse_timestamp(store, row["created_at"])
     assert row["domain"] == "s2p"
     assert row["welford_state"] is None
     assert row["n_confirmed"] is None
@@ -180,70 +167,8 @@ def test_get_dk_weights_returns_copy_safe_tensor(store: Any) -> None:
     assert second["weight_json"] == [[1.0, 2.0]]
 
 
-def test_sqlite_get_dk_weights_rejects_corrupt_ragged_json(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(tmp_path / "corrupt.sqlite")
-    store.update_dk_weights("s2p", [[0.1, 0.2], [0.3, 0.4]], 2, 11.0)
-    store.connection.execute(
-        """
-        UPDATE l5_dk_weights
-        SET weight_json = ?
-        WHERE domain = ? AND is_current = 1
-        """,
-        ("[[0.1],[0.2,0.3]]", "s2p"),
-    )
-    store.connection.commit()
-
-    with pytest.raises((TypeError, ValueError)):
-        store.get_dk_weights("s2p")
 
 
-def test_sqlite_schema_current_index_and_nullable_welford_columns(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(tmp_path / "schema.sqlite")
-    tables = {
-        row["name"]
-        for row in store.connection.execute(
-            "SELECT name FROM sqlite_master WHERE type = 'table'"
-        ).fetchall()
-    }
-    assert "l5_dk_weights" in tables
-
-    columns = {
-        row["name"]
-        for row in store.connection.execute("PRAGMA table_info(l5_dk_weights)").fetchall()
-    }
-    assert {
-        "id",
-        "domain",
-        "weight_json",
-        "n_decisions_used",
-        "computed_at",
-        "supersedes_id",
-        "is_current",
-        "created_at",
-        "confirmed_mean_json",
-        "confirmed_m2_json",
-        "overridden_mean_json",
-        "overridden_m2_json",
-        "all_mean_json",
-        "all_m2_json",
-        "n_confirmed",
-        "n_overridden",
-        "entity_group",
-    } <= columns
-    assert FORBIDDEN_WELFORD.isdisjoint(columns)
-
-    indexes = {
-        row["name"]
-        for row in store.connection.execute("PRAGMA index_list(l5_dk_weights)").fetchall()
-    }
-    assert "idx_l5_dk_weights_current_domain" in indexes
-    create_sql = store.connection.execute(
-        """
-        SELECT sql FROM sqlite_master
-        WHERE type = 'table' AND name = 'l5_dk_weights'
-        """
-    ).fetchone()["sql"]
-    assert "UNIQUE(domain)" not in create_sql
 
 
 @pytest.mark.parametrize(
@@ -293,3 +218,6 @@ def test_scalar_validation(store: Any) -> None:
         store.update_dk_weights("s2p", [[1.0]], -1, 1.0)
     with pytest.raises((TypeError, ValueError)):
         store.update_dk_weights("s2p", [[1.0]], 1, "bad-time")
+
+
+

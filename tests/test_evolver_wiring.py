@@ -2,34 +2,18 @@
 
 from __future__ import annotations
 
-import importlib
-import sys
 from pathlib import Path
-from types import ModuleType
 
 from copilot_sdk.evolution import PromptVariantEvolver
+from tests.evolution_contract_helpers import make_contract_app
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _load_app(copilot: str) -> ModuleType:
-    """Load an app package in isolation; Purchasing and DataOps both use ``app``."""
-
-    for name in list(sys.modules):
-        if name == "app" or name.startswith("app."):
-            del sys.modules[name]
-    backend = ROOT / "apps" / copilot / "backend"
-    sys.path.insert(0, str(backend))
-    try:
-        return importlib.import_module("app.main")
-    finally:
-        sys.path.remove(str(backend))
-
-
 def _evolver(copilot: str) -> PromptVariantEvolver:
-    app_module = _load_app(copilot)
-    evolver = app_module.app.state.evolver
+    app = make_contract_app(copilot)
+    evolver = app.state.evolver
     assert isinstance(evolver, PromptVariantEvolver)
     return evolver
 
@@ -41,8 +25,8 @@ def test_purchasing_evolver_instantiated() -> None:
 def test_purchasing_variants_registered() -> None:
     evolver = _evolver("purchasing")
     variants = evolver.store.get_all_variants()
-    assert sum(variant.status == "active" for variant in variants) == 6
-    assert sum(variant.status == "shadow" for variant in variants) == 6
+    assert sum(variant.status == "active" for variant in variants) == 1
+    assert sum(variant.status == "shadow" for variant in variants) == 1
 
 
 def test_purchasing_conservation_provider_live() -> None:
@@ -60,8 +44,8 @@ def test_dataops_evolver_instantiated() -> None:
 def test_dataops_variants_registered() -> None:
     evolver = _evolver("dataops")
     variants = evolver.store.get_all_variants()
-    assert sum(variant.status == "active" for variant in variants) == 2
-    assert sum(variant.status == "shadow" for variant in variants) == 2
+    assert sum(variant.status == "active" for variant in variants) == 1
+    assert sum(variant.status == "shadow" for variant in variants) == 1
 
 
 def test_dataops_conservation_provider_live() -> None:

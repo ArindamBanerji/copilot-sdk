@@ -7,6 +7,7 @@ regenerates the same seeded geometry-derived streams to a fixed horizon, and
 never calls or changes production gate behavior.
 """
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import hashlib
 import json
 import math
@@ -43,11 +44,6 @@ def load_geometry() -> dict[str, Any]:
     return cast(dict[str, Any], payload["copilots"])
 
 
-class _Store:
-    def __init__(self) -> None:
-        import sqlite3
-
-        self.conn = sqlite3.connect(":memory:")
 
 
 def _coverage(records: list[dict[str, Any]], n_categories: int) -> float:
@@ -82,7 +78,7 @@ def _stream(copilot: str, geometry: dict[str, Any], seed: int, scenario: str) ->
     post = c5._category_distribution_for_break(categories, False)
     drift_direction = np.zeros(len(factors), dtype=np.float64)
     drift_seen = False
-    store = c5.KUtilityStore(_Store(), d=len(factors))
+    store = c5.KUtilityStore(InMemoryGraphStore(), d=len(factors))
     verified: list[dict[str, Any]] = []
     rows: list[dict[str, Any]] = []
     for decision in range(1, TOTAL_DECISIONS + 1):

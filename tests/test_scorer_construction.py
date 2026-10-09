@@ -14,14 +14,13 @@ def test_test_profile_uses_in_memory_store():
     assert isinstance(scorer.graph_store, InMemoryGraphStore)
 
 
-def test_development_profile_uses_sqlite_store(tmp_path):
+def test_development_profile_uses_memory_store(tmp_path):
     scorer = CompoundingScorer.from_preset(
         "trading",
-        db_path=str(tmp_path / "trading.db"),
         profile="development",
         enable_rl=False,
     )
-    assert scorer.graph_store.__class__.__name__ == "SQLiteGraphStore"
+    assert scorer.graph_store.__class__.__name__ == "InMemoryGraphStore"
 
 
 def test_invalid_profile_raises():

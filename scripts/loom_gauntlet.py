@@ -81,12 +81,14 @@ class GauntletRunner:
         storyboard_path: Path = DEFAULT_STORYBOARD,
         skip_preseed: bool = False,
         skip_preflight: bool = False,
+        heroes: bool = False,
     ) -> None:
         self.copilots = tuple(copilots)
         self.report_path = report_path
         self.storyboard_path = storyboard_path
         self.skip_preseed = skip_preseed
         self.skip_preflight = skip_preflight
+        self.heroes = heroes
 
     def run(self) -> GauntletReport:
         started = time.monotonic()
@@ -95,6 +97,11 @@ class GauntletRunner:
             stages.append(self._command_stage("preseed", [sys.executable, "scripts/preseed_all_copilots.py"]))
         else:
             stages.append(StageResult("preseed", "skipped", 0.0))
+        if self.heroes:
+            selected = [name for name in self.copilots if name != "soc"]
+            if selected:
+                stages.append(self._command_stage("c1_heroes", [sys.executable,
+                    "scripts/preseed_hero_scenarios.py", "--domains", *selected]))
         if not self.skip_preflight:
             stages.append(self._command_stage("truth_preflight", [sys.executable, "scripts/demo_truth_preflight.py"]))
         else:
@@ -105,7 +112,8 @@ class GauntletRunner:
             port = hero_moments.COPILOTS[copilot]
             for beat in hero_moments.BEATS:
                 beat_started = time.monotonic()
-                result = hero_moments.run(copilot, port, beat)
+                runner = hero_moments.run_verified if self.heroes else hero_moments.run
+                result = runner(copilot, port, beat)
                 beats.append(
                     BeatResult(
                         copilot=copilot,
@@ -250,6 +258,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--storyboard", type=Path, default=DEFAULT_STORYBOARD)
     parser.add_argument("--json", action="store_true", help="Print the structured report after writing artifacts")
+    parser.add_argument("--heroes", action="store_true", help="Run the opt-in C-1 seed/verification phase after base preseed")
     return parser.parse_args(argv)
 
 
@@ -261,14 +270,24 @@ def main(argv: list[str] | None = None) -> int:
         storyboard_path=args.storyboard,
         skip_preseed=args.skip_preseed,
         skip_preflight=args.skip_preflight,
+        heroes=args.heroes,
     ).run()
     if args.json:
         print(json.dumps(report.to_dict(), indent=2, sort_keys=True, allow_nan=False))
     else:
-        passed = sum(beat.status in {"measured", "completed", "available", "blocked"} for beat in report.beats)
-        print(f"Loom gauntlet: {passed}/{len(report.beats)} beats produced a structured result")
+        passed = sum(beat.status in {"measured", "completed", "available"} for beat in report.beats)
+        blocked = sum(beat.status in {"blocked", "conservation_blocked"} for beat in report.beats)
+        failed = len(report.beats) - passed - blocked
+        print(f"Loom gauntlet: {passed}/{len(report.beats)} beats passed, {blocked} blocked, {failed} failed")
         print(f"Report: {report.report_path}")
         print(f"Storyboard: {report.storyboard_path}")
+    if args.heroes and any(stage.name == "c1_heroes" and stage.return_code != 0 for stage in report.stages):
+        return 1
+    if args.heroes and any(
+        any(check.get("passed") is not True for check in beat.after.get("c1_hero_checks", {}).values())
+        for beat in report.beats
+    ):
+        return 1
     return 0
 
 

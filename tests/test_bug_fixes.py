@@ -44,7 +44,7 @@ def _learn(scorer: CompoundingScorer, count: int) -> ScoreResult:
     last = None
     for _ in range(count):
         scored = scorer.score(factors, "trend_following")
-        scorer.learn(scored.decision_id, scored.action, context={"preseed": True})
+        scorer._learn_preseed(scored.decision_id, scored.action)
         last = scored
     assert last is not None
     return last

@@ -1,5 +1,5 @@
+from typing import cast
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -49,7 +49,7 @@ SCORED_OPTIONS_FACTORS = (
 
 def load_seed_trades() -> list[dict]:
     raw = json.loads(SEED_PATH.read_text(encoding="utf-8"))
-    return raw["trades"] if isinstance(raw, dict) else raw
+    return cast(list[dict], raw["trades"] if isinstance(raw, dict) else raw)
 
 
 def build_verified_decisions(trades: list[dict], preset: TradingPreset) -> list[dict]:
@@ -99,10 +99,9 @@ def test_preset_in_registry():
     assert PRESET_REGISTRY["trading"]().name == "trading"
 
 
-def test_from_preset_trading_works(tmp_path):
-    db_path = tmp_path / "trading.db"
+def test_from_preset_trading_works():
 
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(db_path), profile="test")
+    scorer = CompoundingScorer.from_preset("trading",  profile="test")
 
     assert scorer is not None
     scorer.graph_store.close()
@@ -248,9 +247,8 @@ def test_price_verification_unknown_ticker():
     assert result.current_price == result.entry_price
 
 
-def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
-    db_path = tmp_path / "trading_smoke.db"
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(db_path), profile="test")
+def test_end_to_end_score_learn_fingerprint_smoke():
+    scorer = CompoundingScorer.from_preset("trading",  profile="test")
     trade = load_seed_trades()[0]
 
     score = scorer.score(trade["factors"], trade["category"])
@@ -262,5 +260,3 @@ def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
     assert fingerprint.decisions_analyzed == 1
     assert trajectory.decisions_total == 1
     scorer.graph_store.close()
-    if db_path.exists():
-        os.remove(db_path)

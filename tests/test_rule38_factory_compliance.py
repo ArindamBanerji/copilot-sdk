@@ -8,7 +8,6 @@ from pathlib import Path
 import pytest
 
 from copilot_sdk.graph.factory import create_graph_store
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 from copilot_sdk.config import GraphConfigError
 
 
@@ -24,27 +23,16 @@ COPILOT_MAINS = (
     ("domain", "prefix"),
     (("trading", "TRD-"), ("purchasing", "PUR-"), ("dataops", "DOPS-")),
 )
-def test_factory_preserves_sqlite_decision_id_prefix(tmp_path, domain: str, prefix: str) -> None:
-    store = create_graph_store(profile="test",
-        backend="sqlite",
-        domain=domain,
-        db_path=tmp_path / f"{domain}.db",
-        decision_id_prefix=prefix,
-    )
-    assert isinstance(store, SQLiteGraphStore)
-    assert store.write_decision(domain, "category", "approve", 0.9, {}).startswith(prefix)
-    store.close()
+def test_factory_preserves_sqlite_decision_id_prefix_rejected(tmp_path, domain: str, prefix: str) -> None:
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(profile='test', backend='sqlite', domain=domain, db_path=tmp_path / f'{domain}.db', decision_id_prefix=prefix)
+    assert not list(tmp_path.glob("*.db"))
 
 
-def test_dual_write_without_dsn_fails_closed(tmp_path) -> None:
-    with pytest.raises(GraphConfigError):
-        create_graph_store(profile="test",
-            backend="dual_write",
-            domain="trading",
-            db_path=tmp_path / "trading.db",
-            decision_id_prefix="TRD-",
-            env={},
-        )
+def test_unsupported_backend_without_dsn_fails_closed_rejected(tmp_path) -> None:
+    with pytest.raises(GraphConfigError, match="invalid graph backend"):
+        create_graph_store(profile='test', backend='unsupported_backend', domain='trading', db_path=tmp_path / 'trading.db', decision_id_prefix='TRD-', env={})
+    assert not list(tmp_path.glob("*.db"))
 
 
 def test_sdk_copilot_main_helpers_call_create_graph_store(profile="test", ) -> None:
@@ -58,5 +46,24 @@ def test_sdk_copilot_main_helpers_call_create_graph_store(profile="test", ) -> N
             for node in ast.walk(helper)
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
         ]
-        assert any(node.func.id == "create_graph_store" for node in calls), path
-        assert not any(node.func.id == "SQLiteGraphStore" for node in calls), path
+        call_names = [node.func.id for node in calls if isinstance(node.func, ast.Name)]
+        assert "create_graph_store" in call_names, path
+        assert "make_memory_store" not in call_names, path
+
+
+@pytest.mark.parametrize(
+    ("domain", "prefix"),
+    (("trading", "TRD-"), ("purchasing", "PUR-"), ("dataops", "DOPS-")),
+)
+def test_factory_preserves_memory_decision_id_prefix(domain: str, prefix: str) -> None:
+    store = create_graph_store(
+        profile="test", backend="memory", domain=domain, decision_id_prefix=prefix, env={},
+    )
+    try:
+        decision_id = store.write_decision(domain, "category", "approve", 0.9, {})
+        assert decision_id.startswith(prefix)
+        assert store.get_decision(decision_id, domain=domain) is not None
+    finally:
+        store.close()
+
+

@@ -220,7 +220,7 @@ def _queue_scorer(scorer_factory: ScorerFactory | None = None) -> Any | None:
             return None
     if _SCORER is None:
         try:
-            _SCORER = CompoundingScorer.from_preset(DOMAIN, db_path=":memory:")
+            _SCORER = CompoundingScorer.from_preset(DOMAIN)
         except Exception:
             return None
     return _SCORER

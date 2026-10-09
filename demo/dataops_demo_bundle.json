@@ -1,4 +1,5 @@
 {
+  "factor_names": ["impact_scope", "source_reliability", "recurrence_frequency", "downstream_urgency", "data_freshness", "business_criticality"],
   "centroid_checkpoints": [
     {
       "category": null,

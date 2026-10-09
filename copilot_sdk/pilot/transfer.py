@@ -9,16 +9,16 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
 import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from threading import RLock
 from typing import Any, cast
 
 from .models import _json_safe
+from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.timestamps import normalize_timestamp
 
 
 @dataclass(frozen=True)
@@ -44,138 +44,54 @@ class PilotSession:
 
 
 class MeasuredTransferStore:
-    """Thread-safe SQLite persistence for pilot sessions and paired outcomes."""
+    """Pilot sessions and paired outcomes owned by the injected graph."""
 
-    def __init__(self, db_path: str = ":memory:") -> None:
-        self._connection = sqlite3.connect(db_path, check_same_thread=False)
-        self._lock = RLock()
-        self._connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS pilot_sessions (
-                session_id TEXT PRIMARY KEY,
-                copilot TEXT NOT NULL,
-                started_at TEXT NOT NULL,
-                duration_days INTEGER NOT NULL,
-                ends_at TEXT NOT NULL,
-                frozen_baseline_ref TEXT NOT NULL,
-                status TEXT NOT NULL
-            )
-            """
-        )
-        self._connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS pilot_observations (
-                session_id TEXT NOT NULL,
-                decision_id TEXT NOT NULL,
-                category TEXT NOT NULL,
-                live_correct INTEGER NOT NULL,
-                frozen_correct INTEGER NOT NULL,
-                value REAL NOT NULL,
-                recorded_at TEXT NOT NULL,
-                PRIMARY KEY (session_id, decision_id),
-                FOREIGN KEY (session_id) REFERENCES pilot_sessions(session_id)
-            )
-            """
-        )
-        self._connection.commit()
+    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+        self.graph_store = graph_store
+        self.domain = domain
 
     def save_session(self, session: PilotSession) -> None:
-        with self._lock:
-            self._connection.execute(
-                """
-                INSERT OR REPLACE INTO pilot_sessions
-                (session_id, copilot, started_at, duration_days, ends_at,
-                 frozen_baseline_ref, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    session.session_id,
-                    session.copilot,
-                    session.started_at,
-                    session.duration_days,
-                    session.ends_at,
-                    session.frozen_baseline_ref,
-                    session.status,
-                ),
-            )
-            self._connection.commit()
+        self.graph_store.save_governance(self.domain, f"pilot_session:{session.session_id}",
+                                         {"kind": "pilot_session", "session": session.to_dict()})
 
     def get_session(self, session_id: str) -> PilotSession | None:
-        with self._lock:
-            row = self._connection.execute(
-                "SELECT * FROM pilot_sessions WHERE session_id = ?", (session_id,)
-            ).fetchone()
-        return _session_from_row(row) if row else None
+        state = self.graph_store.get_governance(self.domain, f"pilot_session:{session_id}")
+        return PilotSession(**state["session"]) if state is not None else None
+
+    def _sessions(self) -> list[PilotSession]:
+        sessions = [PilotSession(**state["session"])
+                    for state in self.graph_store.list_governance(self.domain)
+                    if state.get("kind") == "pilot_session"]
+        return sorted(sessions, key=lambda row: (-normalize_timestamp(row.started_at), row.session_id))
 
     def latest_session(self, copilot: str) -> PilotSession | None:
-        with self._lock:
-            row = self._connection.execute(
-                """
-                SELECT * FROM pilot_sessions
-                WHERE copilot = ?
-                ORDER BY started_at DESC
-                LIMIT 1
-                """,
-                (copilot,),
-            ).fetchone()
-        return _session_from_row(row) if row else None
+        return next((session for session in self._sessions() if session.copilot == copilot), None)
 
     def active_sessions(self) -> list[PilotSession]:
-        with self._lock:
-            rows = self._connection.execute(
-                "SELECT * FROM pilot_sessions WHERE status = 'active' ORDER BY started_at DESC"
-            ).fetchall()
-        return [_session_from_row(row) for row in rows]
+        return [session for session in self._sessions() if session.status == "active"]
 
     def save_observation(self, observation: Mapping[str, Any]) -> None:
-        with self._lock:
-            self._connection.execute(
-                """
-                INSERT OR REPLACE INTO pilot_observations
-                (session_id, decision_id, category, live_correct,
-                 frozen_correct, value, recorded_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    str(observation["session_id"]),
-                    str(observation["decision_id"]),
-                    str(observation["category"]),
-                    int(bool(observation["live_correct"])),
-                    int(bool(observation["frozen_correct"])),
-                    float(observation["value"]),
-                    str(observation["recorded_at"]),
-                ),
-            )
-            self._connection.commit()
+        row = {"session_id": str(observation["session_id"]),
+               "decision_id": str(observation["decision_id"]),
+               "category": str(observation["category"]),
+               "live_correct": bool(observation["live_correct"]),
+               "frozen_correct": bool(observation["frozen_correct"]),
+               "value": float(observation["value"]),
+               "recorded_at": str(observation["recorded_at"])}
+        identity = json.dumps([row["session_id"], row["decision_id"]])
+        key = "pilot_observation:" + hashlib.sha256(identity.encode()).hexdigest()
+        self.graph_store.save_governance(self.domain, key,
+                                         {"kind": "pilot_observation", "observation": row})
 
     def observations(self, session_id: str) -> list[dict[str, Any]]:
-        with self._lock:
-            rows = self._connection.execute(
-                """
-                SELECT session_id, decision_id, category, live_correct,
-                       frozen_correct, value, recorded_at
-                FROM pilot_observations
-                WHERE session_id = ?
-                ORDER BY recorded_at, decision_id
-                """,
-                (session_id,),
-            ).fetchall()
-        return [
-            {
-                "session_id": str(row[0]),
-                "decision_id": str(row[1]),
-                "category": str(row[2]),
-                "live_correct": bool(row[3]),
-                "frozen_correct": bool(row[4]),
-                "value": float(row[5]),
-                "recorded_at": str(row[6]),
-            }
-            for row in rows
-        ]
+        rows = [dict(state["observation"])
+                for state in self.graph_store.list_governance(self.domain)
+                if state.get("kind") == "pilot_observation"
+                and state["observation"]["session_id"] == session_id]
+        return sorted(rows, key=lambda row: (normalize_timestamp(row["recorded_at"]), row["decision_id"]))
 
     def close(self) -> None:
-        with self._lock:
-            self._connection.close()
+        """The caller owns the injected graph's lifetime."""
 
 
 @dataclass(frozen=True)
@@ -249,8 +165,7 @@ class MeasuredTransfer:
         *,
         evidence_gate: Any | None = None,
         promotion_engine: Any | None = None,
-        store: MeasuredTransferStore | None = None,
-        db_path: str = ":memory:",
+        store: MeasuredTransferStore,
         average_value: float = 0.0,
         authority_threshold: float = 0.0,
         minimum_decisions: int = 1,
@@ -259,7 +174,7 @@ class MeasuredTransfer:
         self.twin = twin
         self.evidence_gate = evidence_gate
         self.promotion_engine = promotion_engine
-        self.store = store or MeasuredTransferStore(db_path)
+        self.store = store
         self.average_value = float(average_value)
         self.authority_threshold = float(authority_threshold)
         self.minimum_decisions = max(int(minimum_decisions), 1)
@@ -410,18 +325,6 @@ class MeasuredTransfer:
             return "discovered"
         stage = getter(copilot, category)
         return str(getattr(stage, "value", stage))
-
-
-def _session_from_row(row: tuple[Any, ...]) -> PilotSession:
-    return PilotSession(
-        session_id=str(row[0]),
-        copilot=str(row[1]),
-        started_at=str(row[2]),
-        duration_days=int(row[3]),
-        ends_at=str(row[4]),
-        frozen_baseline_ref=str(row[5]),
-        status=str(row[6]),
-    )
 
 
 def _field(value: Any, keys: tuple[str, ...]) -> Any:

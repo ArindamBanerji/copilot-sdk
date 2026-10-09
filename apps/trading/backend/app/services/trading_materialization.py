@@ -20,7 +20,7 @@ from copilot_sdk.scoring.measurement_state import compute_measurement_state
 DOMAIN = "trading"
 
 
-class _StaticDecisionStore:
+class _StaticDecisionRows:
     def __init__(self, decisions: list[dict[str, Any]]) -> None:
         self._decisions = decisions
 
@@ -66,7 +66,7 @@ def create_trading_materializer(
     def _trading_regime_detail(shared: dict[str, Any]) -> dict[str, Any]:
         service = RegimeService()
         decisions = cast(list[dict[str, Any]], shared["decisions"])
-        trades = _journal_records(lambda: _StaticDecisionStore(decisions), DOMAIN)
+        trades = _journal_records(lambda: _StaticDecisionRows(decisions), DOMAIN)
         current = service.get_current_regime()
         accuracy = service.get_regime_accuracy(trades)
         conservation = build_conservation_status(DOMAIN, scorer_proxy)

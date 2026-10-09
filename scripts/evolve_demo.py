@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
 import argparse
-import tempfile
 import time
 from pathlib import Path
 
@@ -24,13 +24,13 @@ class DemoGraphStore(InMemoryGraphStore):
         decision["factor_vector"] = list(metadata.get("factor_vector") or [])
         decision["recommended_index"] = int(metadata.get("recommended_index", 0))
         decision["category_index"] = int(metadata.get("category_index", 0))
-        return decision_id
+        return cast(str, decision_id)
 
     def count_verified(self, domain: str | None = None) -> int:
-        return super().count_verified(domain or self.domain) + 50
+        return cast(int, super().count_verified(domain or self.domain) + 50)
 
     def count_correct(self, domain: str | None = None) -> int:
-        return super().count_correct(domain or self.domain) + 50
+        return cast(int, super().count_correct(domain or self.domain) + 50)
 
 
 def _factors(names: tuple[str, ...], step: int, seed: int) -> dict[str, float]:
@@ -43,33 +43,31 @@ def _factors(names: tuple[str, ...], step: int, seed: int) -> dict[str, float]:
 def run(domain: str, decisions: int, seed: int) -> None:
     preset = PRESET_REGISTRY[domain]()
     start = time.perf_counter()
-    with tempfile.TemporaryDirectory(prefix="copilot-sdk-evolve-") as tmp:
-        db_path = str(Path(tmp) / f"{domain}.db")
-        scorer = CompoundingScorer.from_preset(
-            domain,
-            db_path=db_path,
-            graph_store=DemoGraphStore(domain=domain),
-            evolve=True,
-        )
-        categories = tuple(preset.shape.category_names)
-        factors = tuple(preset.shape.factor_names)
-        for step in range(max(int(decisions), 0)):
-            category = categories[step % len(categories)]
-            result = scorer.score(_factors(factors, step, seed), category)
-            scorer.learn(result.decision_id, result.action)
+    scorer = CompoundingScorer.from_preset(
+        domain,
+        graph_store=DemoGraphStore(domain=domain),
+        evolve=True,
+        profile="offline",
+    )
+    categories = tuple(preset.shape.category_names)
+    factors = tuple(preset.shape.factor_names)
+    for step in range(max(int(decisions), 0)):
+        category = categories[step % len(categories)]
+        result = scorer.score(_factors(factors, step, seed), category)
+        scorer.learn(result.decision_id, result.action)
 
-        evolver = getattr(scorer, "_evolver", None)
-        active_rules = sorted(evolver.get_active_rules()) if evolver is not None else []
-        history = evolver.get_evolution_history(limit=1000) if evolver is not None else []
-        promoted = evolver.get_promoted_rules() if evolver is not None else []
-        elapsed = time.perf_counter() - start
-        print(f"domain: {domain}")
-        print(f"decisions: {decisions}")
-        print(f"active_rules: {active_rules}")
-        print(f"event_count: {len(history)}")
-        print(f"promoted_rules: {promoted}")
-        print(f"elapsed_seconds: {elapsed:.3f}")
-        scorer.graph_store.close()
+    evolver = getattr(scorer, "_evolver", None)
+    active_rules = sorted(evolver.get_active_rules()) if evolver is not None else []
+    history = evolver.get_evolution_history(limit=1000) if evolver is not None else []
+    promoted = evolver.get_promoted_rules() if evolver is not None else []
+    elapsed = time.perf_counter() - start
+    print(f"domain: {domain}")
+    print(f"decisions: {decisions}")
+    print(f"active_rules: {active_rules}")
+    print(f"event_count: {len(history)}")
+    print(f"promoted_rules: {promoted}")
+    print(f"elapsed_seconds: {elapsed:.3f}")
+    scorer.graph_store.close()
 
 
 def main() -> None:

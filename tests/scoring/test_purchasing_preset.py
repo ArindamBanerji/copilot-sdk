@@ -1,5 +1,5 @@
+from typing import cast
 import json
-import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -51,7 +51,7 @@ EXISTING_FACTORS = (
 
 def load_seed_orders() -> list[dict]:
     raw = json.loads(SEED_PATH.read_text(encoding="utf-8"))
-    return raw["orders"] if isinstance(raw, dict) else raw
+    return cast(list[dict], raw["orders"] if isinstance(raw, dict) else raw)
 
 
 def build_verified_decisions(orders: list[dict], preset: PurchasingPreset) -> list[dict]:
@@ -101,10 +101,9 @@ def test_preset_in_registry():
     assert "trading" in PRESET_REGISTRY
 
 
-def test_from_preset_purchasing_works(tmp_path):
-    db_path = tmp_path / "purchasing.db"
+def test_from_preset_purchasing_works():
 
-    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(db_path), profile="test")
+    scorer = CompoundingScorer.from_preset("purchasing",  profile="test")
 
     assert scorer is not None
     scorer.graph_store.close()
@@ -307,9 +306,8 @@ def test_weather_factor_in_range():
         assert 0.0 <= forecast.weather_factor <= 1.0
 
 
-def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
-    db_path = tmp_path / "purchasing_smoke.db"
-    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(db_path), profile="test")
+def test_end_to_end_score_learn_fingerprint_smoke():
+    scorer = CompoundingScorer.from_preset("purchasing",  profile="test")
     order = next(order for order in load_seed_orders() if order["category"] == "produce")
 
     score = scorer.score(order["factors"], order["category"])
@@ -321,5 +319,3 @@ def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
     assert fingerprint.decisions_analyzed == 1
     assert trajectory.decisions_total == 1
     scorer.graph_store.close()
-    if db_path.exists():
-        os.remove(db_path)

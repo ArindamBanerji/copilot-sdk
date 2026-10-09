@@ -68,9 +68,14 @@ def test_gc03_prompt_promotion_fails_closed_when_conservation_unknown() -> None:
 
 def test_gc04_conservation_gate_coverage_across_l1_l2_l2b() -> None:
     assert hasattr(contract_module, "evaluate_conservation_safety")
-    assert "_capture_conservation_safety" in inspect.getsource(
-        scorer_module.CompoundingScorer.learn
+    learn_source = inspect.getsource(scorer_module.CompoundingScorer.learn)
+    assert "bypass_conservation_gate=False" in learn_source
+    learn_impl_source = inspect.getsource(scorer_module.CompoundingScorer._learn_impl)
+    snapshot_impl_source = inspect.getsource(
+        scorer_module.CompoundingScorer._learn_impl_from_snapshot
     )
+    assert "_learn_impl_from_snapshot" in learn_impl_source
+    assert "_capture_conservation_safety" in snapshot_impl_source
     assert "evaluate_conservation_safety" in inspect.getsource(
         gate_module.DefaultPromotionGate.evaluate
     )

@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import os
-from pathlib import Path
 
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
 
 
 def _shape(scorer: CompoundingScorer):
@@ -12,14 +10,12 @@ def _shape(scorer: CompoundingScorer):
 
 
 def seed_green_scorer(
-    tmp_path: str | Path,
     domain: str = "purchasing",
     n_decisions: int = 50,
 ) -> CompoundingScorer:
     """Create a real scorer seeded to conservation GREEN."""
-    db = os.path.join(str(tmp_path), f"{domain}_green.db")
-    store = SQLiteGraphStore(db, domain=domain)
-    scorer = CompoundingScorer.from_preset(domain, db_path=db, graph_store=store, profile="test")
+    store = create_graph_store(backend="memory", domain=domain, profile="test", env={})
+    scorer = CompoundingScorer.from_preset(domain,  graph_store=store, profile="test")
     shape = _shape(scorer)
     factors = {name: 0.6 for name in shape.factor_names}
     category = str(shape.category_names[0])

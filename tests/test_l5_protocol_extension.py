@@ -178,3 +178,39 @@ def test_dk_signature_uses_batch_tensor_and_support_count() -> None:
     signature = inspect.signature(L5LearningStore.update_dk_weights)
     assert "weight_tensor" in signature.parameters
     assert "n_decisions_used" in signature.parameters
+
+
+def test_count_categories_with_n_omitted_default() -> None:
+    from copilot_sdk.graph.memory_store import InMemoryGraphStore
+
+    store = InMemoryGraphStore()
+    for category in ("single", "repeated", "repeated"):
+        decision_id = store.write_decision("test_l5", category, "approve", 0.9, {})
+        store.write_outcome(decision_id, "approve", True, domain="test_l5")
+
+    assert store.count_categories_with_n("test_l5") == 2
+
+
+def test_count_categories_with_n_explicit_threshold() -> None:
+    from copilot_sdk.graph.memory_store import InMemoryGraphStore
+
+    store = InMemoryGraphStore()
+    for category in ("single", "repeated", "repeated", "repeated"):
+        decision_id = store.write_decision("test_l5", category, "approve", 0.9, {})
+        store.write_outcome(decision_id, "approve", True, domain="test_l5")
+
+    assert store.count_categories_with_n("test_l5") == 2
+    assert store.count_categories_with_n("test_l5", n=3) == 1
+
+
+def test_count_categories_with_n_protocol_typed_call() -> None:
+    from copilot_sdk.graph.memory_store import InMemoryGraphStore
+    from copilot_sdk.graph.protocol import L5LearningStore
+
+    store = InMemoryGraphStore()
+    typed: L5LearningStore = store
+    for category in ("single", "repeated", "repeated"):
+        decision_id = store.write_decision("test_l5", category, "approve", 0.9, {})
+        store.write_outcome(decision_id, "approve", True, domain="test_l5")
+
+    assert typed.count_categories_with_n("test_l5") == 2

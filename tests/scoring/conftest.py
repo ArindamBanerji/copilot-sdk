@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from typing import cast
 from dataclasses import dataclass
 
 import numpy as np
 import pytest
 
 from copilot_sdk.scoring.config import DomainShape
-from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 @dataclass(frozen=True)
@@ -27,14 +28,14 @@ class MockPreset:
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
-        return np.array(
+        return cast(np.ndarray, np.array(
             [
                 [[0.2, 0.3, 0.4], [0.7, 0.6, 0.5]],
                 [[0.3, 0.4, 0.5], [0.8, 0.7, 0.6]],
                 [[0.4, 0.5, 0.6], [0.9, 0.8, 0.7]],
             ],
             dtype=np.float64,
-        )
+        ))
 
 
 @pytest.fixture
@@ -48,9 +49,9 @@ def temp_db(tmp_path):
 
 
 @pytest.fixture
-def store(temp_db):
-    decision_store = SQLiteGraphStore(temp_db, domain="mock")
+def store():
+    graph_store = InMemoryGraphStore(domain="mock")
     try:
-        yield decision_store
+        yield graph_store
     finally:
-        decision_store.close()
+        graph_store.close()

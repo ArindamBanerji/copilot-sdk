@@ -20,11 +20,19 @@ if __package__ in (None, ""):
 
 from copilot_sdk.backend.modeled_projection import ProjectionInputs
 from copilot_sdk.graph.factory import create_graph_store
+from copilot_sdk.config import GraphConfig
 from copilot_sdk.backend.historical_checkpoint import HISTORY_IMPORT_KEY, HistoricalCheckpointImport
 
 from scripts.preseed_all_copilots import (
     DOMAINS, ApiError, api_get, api_post, domain_url, extract_factors, load_seed,
 )
+
+
+def _persistent_store(domain: str) -> Any:
+    config = GraphConfig.load(domain)
+    if config.backend != "age":
+        raise ValueError("Preseed commands require AGE so the application can read the seeded state")
+    return create_graph_store(config=config)
 
 
 def regime_metadata(volatile: bool) -> dict[str, float]:
@@ -120,9 +128,7 @@ def seed_projection() -> dict[str, Any]:
     inputs = ProjectionInputs(setup_cost=1000, weekly_decisions=100,
         benefit_per_decision=2.5, weekly_operating_cost=20,
         required_verified_decisions=200, provenance="SDK-PRESEED planted demo assumptions")
-    root = Path(__file__).resolve().parents[1]
-    store = create_graph_store(domain="purchasing",
-                               db_path=root / "apps/purchasing/backend/data/purchasing.db")
+    store = _persistent_store("purchasing")
     try:
         store.save_governance("purchasing", "demo:roi_projection", inputs.model_dump())
         return {"seeded": True, "inputs": inputs.model_dump(),
@@ -132,8 +138,7 @@ def seed_projection() -> dict[str, Any]:
 
 
 def seed_evolution() -> dict[str, Any]:
-    root = Path(__file__).resolve().parents[1]
-    store = create_graph_store(domain="dataops", db_path=root / "apps/dataops/backend/data/dataops.db")
+    store = _persistent_store("dataops")
     try:
         existing = {row.get("event_id") for row in store.get_evolution_events("dataops", limit=10000)}
         for index, event in enumerate(("proposed", "promoted", "demoted")):
@@ -180,8 +185,7 @@ def plan_historical_gap(checkpoints: list[dict[str, Any]], decisions: list[dict[
 
 def seed_historical_gap() -> dict[str, Any]:
     """Import an explicitly synthetic carry-forward inside an observed idle interval."""
-    root = Path(__file__).resolve().parents[1]
-    store = create_graph_store(domain="purchasing", db_path=root / "apps/purchasing/backend/data/purchasing.db")
+    store = _persistent_store("purchasing")
     try:
         return persist_historical_gap(store)
     finally:

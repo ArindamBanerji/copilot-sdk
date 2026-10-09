@@ -773,12 +773,6 @@ def _schema_impact_count(change: dict[str, Any]) -> int:
 
 @router.get("/pipelines")
 def pipelines(request: Request) -> dict[str, Any]:
-    materializer = getattr(request.app.state, "materializer", None)
-    get = getattr(materializer, "get", None)
-    if callable(get):
-        result = get("pipelines")
-        if isinstance(result, dict):
-            return result
     decisions = graph_call(_request_store(request).get_all_decisions, domain=DOMAIN)
     return _pipelines_from_decisions(list(decisions))
 
@@ -1081,13 +1075,8 @@ def pipeline_decisions(system_id: str, limit: int = 20) -> dict[str, Any]:
 
 @router.get("/accuracy-by-category")
 def accuracy_by_category(request: Request) -> dict[str, Any]:
-    materializer = getattr(request.app.state, "materializer", None)
-    get = getattr(materializer, "get", None)
-    if callable(get):
-        result = get("context_accuracy_by_category")
-        if isinstance(result, dict):
-            return result
-    return _context_accuracy_by_category(_all_context_decisions())
+    decisions = graph_call(_request_store(request).get_all_decisions, domain=DOMAIN)
+    return _context_accuracy_by_category(list(decisions))
 
 
 def _context_accuracy_by_category(decisions: list[dict[str, Any]]) -> dict[str, Any]:

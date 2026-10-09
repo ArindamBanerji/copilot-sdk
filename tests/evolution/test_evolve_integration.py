@@ -11,7 +11,6 @@ from copilot_sdk.scoring.scorer import CompoundingScorer
 def _scorer(tmp_path: Path, domain: str = "trading", evolve: bool = False) -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         domain,
-        db_path=str(tmp_path / f"{domain}.db"),
         profile="test",
         evolve=evolve,
     )

@@ -16,7 +16,7 @@ def control_service(store: InMemoryGraphStore, scorer: Any, data_dir: Path) -> A
     assert spec is not None and spec.loader is not None
     module = module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.PurchasingControlService(lambda: store, lambda: scorer, data_dir)
+    return module.PurchasingControlService(lambda: store, lambda: scorer)
 
 
 @pytest.mark.parametrize("field", ["learning_curve", "frozen_curve"])

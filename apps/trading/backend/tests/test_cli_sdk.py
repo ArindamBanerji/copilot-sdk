@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import json
-import shutil
 import sys
-import tempfile
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -36,18 +35,15 @@ from app.cli_sdk import (  # noqa: E402
     status_sdk,
     trust_sdk,
 )
-from conftest_helpers import seed_paused_scorer  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 
 
 @pytest.fixture
-def db_path():
-    temp_dir = tempfile.mkdtemp()
-    path = Path(temp_dir) / "trading.db"
-    try:
-        yield str(path)
-    finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+def db_path(trading_live_age_graph):
+    # Separate CLI invocations must exercise real persistent state.
+    if trading_live_age_graph is None:
+        pytest.skip("Requires AGE for cross-invocation durability testing")
+    return None  # Leave the retired path argument unset; GraphConfig selects AGE.
 
 
 def _all_factors(value: float = 0.5) -> dict[str, float]:
@@ -59,30 +55,30 @@ def _actions() -> list[str]:
 
 
 def _category() -> str:
-    return TradingPreset().shape.category_names[0]
+    return str(TradingPreset().shape.category_names[0])
 
 
-def _decisions(db_path: str) -> list[dict]:
+def _decisions(db_path: str | None) -> list[dict]:
     scorer = _get_scorer(db_path)
     try:
-        return scorer.graph_store.get_decisions("trading", limit=100)
+        return cast(list[dict], scorer.graph_store.get_decisions("trading", limit=100))
     finally:
         scorer.graph_store.close()
 
 
-def _verified(db_path: str) -> list[dict]:
+def _verified(db_path: str | None) -> list[dict]:
     scorer = _get_scorer(db_path)
     try:
-        return scorer.graph_store.get_verified_decisions("trading")
+        return cast(list[dict], scorer.graph_store.get_verified_decisions("trading"))
     finally:
         scorer.graph_store.close()
 
 
-def test_init_creates_db(db_path):
+def test_init_reports_configured_age_graph(db_path):
     result = init_sdk(db_path)
 
-    assert Path(db_path).exists()
-    assert result["db_path"] == db_path
+    assert result["backend"] == "age"
+    assert result["graph"].startswith("protocol_v2_test_")
     assert result["categories"]
     assert result["actions"]
     assert result["factors"]
@@ -92,7 +88,7 @@ def test_init_idempotent(db_path):
     first = init_sdk(db_path)
     second = init_sdk(db_path)
 
-    assert first["db_path"] == second["db_path"]
+    assert first["graph"] == second["graph"]
     assert first["categories"] == second["categories"]
     assert first["actions"] == second["actions"]
     assert first["factors"] == second["factors"]
@@ -187,8 +183,8 @@ def test_learn_records_outcome(db_path):
     assert len(verified) == 1
 
 
-def test_learn_conservation_pause(tmp_path):
-    db_path, decision_id, action = seed_paused_scorer(tmp_path)
+def test_learn_conservation_pause(db_path):
+    decision_id, action = _seed_paused_age_scorer()
 
     result = learn_sdk(decision_id, action, db_path)
 
@@ -207,8 +203,8 @@ def test_record_creates_both(db_path):
     assert len(_verified(db_path)) == 1
 
 
-def test_record_conservation_pause(tmp_path):
-    db_path, _decision_id, _action = seed_paused_scorer(tmp_path)
+def test_record_conservation_pause(db_path):
+    _seed_paused_age_scorer()
     preview = score_sdk(_category(), _all_factors(), db_path)
 
     result = record_sdk(_category(), _all_factors(), preview["action"], db_path)
@@ -292,23 +288,21 @@ def test_status_composition(db_path):
     assert "alpha" in result
     assert result["total_decisions"] == 1
     assert result["verified_count"] == 1
-    assert result["db_path"] == db_path
+    assert result["backend"] == "age"
 
 
-def test_db_path_override(db_path):
-    result = init_sdk(db_path)
+def test_db_path_override_rejected(tmp_path):
+    path = tmp_path / "retired.db"
+    with pytest.raises(CLIUsageError, match="--db-path is retired"):
+        init_sdk(str(path))
+    assert not path.exists()
 
-    assert result["db_path"] == db_path
-    assert Path(db_path).exists()
 
-
-def test_db_path_relative(tmp_path, monkeypatch):
+def test_db_path_relative_rejected(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-
-    result = init_sdk("test.db")
-
-    assert result["db_path"] == "test.db"
-    assert Path("test.db").exists()
+    with pytest.raises(CLIUsageError, match="--db-path is retired"):
+        init_sdk("test.db")
+    assert not Path("test.db").exists()
 
 
 def test_malformed_json():
@@ -370,34 +364,25 @@ def test_export_empty(db_path, tmp_path):
     assert json.loads(output.read_text(encoding="utf-8")) == []
 
 
-def test_backup_creates_file(db_path, tmp_path):
-    init_sdk(db_path)
-    backup = tmp_path / "backup.db"
-
-    result = backup_sdk(backup_path=str(backup), db_path=db_path)
-
-    assert result["backed_up"] == db_path
-    assert Path(result["backup_path"]).exists()
+def test_age_backup_requires_database_operation(db_path, tmp_path):
+    backup = tmp_path / "backup.dump"
+    with pytest.raises(NotImplementedError, match="database-level"):
+        backup_sdk(backup_path=str(backup))
+    assert not backup.exists()
 
 
 def test_restore_requires_confirm(db_path, tmp_path):
-    init_sdk(db_path)
-    backup = backup_sdk(backup_path=str(tmp_path / "backup.db"), db_path=db_path)
-
-    result = restore_sdk(backup["backup_path"], confirm=False, db_path=db_path)
-
+    result = restore_sdk(str(tmp_path / "backup.dump"), confirm=False)
     assert "Restore is destructive" in result["error"]
 
 
-def test_restore_with_confirm(db_path, tmp_path):
-    decide_sdk(_category(), _all_factors(), db_path)
-    backup = backup_sdk(backup_path=str(tmp_path / "backup.db"), db_path=db_path)
-    Path(db_path).write_text("not sqlite", encoding="utf-8")
-
-    result = restore_sdk(backup["backup_path"], confirm=True, db_path=db_path)
-
-    assert result["restored_to"] == db_path
-    assert len(_decisions(db_path)) == 1
+def test_age_restore_is_not_a_file_copy(db_path, tmp_path):
+    decide_sdk(_category(), _all_factors())
+    before = _decisions(None)
+    with pytest.raises(NotImplementedError, match="database-level"):
+        restore_sdk(str(tmp_path / "backup.dump"), confirm=True)
+    assert _decisions(None) == before
+    assert len(before) == 1
 
 
 def test_import_csv_basic(db_path, tmp_path):
@@ -498,3 +483,37 @@ def test_parser_missing_args_returns_error(capsys):
     assert exc.value.code != 0
     payload = json.loads(captured.out)
     assert payload == {"error": "Invalid arguments", "hint": "Run 'ci-trading --help'"}
+
+
+def _seed_paused_age_scorer() -> tuple[str, str]:
+    scorer = _get_scorer()
+    try:
+        first = scorer.score(category=_category(), factors=_all_factors())
+        other = next(action for action in _actions() if action != first.action)
+        assert not isinstance(scorer.learn(first.decision_id, other), dict)
+        for _ in range(9):
+            decision = scorer.score(category=_category(), factors=_all_factors())
+            assert not isinstance(scorer.learn(decision.decision_id, decision.action), dict)
+        pending = scorer.score(category=_category(), factors=_all_factors())
+        return str(pending.decision_id), str(pending.action)
+    finally:
+        scorer.graph_store.close()
+
+
+def test_memory_preview_is_read_only_and_durable_commands_reject(monkeypatch):
+    monkeypatch.setenv("TRADING_PROFILE", "test")
+    monkeypatch.setenv("TRADING_ACTIVE_GRAPH_BACKEND", "memory")
+    result = score_sdk(_category(), _all_factors())
+    assert result["persisted"] is False
+    with pytest.raises(CLIUsageError, match="need AGE backend"):
+        decide_sdk(_category(), _all_factors())
+
+
+def test_memory_backup_restore_are_inapplicable(monkeypatch, tmp_path, caplog):
+    monkeypatch.setenv("TRADING_PROFILE", "test")
+    monkeypatch.setenv("TRADING_ACTIVE_GRAPH_BACKEND", "memory")
+    path = tmp_path / "backup.dump"
+    assert "not applicable" in backup_sdk(str(path))["error"]
+    assert "not applicable" in restore_sdk(str(path), confirm=True)["error"]
+    assert "not applicable" in caplog.text
+    assert not path.exists()

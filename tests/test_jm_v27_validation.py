@@ -10,9 +10,7 @@ from typing import Any, Iterator
 import pytest
 
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph
-from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 from scripts.jm_v27_live_validation import (
     STARTUP_ENDPOINTS,
     _audit_counts_pass,
@@ -91,34 +89,20 @@ def test_correctness_scanner_clean() -> None:
     assert correctness_scanner.main(["--check", "--root", str(root)]) == 0
 
 
-@pytest.mark.parametrize("store_kind", ["memory", "sqlite"])
-def test_count_correct_property_based_all_stores(
-    store_kind: str, tmp_path: Path
-) -> None:
-    store: Any = (
-        InMemoryGraphStore(domain="validation")
-        if store_kind == "memory"
-        else SQLiteGraphStore(tmp_path / "count.sqlite", domain="validation")
-    )
+def test_count_correct_property_based_all_stores() -> None:
+    store = InMemoryGraphStore(domain="validation")
     try:
-        decision_id = _write_decision(store, "validation", f"count-{store_kind}")
+        decision_id = _write_decision(store, "validation", "count-memory")
         store.write_outcome(decision_id, "review", True, domain="validation")
         assert store.count_correct("validation") == 1
     finally:
         store.close()
 
 
-@pytest.mark.parametrize("store_kind", ["memory", "sqlite"])
-def test_write_outcome_sets_d_correct_all_stores(
-    store_kind: str, tmp_path: Path
-) -> None:
-    store: Any = (
-        InMemoryGraphStore(domain="validation")
-        if store_kind == "memory"
-        else SQLiteGraphStore(tmp_path / "outcome.sqlite", domain="validation")
-    )
+def test_write_outcome_sets_d_correct_all_stores() -> None:
+    store = InMemoryGraphStore(domain="validation")
     try:
-        decision_id = _write_decision(store, "validation", f"outcome-{store_kind}")
+        decision_id = _write_decision(store, "validation", "outcome-memory")
         store.write_outcome(decision_id, "review", True, domain="validation")
         decision = store.get_decision(decision_id, domain="validation")
         assert decision is not None
@@ -138,35 +122,12 @@ def test_soc_graph_invariant_rejects_production_non_soc() -> None:
         )
 
 
-@pytest.mark.parametrize("store_kind", ["memory", "sqlite"])
-def test_link_decision_domain_required_all_stores(
-    store_kind: str, tmp_path: Path
-) -> None:
-    store: Any = (
-        InMemoryGraphStore(domain="validation")
-        if store_kind == "memory"
-        else SQLiteGraphStore(tmp_path / "link.sqlite", domain="validation")
-    )
+def test_link_decision_domain_required_all_stores() -> None:
+    store = InMemoryGraphStore(domain="validation")
     try:
-        decision_id = _write_decision(store, "validation", f"link-{store_kind}")
+        decision_id = _write_decision(store, "validation", "link-memory")
         with pytest.raises(TypeError):
             store.link_decision_to_entity(decision_id, "entity")
-    finally:
-        store.close()
-
-
-def test_no_silent_sqlite_substitution() -> None:
-    try:
-        store = create_graph_store(
-            backend="age",
-            domain="validation",
-            dsn="host=127.0.0.1 port=1 dbname=unreachable",
-            graph_name="unreachable_graph",
-        )
-    except (ConnectionError, OSError, RuntimeError, ValueError, GraphConfigError):
-        return
-    try:
-        assert not isinstance(store, SQLiteGraphStore)
     finally:
         store.close()
 

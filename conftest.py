@@ -7,10 +7,10 @@ from uuid import uuid4
 
 import pytest
 
-from copilot_sdk.config import GraphConfig
+from copilot_sdk.testing.fixtures import age_available, age_test_dsn
 
 # Resolve before app-specific fixtures temporarily rewrite their graph configuration.
-_TEST_DSN = os.environ.get("AGE_TEST_DSN", "").strip() or GraphConfig.load("trading").dsn
+_TEST_DSN = age_test_dsn()
 
 
 class _DisposableAGE(SimpleNamespace):
@@ -26,6 +26,8 @@ def disposable_age():
 
     if not _TEST_DSN:
         pytest.skip("AGE DSN is not configured")
+    if not age_available(_TEST_DSN):
+        pytest.skip("AGE is not reachable")
 
     def connect():
         conn = psycopg.connect(_TEST_DSN, connect_timeout=3, autocommit=True)
@@ -73,6 +75,8 @@ def shared_age_readonly():
 
     if not _TEST_DSN:
         pytest.skip("AGE DSN is not configured")
+    if not age_available(_TEST_DSN):
+        pytest.skip("AGE is not reachable")
     store = AGEGraphStoreAdapter(dsn=_TEST_DSN, graph_name="soc_graph", domain="trading")
     try:
         store.count_decisions("trading")

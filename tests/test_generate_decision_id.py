@@ -2,36 +2,19 @@ from __future__ import annotations
 
 import re
 
-from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 _HEX_ID = re.compile(r"^[0-9a-f]{12}$")
 
 
-def test_sqlite_generate_decision_id_uses_trading_prefix(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "trading.db", domain="trading", decision_id_prefix="TRD-")
-    try:
-        decision_id = store.generate_decision_id("trading")
-        assert decision_id.startswith("TRD-")
-        assert _HEX_ID.fullmatch(decision_id.removeprefix("TRD-"))
-    finally:
-        store.close()
 
 
-def test_sqlite_generate_decision_id_uses_purchasing_prefix(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "purchasing.db", domain="purchasing", decision_id_prefix="PUR-")
-    try:
-        decision_id = store.generate_decision_id("purchasing")
-        assert decision_id.startswith("PUR-")
-        assert _HEX_ID.fullmatch(decision_id.removeprefix("PUR-"))
-    finally:
-        store.close()
 
 
 def test_sqlite_generate_decision_id_without_prefix_is_bare_hex(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "plain.db", domain="test")
+    store = make_memory_store(tmp_path / "plain.db", domain="test")
     try:
         assert _HEX_ID.fullmatch(store.generate_decision_id("test"))
     finally:
@@ -42,20 +25,8 @@ def test_memory_generate_decision_id_is_bare_hex():
     assert _HEX_ID.fullmatch(InMemoryGraphStore().generate_decision_id("test"))
 
 
-def test_dual_write_delegates_id_generation_to_prefixed_primary(tmp_path):
-    primary = SQLiteGraphStore(tmp_path / "trading.db", domain="trading", decision_id_prefix="TRD-")
-    secondary = InMemoryGraphStore(domain="trading")
-    dual = DualWriteStore(primary, secondary)
-    try:
-        decision_id = dual.generate_decision_id("trading")
-        assert decision_id.startswith("TRD-")
-        assert _HEX_ID.fullmatch(decision_id.removeprefix("TRD-"))
-    finally:
-        dual.close()
-
-
 def test_generated_ids_are_unique(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "unique.db", domain="trading", decision_id_prefix="TRD-")
+    store = make_memory_store(tmp_path / "unique.db", domain="trading", decision_id_prefix="TRD-")
     try:
         assert store.generate_decision_id("trading") != store.generate_decision_id("trading")
     finally:
@@ -63,7 +34,7 @@ def test_generated_ids_are_unique(tmp_path):
 
 
 def test_generated_id_is_valid_for_governed_write(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "governed.db", domain="trading", decision_id_prefix="TRD-")
+    store = make_memory_store(tmp_path / "governed.db", domain="trading", decision_id_prefix="TRD-")
     try:
         decision_id = store.generate_decision_id("trading")
         store.write_governed_decision(
@@ -83,9 +54,4 @@ def test_generated_id_is_valid_for_governed_write(tmp_path):
         store.close()
 
 
-def test_domain_parameter_is_accepted_for_future_domain_schemes(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "domain.db", domain="trading", decision_id_prefix="TRD-")
-    try:
-        assert store.generate_decision_id("future_domain").startswith("TRD-")
-    finally:
-        store.close()
+

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.main import DOMAIN, REPO_ROOT, create_app
 from copilot_sdk.demo.bundle import restore_bundle_if_empty
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 def _bundle_path() -> Path:
@@ -20,29 +20,38 @@ def test_create_app_can_disable_demo_bundle_restore(tmp_path: Path) -> None:
 
 
 def test_create_app_default_demo_bundle_restores_on_startup(tmp_path: Path) -> None:
-    db_path = tmp_path / "startup_bundle.db"
-    with TestClient(create_app(db_path=db_path)) as client:
+    app = create_app(db_path=tmp_path / "startup_bundle")
+    with TestClient(app) as client:
         assert client.get("/health").status_code == 503
-
-    store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="PUR-")
-    try:
+        store = app.state.graph_store
         assert store.count_decisions(DOMAIN) == 200
-    finally:
-        store.close()
+        assert len(store.get_verified_decisions(DOMAIN)) == 150
+        assert all(row["metadata"]["provenance"] == "synthetic"
+                   for row in store.get_all_decisions(DOMAIN))
 
 
-def test_domain_demo_bundle_restores_into_tmp_sqlite_store(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(str(tmp_path / "bundle.db"), domain=DOMAIN, decision_id_prefix="PUR-")
+def test_domain_demo_bundle_restores_into_memory_store(tmp_path: Path) -> None:
+    store = InMemoryGraphStore(domain=DOMAIN, decision_id_prefix="PUR-")
     try:
         assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is True
         assert store.count_decisions(DOMAIN) == 200
-        assert len(store.get_verified_decisions(DOMAIN)) >= 140
+        assert len(store.get_verified_decisions(DOMAIN)) == 150
         assert len(store.get_centroid_checkpoints(DOMAIN, limit=10)) == 5
         assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is False
     finally:
         store.close()
 
 
-def test_demo_bundle_restore_skips_in_memory_store() -> None:
+def test_demo_bundle_restore_reports_unsupported_rl_state() -> None:
     store = InMemoryGraphStore(domain=DOMAIN)
-    assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN).success is False
+    report = restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN)
+    assert report.success and not report.fully_restored
+    assert report.stores_failed == 0
+    assert report.section_counts["decisions"] == 200
+    assert report.section_counts["outcomes"] == 150
+    assert report.section_counts["centroid_checkpoints"] == 5
+    assert report.section_counts["rl_state"] == 0
+    assert report.skipped_stores == ["rl_state"]
+    assert report.skipped_count == 1
+    assert report.skipped_reasons == {"rl_state": "no protocol method for RL state (REV-P4a)"}
+    assert store.count_decisions(DOMAIN) == 200

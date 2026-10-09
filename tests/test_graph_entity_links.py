@@ -7,7 +7,8 @@ import numpy as np
 
 from copy import deepcopy
 
-from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import GraphStore, InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.scoring.config import DomainShape
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
@@ -176,7 +177,7 @@ def _score(scorer: CompoundingScorer):
 
 
 def test_link_decision_to_entity_sqlite(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    store = make_memory_store(tmp_path / "graph.sqlite")
 
     store.link_decision_to_entity("decision-1", "invoice-1", domain="graph")
 
@@ -216,11 +217,12 @@ def test_learn_with_context_invoice_creates_link(tmp_path):
         {
             "decision_id": result.decision_id,
             "entity_id": "INV-001",
-            "entity_type": "invoice",
             "edge_type": "DECIDED_ON",
             "created_at": graph_store.get_decision_links(result.decision_id, domain="test")[0]["created_at"],
         }
     ]
+    assert any(edge.get("entity_type") == "invoice" and edge["decision_id"] == result.decision_id
+               for edge in graph_store._edges)
     scorer.graph_store.close()
 
 
@@ -254,3 +256,4 @@ def test_learn_with_context_tolerates_graphstore_without_link_method(tmp_path):
     assert verified[0]["outcome_metadata"]["context"] == {"invoice_id": "INV-001"}
     assert not hasattr(graph_store, "link_decision_to_entity")
     scorer.graph_store.close()
+

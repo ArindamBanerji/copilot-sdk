@@ -43,6 +43,7 @@ import ProvenanceBadge from "../components/ProvenanceBadge";
 import { SAPDataBadge } from "../components/SAPDataBadge";
 import NLQueryPanel from "../components/NLQueryPanel";
 import SourceTrustPerturbPanel from "../components/SourceTrustPerturbPanel";
+import SourceTrustCard from "../components/SourceTrustCard";
 import { DayZeroPanel } from "../../../../../copilot_sdk/frontend";
 
 interface DashboardScreenProps {
@@ -189,6 +190,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
 
   return (
     <div data-screen-ready={String(dataReady)} className="grid gap-5">
+      <SourceTrustCard />
       <EnterpriseHealthBar />
       <EnterpriseValueCard />
       <div className="flex flex-wrap items-center gap-2">

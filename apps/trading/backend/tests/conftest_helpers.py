@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import os
-from pathlib import Path
+from typing import cast
 from typing import Any
 
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
 
 
 def _shape(scorer: CompoundingScorer):
@@ -17,22 +16,15 @@ def _default_factors(scorer: CompoundingScorer, value: float = 0.6) -> dict[str,
     return {name: value for name in _shape(scorer).factor_names}
 
 
-def _different_action(scorer: CompoundingScorer, action: str) -> str:
-    for candidate in _shape(scorer).action_names:
-        if candidate != action:
-            return str(candidate)
-    raise AssertionError("preset must expose at least two actions")
 
 
 def seed_green_scorer(
-    tmp_path: str | Path,
     domain: str = "trading",
     n_decisions: int = 50,
 ) -> CompoundingScorer:
     """Create a real scorer seeded to conservation GREEN."""
-    db = os.path.join(str(tmp_path), f"{domain}_green.db")
-    store = SQLiteGraphStore(db, domain=domain)
-    scorer = CompoundingScorer.from_preset(domain, db_path=db, graph_store=store, profile="test")
+    store = create_graph_store(backend="memory", domain=domain, profile="test", env={})
+    scorer = CompoundingScorer.from_preset(domain,  graph_store=store, profile="test")
     factors = _default_factors(scorer)
     category = str(_shape(scorer).category_names[0])
 
@@ -101,38 +93,6 @@ def seed_green_client(client: Any, n_decisions: int = 50) -> dict[str, Any]:
     assert status_response.status_code == 200, status_response.json()
     status = status_response.json()
     assert status["status"] == "GREEN"
-    return status
+    return cast(dict[str, Any], status)
 
 
-def seed_paused_scorer(
-    tmp_path: str | Path,
-    domain: str = "trading",
-) -> tuple[str, str, str]:
-    """Create real scorer state where the next learn call pauses."""
-    db = os.path.join(str(tmp_path), f"{domain}_paused.db")
-    store = SQLiteGraphStore(db, domain=domain)
-    scorer = CompoundingScorer.from_preset(domain, db_path=db, graph_store=store, profile="test")
-    factors = _default_factors(scorer)
-    category = str(_shape(scorer).category_names[0])
-
-    first = scorer.score(category=category, factors=factors)
-    first_result = scorer.learn(
-        decision_id=first.decision_id,
-        actual_action=_different_action(scorer, first.action),
-    )
-    if isinstance(first_result, dict):
-        raise AssertionError(f"first override should seed state, got {first_result}")
-
-    for _ in range(9):
-        seed = scorer.score(category=category, factors=factors)
-        seed_result = scorer.learn(
-            decision_id=seed.decision_id,
-            actual_action=seed.action,
-        )
-        if isinstance(seed_result, dict):
-            raise AssertionError(f"correct seed should apply, got {seed_result}")
-
-    pending = scorer.score(category=category, factors=factors)
-    action = str(pending.action)
-    scorer.graph_store.close()
-    return db, str(pending.decision_id), action

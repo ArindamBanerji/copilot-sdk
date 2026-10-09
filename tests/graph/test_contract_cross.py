@@ -190,7 +190,7 @@ print(f"OK:{domain}")
         # test must not initialize stores on the user's active AGE database.
         config_path = tmp_path / f"{domain}.toml"
         config_path.write_text(
-            '[defaults]\nbackend="sqlite"\nexpected_backend="sqlite"\ngraph="test_graph"\ndsn=""\n',
+            '[defaults]\nbackend="memory"\nexpected_backend="memory"\ngraph="test_graph"\ndsn=""\n',
             encoding="utf-8",
         )
         child_env = {
@@ -198,9 +198,9 @@ print(f"OK:{domain}")
             if not key.startswith(("GRAPH_", "AGE_", "TRADING_ACTIVE_", "PURCHASING_ACTIVE_", "DATAOPS_ACTIVE_"))
         }
         child_env.update({
-            "GRAPH_CONFIG_PATH": str(config_path), "GRAPH_BACKEND": "sqlite",
+            "GRAPH_CONFIG_PATH": str(config_path), "GRAPH_BACKEND": "memory",
             f"{domain.upper()}_PROFILE": "test",
-            f"{domain.upper()}_ACTIVE_GRAPH_BACKEND": "sqlite",
+            f"{domain.upper()}_ACTIVE_GRAPH_BACKEND": "memory",
             "CI_DATA_DIR": str(tmp_path), "CROSS_SIGNAL_DB_PATH": str(tmp_path / "signals.db"),
             "DEMO_NO_RESEED": "1",
         })

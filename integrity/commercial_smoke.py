@@ -129,8 +129,13 @@ def _http_request(
         with build_opener(_NoRedirect()).open(request, timeout=timeout) as response:
             return int(response.status), response.read().decode("utf-8", errors="replace")
     except HTTPError as exc:
-        with exc:
-            return exc.code, exc.read().decode("utf-8", errors="replace")
+        try:
+            with exc:
+                return exc.code, exc.read().decode("utf-8", errors="replace")
+        except (HTTPException, OSError) as read_error:
+            raise OSError(
+                f"HTTP {exc.code}: truncated error response: {read_error}"
+            ) from read_error
     except URLError as exc:
         if isinstance(exc.reason, TimeoutError):
             raise TimeoutError(f"connection/read timeout ({timeout:g}s)") from exc
@@ -172,6 +177,15 @@ def _identity_error(response: dict[str, Any], expected: str, *, required: bool) 
     return None
 
 
+def _finite_number(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def run_check(
     copilot: str, *, base_url: str | None = None, timeout: float = 10.0,
     soc_alert_id: str | None = None,
@@ -201,13 +215,35 @@ def run_check(
         if missing:
             raise ValueError("missing expected fields: " + ", ".join(missing))
         if check.expected_fields:
+            if not isinstance(result["decision_id"], str) or not result["decision_id"].strip():
+                raise ValueError("invalid decision_id: expected nonempty string")
             if not isinstance(result["action"], str) or not result["action"]:
                 raise ValueError("invalid action: expected nonempty string")
             confidence = result["confidence"]
-            if type(confidence) not in (int, float) or not math.isfinite(confidence) or not 0 <= confidence <= 1:
+            if not _finite_number(confidence) or not 0 <= confidence <= 1:
                 raise ValueError("invalid confidence: expected a finite number in [0, 1]")
-            if not isinstance(result["probabilities"], list) or not result["probabilities"]:
+            probabilities = result["probabilities"]
+            if not isinstance(probabilities, list) or not probabilities:
                 raise ValueError("invalid probabilities: expected nonempty list")
+            if any(not _finite_number(value) or not 0 <= value <= 1 for value in probabilities):
+                raise ValueError("invalid probabilities: expected finite numbers in [0, 1]")
+            if not math.isclose(sum(probabilities), 1.0, abs_tol=1e-3):
+                raise ValueError("invalid probabilities: expected sum approximately 1")
+            action_index = result["action_index"]
+            if type(action_index) is not int or not 0 <= action_index < len(probabilities):
+                raise ValueError("invalid action_index: expected an index into probabilities")
+            # The SDK ScoreResponse uses named factor and engine objects.
+            factors = result["factors"]
+            if not isinstance(factors, dict) or not factors:
+                raise ValueError("invalid factors: expected nonempty object")
+            if any(not _finite_number(value) for value in factors.values()):
+                raise ValueError("invalid factors: expected finite numeric values")
+            engine = result["engine"]
+            if not isinstance(engine, dict) or not engine or any(
+                not isinstance(value, str) or not value.strip()
+                for value in engine.values()
+            ):
+                raise ValueError("invalid engine: expected nonempty object with nonempty string values")
             if result["category"] != check.payload["category"]:
                 raise ValueError(f"wrong category: expected {check.payload['category']!r}, got {result['category']!r}")
         return CheckResult(copilot, check.endpoint, True, "identity and score response verified")

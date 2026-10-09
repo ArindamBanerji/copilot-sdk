@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from copilot_sdk.scoring.composite_gate import chronological_decisions
+
 
 @dataclass(frozen=True)
 class TrustTrap:
@@ -24,14 +26,23 @@ class TrustTrapDetector:
         self._scorer = scorer
         self._store = store
         self._domain = domain
+        self.unavailable_checks: list[str] = []
 
     def scan(self) -> list[TrustTrap]:
-        decisions = self._verified_decisions()
+        self.unavailable_checks = []
+        decisions, history_available = self._verified_decisions()
+        if not history_available:
+            self.unavailable_checks.append("conservation_gaming")
+            return []
         traps: list[TrustTrap] = []
         traps.extend(self._check_category_divergence(decisions))
         traps.extend(self._check_volume_skew(decisions))
         traps.extend(self._check_recency_bias(decisions))
-        traps.extend(self._check_conservation_gaming(decisions))
+        conservation, conservation_available = self._conservation_state()
+        if conservation_available:
+            traps.extend(self._check_conservation_gaming(decisions, conservation))
+        else:
+            self.unavailable_checks.append("conservation_gaming")
         return traps
 
     def _check_category_divergence(self, decisions: list[dict[str, Any]]) -> list[TrustTrap]:
@@ -103,7 +114,11 @@ class TrustTrapDetector:
             "Keep the longer evaluation window visible and delay claims based only on the recent streak.",
         )]
 
-    def _check_conservation_gaming(self, decisions: list[dict[str, Any]]) -> list[TrustTrap]:
+    def _check_conservation_gaming(
+        self,
+        decisions: list[dict[str, Any]],
+        conservation: dict[str, Any],
+    ) -> list[TrustTrap]:
         counts = _category_counts(decisions)
         if len(decisions) < 20 or len(counts) < 2:
             return []
@@ -121,15 +136,35 @@ class TrustTrapDetector:
             "CONSERVATION_GAMING",
             "ALERT",
             "The conservation signal stays healthy while difficult categories are being avoided.",
-            {"easy_categories": easy, "hard_categories": hard, "easy_volume": easy_volume, "hard_volume": hard_volume, "volume_ratio": round(easy_volume / hard_volume, 2)},
+            {"easy_categories": easy, "hard_categories": hard, "easy_volume": easy_volume, "hard_volume": hard_volume, "volume_ratio": round(easy_volume / hard_volume, 2), "conservation": conservation},
             "Route representative hard cases into the measured window before permitting more autonomy.",
         )]
 
-    def _verified_decisions(self) -> list[dict[str, Any]]:
+    def _verified_decisions(self) -> tuple[list[dict[str, Any]], bool]:
         reader = getattr(self._store, "get_verified_decisions", None)
         if not callable(reader):
-            return []
-        return [dict(row) for row in reader(self._domain) if isinstance(row, dict)]
+            return [], False
+        try:
+            rows = reader(self._domain)
+        except Exception:
+            return [], False
+        if not isinstance(rows, (list, tuple)):
+            return [], False
+        return [dict(row) for row in chronological_decisions(rows) if isinstance(row, dict)], True
+
+    def _conservation_state(self) -> tuple[dict[str, Any], bool]:
+        if self._scorer is None:
+            return {}, False
+        reader = getattr(self._scorer, "get_conservation_state", None)
+        if not callable(reader):
+            return {}, False
+        try:
+            state = reader()
+        except Exception:
+            return {}, False
+        if not isinstance(state, dict):
+            return {}, False
+        return dict(state), True
 
 
 def trap_asdict(trap: TrustTrap) -> dict[str, Any]:

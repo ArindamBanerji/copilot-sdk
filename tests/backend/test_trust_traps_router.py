@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from types import SimpleNamespace
 
 from copilot_sdk.backend.self_computation_router import mount_self_computation_router
 from copilot_sdk.graph import InMemoryGraphStore
@@ -14,6 +15,15 @@ def test_trust_traps_endpoint() -> None:
     response = TestClient(app).get("/api/self/trust-traps")
     assert response.status_code == 200
     assert isinstance(response.json()["traps"], list)
+
+
+def test_trust_traps_missing_reader_is_http_200_with_unavailable_check() -> None:
+    app = FastAPI()
+    mount_self_computation_router(app, SimpleNamespace(domain="trust"), domain="trust")
+    response = TestClient(app).get("/api/self/trust-traps")
+    assert response.status_code == 200
+    assert response.json()["traps"] == []
+    assert response.json()["unavailable_checks"] == ["conservation_gaming"]
 
 
 def test_rollback_endpoint_404_for_unknown_checkpoint() -> None:

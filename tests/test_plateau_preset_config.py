@@ -90,7 +90,6 @@ def test_scorer_uses_preset_plateau_config(monkeypatch, tmp_path) -> None:
 
     scorer = CompoundingScorer.from_preset(
         "custom_plateau",
-        db_path=str(tmp_path / "custom.db"),
         evolve=True,
         profile="test",
     )
@@ -122,7 +121,6 @@ def test_plateau_config_backward_compatible(monkeypatch, tmp_path) -> None:
 
     scorer = CompoundingScorer.from_preset(
         "legacy",
-        db_path=str(tmp_path / "legacy.db"),
         evolve=True,
         profile="test",
     )

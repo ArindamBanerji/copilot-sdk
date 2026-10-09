@@ -1,13 +1,13 @@
 """CONS-PD: over-instrumented per-decision conservation signal characterization."""
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import argparse
 import hashlib
 import importlib.util
 import json
 import math
 import random
-import sqlite3
 from collections import Counter
 from pathlib import Path
 from typing import Any, cast
@@ -43,9 +43,6 @@ def c5() -> Any:
     return load_module("cons_pd_c5", ROOT / "experiments" / "vld" / "vld_conservation_lag_c5_v1.py")
 
 
-class SQLiteDecisionStore:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def score_gap(inv: Any, vector: np.ndarray) -> tuple[int, float, np.ndarray]:
@@ -104,7 +101,7 @@ def run_one(c5m: Any, copilot: str, condition: str, seed: int) -> list[dict[str,
     sigma = np.asarray(geometry["sigma"], dtype=np.float64)
     tau = float(geometry["tau"])
     rng = random.Random(seed)
-    store = c5m.KUtilityStore(SQLiteDecisionStore(), d=len(factors))
+    store = c5m.KUtilityStore(InMemoryGraphStore(), d=len(factors))
     outcomes: list[int] = []
     prior_categories: list[str] = []
     rows: list[dict[str, Any]] = []

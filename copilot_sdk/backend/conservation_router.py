@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any, Callable
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from copilot_sdk.backend.conservation_utils import (
@@ -19,7 +19,6 @@ from copilot_sdk.backend.models import (
     ConservationWhatIfResponse,
 )
 from copilot_sdk.scoring.composite_gate import CompositeGate, outcomes_from_state
-from copilot_sdk.state.cached_static import cached_static
 
 
 from gae.calibration import check_conservation, compute_theta_min
@@ -42,10 +41,7 @@ def create_conservation_router(
     router = APIRouter()
 
     @router.get("/conservation/status", response_model=None)
-    def status(request: Request) -> dict[str, Any]:
-        materialized = _materialized_response(request, "conservation")
-        if materialized is not None:
-            return materialized
+    def status() -> dict[str, Any]:
         try:
             state = _resolve_state(state_provider)
         except Exception as exc:
@@ -147,15 +143,6 @@ def build_conservation_status(
             if key in projection:
                 payload[key] = projection[key]
     return payload
-
-
-def _materialized_response(request: Request, key: str) -> dict[str, Any] | None:
-    materializer = getattr(request.app.state, "materializer", None)
-    get = getattr(materializer, "get", None)
-    if not callable(get):
-        return None
-    result = get(key)
-    return result if isinstance(result, dict) else None
 
 
 def _resolve_state(state_provider: Callable[[], Any] | Any | None) -> Any:

@@ -22,8 +22,8 @@ from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 
 
 def main() -> int:
-    trading = CompoundingScorer.from_preset("trading", db_path=":memory:")
-    s2p = CompoundingScorer.from_preset("s2p", db_path=":memory:")
+    trading = CompoundingScorer.from_preset("trading")
+    s2p = CompoundingScorer.from_preset("s2p")
 
     _shape_centroids(trading, value=0.42)
     _shape_centroids(s2p, value=0.40)

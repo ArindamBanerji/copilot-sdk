@@ -4,12 +4,8 @@ import inspect
 from typing import get_type_hints
 
 from copilot_sdk.evolution.protocol import EvolutionStore
-from copilot_sdk.graph import (
-    GraphStore,
-    InMemoryGraphStore,
-    ProtocolV2GraphStore,
-    SQLiteGraphStore,
-)
+from copilot_sdk.graph import GraphStore, InMemoryGraphStore, ProtocolV2GraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 def test_graph_store_protocol_is_runtime_checkable(tmp_path):
@@ -18,7 +14,7 @@ def test_graph_store_protocol_is_runtime_checkable(tmp_path):
 
 def test_builtin_stores_remain_protocol_v2_runtime_checkable(tmp_path):
     memory = InMemoryGraphStore(domain="test")
-    sqlite = SQLiteGraphStore(str(tmp_path / "protocol-v2.db"), domain="test")
+    sqlite = make_memory_store(str(tmp_path / "protocol-v2.db"), domain="test")
     try:
         assert isinstance(memory, ProtocolV2GraphStore)
         assert isinstance(sqlite, ProtocolV2GraphStore)
@@ -170,9 +166,11 @@ def test_evolution_store_protocol_owns_evolution_methods():
 
 def test_concrete_graph_stores_structurally_satisfy_evolution_store(tmp_path):
     assert isinstance(InMemoryGraphStore(), EvolutionStore)
-    assert isinstance(SQLiteGraphStore(tmp_path / "graph.sqlite"), EvolutionStore)
+    assert isinstance(make_memory_store(tmp_path / "graph.sqlite"), EvolutionStore)
 
 
 def test_entity_link_helpers_are_not_protocol_required():
     assert not hasattr(GraphStore, "link_decision_to_entity")
     assert not hasattr(GraphStore, "get_decision_links")
+
+

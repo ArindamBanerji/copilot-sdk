@@ -6,13 +6,13 @@ import json
 import pytest
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 def _stores(tmp_path):
     return [
         InMemoryGraphStore(domain="soc"),
-        SQLiteGraphStore(tmp_path / "graph.db", domain="soc"),
+        make_memory_store(tmp_path / "graph.db", domain="soc"),
     ]
 
 
@@ -113,7 +113,7 @@ def test_deterministic_pattern_id():
 
 
 def test_sqlite_transfer_pattern(tmp_path):
-    store = SQLiteGraphStore(tmp_path / "transfer.db", domain="soc")
+    store = make_memory_store(tmp_path / "transfer.db", domain="soc")
     _write(store)
     assert store.get_transfer_patterns(source_domain="soc")[0]["pattern_id"] == "pattern-1"
 
@@ -122,3 +122,4 @@ def test_inmemory_transfer_pattern():
     store = InMemoryGraphStore(domain="soc")
     _write(store)
     assert store.get_transfer_patterns(target_domain="trading")[0]["pattern_id"] == "pattern-1"
+

@@ -5,18 +5,17 @@ from __future__ import annotations
 import hashlib
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS
-from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 from copilot_sdk.graph.production import GraphStoreWrapper
+from copilot_sdk.graph.protocol import GraphStore, ProductionReadyStore, ProtocolV2GraphStore
 
 log = logging.getLogger(__name__)
 
 
-def _primary_store(store: Any) -> Any:
-    """Follow declared primary ownership, including SOC PosteriorStore."""
+def _primary_store(store: GraphStore | GraphStoreWrapper | None) -> GraphStore | None:
+    """Follow declared primary ownership through GraphStoreWrapper."""
     seen: set[int] = set()
     while store is not None:
         if id(store) in seen:
@@ -24,37 +23,33 @@ def _primary_store(store: Any) -> Any:
         seen.add(id(store))
         if isinstance(store, GraphStoreWrapper):
             store = store.graph_primary
-        elif getattr(store, "_graph_store", None) is not None:
-            store = store._graph_store
         else:
-            return store
+            return cast(GraphStore, store)
     return None
 
 
-def _backend(store: Any) -> str:
-    if isinstance(store, SQLiteGraphStore):
-        return "sqlite"
-    if isinstance(store, InMemoryGraphStore):
-        return "memory"
-    from copilot_sdk.graph.dual_write_store import DualWriteStore
-    if isinstance(store, DualWriteStore):
-        return _backend(_primary_store(store.primary))
-    try:
-        from ci_platform.graph.age_sdk_adapter import AGEGraphStoreAdapter
-        from ci_platform.graph.age_graph_store import AGEGraphStore
-    except ImportError:
+def _backend(store: GraphStore | None) -> str:
+    if store is None:
         return "unknown"
-    return "age" if isinstance(store, (AGEGraphStoreAdapter, AGEGraphStore)) else "unknown"
+    if isinstance(store, ProductionReadyStore):
+        return "age"
+    return "memory"
 
 
 def build_graph_health(
-    graph_store: Any,
+    graph_store: GraphStore | GraphStoreWrapper | None,
     graph_config: Any,
     domain: str,
     evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the canonical graph health payload without writes or seeding."""
     store = _primary_store(graph_store)
+    protocol_version = (
+        "v2" if store is not None and isinstance(store, ProtocolV2GraphStore) else "v1"
+    )
+    production_ready = bool(
+        store is not None and isinstance(store, ProductionReadyStore)
+    )
     backend = _backend(store) if store is not None else str(
         getattr(graph_config, "backend", None)
         or getattr(graph_config, "requested_backend", None)
@@ -124,6 +119,8 @@ def build_graph_health(
             "gae.profile_scorer.ProfileScorer + gae.evolution + " + backend + " GraphStore"
         ),
         "graph_backend": backend,
+        "protocol_version": protocol_version,
+        "production_ready": production_ready,
         "node_count": node_count,
         "node_count_scope": "domain_decisions",
         "graph_connected": bool(connected),

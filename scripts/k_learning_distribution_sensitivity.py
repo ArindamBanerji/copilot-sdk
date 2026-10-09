@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import json
 import sys
 from pathlib import Path
 import random
-import sqlite3
 from typing import Any
 
 import numpy as np
@@ -27,9 +27,6 @@ EVAL_SCENARIOS = 50
 DISTRIBUTIONS = ("uniform", "clustered", "adversarial")
 
 
-class Store:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect(":memory:")
 
 
 def dataops_geometry() -> dict[str, Any]:
@@ -138,7 +135,7 @@ def starvation(geom: dict[str, Any], store: KUtilityStore) -> dict[str, Any]:
 def run_distribution(distribution: str, seed: int) -> dict[str, Any]:
     geom = dataops_geometry()
     rng = random.Random(seed + len(distribution))
-    store = KUtilityStore(Store(), d=len(geom["factors"]))
+    store = KUtilityStore(InMemoryGraphStore(), d=len(geom["factors"]))
     checkpoints = []
     sources = {int(k): v for k, v in base.DIMENSION_SOURCES["dataops"].items()}
     for decision in range(1, TOTAL_DECISIONS + 1):

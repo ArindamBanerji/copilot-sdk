@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from gae.profile_scorer import ProfileScorer
 
+from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.outcome import (
     OutcomeLedger,
     OutcomeProcessor,
@@ -48,7 +49,7 @@ def _outcome(**overrides: Any) -> VerifiedOutcome:
 
 
 def test_vo_01_confirm_is_stored_and_processed(tmp_path):
-    ledger = OutcomeLedger(tmp_path / "outcomes.db")
+    ledger = OutcomeLedger(InMemoryGraphStore(), "test")
     result = OutcomeProcessor(ledger).process(_outcome())
 
     assert result.processed is True
@@ -64,7 +65,7 @@ def test_vo_02_override_is_stored_with_reason(tmp_path):
         correct=False,
     )
 
-    result = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db")).process(outcome)
+    result = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test")).process(outcome)
 
     assert result.processed is True
     assert outcome.human_disposition == "override"
@@ -73,7 +74,7 @@ def test_vo_02_override_is_stored_with_reason(tmp_path):
 
 
 def test_vo_03_duplicate_receipt_is_idempotent(tmp_path):
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"))
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"))
     outcome = _outcome()
 
     first = processor.process(outcome)
@@ -100,20 +101,20 @@ def test_vo_05_receipt_id_is_deterministic():
 
 
 def test_vo_06_ledger_round_trip_survives_restart(tmp_path):
-    path = tmp_path / "outcomes.db"
+    graph = InMemoryGraphStore()
     outcome = _outcome()
-    first = OutcomeLedger(path)
+    first = OutcomeLedger(graph, "test")
     first.append(outcome)
     first.close()
 
-    second = OutcomeLedger(path)
+    second = OutcomeLedger(graph, "test")
     loaded = second.get(outcome.receipt_id())
 
     assert loaded == outcome
 
 
 def test_vo_07_count_verified_by_copilot(tmp_path):
-    ledger = OutcomeLedger(tmp_path / "outcomes.db")
+    ledger = OutcomeLedger(InMemoryGraphStore(), "test")
     ledger.append(_outcome())
     ledger.append(_outcome(copilot="other", decision_id="decision-2", outcome_id="outcome-2"))
 
@@ -122,7 +123,7 @@ def test_vo_07_count_verified_by_copilot(tmp_path):
 
 
 def test_vo_08_count_verified_by_category(tmp_path):
-    ledger = OutcomeLedger(tmp_path / "outcomes.db")
+    ledger = OutcomeLedger(InMemoryGraphStore(), "test")
     ledger.append(_outcome())
     ledger.append(_outcome(category="finance", decision_id="decision-2", outcome_id="outcome-2"))
 
@@ -131,7 +132,7 @@ def test_vo_08_count_verified_by_category(tmp_path):
 
 
 def test_vo_09_batch_processes_independently(tmp_path):
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"))
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"))
     results = processor.process_batch([
         _outcome(),
         _outcome(decision_id="decision-2", outcome_id="outcome-2"),
@@ -201,7 +202,7 @@ def _client(processor: OutcomeProcessor) -> TestClient:
 
 
 def test_vo_13_router_processes_receipt(tmp_path):
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"))
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"))
 
     response = _client(processor).post("/api/outcome/process", json=_outcome().to_dict())
 
@@ -210,7 +211,7 @@ def test_vo_13_router_processes_receipt(tmp_path):
 
 
 def test_vo_14_router_gets_receipt(tmp_path):
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"))
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"))
     outcome = _outcome()
     processor.process(outcome)
 
@@ -221,7 +222,7 @@ def test_vo_14_router_gets_receipt(tmp_path):
 
 
 def test_vo_15_concurrent_processing_is_exactly_once(tmp_path):
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"))
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"))
     results: list[bool] = []
     lock = threading.Lock()
 
@@ -253,7 +254,7 @@ def test_vo_17_real_profile_scorer_moves_after_processing(tmp_path):
     scorer = _scorer()
     before = scorer.mu.copy()
     outcome = _outcome()
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"), scorer=scorer)
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"), scorer=scorer)
 
     result = processor.process(outcome)
 
@@ -272,7 +273,7 @@ def test_vo_18_adapter_output_is_accepted_by_processor(tmp_path):
         },
         "test",
     )
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"), scorer=_scorer())
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"), scorer=_scorer())
 
     result = processor.process(outcome)
 
@@ -281,7 +282,7 @@ def test_vo_18_adapter_output_is_accepted_by_processor(tmp_path):
 
 
 def test_vo_19_router_count_route_is_not_shadowed(tmp_path):
-    processor = OutcomeProcessor(OutcomeLedger(tmp_path / "outcomes.db"))
+    processor = OutcomeProcessor(OutcomeLedger(InMemoryGraphStore(), "test"))
     processor.process(_outcome())
 
     response = _client(processor).get("/api/outcome/count", params={"copilot": "test"})

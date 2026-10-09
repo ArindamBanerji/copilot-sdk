@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import patch
 
 import pytest
@@ -10,21 +11,23 @@ from psycopg import OperationalError, ProgrammingError
 
 from copilot_sdk.backend.graph_access import graph_call
 from copilot_sdk.backend.health_builder import build_graph_health, health_status_code
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.graph.protocol import GraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.graph.production import GraphStoreWrapper
 
 
 @pytest.mark.parametrize("backend", ["memory", "sqlite"])
 @pytest.mark.parametrize("domain", ["trading", "purchasing", "dataops", "s2p", "soc"])
 def test_health_uses_actual_primary_and_domain_count(tmp_path: Path, backend: str, domain: str) -> None:
-    store = (SQLiteGraphStore(str(tmp_path / "health.db"), domain=domain)
+    store = (make_memory_store(str(tmp_path / "health.db"), domain=domain)
              if backend == "sqlite" else InMemoryGraphStore(domain=domain))
     try:
         store.write_decision(domain, "category", "action", 0.5, {"signal": 0.5})
         # Deliberately incorrect configuration must not masquerade as AGE.
         config = SimpleNamespace(requested_backend="age", graph="soc_graph")
         payload = build_graph_health(store, config, domain)
-        assert payload["graph_backend"] == backend
+        assert payload["graph_backend"] == "memory"
         assert payload["node_count"] == 1
         assert payload["node_count_scope"] == "domain_decisions"
         assert payload["graph_connected"] is True
@@ -56,24 +59,37 @@ def test_health_missing_store() -> None:
 
 
 @pytest.mark.parametrize("domain", ["trading", "purchasing", "dataops", "s2p", "soc"])
-def test_age_health_probes_primary_and_reports_readiness(domain: str) -> None:
-    from ci_platform.graph.age_graph_store import AGEGraphStore
-    from ci_platform.graph.age_sdk_adapter import AGEGraphStoreAdapter
+def test_production_ready_health_uses_marker_and_live_count(domain: str) -> None:
+    class ReadyHealthStore:
+        @property
+        def production_ready(self) -> bool:
+            return True
 
-    with patch("ci_platform.graph.age_graph_store.AGEClient", autospec=True):
-        primary = AGEGraphStore(dsn="host=unit", graph_name="soc_graph")
-    store = AGEGraphStoreAdapter(store=primary, domain=domain)
-    with patch.object(primary, "count_decisions", return_value=7) as count:
-        payload = build_graph_health(store, SimpleNamespace(backend="sqlite", graph="soc_graph"), domain)
+        def count_decisions(self, requested_domain: str) -> int:
+            assert requested_domain == domain
+            return 7
+
+    store = ReadyHealthStore()
+    with patch.object(store, "count_decisions", return_value=7) as count:
+        payload = build_graph_health(cast(GraphStore, store), SimpleNamespace(graph="soc_graph"), domain)
     count.assert_called_once_with(domain)
     assert payload["graph_backend"] == "age"
     assert payload["node_count"] == 7
     assert payload["graph_connected"] is True
     assert health_status_code(payload) == 200
-    with patch.object(primary, "count_decisions", side_effect=OperationalError("connection lost")):
-        payload = build_graph_health(store, SimpleNamespace(graph="soc_graph"), domain)
+    with patch.object(store, "count_decisions", side_effect=OperationalError("connection lost")):
+        payload = build_graph_health(cast(GraphStore, store), SimpleNamespace(graph="soc_graph"), domain)
     assert payload["node_count"] is None
     assert payload["graph_connected"] is False
+    assert health_status_code(payload) == 503
+
+
+def test_memory_health_is_non_production() -> None:
+    store = InMemoryGraphStore(domain="trading")
+    payload = build_graph_health(store, SimpleNamespace(graph="soc_graph"), "trading")
+    assert payload["graph_backend"] == "memory"
+    assert payload["graph_connected"] is True
+    assert payload["ready"] is False
     assert health_status_code(payload) == 503
 
 
@@ -104,3 +120,4 @@ def test_graph_guard_logs_and_translates_connection_error(caplog: pytest.LogCapt
     assert error.value.status_code == 503
     assert error.value.detail == "Graph store unavailable"
     assert "Graph store operation failed" in caplog.text
+

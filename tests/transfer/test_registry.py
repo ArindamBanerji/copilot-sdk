@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.transfer import SharedPatternRegistry, TransferPattern
 
 
@@ -24,7 +26,7 @@ def _pattern(
 
 
 def test_register_and_count() -> None:
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
 
     registry.register(_pattern())
 
@@ -32,7 +34,7 @@ def test_register_and_count() -> None:
 
 
 def test_register_assigns_auto_id() -> None:
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
 
     stored = registry.register(_pattern(pattern_id=""))
 
@@ -41,7 +43,7 @@ def test_register_assigns_auto_id() -> None:
 
 
 def test_filter_by_source_confidence_and_win_rate() -> None:
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
     registry.register(_pattern("p1", source_copilot="dataops", confidence=0.9, win_rate=0.8))
     registry.register(_pattern("p2", source_copilot="trading", confidence=0.9, win_rate=0.8))
     registry.register(_pattern("p3", source_copilot="dataops", confidence=0.4, win_rate=0.8))
@@ -53,7 +55,7 @@ def test_filter_by_source_confidence_and_win_rate() -> None:
 
 
 def test_patterns_are_sorted_by_confidence() -> None:
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
     registry.register(_pattern("low", confidence=0.6))
     registry.register(_pattern("high", confidence=0.95))
 
@@ -63,7 +65,7 @@ def test_patterns_are_sorted_by_confidence() -> None:
 
 
 def test_warm_start_excludes_same_source() -> None:
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
     registry.register(_pattern("same", source_copilot="s2p"))
     registry.register(_pattern("other", source_copilot="dataops"))
 
@@ -73,7 +75,7 @@ def test_warm_start_excludes_same_source() -> None:
 
 
 def test_category_mapping_returns_discounted_copy_without_mutating_original() -> None:
-    registry = SharedPatternRegistry()
+    registry = SharedPatternRegistry(InMemoryGraphStore(), "test")
     original = registry.register(_pattern(category="freshness_violation", confidence=0.8))
 
     patterns = registry.get_patterns_for_warm_start(
@@ -87,21 +89,21 @@ def test_category_mapping_returns_discounted_copy_without_mutating_original() ->
     assert registry.get_patterns()[0].category == "freshness_violation"
 
 
-def test_json_persistence_round_trip(tmp_path) -> None:
-    path = tmp_path / "patterns.json"
-    registry = SharedPatternRegistry(path)
+def test_graph_persistence_round_trip(tmp_path) -> None:
+    graph = InMemoryGraphStore()
+    registry = SharedPatternRegistry(graph, "test")
     registry.register(_pattern())
 
-    loaded = SharedPatternRegistry(path)
+    loaded = SharedPatternRegistry(graph, "test")
 
     assert loaded.count == 1
     assert loaded.get_patterns()[0].pattern_id == "p1"
 
 
-def test_invalid_json_does_not_crash(tmp_path) -> None:
-    path = tmp_path / "patterns.json"
-    path.write_text("{not json", encoding="utf-8")
-
-    registry = SharedPatternRegistry(path)
-
-    assert registry.count == 0
+def test_invalid_graph_pattern_is_reported() -> None:
+    graph = InMemoryGraphStore()
+    graph.save_governance("test", "transfer_pattern:broken",
+                          {"kind": "transfer_pattern", "pattern": {"win_rate": "invalid"}})
+    registry = SharedPatternRegistry(graph, "test")
+    with pytest.raises(ValueError):
+        registry.get_patterns()

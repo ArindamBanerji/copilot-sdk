@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from apps.trading.backend.app.services.trading_evolver import TradingAgentEvolver
 from copilot_sdk.ae.gate import PromotionGate as AEPromotionGate
 from copilot_sdk.conservation.global_gate import GlobalConservationGate
 from copilot_sdk.backend.scoring_router import _persist_dk_state_l5
@@ -23,6 +22,7 @@ from copilot_sdk.evolution import (
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from copilot_sdk.testing.fixtures import requires_age
 
 
 def _scorer() -> tuple[CompoundingScorer, InMemoryGraphStore]:
@@ -239,7 +239,10 @@ def test_missing_state_fails_closed_all_levels() -> None:
     assert prompt.store.get_variant("candidate").status == "shadow"
 
 
+@requires_age
 def test_provider_exception_fails_closed_all_levels() -> None:
+    from apps.trading.backend.app.services.trading_evolver import TradingAgentEvolver
+
     scorer, store = _scorer()
     decision = _decision(scorer)
     before_centroids = np.asarray(scorer._scorer.centroids).copy()
@@ -308,7 +311,10 @@ def test_provider_exception_fails_closed_all_levels() -> None:
     assert trading_result["reason"] == "conservation_not_green"
 
 
+@requires_age
 def test_single_snapshot_per_transaction() -> None:
+    from apps.trading.backend.app.services.trading_evolver import TradingAgentEvolver
+
     green = evaluate_conservation_safety("GREEN")
     assert evaluate_conservation_safety(green) is green
 

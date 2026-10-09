@@ -12,6 +12,7 @@ import sys
 
 import numpy as np
 import pytest
+from copilot_sdk.testing.fixtures import age_available
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from vld_validation_report import DOMAINS, collect_all  # noqa: E402
@@ -19,6 +20,8 @@ from vld_validation_report import DOMAINS, collect_all  # noqa: E402
 
 @pytest.fixture(scope="session")
 def sweep():
+    if not age_available():
+        pytest.skip("AGE not reachable; VLD app-construction subprocess sweep unavailable")
     return collect_all()
 
 

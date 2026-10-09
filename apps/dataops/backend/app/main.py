@@ -6,9 +6,7 @@ import json
 import asyncio
 import logging
 import os
-import sqlite3
 import sys
-import time
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
@@ -47,6 +45,7 @@ from .services.investigation_patterns import build_default_investigation_pattern
 from .services.investigation_router import InvestigationRouter  # noqa: E402
 from .vld_preseed import seed_vld_dataops_showcase  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
+from .routers.intelligence_router import create_intelligence_router  # noqa: E402
 from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from .routers.query import create_query_router  # noqa: E402
 from .routers.di_enrichment_router import create_dataops_di_enrichment_router  # noqa: E402
@@ -77,12 +76,12 @@ from copilot_sdk.backend.discovery_router import create_discovery_router  # noqa
 from copilot_sdk.backend.investigation_router import create_investigation_router  # noqa: E402
 from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
 from copilot_sdk.backend.conservation_router import build_conservation_status  # noqa: E402
+from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS  # noqa: E402
 from copilot_sdk.backend.response_materializer import ResponseMaterializer  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
 from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
-from copilot_sdk.backend.signal_store import GraphSignalStore  # noqa: E402
 from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
 from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, create_variant_store  # noqa: E402
 from .evolution.evolver_config import DATAOPS_EVOLVER_CONFIG  # noqa: E402
@@ -101,7 +100,7 @@ from copilot_sdk.di.intelligence_map import enrich_payload_with_suggestions  # n
 from copilot_sdk.di.perturbation import PerturbationService  # noqa: E402
 from copilot_sdk.di.catalog import ExternalDataCatalog  # noqa: E402
 from copilot_sdk.di.search_service import DISearchService  # noqa: E402
-from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
+from copilot_sdk.graph.factory import assert_production_graph, create_graph_store  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
@@ -112,24 +111,14 @@ from copilot_sdk.scoring.investigation import KUtilityStore  # noqa: E402
 from copilot_sdk.scoring.situation_classifier import SituationClassifier  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.demo.startup import startup_lock  # noqa: E402
-from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 from .context_router import _context_accuracy_by_category, _pipelines_from_decisions  # noqa: E402
 
 
 DOMAIN = "dataops"
 
 
-class _VLDKDecisionConnection:
-    def __init__(self, path: Path):
-        self.conn = sqlite3.connect(path, check_same_thread=False)
-
-
-def _create_vld_k_store(path: Path, dimensions: int) -> KUtilityStore:
-    return KUtilityStore(_VLDKDecisionConnection(path), dimensions)
-
-
-def _vld_k_router_kwargs(path: Path, dimensions: int) -> dict[str, KUtilityStore]:
-    return {"k_store": _create_vld_k_store(path, dimensions)}
+def _vld_k_router_kwargs(graph_store: GraphStore, dimensions: int) -> dict[str, KUtilityStore]:
+    return {"k_store": KUtilityStore(graph_store, dimensions, domain=DOMAIN)}
 
 
 async def _materializer_refresh_loop(app: FastAPI) -> None:
@@ -142,12 +131,6 @@ async def _materializer_refresh_loop(app: FastAPI) -> None:
                 await asyncio.to_thread(refresh)
             except Exception:
                 logger.exception("DataOps materializer background refresh failed")
-
-
-def _invalidate_materializer(app: FastAPI) -> None:
-    materializer = getattr(app.state, "materializer", None)
-    if materializer is not None:
-        materializer.invalidate()
 
 
 def _accuracy_by_category_payload(verified: list[dict[str, Any]], threshold: float = 0.70) -> dict[str, Any]:
@@ -227,7 +210,6 @@ def _graph_store(db_path: str | Path, *, graph_config: GraphConfig | None = None
     graph_config = graph_config or GraphConfig.load(DOMAIN)
     store = create_graph_store(
         config=graph_config,
-        db_path=str(db_path),
         decision_id_prefix="DOPS-",
     )
     setattr(store, "penalty_ratio", 10.0)
@@ -513,35 +495,36 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
                 metadata=_seed_metadata(entry, sequence, factors),
             )
             decision_id = _result_value(result, "decision_id")
-            action = (
-                entry.get("action_taken")
-                or entry.get("actual_action")
-                or entry.get("recommended_action")
-                or _result_value(result, "action")
-            )
+            recommended_action = _result_value(result, "action")
             if not decision_id:
                 raise ValueError("score result missing decision_id")
             decisions_seeded += 1
-            if "is_correct" in entry and action:
-                graph_store.write_outcome(
+            if "is_correct" in entry and recommended_action:
+                action_names = tuple(scorer._preset.shape.action_names)
+                recommended = str(recommended_action)
+                if recommended not in action_names:
+                    raise ValueError(f"score returned unknown action: {recommended}")
+                is_correct = bool(entry["is_correct"])
+                actual_action = recommended if is_correct else action_names[
+                    (action_names.index(recommended) + 1) % len(action_names)
+                ]
+                learned = scorer._learn_preseed(
                     str(decision_id),
-                    actual_action=str(action),
-                    is_correct=bool(entry["is_correct"]),
-                    domain=DOMAIN,
-                    metadata={
-                        "actual_index": 0,
-                        "context": {
-                            "source": "auto_seed",
-                            "seed_domain": DOMAIN,
-                            "seed_index": sequence,
-                            "seed_id": entry.get("alert_id")
-                            or entry.get("event_id")
-                            or entry.get("dataset")
-                            or str(sequence),
-                            "source_seed_index": sequence,
-                        },
+                    actual_action,
+                    outcome="confirmed" if is_correct else "overridden",
+                    context={
+                        "source": "auto_seed",
+                        "seed_domain": DOMAIN,
+                        "seed_index": sequence,
+                        "seed_id": entry.get("alert_id")
+                        or entry.get("event_id")
+                        or entry.get("dataset")
+                        or str(sequence),
+                        "source_seed_index": sequence,
                     },
                 )
+                if isinstance(learned, dict) and learned.get("status") == "paused":
+                    raise RuntimeError(str(learned.get("reason") or "preseed learn was paused"))
                 outcomes_seeded += 1
         except Exception as exc:
             failed += 1
@@ -701,14 +684,6 @@ def create_app(
     )
 
     scoring_db = _resolve_scoring_db(db_path)
-    # Stable pipeline/system metadata only; mutable decisions and conservation
-    # authority remain graph-backed and are intentionally excluded.
-    entity_cache = EntityCache(
-        max_size=200,
-        ttl_seconds=300,
-        source="dataops.entity_context_cache",
-    )
-    entity_context_cache = EntityContextCacheAdapter(entity_cache, enabled=True)
     _bundle_path: str | Path | bool
     if demo_bundle_path is None:
         _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
@@ -729,6 +704,7 @@ def create_app(
     app.state.dataops_active_graph_config = active_config
     app.state.dataops_selected_graph_store = selected_graph_store
     app.state.graph_store = selected_graph_store
+    assert_production_graph(app.state.graph_store, graph_config.profile)
     app.state.graph_config = graph_config
     context_graph_client = DataOpsGraphClient(
         fallback_dir=DATA_DIR / "fallback", config=graph_config,
@@ -787,9 +763,8 @@ def create_app(
         app.state.dataops_vld_evidence_source = build_dataops_evidence_source(DATA_DIR)
 
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
-    governance_db = ":memory:" if scoring_db == ":memory:" else str(DATA_DIR / "dataops_governance.sqlite3")
     app.state.dataops_governance = DataOpsGovernance(
-        governance_db, selected_graph_store, scorer_proxy, conservation_provider
+        selected_graph_store, scorer_proxy, conservation_provider, profile=graph_config.profile
     )
     evolver_config = replace(
         DATAOPS_EVOLVER_CONFIG,
@@ -839,7 +814,7 @@ def create_app(
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
-            elif _is_demo_or_test_mode() and scoring_db != ":memory:":
+            elif graph_config.backend == "memory" and _is_demo_or_test_mode():
                 if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
                 _auto_seed_if_needed(seed_graph_store, profile=graph_config.profile)
@@ -856,13 +831,6 @@ def create_app(
             app.state.l5_startup_status = status
 
     app.state.l5_startup_status = l5_startup_status
-    app.state.entity_cache = entity_cache
-    app.state.entity_context_cache = entity_context_cache
-
-    def _dataops_query_and_materializer_invalidator() -> None:
-        di_query_service.invalidate_cache()
-        _invalidate_materializer(app)
-
     app.state.materializer = ResponseMaterializer(
         domain=DOMAIN,
         store_provider=lambda: selected_graph_store,
@@ -882,8 +850,6 @@ def create_app(
             dk_welford_tracker=dk_welford_tracker,
             outcome_recorder=record_dataops_outcome,
             variant_selector=select_dataops_variant,
-            query_cache_invalidator=_dataops_query_and_materializer_invalidator,
-            entity_context_cache=entity_context_cache,
             score_payload_enricher=lambda payload: {
                 **payload,
                 "abstention_warning": app.state.dataops_governance.abstention(
@@ -943,7 +909,7 @@ def create_app(
         prefix="/api",
     )
     app.include_router(
-        create_cross_signal_router(GraphSignalStore(app.state.graph_store, DOMAIN)), prefix="/api"
+        create_cross_signal_router(app.state.graph_store), prefix="/api"
     )
     app.include_router(create_concepts_router())
     @app.get("/api/di/profiles")
@@ -964,8 +930,6 @@ def create_app(
         [profiler.connector for profiler in dataops_profiler_registry.values()]
     )
     app.state.dataops_map_builder = dataops_map_builder
-    app.state.dataops_intelligence_map_cache = None
-    app.state.dataops_intelligence_map_cached_at = 0.0
     app.include_router(
         create_di_router(
             dataops_profiler_registry,
@@ -1046,6 +1010,10 @@ def create_app(
     )
     app.include_router(dataops_graph_status_router)
     app.include_router(dataops_status_router)
+    app.include_router(create_intelligence_router(
+        scorer_provider=lambda: scorer_proxy._scorer(),
+        graph_store_provider=lambda: selected_graph_store,
+    ))
     _remove_route(app, "/api/dataops/enterprise-health", "GET", "enterprise_health_alias")
     app.include_router(enterprise_router, prefix="/api/dataops")
     app.include_router(create_enterprise_health_router(), prefix="/api")
@@ -1062,7 +1030,7 @@ def create_app(
                 app.state.dataops_vld_evidence_source,
                 decision_id,
             ),
-            **_vld_k_router_kwargs(DATA_DIR / "k_utility.db", len(FACTOR_NAMES)),
+            **_vld_k_router_kwargs(selected_graph_store, len(FACTOR_NAMES)),
             classifier=SituationClassifier(),
             factor_names=list(FACTOR_NAMES),
             default_budget=2,
@@ -1085,10 +1053,6 @@ def create_app(
 
     @app.get("/api/di/intelligence-map")
     def dataops_intelligence_map() -> dict[str, Any]:
-        now = time.time()
-        cached = app.state.dataops_intelligence_map_cache
-        if cached is not None and now - app.state.dataops_intelligence_map_cached_at < 300:
-            return cast(dict[str, Any], cached)
         sources = _dataops_intelligence_map_sources(dataops_profiler_registry)
         payload = dataops_map_builder.build(sources=sources).to_dict()
         if not payload.get("gold_lines"):
@@ -1096,8 +1060,6 @@ def create_app(
                 payload,
                 _dataops_acquisition_recommendations().get("recommendations", []),
             )
-        app.state.dataops_intelligence_map_cache = payload
-        app.state.dataops_intelligence_map_cached_at = now
         return cast(dict[str, Any], payload)
 
     @app.get("/api/dataops/di/intelligence-map")
@@ -1129,11 +1091,19 @@ def create_app(
     @app.get("/api/health")
     def health() -> Any:
         payload = build_graph_health(app.state.dataops_selected_graph_store, app.state.graph_config, DOMAIN)
-        cache_stats = entity_cache.stats()
+        phase, alpha = None, None
+        if payload["graph_connected"]:
+            try:
+                phase, alpha = scorer_proxy.get_phase(), scorer_proxy.get_alpha()
+            except GRAPH_CONNECTION_ERRORS:
+                logger.exception("DataOps health scoring read failed")
+                payload = build_graph_health(None, app.state.graph_config, DOMAIN)
         payload.update(
-            cache_hits=cache_stats.hits,
-            cache_misses=cache_stats.misses,
-            cache_size=cache_stats.size,
+            phase=phase,
+            alpha=alpha,
+            cache_hits=0,
+            cache_misses=0,
+            cache_size=0,
         )
         return JSONResponse(payload, status_code=health_status_code(payload))
 

@@ -12,6 +12,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import Any
 
+from copilot_sdk.timestamps import normalize_timestamp
+
 
 class CompositeGate:
     """Evaluate G-ABS, G-REL, and G-RATE over one verified stream."""
@@ -92,12 +94,28 @@ def outcomes_from_state(state: Any) -> list[bool]:
     except TypeError:
         rows = getter()
     result: list[bool] = []
-    for row in rows or []:
+    for row in chronological_decisions(rows or []):
         if isinstance(row, dict):
             value = row.get("is_correct")
             if value is not None:
                 result.append(bool(value))
     return result
+
+
+def chronological_decisions(rows: Iterable[Any]) -> list[Any]:
+    """Present stored decisions oldest first for trailing gate windows.
+
+    Protocol reads are newest first. Legacy adapters without creation times
+    retain their supplied order; equal-time decisions use their opaque IDs.
+    Sorting creates a new list and never mutates the store's readback.
+    """
+
+    def order(row: Any) -> tuple[float, str]:
+        if isinstance(row, dict) and row.get("created_at") is not None:
+            return normalize_timestamp(row["created_at"]), str(row.get("decision_id") or "")
+        return 0.0, ""
+
+    return sorted(rows, key=order)
 
 
 def _mean(values: Sequence[bool]) -> float:

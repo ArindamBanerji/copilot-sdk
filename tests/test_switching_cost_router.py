@@ -95,12 +95,12 @@ def test_switching_cost_no_first_decision() -> None:
 
 def test_switching_cost_with_real_store(tmp_path: "Path") -> None:
     from copilot_sdk.backend.scorer_proxy import FreshScorerProxy
-    from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+    from copilot_sdk.graph.memory_store import InMemoryGraphStore
     from copilot_sdk.scoring.presets.trading import TradingPreset
 
     proxy = FreshScorerProxy(
         "trading", tmp_path / "switching.db",
-        graph_store_factory=lambda path: SQLiteGraphStore(path, domain="trading"),
+        graph_store_factory=lambda path: InMemoryGraphStore(domain='trading'),
         profile="test",
     )
     try:

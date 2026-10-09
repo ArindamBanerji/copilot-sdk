@@ -658,7 +658,7 @@
             "test_compounding_scorer_conservation_from_graph_store",
             "test_compounding_scorer_no_graph_store_uses_sqlite",
             "test_compounding_scorer_graph_store_counts_match",
-            "test_scorer_conservation_reads_from_graph_store",
+            "test_scorer_reads_conservation_from_graph_store",
             "test_compounding_scorer_learn_store_failure_allows_learning",
             "test_compounding_scorer_learn_count_method_failure_allows_learning",
             "test_scorer_no_store_bypass_for_decision_writes",

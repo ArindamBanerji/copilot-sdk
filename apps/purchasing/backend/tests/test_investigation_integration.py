@@ -1,6 +1,5 @@
 """HTTP contract against the app mount and frozen SDK investigator."""
 from copy import deepcopy
-import sqlite3
 from types import SimpleNamespace
 import numpy as np
 import pytest
@@ -18,10 +17,8 @@ from app.investigation_config import INVESTIGATION_CONFIG as CONFIG, create_evid
 def isolated():
     graph = InMemoryGraphStore(domain="purchasing")
     scorer = CompoundingScorer.from_preset("purchasing", graph_store=graph, profile="test")
-    conn = sqlite3.connect(":memory:", check_same_thread=False)
-    k_store = KUtilityStore(SimpleNamespace(conn=conn), len(CONFIG["factor_names"]))
-    conn.execute("INSERT INTO k_utility VALUES (?, ?, ?, ?)", (CONFIG["category_names"][0], 0, 0.9, 20))
-    conn.commit()
+    k_store = KUtilityStore(graph, len(CONFIG["factor_names"]))
+    graph.save_k_utility(graph.domain, CONFIG["category_names"][0], 0, 0.9, {"n_updates": 20})
     app = FastAPI()
     app.include_router(create_investigation_router(
         lambda: scorer, lambda did: create_evidence_provider(graph, did),
@@ -31,7 +28,6 @@ def isolated():
     with TestClient(app) as client:
         yield client, scorer, graph
     graph.close()
-    conn.close()
 
 
 def request_payload(budget=2):
@@ -83,7 +79,7 @@ def test_investigation_read_only(isolated, monkeypatch):
     before_geometry = scorer.gae_scorer.centroids.copy()
     before_state = deepcopy(graph.__dict__)
     k_store = client.app.state.test_k_store
-    before_k = k_store.conn.execute("SELECT * FROM k_utility").fetchall()
+    before_k = k_store.persistence.get_k_utilities(graph.domain)
     def forbidden(*args, **kwargs):
         raise AssertionError("Investigation attempted a scorer write")
     monkeypatch.setattr(scorer, "learn", forbidden)
@@ -92,7 +88,7 @@ def test_investigation_read_only(isolated, monkeypatch):
     assert response.status_code == 200, response.text
     np.testing.assert_array_equal(before_geometry, scorer.gae_scorer.centroids)
     assert repr(graph.__dict__) == repr(before_state)
-    assert k_store.conn.execute("SELECT * FROM k_utility").fetchall() == before_k
+    assert k_store.persistence.get_k_utilities(graph.domain) == before_k
     assert response.json()["snapshot"]["k_weights"][0] == 0.9
 
 

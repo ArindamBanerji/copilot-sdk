@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pytest
@@ -37,7 +38,7 @@ class ConsolidationPreset:
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
-        return np.array([[[0.2, 0.3, 0.4], [0.8, 0.7, 0.6]]], dtype=np.float64)
+        return cast(np.ndarray, np.array([[[0.2, 0.3, 0.4], [0.8, 0.7, 0.6]]], dtype=np.float64))
 
 
 def _build_scorer(tmp_path, *, consolidation_enabled=False) -> tuple[CompoundingScorer, InMemoryGraphStore]:
@@ -134,7 +135,7 @@ def test_consolidate_true_saves_checkpoint_with_metadata(tmp_path):
 
     checkpoints = graph_store.get_centroid_checkpoints("test", include_v2=True)
     assert len(checkpoints) == 2
-    checkpoint = checkpoints[-1]
+    checkpoint = next(row for row in checkpoints if row["metadata"].get("boundary") == "learn")
     assert checkpoint["metadata"]["decision_id"] == second.decision_id
     assert checkpoint["metadata"]["boundary"] == "learn"
     assert checkpoint["metadata"]["decisions_in_batch"] == 2
@@ -156,7 +157,7 @@ def test_flush_centroids_saves_and_resets_count(tmp_path):
     checkpoints = graph_store.get_centroid_checkpoints("test", include_v2=True)
     assert flushed == 2
     assert len(checkpoints) == 3
-    checkpoint = checkpoints[-1]
+    checkpoint = next(row for row in checkpoints if row["metadata"].get("boundary") == "end-of-batch")
     assert checkpoint["metadata"]["decision_id"] == second.decision_id
     assert checkpoint["metadata"]["boundary"] == "end-of-batch"
     assert checkpoint["metadata"]["decisions_in_batch"] == 2

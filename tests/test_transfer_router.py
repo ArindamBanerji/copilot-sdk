@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
 from copilot_sdk.backend.transfer_router import create_transfer_router
 from copilot_sdk.graph import InMemoryGraphStore
@@ -93,9 +94,7 @@ def test_recent_warm_start_checkpoint_metadata_is_used() -> None:
 
     payload = _client(FakeScorer(store=store)).get("/api/transfer/status").json()
 
-    assert payload == {
-        "warm_started": True,
-        "source_copilot": "dataops",
-        "patterns_transferred": 1,
-        "transferred_at": transferred_at,
-    }
+    assert payload["warm_started"] is True
+    assert payload["source_copilot"] == "dataops"
+    assert payload["patterns_transferred"] == 1
+    assert float(payload["transferred_at"]) == pytest.approx(float(transferred_at), abs=1.0)

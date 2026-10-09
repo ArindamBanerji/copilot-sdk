@@ -2,19 +2,21 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
+from typing import Any, cast
 
 from copilot_sdk.demo.bundle import _restore
 from copilot_sdk.evolution import EvolutionEvent, InMemoryEvolutionLedger
 from copilot_sdk.reporting.weekly import WeeklyReportGenerator
-from copilot_sdk.scoring.fingerprint import FingerprintResult
 from copilot_sdk.scoring.measurement_state import MeasurementState, compute_measurement_state
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
 def test_fingerprint_reports_persistence_failure() -> None:
     scorer = object.__new__(CompoundingScorer)
-    scorer._fingerprint_cache = FingerprintResult([], 0.0, {}, 0)
-    scorer._persist_fingerprint = lambda result, decision_id=None: False
+    scorer_any = cast(Any, scorer)
+    scorer_any._preset = SimpleNamespace(shape=SimpleNamespace(factor_names=[]))
+    scorer_any._verified_decisions = lambda: []
+    scorer_any._persist_fingerprint = lambda result, decision_id=None: False
 
     result = scorer.fingerprint(persist=True)
 
@@ -44,28 +46,34 @@ def test_ledger_append_reports_persistence_failure(caplog) -> None:
     assert "Failed to persist evolution event" in caplog.text
 
 
-def test_age_bundle_restore_reports_skipped_records(caplog) -> None:
-    class AgeStore:
-        graph_config = SimpleNamespace(backend="age")
+def test_bundle_restore_reports_skipped_records(caplog) -> None:
+    from copilot_sdk.graph.memory_store import InMemoryGraphStore
+    from typing import Any
 
-        def count_decisions(self, _domain: str) -> int:
+    class FailingStore(InMemoryGraphStore):
+        def count_decisions(self, domain: str) -> int:
             return 0
 
-        def write_governed_decision(self, **kwargs: object) -> None:
+        def write_governed_decision(self, **kwargs: Any) -> None:
             if kwargs["decision_id"] == "bad":
                 raise RuntimeError("write failed")
+            super().write_governed_decision(**kwargs)
 
     bundle = {
         "domain": "trading",
+        "factor_names": [],
         "decisions": [
             {"decision_id": "good", "category": "alpha"},
             {"decision_id": "bad", "category": "alpha"},
         ],
     }
     with caplog.at_level(logging.WARNING):
-        result = _restore(AgeStore(), bundle, "trading")
+        result = _restore(FailingStore(), bundle, "trading")
 
-    assert result == {"restored_count": 1, "skipped_count": 1}
+    assert result.restored_count == 1
+    assert result.skipped_count == 1
+    assert result.failed_stores == ["decisions"]
+    assert not result.fully_restored
     assert "decision_id=bad" in caplog.text
 
 

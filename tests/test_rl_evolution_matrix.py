@@ -9,11 +9,8 @@ helpers.
 from __future__ import annotations
 
 import ast
-import importlib
-import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
-from types import ModuleType
 from typing import Any, Callable
 
 import pytest
@@ -21,6 +18,7 @@ import pytest
 from copilot_sdk.evolution import DefaultPromotionGate, PromptVariantEvolver
 from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from tests.evolution_contract_helpers import make_contract_app
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,28 +52,18 @@ def copilot_config(request: pytest.FixtureRequest) -> CopilotConfig:
     return _config(str(request.param))
 
 
-def _load_app(config: CopilotConfig) -> ModuleType:
-    for module_name in list(sys.modules):
-        if module_name == "app" or module_name.startswith("app."):
-            del sys.modules[module_name]
-    sys.path.insert(0, str(config.backend))
-    try:
-        return importlib.import_module("app.main")
-    finally:
-        sys.path.remove(str(config.backend))
+def _load_app(config: CopilotConfig):
+    """Build the SDK contract app without importing a copilot application."""
+    return make_contract_app(config.name)
 
 
 def _runtime_evolver(config: CopilotConfig) -> Any:
-    return _load_app(config).app.state.evolver
+    return _load_app(config).state.evolver
 
 
 def _sdk_evolver(config: CopilotConfig, provider: Callable[[], dict[str, Any]]) -> PromptVariantEvolver:
-    _load_app(config)
-    config_module = importlib.import_module(config.config_module)
-    config_object = replace(getattr(config_module, f"{config.name.upper()}_EVOLVER_CONFIG"), conservation_state_provider=provider)
-    evolver = PromptVariantEvolver(config=config_object)
-    specs = getattr(config_module, config.specs_getter)()
-    evolver.register_variants(specs)
+    evolver = _load_app(config).state.evolver
+    evolver.config.conservation_state_provider = provider
     return evolver
 
 
@@ -87,10 +75,8 @@ def _variant_ids(evolver: Any) -> set[str]:
 
 
 def _configured_ids(config: CopilotConfig) -> set[str]:
-    module = _load_app(config)
-    specs = getattr(importlib.import_module(config.config_module), config.specs_getter)()
-    del module
-    return {str(spec.id) for spec in specs}
+    evolver = _load_app(config).state.evolver
+    return {str(item.id) for item in evolver.store.get_all_variants()}
 
 
 def _families(evolver: PromptVariantEvolver) -> tuple[str, str]:
@@ -111,11 +97,11 @@ def _green() -> dict[str, Any]:
 
 
 def test_t_startup(copilot_config: CopilotConfig) -> None:
-    app_module = _load_app(copilot_config)
-    evolver = app_module.app.state.evolver
+    app = _load_app(copilot_config)
+    evolver = app.state.evolver
     assert evolver is not None
     assert _variant_ids(evolver) == _configured_ids(copilot_config)
-    assert app_module.app.state.evolver is evolver
+    assert app.state.evolver is evolver
 
 
 def test_t_nolit(copilot_config: CopilotConfig) -> None:
@@ -175,16 +161,10 @@ def test_t_samp(copilot_config: CopilotConfig) -> None:
 
 def test_t_outcome(copilot_config: CopilotConfig) -> None:
     evolver = _runtime_evolver(copilot_config)
-    if copilot_config.name == "trading":
-        variant_id = next(item["variant_id"] for item in evolver.registered_variants)
-        before = evolver.evolution_log()[0]["successes"]
-        evolver.record_verified_outcome(variant_id, True, category="matrix")
-        after = next(item["successes"] for item in evolver.evolution_log() if item["variant_id"] == variant_id)
-    else:
-        variant_id = evolver.store.get_all_variants()[0].id
-        before = evolver.store.get_global_stats(variant_id).total
-        evolver.record_outcome(variant_id, True, category="matrix")
-        after = evolver.store.get_global_stats(variant_id).total
+    variant_id = evolver.store.get_all_variants()[0].id
+    before = evolver.store.get_global_stats(variant_id).total
+    evolver.record_outcome(variant_id, True, category="matrix")
+    after = evolver.store.get_global_stats(variant_id).total
     assert after == before + 1
 
 

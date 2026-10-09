@@ -1,6 +1,6 @@
 """Shared governed and ungoverned engine for the two domain skins.
 
-The governed arm uses the real CompoundingScorer and SQLiteGraphStore. The
+The governed arm uses the real CompoundingScorer and memory GraphStore. The
 ungoverned arm is a contextual LinUCB reward maximizer adapted from APP-4;
 it sees the same metadata and verified outcome stream, but has no centroids
 or conservation gate.
@@ -8,15 +8,13 @@ or conservation gate.
 
 from __future__ import annotations
 
-import tempfile
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
 
 from copilot_sdk.evolution.gate import DefaultPromotionGate
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.rl.reward import RewardComputer
 from copilot_sdk.rl.reward_functions import BinaryRewardFunction
 from copilot_sdk.scoring.scorer import CompoundingScorer
@@ -81,12 +79,12 @@ class RewardMaxBaseline:
         return float(reward)
 
     def _vector(self, factors: dict[str, float]) -> np.ndarray:
-        return np.asarray([1.0] + [factors[name] for name in self._domain.FACTORS], dtype=float)
+        return cast(np.ndarray, np.asarray([1.0] + [factors[name] for name in self._domain.FACTORS], dtype=float))
 
 
-def _new_governed_arm(domain, work_dir: Path):
+def _new_governed_arm(domain):
     preset = make_preset(domain)
-    store = SQLiteGraphStore(work_dir / "decisions.sqlite", domain=preset.name)
+    store = create_graph_store(backend="memory", domain=preset.name, profile="offline", env={})
     profile = ProfileScorer(
         mu=preset.bootstrap_centroids,
         actions=list(preset.shape.action_names),
@@ -132,11 +130,10 @@ def run_domain(
     oracle = make_oracle(domain)
     result = ArmResult("reward_max" if ungoverned else "governed_ci")
     baseline = RewardMaxBaseline(domain) if ungoverned else None
-    work_dir = Path(tempfile.mkdtemp(prefix="build_your_own_"))
     scorer = None
     store = None
     if not ungoverned:
-        scorer, store = _new_governed_arm(domain, work_dir)
+        scorer, store = _new_governed_arm(domain)
         assert scorer is not None
     active_scorer = cast(CompoundingScorer, scorer)
     total_correct = 0
@@ -201,8 +198,6 @@ def run_domain(
         result.rejections.append({"rule": domain.POISONED_RULE_DESCRIPTION, **rejection})
     if store is not None:
         store.close()
-    import shutil
-    shutil.rmtree(work_dir, ignore_errors=True)
     return {
         "domain": domain.DOMAIN_NAME,
         "arm": result.name,

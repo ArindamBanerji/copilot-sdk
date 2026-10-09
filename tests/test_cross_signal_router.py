@@ -7,10 +7,16 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from typing import Any, Callable
+
+import pytest
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from copilot_sdk.backend.signal_store import SQLiteSignalStore, shared_signal_path
+from copilot_sdk.backend.graph_signals import GraphSignalEvents
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.testing.fixtures import age_test_dsn
 
 from copilot_sdk.backend.cross_signal_router import (
     EVICTION_BATCH,
@@ -30,7 +36,7 @@ SIGNAL = {
 
 def _client() -> TestClient:
     app = FastAPI()
-    app.include_router(create_cross_signal_router(), prefix="/api")
+    app.include_router(create_cross_signal_router(InMemoryGraphStore()), prefix="/api")
     return TestClient(app)
 
 
@@ -78,7 +84,7 @@ def test_f26_honesty() -> None:
 
 def test_signal_id_uses_uuid_format() -> None:
     signal_id = _client().post("/api/platform/cross-signals", json=SIGNAL).json()["signal_id"]
-    assert re.fullmatch(r"sig-[0-9a-f]{8}", signal_id)
+    assert re.fullmatch(r"sig-[0-9a-f]{32}", signal_id)
 
 
 def test_concurrent_publish_unique_ids() -> None:
@@ -182,42 +188,44 @@ def test_signal_valid_timestamp_accepted() -> None:
     )
     assert response.status_code == 201
 
-def _shared_client(path: Path) -> TestClient:
+def _shared_client(graph: GraphStore) -> TestClient:
     app = FastAPI()
-    app.include_router(create_cross_signal_router(SQLiteSignalStore(str(path))), prefix="/api")
+    app.include_router(create_cross_signal_router(graph), prefix="/api")
     return TestClient(app)
 
 
-def test_independent_apps_deliver_signal_through_shared_file(tmp_path: Path) -> None:
-    path = tmp_path / "signals.db"
-    with _shared_client(path) as publisher, _shared_client(path) as receiver:
+def test_independent_apps_deliver_signal_through_shared_graph() -> None:
+    graph = InMemoryGraphStore()
+    with _shared_client(graph) as publisher, _shared_client(graph) as receiver:
         result = publisher.post("/api/platform/cross-signals", json=SIGNAL)
         assert result.status_code == 201
         signal_id = result.json()["signal_id"]
         assert receiver.get("/api/platform/cross-signals").json()["count"] == 1
         assert receiver.get(f"/api/platform/cross-signals/{signal_id}").json()["entity_id"] == SIGNAL["entity_id"]
-    with _shared_client(path) as reopened:
+    with _shared_client(graph) as reopened:
         assert reopened.get(f"/api/platform/cross-signals/{signal_id}").status_code == 200
 
 
-def test_publish_in_another_process(tmp_path: Path) -> None:
-    path = tmp_path / "signals.db"
-    with _shared_client(path) as receiver:
+def test_publish_in_another_process(age_graph_store: Callable[[str], Any]) -> None:
+    graph = age_graph_store("trading")
+    with _shared_client(graph) as receiver:
         command = (
-            "import json,sys; from copilot_sdk.backend.signal_store import SQLiteSignalStore; "
-            "print(SQLiteSignalStore(sys.argv[1]).publish(json.loads(sys.argv[2])))"
+            "import json,sys; from ci_platform.graph import AGEGraphStoreAdapter; "
+            "from copilot_sdk.backend.graph_signals import GraphSignalEvents; "
+            "graph = AGEGraphStoreAdapter(dsn=sys.stdin.readline().strip(), graph_name=sys.argv[1]); "
+            "print(GraphSignalEvents(graph).publish(json.loads(sys.argv[2]))); graph.close()"
         )
         result = subprocess.run(
-            [sys.executable, "-c", command, str(path), json.dumps(SIGNAL)],
-            check=True, capture_output=True, text=True, timeout=30,
+            [sys.executable, "-c", command, graph._store._client._graph, json.dumps(SIGNAL)],
+            input=age_test_dsn() + "\n", check=True, capture_output=True, text=True, timeout=60,
         )
         signal_id = result.stdout.strip()
         assert receiver.get(f"/api/platform/cross-signals/{signal_id}").status_code == 200
 
 
-def test_shared_store_concurrent_publish_and_cap(tmp_path: Path) -> None:
-    path = str(tmp_path / "signals.db")
-    stores = [SQLiteSignalStore(path), SQLiteSignalStore(path)]
+def test_shared_graph_concurrent_publish_and_cap() -> None:
+    graph = InMemoryGraphStore()
+    stores = [GraphSignalEvents(graph), GraphSignalEvents(graph)]
     for _ in range(MAX_SIGNALS - 1):
         stores[0].publish(SIGNAL)
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -227,8 +235,8 @@ def test_shared_store_concurrent_publish_and_cap(tmp_path: Path) -> None:
     assert all(stores[0].get(signal_id) is not None for signal_id in ids)
 
 
-def test_shared_filters_and_pagination(tmp_path: Path) -> None:
-    with _shared_client(tmp_path / "signals.db") as client:
+def test_shared_filters_and_pagination() -> None:
+    with _shared_client(InMemoryGraphStore()) as client:
         for target in (None, "trading", "purchasing"):
             client.post("/api/platform/cross-signals", json={**SIGNAL, "target_copilot": target})
         payload = client.get("/api/platform/cross-signals",
@@ -239,9 +247,9 @@ def test_shared_filters_and_pagination(tmp_path: Path) -> None:
                           params={"source_copilot": "missing"}).json()["count"] == 0
 
 
-def test_shared_ttl_applies_to_other_apps(tmp_path: Path) -> None:
-    path = tmp_path / "signals.db"
-    with _shared_client(path) as publisher, _shared_client(path) as receiver:
+def test_shared_ttl_applies_to_other_apps() -> None:
+    graph = InMemoryGraphStore()
+    with _shared_client(graph) as publisher, _shared_client(graph) as receiver:
         response = publisher.post("/api/platform/cross-signals", json={
             **SIGNAL, "timestamp": (datetime.now(timezone.utc) - timedelta(hours=25)).isoformat(),
         })
@@ -250,8 +258,8 @@ def test_shared_ttl_applies_to_other_apps(tmp_path: Path) -> None:
         assert receiver.get("/api/platform/cross-signals/" + response.json()["signal_id"]).status_code == 404
 
 
-def test_shared_store_preserves_untrusted_text(tmp_path: Path) -> None:
-    store = SQLiteSignalStore(str(tmp_path / "signals.db"))
+def test_shared_graph_preserves_untrusted_text() -> None:
+    store = GraphSignalEvents(InMemoryGraphStore())
     entity = "'; DROP TABLE signals; --"
     signal_id = store.publish({**SIGNAL, "entity_id": entity})
     record = store.get(signal_id)
@@ -259,20 +267,22 @@ def test_shared_store_preserves_untrusted_text(tmp_path: Path) -> None:
     assert store.count() == 1
 
 
-def test_shared_default_path_independent_of_working_directory(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.delenv("CROSS_SIGNAL_DB_PATH", raising=False)
-    expected = shared_signal_path()
+def test_shared_graph_independent_of_working_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    graph = InMemoryGraphStore()
+    signal_id = GraphSignalEvents(graph).publish(SIGNAL)
     monkeypatch.chdir(tmp_path)
-    assert shared_signal_path() == expected
-    monkeypatch.setenv("CROSS_SIGNAL_DB_PATH", str(tmp_path / "configured.db"))
-    assert shared_signal_path() == str(tmp_path / "configured.db")
+    assert GraphSignalEvents(graph).get(signal_id) is not None
+    assert list(tmp_path.iterdir()) == []
 
 
-def test_explicit_sqlite_signal_store_remains_a_test_utility() -> None:
-    store = SQLiteSignalStore(profile="production")
+def test_explicit_graph_adapter_reads_written_event() -> None:
+    graph = InMemoryGraphStore()
+    store = GraphSignalEvents(graph)
     signal_id = store.publish(SIGNAL)
 
     record = store.get(signal_id)
     assert record is not None
     assert record["source_copilot"] == SIGNAL["source_copilot"]
-    store.close()
+    events = graph.get_evolution_events("cross_signals_ZGVmYXVsdA", limit=None)
+    assert len(events) == 1
+    assert events[0]["metadata"]["payload"] == record

@@ -1,5 +1,5 @@
 """Real-store coverage for inactive intervals and non-destructive import revisions."""
-from pathlib import Path
+from unittest.mock import patch
 from typing import Any
 
 import pytest
@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from copilot_sdk.backend.historical_checkpoint import HISTORY_IMPORT_KEY, project_historical_checkpoints
 from copilot_sdk.backend.self_computation_router import create_self_computation_router
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.factory import create_graph_store
 from scripts.preseed_demo_fixtures import persist_historical_gap, plan_historical_gap
 
 DAY = 86400
@@ -33,16 +33,14 @@ def test_activity_inside_gap_refused(field: str) -> None:
         plan_historical_gap(history(), [{field: 14 * DAY}])
 
 
-def test_revision_roundtrip_preserves_audit_and_restore_history(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(tmp_path / "gap.db", domain="purchasing")
+def test_revision_roundtrip_preserves_audit_and_restore_history() -> None:
+    store = create_graph_store(backend="memory", domain="purchasing", profile="test", env={})
     try:
         rows = history()
         for row in rows:
-            store.write_centroid_checkpoint(**{key: value for key, value in row.items() if key != "created_at"})
-            # Reproduce a persisted historical database in this disposable file.
-            store.connection.execute("UPDATE centroid_checkpoints SET created_at=? WHERE checkpoint_id=?",
-                                     (row["created_at"], row["checkpoint_id"]))
-        store.connection.commit()
+            # Fixture clock controls ingestion time through the normal write API.
+            with patch("copilot_sdk.graph.memory_store.time.time", return_value=row["created_at"]):
+                store.write_centroid_checkpoint(**{key: value for key, value in row.items() if key != "created_at"})
         old = {**rows[-1], "checkpoint_id": "SDK-PRESEED-PILOT02-v2-1", "metadata": {
             "historical_import": {"observed_at": 18 * DAY, "planted": True,
                 "provenance": "synthetic", "evidence_tier": "T-sim", "description": "Old mismatched import"}}}

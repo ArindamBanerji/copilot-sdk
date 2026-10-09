@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+# Migration utility: retains SQLite read access per Rule #92.
 from pathlib import Path
 from typing import Any
 

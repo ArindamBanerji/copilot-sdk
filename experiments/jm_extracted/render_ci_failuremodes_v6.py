@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -92,9 +92,9 @@ def overcorrection() -> R:
     trace = InvestigationTrace("fixture", "fixture", 1, [step], 0, 0.5, 0, 0.5)
     curves: list[list[float]] = []
     for lr_neg in (0.02, 0.005):
-        conn = sqlite3.connect(":memory:")
+        graph = InMemoryGraphStore(domain="s2p")
         try:
-            store = KUtilityStore(SimpleNamespace(conn=conn), 4, profile="test")
+            store = KUtilityStore(graph, 4, profile="test")
             for _ in range(130):
                 store.update_weights("fixture", trace, True)
             values = [float(store.get_weights("fixture")[dimension])]
@@ -104,7 +104,7 @@ def overcorrection() -> R:
                 values.append(float(store.get_weights("fixture")[dimension]))
             curves.append([max(0.0, 3.0 - w) for w in values])
         finally:
-            conn.close()
+            graph.close()
     u, g = curves
     end = onset + 5
     recovery = [next(i - end for i in range(end + 1, 51) if a[i] < 1e-10) for a in curves]

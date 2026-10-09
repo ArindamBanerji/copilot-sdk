@@ -13,7 +13,9 @@ Per-copilot:
 Run from: copilot-sdk root
 """
 import os
+from pathlib import Path
 import sqlite3
+# Migration utility: retains SQLite read access per Rule #92.
 
 SDK_BASE = r"C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk"
 S2P_BASE = r"C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\s2p-copilot"
@@ -71,7 +73,7 @@ def audit_sqlite(domain, db_path):
     print(f"\n  path: {db_path}")
     print(f"  size: {os.path.getsize(db_path) / 1024:.0f} KB")
 
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True)
     try:
         tables = [t[0] for t in conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
@@ -264,7 +266,7 @@ def check_special(domain):
         db_path = find_db("s2p")
         if db_path:
             try:
-                conn = sqlite3.connect(db_path)
+                conn = sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True)
                 tables = [t[0] for t in conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='table'"
                 ).fetchall()]

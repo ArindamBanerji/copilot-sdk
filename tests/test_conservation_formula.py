@@ -51,7 +51,6 @@ def _seed_verified(
 def _scorer(tmp_path, graph_store: InMemoryGraphStore, domain: str = "dataops"):
     return CompoundingScorer.from_preset(
         domain,
-        db_path=str(tmp_path / f"{domain}.db"),
         graph_store=graph_store,
         profile="test",
     )

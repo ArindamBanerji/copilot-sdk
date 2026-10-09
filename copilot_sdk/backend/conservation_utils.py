@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from collections.abc import Mapping, Sequence
 from typing import Any, Protocol, TypedDict, cast, runtime_checkable
 
 
@@ -19,11 +20,72 @@ def _ensure_gae_path() -> None:
 _ensure_gae_path()
 
 from gae.calibration import check_conservation, compute_theta_min, conservation_status  # noqa: E402
+from copilot_sdk.scoring.composite_gate import chronological_decisions
 
 
 ENGINE_STATUS = {"gae": "gae.calibration", "component": "conservation_status"}
 ENGINE_WHAT_IF = {"gae": "gae.calibration", "component": "check_conservation"}
 L5_BASELINE_PRODUCT_FALLBACK = 0.0
+QUALITY_WINDOW_SIZE = 400
+
+
+def _is_verified_decision(decision: Mapping[str, Any]) -> bool:
+    outcome = decision.get("outcome")
+    if outcome is not None:
+        return str(outcome).strip().lower() in {"confirmed", "overridden"}
+    return decision.get("is_correct") is not None
+
+
+def _is_benchmark_decision(decision: Mapping[str, Any]) -> bool:
+    context = decision.get("context")
+    if isinstance(context, dict) and context.get("benchmark") is True:
+        return True
+    metadata = decision.get("outcome_metadata")
+    if isinstance(metadata, dict):
+        nested = metadata.get("context")
+        if isinstance(nested, dict) and nested.get("benchmark") is True:
+            return True
+    return False
+
+
+def _is_correct_decision(decision: Mapping[str, Any]) -> bool:
+    outcome = str(decision.get("outcome") or "").strip().lower()
+    return outcome == "confirmed" or bool(decision.get("is_correct"))
+
+
+def _eligible_decisions(
+    decisions: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    return [
+        dict(row)
+        for row in decisions
+        if _is_verified_decision(row) and not _is_benchmark_decision(row)
+    ]
+
+
+def _rolling_q(
+    decisions: Sequence[Mapping[str, Any]],
+    *,
+    window_size: int = QUALITY_WINDOW_SIZE,
+) -> float | None:
+    """Return quality over the most recent ordered, eligible decisions."""
+    if window_size < 1:
+        raise ValueError("window_size must be positive")
+    verified = _eligible_decisions(decisions)
+    if not verified:
+        return None
+    # When fewer than window_size verified decisions exist, use all of them.
+    # This is the bootstrap/warm-up case; the gate may return calibration state.
+    recent = verified[-window_size:] if len(verified) > window_size else verified
+    return sum(_is_correct_decision(row) for row in recent) / len(recent)
+
+
+def _sort_decisions_chronological(
+    decisions: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Return decisions oldest first by canonical timestamp and stable ID."""
+    rows = [dict(row) for row in decisions]
+    return cast(list[dict[str, Any]], chronological_decisions(rows))
 
 
 @runtime_checkable
@@ -35,6 +97,12 @@ class _DecisionCountStore(Protocol):
         ...
 
     def count_correct(self, domain: str) -> int:
+        ...
+
+
+@runtime_checkable
+class _VerifiedDecisionStore(_DecisionCountStore, Protocol):
+    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
         ...
 
 
@@ -58,33 +126,79 @@ class ConservationMetrics(TypedDict):
     complacency_flag: str
 
 
+def _state_verified_decisions(
+    state: Any,
+    *,
+    domain: str,
+) -> list[dict[str, Any]] | None:
+    """Read and canonically order the provider's verified-decision projection."""
+    if isinstance(state, dict):
+        candidate = state.get("verified_decisions")
+        if isinstance(candidate, (list, tuple)):
+            return _sort_decisions_chronological(
+                [row for row in candidate if isinstance(row, Mapping)]
+            )
+        return None
+    store = state_store(state)
+    if not isinstance(store, _VerifiedDecisionStore):
+        return None
+    return _sort_decisions_chronological(store.get_verified_decisions(domain))
+
+
+def _categories_with_data_from_decisions(
+    decisions: Sequence[Mapping[str, Any]],
+) -> int:
+    return len(
+        {
+            str(row.get("category"))
+            for row in decisions
+            if row.get("category") not in (None, "")
+        }
+    )
+
+
 def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, Any]:
     counts = state_counts(state, domain=domain)
     categories_total = category_count(state, domain=domain)
     store = state_store(state)
+    ordered_decisions = _state_verified_decisions(state, domain=domain)
+    eligible_decisions = (
+        _eligible_decisions(ordered_decisions)
+        if ordered_decisions is not None
+        else None
+    )
+    if eligible_decisions is not None:
+        counts = {
+            **counts,
+            "verified_count": len(eligible_decisions),
+            "correct_count": sum(
+                _is_correct_decision(row) for row in eligible_decisions
+            ),
+            "total_decisions": len(eligible_decisions),
+        }
     if isinstance(state, dict):
         categories_total = int(
             state.get("total_categories")
             or state.get("categories_total")
             or categories_total
         )
-        categories_with_data = int(
-            state.get("categories_with_data")
-            or state.get("categories_with_data_count")
-            or 0
+        categories_with_data = (
+            _categories_with_data_from_decisions(eligible_decisions)
+            if eligible_decisions is not None
+            else int(
+                state.get("categories_with_data")
+                or state.get("categories_with_data_count")
+                or 0
+            )
         )
     else:
         categories_with_data = (
-            count_categories_with_data(store, domain) if store is not None else 0
+            _categories_with_data_from_decisions(eligible_decisions)
+            if eligible_decisions is not None
+            else count_categories_with_data(store, domain)
+            if store is not None
+            else 0
         )
-    check = conservation_status(
-        verified_count=counts["verified_count"],
-        correct_count=counts["correct_count"],
-        total_decisions=counts["total_decisions"],
-        penalty_ratio=counts["penalty_ratio"],
-        categories_with_data=categories_with_data,
-        total_categories=categories_total,
-    )
     verified_count = int(counts["verified_count"])
     correct_count = int(counts["correct_count"])
     alpha = (
@@ -92,7 +206,15 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
         if categories_total > 0
         else 0.0
     )
-    q = float(correct_count / verified_count) if verified_count > 0 else 0.0
+    rolling_q = _rolling_q(ordered_decisions) if ordered_decisions is not None else None
+    q = float(rolling_q) if rolling_q is not None else 0.0
+    theta_for_check = compute_theta_min(alpha, float(verified_count))
+    check = check_conservation(
+        alpha=alpha,
+        q=q,
+        V=float(verified_count),
+        theta_min=theta_for_check,
+    )
     baseline_q = _baseline_q(state, q)
     relative_trigger_ratio = 0.7
     relative_trigger = relative_trigger_ratio * baseline_q
@@ -104,7 +226,15 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
         else None
     )
     status_payload = check_payload(check)
-    conservation_mode = "cold_start" if verified_count <= 0 else "bootstrap" if verified_count < 10 else "normal"
+    conservation_mode = (
+        "cold_start"
+        if verified_count <= 0
+        else "unavailable"
+        if rolling_q is None
+        else "bootstrap"
+        if verified_count < 10
+        else "normal"
+    )
     payload = {
         "engine": ENGINE_STATUS,
         "domain": domain,
@@ -136,6 +266,7 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
             headroom=headroom,
             baseline_q=baseline_q,
             relative_trigger=relative_trigger,
+            quality_available=rolling_q is not None,
         ),
     }
     adjuster = getattr(state, "conservation_status_adjuster", None)
@@ -226,11 +357,17 @@ def _conservation_reason(
     headroom: float | None,
     baseline_q: float,
     relative_trigger: float,
+    quality_available: bool,
 ) -> str:
     """Return a plain-language, auditable explanation of the gate state."""
 
     if V <= 0 or signal is None or theta_min is None:
         return "No verified decisions are available; conservation is in explicit COLD_START bootstrap mode."
+    if not quality_available:
+        return (
+            "Ordered verified decisions are unavailable for the rolling 400-decision "
+            "quality window; conservation is unavailable and remains fail-closed."
+        )
     relation = "exceeds" if signal > theta_min else "meets" if signal == theta_min else "is below"
     quality_relation = "above" if q >= relative_trigger else "below"
     return (
@@ -253,7 +390,26 @@ def compute_conservation_metrics(
 
     counts = state_counts(state, domain=effective_domain)
     categories_total = category_count(state, domain=effective_domain)
-    categories_with_data = count_categories_with_data(store, effective_domain)
+    ordered_decisions = _state_verified_decisions(state, domain=effective_domain)
+    eligible_decisions = (
+        _eligible_decisions(ordered_decisions)
+        if ordered_decisions is not None
+        else None
+    )
+    if eligible_decisions is not None:
+        counts = {
+            **counts,
+            "verified_count": len(eligible_decisions),
+            "correct_count": sum(
+                _is_correct_decision(row) for row in eligible_decisions
+            ),
+            "total_decisions": len(eligible_decisions),
+        }
+        categories_with_data = _categories_with_data_from_decisions(
+            eligible_decisions
+        )
+    else:
+        categories_with_data = count_categories_with_data(store, effective_domain)
 
     verified_count = int(counts["verified_count"])
     correct_count = int(counts["correct_count"])
@@ -273,7 +429,13 @@ def compute_conservation_metrics(
         )
     else:
         alpha = categories_with_data / categories_total if categories_total > 0 else 0.0
-        q = correct_count / verified_count
+        rolling_q = _rolling_q(ordered_decisions) if ordered_decisions is not None else None
+        if rolling_q is None:
+            raise RuntimeError(
+                "rolling conservation quality requires canonically ordered "
+                "verified decisions"
+            )
+        q = rolling_q
         V = verified_count
         if alpha == 0.0:
             # No category has reached the configured coverage threshold yet.

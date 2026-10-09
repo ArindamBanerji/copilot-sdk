@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 import sys
+from http.client import HTTPException
 from dataclasses import asdict, dataclass, field
 from typing import Any, Iterable
 from urllib import error, request
@@ -30,6 +31,10 @@ TIMEOUT_SECONDS = 10
 
 class HeroApiError(RuntimeError):
     """A live API call failed and the beat cannot be claimed."""
+
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 @dataclass
@@ -68,23 +73,27 @@ class ApiClient:
             with request.urlopen(req, timeout=self.timeout) as response:
                 raw = response.read().decode("utf-8")
                 return json.loads(raw) if raw else {}
-        except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        except error.HTTPError as exc:
+            raise HeroApiError(f"{method} {path}: HTTP {exc.code} {exc.reason}", status=exc.code) from exc
+        except (error.URLError, OSError, HTTPException, UnicodeError, json.JSONDecodeError) as exc:
             raise HeroApiError(f"{method} {path}: {exc}") from exc
 
     def first(self, paths: Iterable[str]) -> tuple[str, Any] | None:
         for path in paths:
             try:
                 return path, self.get(path)
-            except HeroApiError:
-                continue
+            except HeroApiError as exc:
+                if exc.status not in {404, 405}:
+                    raise
         return None
 
     def first_post(self, calls: Iterable[tuple[str, dict[str, Any] | None]]) -> tuple[str, Any] | None:
         for path, payload in calls:
             try:
                 return path, self.post(path, payload)
-            except HeroApiError:
-                continue
+            except HeroApiError as exc:
+                if exc.status not in {404, 405}:
+                    raise
         return None
 
 
@@ -98,10 +107,15 @@ class HeroRunner:
     def backend_available(self) -> bool:
         if self._reachable is None:
             try:
-                self.client.get("/health")
+                data = self.client.get("/health")
+                if isinstance(data, dict):
+                    service = data.get("domain", data.get("service", data.get("copilot", "")))
+                    if service and str(service).lower() != self.copilot.lower():
+                        print(f"WARNING: {self.copilot} port returned service={service}", file=sys.stderr)
                 self._reachable = True
-            except HeroApiError:
+            except HeroApiError as exc:
                 self._reachable = False
+                raise HeroApiError(f"Backend health unavailable: {exc}", exc.status) from exc
         return self._reachable
 
     def state(self) -> dict[str, Any]:
@@ -129,7 +143,7 @@ class HeroRunner:
         if not self.backend_available():
             return _result("c2", self.copilot, "unavailable", "Backend health endpoint is unavailable.", before, before)
         score_payload = _score_payload(self.client, self.copilot)
-        score_paths = ("/api/s2p/score", "/api/score") if self.copilot == "s2p" else ("/api/score",)
+        score_paths = ("/api/s2p/score",) if self.copilot == "s2p" else ("/api/score",)
         score_call = self.client.first_post((path, score_payload) for path in score_paths)
         if score_call is None:
             return _result("c2", self.copilot, "unsupported", "No score endpoint accepted the hero request.", before, before)
@@ -144,6 +158,19 @@ class HeroRunner:
         )
         if learn is None:
             return _result("c2", self.copilot, "unsupported", "Score succeeded, but no compatible learn/outcome endpoint was available.", before, self.state(), [{"path": score_path, "payload": score}])
+        learn_path, learn_data = learn
+        evidence = [{"path": score_path, "payload": score}, {"path": learn_path, "payload": learn_data}]
+        if isinstance(learn_data, dict) and (
+            learn_data.get("paused") is True or learn_data.get("status") in {"paused", "blocked"}
+            or learn_data.get("blocked_by_gate") is True
+        ):
+            return _result("c2", self.copilot, "conservation_blocked",
+                           "Conservation vetoed learning; no completed learn is claimed.", before, before, evidence)
+        if (not isinstance(learn_data, dict) or learn_data.get("decision_id") != decision_id
+                or learn_data.get("status") != "complete" or learn_data.get("outcome") != "applied"
+                or learn_data.get("centroid_updated") is False or learn_data.get("persistence_failures")):
+            return _result("c2", self.copilot, "inconclusive",
+                           "Learn response did not confirm complete application for this decision.", before, before, evidence)
         after = self.state()
         before_iks = _find_number(before, ("current_iks", "iks", "intelligence_knowledge_score"))
         after_iks = _find_number(after, ("current_iks", "iks", "intelligence_knowledge_score"))
@@ -194,8 +221,26 @@ class HeroRunner:
             for path in ("/api/evolution/check-promotion", "/api/promotion/check", "/api/trading/promotion/check")
         )
         after = self.state()
-        blocked = status == "RED" and (promotion is None or not _has_truth(promotion[1], ("promoted", "advanced")))
-        if blocked:
+        promotion_payload = promotion[1] if promotion is not None else None
+        promotion_denied = _find_value(promotion_payload, ("promoted", "advanced", "promotion_earned")) is False
+        reason = _find_value(promotion_payload, ("reason",))
+        blocked_by = _find_value(promotion_payload, ("blocked_by",))
+        conservation_status = _find_value(promotion_payload, ("conservation_status",))
+        denial_status = (
+            conservation_status.strip().upper() if isinstance(conservation_status, str) else None
+        )
+        # Canonical evolver/promotion reason codes, not mentions of a gate.
+        # A promotion-time GREEN/PASSED status contradicts the earlier RED read.
+        has_conservation_reason = denial_status in {None, "RED", "BLOCKED"} and (
+            (isinstance(reason, str) and reason.strip().lower() in {"conservation_gate_red", "conservation_red"})
+            or (isinstance(blocked_by, str) and blocked_by.strip().lower() == "conservation")
+            or denial_status in {"RED", "BLOCKED"}
+        )
+        blocked = status == "RED" and promotion_denied and has_conservation_reason
+        if promotion is None:
+            message = "No promotion response was observed; a conservation veto cannot be verified."
+            result_status = "unavailable"
+        elif blocked:
             message = "Conservation is RED and the promotion path reports no advancement: not yet."
             result_status = "measured"
         elif status == "RED":
@@ -233,7 +278,25 @@ def run(copilot: str, port: int, beat: str) -> HeroResult:
             "c5": hero_c5_conservation_constraint,
         }[beat](copilot, port)
     except HeroApiError as exc:
-        return _result(beat, copilot, "unavailable", str(exc), {}, {})
+        status = "conservation_blocked" if exc.status == 423 else "unavailable"
+        return _result(beat, copilot, status, str(exc), {}, {})
+
+
+def run_verified(copilot: str, port: int, beat: str) -> HeroResult:
+    """Opt-in C-1 verification immediately after the existing C2/C5 beat."""
+    result = run(copilot, port, beat)
+    if copilot != "soc" and beat in {"c2", "c5"}:
+        from pathlib import Path
+        if __package__ in (None, ""):
+            sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from scripts.preseed_hero_scenarios import verify_hero_state
+        url = os.environ.get(f"{copilot.upper()}_URL", f"http://127.0.0.1:{port}")
+        checks = verify_hero_state(copilot, url)
+        result.after["c1_hero_checks"] = checks
+        if not all(check["passed"] for check in checks.values()):
+            result.status = "inconclusive"
+            result.message += "; C-1 state verification failed"
+    return result
 
 
 def _result(
@@ -250,10 +313,16 @@ def _result(
 
 
 def _score_payload(client: ApiClient, copilot: str) -> dict[str, Any]:
+    # The installed preset is authoritative; do not maintain a second vocabulary.
+    from pathlib import Path
+    if __package__ in (None, ""):
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from copilot_sdk.scoring.presets import PRESET_REGISTRY
+    category = PRESET_REGISTRY[copilot]().shape.category_names[0]
     if copilot == "s2p":
         return {
             "event_id": "hero-c2-s2p",
-            "category": "invoice_matching",
+            "category": category,
             "amount": 1250.0,
             "supplier_id": "hero-supplier",
             "supplier_name": "Hero Supplier",
@@ -279,7 +348,6 @@ def _score_payload(client: ApiClient, copilot: str) -> dict[str, Any]:
             if isinstance(row, dict) and row.get("name") and ("weight" in row or "factor" in row):
                 names.append(str(row["name"]))
     factors = {name: 0.5 for name in dict.fromkeys(names)} or {"signal_alignment": 0.5}
-    category = {"trading": "trend_following", "purchasing": "strategic_sourcing", "dataops": "data_quality"}.get(copilot, "trend_following")
     return {"category": category, "factors": factors, "context": {"hero_moment": "B31-C2"}}
 
 
@@ -328,6 +396,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--beat", choices=BEATS)
     parser.add_argument("--all", action="store_true", help="Run all four beats for every configured copilot")
     parser.add_argument("--json", action="store_true", help="Emit JSON only")
+    parser.add_argument("--heroes", action="store_true", help="Seed C-1 states first and verify them after C2/C5 (normal mode only)")
     args = parser.parse_args(argv)
     if not args.all and (args.copilot is None or args.beat is None):
         parser.error("--copilot and --beat are required unless --all is used")
@@ -336,12 +405,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.heroes:
+        from pathlib import Path
+        if __package__ in (None, ""):
+            sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from scripts.preseed_hero_scenarios import DOMAINS, run_heroes
+        selected = set(DOMAINS) if args.all else {args.copilot} & set(DOMAINS)
+        if args.port:
+            raise SystemExit("--heroes uses DOMAIN_URL overrides; do not combine with --port")
+        if run_heroes(selected):
+            return 1
     jobs = (
         [(name, args.port or port, beat) for name, port in COPILOTS.items() for beat in BEATS]
         if args.all
         else [(args.copilot, args.port or COPILOTS[args.copilot], args.beat)]
     )
-    results = [run(name, port, beat) for name, port, beat in jobs]
+    runner = run_verified if args.heroes else run
+    results = [runner(name, port, beat) for name, port, beat in jobs]
     if args.json:
         print(json.dumps([result.to_dict() for result in results], indent=2, sort_keys=True, allow_nan=False))
     else:

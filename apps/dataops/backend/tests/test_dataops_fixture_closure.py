@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 
 from app import context_router
 from app.graph_queries import DataOpsGraphClient, FALLBACK_DIR
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -157,7 +157,6 @@ import json
 from pathlib import Path
 from fastapi.testclient import TestClient
 from app.main import create_app
-from copilot_sdk.graph import SQLiteGraphStore
 
 db_path = Path(__import__('sys').argv[1])
 app = create_app(db_path=db_path, demo_bundle_path=False)
@@ -167,7 +166,7 @@ try:
         client.get('/health')
 except Exception:
     startup_error = True
-store = SQLiteGraphStore(str(db_path), domain='dataops', decision_id_prefix='DOPS-')
+store = app.state.graph_store
 decisions = store.get_all_decisions('dataops')
 metadata = decisions[0].get('metadata', {}) if decisions else {}
 print(json.dumps({'store_type': type(app.state.dataops_selected_graph_store).__name__, 'startup_error': startup_error, 'count': len(decisions), 'domain': metadata.get('domain'), 'provenance': metadata.get('provenance')}))
@@ -185,7 +184,7 @@ print(json.dumps({'store_type': type(app.state.dataops_selected_graph_store).__n
         child_env.pop(key, None)
     if demo:
         child_env["DATAOPS_DEMO_MODE"] = "1"
-        child_env["CI_ALLOW_SQLITE_FALLBACK"] = "1"
+        child_env["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "memory"
     else:
         child_env["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "age"
         child_env["DATAOPS_ACTIVE_AGE_DSN"] = "host=unreachable port=5433 dbname=dataops"
@@ -225,7 +224,7 @@ def test_startup_no_seed_in_production_age(tmp_path: Path) -> None:
 def test_startup_demo_seeds_with_provenance(tmp_path: Path) -> None:
     result = _run_startup_probe(tmp_path / "demo.db", demo=True)
 
-    assert result["store_type"] == "SQLiteGraphStore"
+    assert result["store_type"] == "LegacySignalFilteringGraphStore"
     assert isinstance(result["count"], int)
     assert result["count"] > 0
     assert result["domain"] == "dataops"

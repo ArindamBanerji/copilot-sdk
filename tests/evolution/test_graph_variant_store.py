@@ -1,15 +1,22 @@
+"""Variant persistence contracts using the injected graph backend."""
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
+import pytest
+from copilot_sdk.graph import InMemoryGraphStore
 
 from copilot_sdk.evolution import (
     InMemoryVariantStore,
     PromptEvolverConfig,
     PromptVariantEvolver,
-    SQLiteVariantStore,
+    GraphVariantStore,
     VariantSpec,
 )
+
+
+@pytest.fixture
+def graph() -> InMemoryGraphStore:
+    return InMemoryGraphStore()
 
 
 def _spec(variant_id: str = "variant-a") -> VariantSpec:
@@ -22,8 +29,8 @@ def _spec(variant_id: str = "variant-a") -> VariantSpec:
     )
 
 
-def test_sqlite_store_register_and_retrieve(tmp_path: Path) -> None:
-    store = SQLiteVariantStore(tmp_path / "variants.sqlite3")
+def test_graph_store_register_and_retrieve(graph: InMemoryGraphStore) -> None:
+    store = GraphVariantStore(graph, "test")
     store.register_variant(_spec())
 
     loaded = store.get_variant("variant-a")
@@ -35,8 +42,8 @@ def test_sqlite_store_register_and_retrieve(tmp_path: Path) -> None:
     store.close()
 
 
-def test_sqlite_store_update_stats(tmp_path: Path) -> None:
-    store = SQLiteVariantStore(tmp_path / "variants.sqlite3")
+def test_graph_store_update_stats(graph: InMemoryGraphStore) -> None:
+    store = GraphVariantStore(graph, "test")
     store.register_variant(_spec())
     store.record_outcome("variant-a", True, category="soc")
     store.record_outcome("variant-a", False, category="soc")
@@ -49,22 +56,21 @@ def test_sqlite_store_update_stats(tmp_path: Path) -> None:
     store.close()
 
 
-def test_sqlite_store_survives_reconnect(tmp_path: Path) -> None:
-    path = tmp_path / "variants.sqlite3"
-    first = SQLiteVariantStore(path)
+def test_graph_store_survives_reconnect(graph: InMemoryGraphStore) -> None:
+    first = GraphVariantStore(graph, "test")
     first.register_variant(_spec())
     first.record_outcome("variant-a", True)
     first.close()
 
-    second = SQLiteVariantStore(path)
+    second = GraphVariantStore(graph, "test")
 
     assert second.get_global_stats("variant-a").successes == 1
     assert second.get_variant("variant-a") is not None
     second.close()
 
 
-def test_sqlite_store_idempotent_register_preserves_stats(tmp_path: Path) -> None:
-    store = SQLiteVariantStore(tmp_path / "variants.sqlite3")
+def test_graph_store_idempotent_register_preserves_stats(graph: InMemoryGraphStore) -> None:
+    store = GraphVariantStore(graph, "test")
     store.register_variant(_spec())
     store.record_outcome("variant-a", True)
     store.register_variant(VariantSpec(id="variant-a", family="family-a", status="shadow"))
@@ -72,13 +78,15 @@ def test_sqlite_store_idempotent_register_preserves_stats(tmp_path: Path) -> Non
     assert len(store.get_all_variants()) == 1
     assert store.get_global_stats("variant-a").total == 1
     # Existing persisted lifecycle status is not reset by boot registration.
-    assert store.get_variant("variant-a").status == "active"
+    loaded = store.get_variant("variant-a")
+    assert loaded is not None
+    assert loaded.status == "active"
     store.close()
 
 
-def test_sqlite_store_domain_isolation(tmp_path: Path) -> None:
-    soc = SQLiteVariantStore(tmp_path / "soc.sqlite3")
-    trading = SQLiteVariantStore(tmp_path / "trading.sqlite3")
+def test_graph_store_domain_isolation(graph: InMemoryGraphStore) -> None:
+    soc = GraphVariantStore(graph, "soc")
+    trading = GraphVariantStore(graph, "trading")
     soc.register_variant(_spec())
     soc.record_outcome("variant-a", True)
 
@@ -88,8 +96,8 @@ def test_sqlite_store_domain_isolation(tmp_path: Path) -> None:
     trading.close()
 
 
-def test_sqlite_store_concurrent_writes(tmp_path: Path) -> None:
-    store = SQLiteVariantStore(tmp_path / "variants.sqlite3")
+def test_graph_store_concurrent_writes(graph: InMemoryGraphStore) -> None:
+    store = GraphVariantStore(graph, "test")
     store.register_variant(_spec())
 
     def write_outcome(index: int) -> None:
@@ -105,22 +113,21 @@ def test_sqlite_store_concurrent_writes(tmp_path: Path) -> None:
     store.close()
 
 
-def test_sqlite_store_empty_start(tmp_path: Path) -> None:
-    store = SQLiteVariantStore(tmp_path / "new.sqlite3")
+def test_graph_store_empty_start(graph: InMemoryGraphStore) -> None:
+    store = GraphVariantStore(graph, "test")
 
     assert store.get_all_variants() == []
     assert store.get_global_stats("missing").total == 0
     store.close()
 
 
-def test_evolver_with_sqlite_store_survives_restart(tmp_path: Path) -> None:
-    path = tmp_path / "variants.sqlite3"
-    first = PromptVariantEvolver(store=SQLiteVariantStore(path))
+def test_evolver_with_graph_store_survives_restart(graph: InMemoryGraphStore) -> None:
+    first = PromptVariantEvolver(store=GraphVariantStore(graph, "test"))
     first.register_variants([_spec()])
     first.record_outcome("variant-a", True)
     first.store.close()
 
-    second = PromptVariantEvolver(store=SQLiteVariantStore(path))
+    second = PromptVariantEvolver(store=GraphVariantStore(graph, "test"))
 
     assert second.store.get_global_stats("variant-a").successes == 1
     assert second.get_summary()["variants"][0]["total"] == 1
@@ -133,3 +140,4 @@ def test_in_memory_store_and_default_evolver_still_work() -> None:
     evolver.register_variants([_spec()])
     evolver.record_outcome("variant-a", True)
     assert evolver.store.get_global_stats("variant-a").success_rate == 1.0
+

@@ -16,7 +16,7 @@ except ModuleNotFoundError:  # pragma: no cover - only embedded Python 3.10
 logger = logging.getLogger(__name__)
 
 Source = Literal["env", "file", "default", "argument"]
-Backend = Literal["sqlite", "memory", "age", "dual_write"]
+Backend = Literal["memory", "age"]
 Profile = Literal["production", "test", "offline"]
 DOMAINS = ("soc", "trading", "purchasing", "dataops", "s2p")
 
@@ -70,7 +70,7 @@ def require_shared_graph(
     if test_mode:
         raise GraphConfigError("production profile conflicts with AGE test_mode")
     if normalized_backend != "age":
-        raise GraphConfigError("production requires AGE primary; SQLite/InMemory/dual_write are test/offline only")
+        raise GraphConfigError("production requires AGE primary; memory is test/offline only")
     normalized_graph = str(graph or "").strip()
     if normalized_graph != "soc_graph":
         raise GraphConfigError(
@@ -300,18 +300,13 @@ class GraphConfig:
 
     def validate(self, *, profile: str | None = None) -> None:
         selected_profile = resolve_profile(self.profile if profile is None else profile)
-        if self.backend not in {"sqlite", "memory", "age", "dual_write"}:
+        if self.backend not in {"memory", "age"}:
             raise GraphConfigError(f"invalid backend '{self.backend}'")
-        if self.expected_backend not in {"sqlite", "memory", "age", "dual_write"}:
+        if self.expected_backend not in {"memory", "age"}:
             raise GraphConfigError(f"invalid expected backend '{self.expected_backend}'")
         if selected_profile == "production" and self.domain not in DOMAINS:
             raise GraphConfigError(f"unknown graph config domain '{self.domain}'")
-        if self.expected_backend == "age" and self.backend == "sqlite":
-            if selected_profile == "production":
-                raise GraphConfigError(
-                    f"expected backend age but resolved sqlite for domain '{self.domain}'"
-                )
-        if self.backend in {"age", "dual_write"}:
+        if self.backend == "age":
             if not self.dsn:
                 raise GraphConfigError(f"missing AGE DSN for domain '{self.domain}'")
             if not self.graph:

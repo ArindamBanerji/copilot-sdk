@@ -4,7 +4,8 @@ import json
 import sqlite3
 from pathlib import Path
 
-from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import GraphStore, InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 class MinimalStore:
@@ -263,23 +264,4 @@ def test_inmemory_store_has_evolution_and_link_parity():
     ]
 
 
-def test_sqlite_store_has_evolution_and_link_parity(tmp_path):
-    db_path = tmp_path / "graph.sqlite"
-    store = SQLiteGraphStore(db_path)
 
-    store.save_evolution_event("graph", "variant_generated", "threshold_rule", "variant-1", {"seed": 7})
-    store.link_decision_to_entity(
-        "decision-1", "entity-1", edge_type="REVIEWS", domain="graph"
-    )
-
-    events = _sqlite_events(db_path)
-    assert events[0]["event_type"] == "variant_generated"
-    assert json.loads(events[0]["metadata"]) == {"seed": 7}
-    assert store.get_decision_links("decision-1", domain="graph") == [
-        {
-            "decision_id": "decision-1",
-            "entity_id": "entity-1",
-            "edge_type": "REVIEWS",
-            "created_at": store.get_decision_links("decision-1", domain="graph")[0]["created_at"],
-        }
-    ]

@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import json
-import sqlite3
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from threading import RLock
 from typing import Any, Mapping, Protocol, runtime_checkable
-from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.graph.protocol import GraphStore
 
 
 class PromotionStage(str, Enum):
@@ -109,107 +107,47 @@ class PromotionResult:
 
 
 class PromotionStore:
-    """SQLite-backed persistence for promotion records."""
+    """PromotionStore-compatible adapter backed by domain-scoped graph state."""
 
-    def __init__(self, db_path: str = ":memory:", *, profile: str | None = None) -> None:
-        if profile is not None and resolve_profile(profile, domain="") == "production":
-            raise RuntimeError("production promotion state requires a graph-backed PromotionStore")
-        self._connection = sqlite3.connect(db_path, check_same_thread=False)
-        self._lock = RLock()
-        self._connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS promotion_records (
-                record_id TEXT PRIMARY KEY,
-                copilot TEXT NOT NULL,
-                decision_class TEXT NOT NULL,
-                current_stage TEXT NOT NULL,
-                stage_history TEXT NOT NULL,
-                shadow_decisions INTEGER NOT NULL,
-                measurement_decisions INTEGER NOT NULL,
-                improvement_delta REAL NOT NULL,
-                conservation_state_at_transition TEXT NOT NULL
-            )
-            """
-        )
-        self._connection.commit()
+    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+        self.graph_store = graph_store
+        self.domain = str(domain)
 
     def save(self, record: PromotionRecord) -> None:
-        with self._lock:
-            self._connection.execute(
-                """
-                INSERT INTO promotion_records (
-                    record_id, copilot, decision_class, current_stage,
-                    stage_history, shadow_decisions, measurement_decisions,
-                    improvement_delta, conservation_state_at_transition
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(record_id) DO UPDATE SET
-                    copilot=excluded.copilot,
-                    decision_class=excluded.decision_class,
-                    current_stage=excluded.current_stage,
-                    stage_history=excluded.stage_history,
-                    shadow_decisions=excluded.shadow_decisions,
-                    measurement_decisions=excluded.measurement_decisions,
-                    improvement_delta=excluded.improvement_delta,
-                    conservation_state_at_transition=excluded.conservation_state_at_transition
-                """,
-                (
-                    record.record_id,
-                    record.copilot,
-                    record.decision_class,
-                    record.current_stage.value,
-                    json.dumps(record.stage_history, sort_keys=True),
-                    record.shadow_decisions,
-                    record.measurement_decisions,
-                    record.improvement_delta,
-                    record.conservation_state_at_transition,
-                ),
-            )
-            self._connection.commit()
+        # Application adapters consume flat records; retain legacy reads below.
+        self.graph_store.save_promotion(
+            self.domain, record.record_id, record.to_dict()
+        )
+
+    @staticmethod
+    def _decode_record(state: dict[str, Any]) -> PromotionRecord | None:
+        raw = state.get("record")
+        if isinstance(raw, dict):
+            return PromotionRecord.from_dict(raw)
+        if "record_id" in state:
+            return PromotionRecord.from_dict(state)
+        return None
+
+    def _records(self) -> dict[str, PromotionRecord]:
+        result: dict[str, PromotionRecord] = {}
+        for event in self.graph_store.list_promotions(self.domain):
+            record = self._decode_record(event)
+            if record is not None:
+                result[record.record_id] = record
+        return dict(sorted(result.items()))
 
     def load(self, record_id: str) -> PromotionRecord | None:
-        with self._lock:
-            row = self._connection.execute(
-                "SELECT * FROM promotion_records WHERE record_id = ?", (record_id,)
-            ).fetchone()
-        return _row_to_record(row) if row else None
+        state = self.graph_store.get_promotion(self.domain, record_id)
+        return self._decode_record(state) if state is not None else None
 
     def load_by_class(self, copilot: str, decision_class: str) -> PromotionRecord | None:
-        with self._lock:
-            row = self._connection.execute(
-                """
-                SELECT * FROM promotion_records
-                WHERE copilot = ? AND decision_class = ?
-                ORDER BY record_id LIMIT 1
-                """,
-                (copilot, decision_class),
-            ).fetchone()
-        return _row_to_record(row) if row else None
+        return next((r for r in self._records().values() if r.copilot == copilot and r.decision_class == decision_class), None)
 
     def list_all(self, copilot: str) -> list[PromotionRecord]:
-        with self._lock:
-            rows = self._connection.execute(
-                "SELECT * FROM promotion_records WHERE copilot = ? ORDER BY record_id",
-                (copilot,),
-            ).fetchall()
-        return [_row_to_record(row) for row in rows]
+        return [r for r in self._records().values() if r.copilot == copilot]
 
     def close(self) -> None:
-        with self._lock:
-            self._connection.close()
-
-
-def _row_to_record(row: tuple[Any, ...]) -> PromotionRecord:
-    return PromotionRecord(
-        record_id=str(row[0]),
-        copilot=str(row[1]),
-        decision_class=str(row[2]),
-        current_stage=PromotionStage(str(row[3])),
-        stage_history=list(json.loads(str(row[4]))),
-        shadow_decisions=int(row[5]),
-        measurement_decisions=int(row[6]),
-        improvement_delta=float(row[7]),
-        conservation_state_at_transition=str(row[8]),
-    )
+        return None
 
 
 class PromotionEngine:
@@ -218,11 +156,11 @@ class PromotionEngine:
     def __init__(
         self,
         policy: PromotionPolicy,
-        store: PromotionStore | None = None,
+        store: PromotionStore,
         conservation_provider: Any | None = None,
     ) -> None:
         self.policy = policy
-        self.store = store or PromotionStore()
+        self.store = store
         self.conservation_provider = conservation_provider
         self._lock = RLock()
 
@@ -323,7 +261,13 @@ class PromotionEngine:
                 record, PromotionStage.TRANSFERRED, evidence_map, status, force=True
             )
             self.store.save(transferred)
-            target = self.create(
+            target_engine = self
+            if target_copilot != record.copilot:
+                target_engine = PromotionEngine(
+                    self.policy, PromotionStore(self.store.graph_store, target_copilot),
+                    self.conservation_provider,
+                )
+            target = target_engine.create(
                 target_copilot,
                 target_decision_class or record.decision_class,
             )

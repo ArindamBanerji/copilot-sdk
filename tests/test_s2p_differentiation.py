@@ -9,6 +9,8 @@ from apps.s2p_differentiation.config import S2P_GENERATOR, S2P_ORACLE
 from apps.s2p_differentiation.engine import run_three_arms
 from examples.jm_reference.generator import SyntheticGenerator
 
+pytestmark = pytest.mark.timeout(300)
+
 
 @pytest.fixture(scope="module")
 def result(tmp_path_factory: pytest.TempPathFactory) -> dict:

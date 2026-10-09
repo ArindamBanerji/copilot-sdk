@@ -77,7 +77,6 @@ def create_di_router(
     resolved_advisor = advisor or AcquisitionAdvisor()
     resolved_catalog = catalog or ExternalDataCatalog()
     resolved_valuation_model = valuation_model or getattr(resolved_advisor, "valuation_model", None)
-    intelligence_map_cache: dict[str, Any] | None = None
 
     def _profiler(source_name: str) -> BaseSourceProfiler:
         try:
@@ -219,13 +218,9 @@ def create_di_router(
 
     @router.get("/di/intelligence-map", response_model=FlexibleResponse)
     def intelligence_map() -> dict[str, Any]:
-        nonlocal intelligence_map_cache
-        if intelligence_map_cache is not None:
-            return intelligence_map_cache
         if map_sources is not None:
-            # DataOps supplies connector-derived rows at startup.  Keep the
-            # request path bounded by normalizing those rows directly rather
-            # than re-running connector discovery on every request.
+            # DataOps supplies connector-derived rows; normalize the current
+            # rows for every request rather than retaining a response object.
             nodes = []
             for index, source in enumerate(map_sources):
                 row = dict(source)
@@ -253,7 +248,7 @@ def create_di_router(
         if not payload.get("gold_lines"):
             # Keep the read path bounded: valuation providers may be remote.
             # The deterministic combination discovery is sufficient for the
-            # dashboard's gold-line fallback and is cached below.
+            # dashboard's gold-line fallback.
             payload["gold_lines"] = [
                 {
                     "source": item.get("source_a"),
@@ -266,7 +261,6 @@ def create_di_router(
         for node in payload.get("nodes", []):
             if "trust" not in node and "brightness" in node:
                 node["trust"] = node["brightness"]
-        intelligence_map_cache = payload
         return payload
 
     @router.post("/di/query", response_model=QueryResponse)

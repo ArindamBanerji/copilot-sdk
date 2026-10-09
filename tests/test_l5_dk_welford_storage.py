@@ -7,7 +7,8 @@ from typing import Any
 
 import pytest
 
-from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import InMemoryGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 from copilot_sdk.graph.protocol import L5LearningStore
 
 
@@ -23,11 +24,11 @@ def _welford_state(n_all: int = 4) -> dict[str, object]:
     }
 
 
-@pytest.fixture(params=["memory", "sqlite"])
+@pytest.fixture(params=["memory"])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Any:
     if request.param == "memory":
         return InMemoryGraphStore()
-    return SQLiteGraphStore(tmp_path / "l5-dk-welford.sqlite")
+    return make_memory_store(tmp_path / "l5-dk-welford.sqlite")
 
 
 def test_update_dk_weights_accepts_old_positional_signature(store: Any) -> None:
@@ -68,13 +69,17 @@ def test_dk_weights_welford_roundtrip_sqlite_and_memory(store: Any) -> None:
 def test_dk_weights_welford_copy_safety(store: Any) -> None:
     state = _welford_state(n_all=2)
     store.update_dk_weights("s2p", [[1.0]], 2, 10.0, welford_state=state)
-    state["confirmed_mean"].append(99.0)  # type: ignore[union-attr]
+    original_confirmed_mean = state["confirmed_mean"]
+    assert isinstance(original_confirmed_mean, list)
+    original_confirmed_mean.append(99.0)
 
     first = store.get_dk_weights("s2p")
     assert first is not None
     first_state = first["welford_state"]
     assert isinstance(first_state, dict)
-    first_state["confirmed_mean"].append(42.0)  # type: ignore[union-attr]
+    confirmed_mean = first_state["confirmed_mean"]
+    assert isinstance(confirmed_mean, list)
+    confirmed_mean.append(42.0)
 
     second = store.get_dk_weights("s2p")
     assert second is not None
@@ -105,60 +110,8 @@ def test_dk_weights_welford_vector_dimension_validation(
         store.update_dk_weights("s2p", [[1.0]], 2, 1.0, welford_state=bad_state)
 
 
-def test_sqlite_old_table_migrates_and_old_rows_return_no_welford(tmp_path: Path) -> None:
-    db_path = tmp_path / "old-dk.sqlite"
-    connection = sqlite3.connect(db_path)
-    connection.execute(
-        """
-        CREATE TABLE l5_dk_weights (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            domain TEXT NOT NULL,
-            weight_json TEXT NOT NULL,
-            n_decisions_used INTEGER NOT NULL,
-            computed_at REAL NOT NULL,
-            supersedes_id INTEGER,
-            is_current INTEGER NOT NULL DEFAULT 1,
-            created_at TEXT NOT NULL
-        )
-        """
-    )
-    connection.execute(
-        """
-        INSERT INTO l5_dk_weights (
-            domain, weight_json, n_decisions_used, computed_at,
-            supersedes_id, is_current, created_at
-        )
-        VALUES ('s2p', '[[1.0]]', 1, 1.0, NULL, 1, '2026-06-06T00:00:00Z')
-        """
-    )
-    connection.commit()
-    connection.close()
-
-    store = SQLiteGraphStore(db_path)
-    columns = {
-        row["name"]
-        for row in store.connection.execute("PRAGMA table_info(l5_dk_weights)").fetchall()
-    }
-    assert "confirmed_mean_json" in columns
-    row = store.get_dk_weights("s2p")
-    assert row is not None
-    assert row["welford_state"] is None
 
 
-def test_sqlite_partial_stored_welford_state_rejected(tmp_path: Path) -> None:
-    store = SQLiteGraphStore(tmp_path / "partial-welford.sqlite")
-    store.update_dk_weights("s2p", [[1.0]], 1, 1.0)
-    store.connection.execute(
-        """
-        UPDATE l5_dk_weights
-        SET confirmed_mean_json = '[1.0]'
-        WHERE domain = 's2p' AND is_current = 1
-        """
-    )
-    store.connection.commit()
-
-    with pytest.raises((TypeError, ValueError)):
-        store.get_dk_weights("s2p")
 
 
 def test_l5_learning_store_signature_backward_compatible() -> None:
@@ -178,3 +131,5 @@ def test_l5_learning_store_signature_backward_compatible() -> None:
     assert params["computed_at"].kind is inspect.Parameter.POSITIONAL_OR_KEYWORD
     for name in ["welford_state", "n_confirmed", "n_overridden", "entity_group"]:
         assert params[name].kind is inspect.Parameter.KEYWORD_ONLY
+
+

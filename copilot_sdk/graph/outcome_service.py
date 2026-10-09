@@ -1,12 +1,9 @@
-"""Protocol-V2 outcome commit and pending-sync orchestration."""
+"""Protocol-V2 canonical outcome commits and conservation accounting."""
 
 from __future__ import annotations
 
 from typing import Any, Callable, Protocol, cast
-from pathlib import Path
 
-from copilot_sdk.graph.outbox import DurableOutbox
-from copilot_sdk.process_lock import file_lock
 from copilot_sdk.graph.protocol import L5LearningStore, ProtocolV2GraphStore
 
 
@@ -20,10 +17,9 @@ class ProtocolV2OutcomeStore(ProtocolV2GraphStore, L5LearningStore, Protocol):
 class ProtocolV2OutcomeService:
     """Commit verified outcomes and account for V after canonical persistence.
 
-    The writer is injected so an AGE-backed writer can be unavailable without
-    changing the real SQLite state store used for V and replay verification.
-    Availability failures are durable pending-sync entries; validation and
-    replay-conflict errors remain failures and are never reported as committed.
+    The optional writer selects the canonical persistence endpoint. Persistence
+    and validation failures propagate to the caller; this service does not queue
+    secondary writes or report a failed commit as pending synchronization.
     """
 
     def __init__(
@@ -31,16 +27,14 @@ class ProtocolV2OutcomeService:
         store: ProtocolV2OutcomeStore,
         *,
         domain: str,
-        outbox: DurableOutbox,
         canonical_writer: OutcomeWriter | None = None,
     ) -> None:
         self.store = store
         self.domain = str(domain)
-        self.outbox = outbox
         self._canonical_writer = canonical_writer or store.write_outcome
 
     def set_canonical_writer(self, writer: OutcomeWriter) -> None:
-        """Install the recovered canonical endpoint used by future retries."""
+        """Install the canonical endpoint used by subsequent commit attempts."""
         self._canonical_writer = writer
 
     def learn(
@@ -51,56 +45,12 @@ class ProtocolV2OutcomeService:
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         payload = self._payload(decision_id, actual_action, is_correct, metadata)
-        try:
-            V = self._commit(payload)
-        except (ConnectionError, OSError, RuntimeError) as exc:
-            outbox_id = self.outbox.append(
-                "write_outcome",
-                self.domain,
-                {"args": list(payload["args"]), "kwargs": dict(payload["kwargs"])},
-                f"{type(exc).__name__}: {exc}",
-            )
-            return {
-                "status": "accepted_pending_sync",
-                "canonical_committed": False,
-                "decision_id": decision_id,
-                "V": self._current_v(),
-                "outbox_id": outbox_id,
-            }
+        V = self._commit(payload)
         return {
             "status": "committed",
             "canonical_committed": True,
             "decision_id": decision_id,
             "V": V,
-        }
-
-    def replay(self) -> dict[str, int]:
-        with file_lock(str(Path(self.outbox.path).resolve()) + ".replay.lock"):
-            return self._replay_locked()
-
-    def _replay_locked(self) -> dict[str, int]:
-        replayed = 0
-        failed = 0
-        for entry in self.outbox.get_pending():
-            payload = entry["payload"]
-            try:
-                self._commit(
-                    {
-                        "args": tuple(payload["args"]),
-                        "kwargs": dict(payload["kwargs"]),
-                    }
-                )
-            except Exception as exc:
-                self.outbox.mark_failed(int(entry["id"]), f"{type(exc).__name__}: {exc}")
-                failed += 1
-            else:
-                self.outbox.mark_replayed(int(entry["id"]))
-                replayed += 1
-        return {
-            "replayed": replayed,
-            "failed": failed,
-            "remaining": self.outbox.unresolved_count(),
-            "V": self._current_v(),
         }
 
     def _commit(self, payload: dict[str, Any]) -> int:

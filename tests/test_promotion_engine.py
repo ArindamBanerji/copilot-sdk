@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.promotion import (
     DataOpsPromotionPolicy,
     PromotionEngine,
@@ -18,7 +19,7 @@ from copilot_sdk.promotion import (
 
 
 def _engine(policy: PromotionPolicy | None = None) -> PromotionEngine:
-    return PromotionEngine(policy=policy or S2PPromotionPolicy())
+    return PromotionEngine(policy=policy or S2PPromotionPolicy(), store=PromotionStore(InMemoryGraphStore(), "test"))
 
 
 def _green(shadow: int = 10) -> dict[str, object]:
@@ -138,7 +139,7 @@ def test_pm_09_veto_returns_true_for_red_conservation() -> None:
         def get_state(self) -> dict[str, str]:
             return {"status": "RED"}
 
-    engine = PromotionEngine(S2PPromotionPolicy(), conservation_provider=RedProvider())
+    engine = PromotionEngine(S2PPromotionPolicy(), PromotionStore(InMemoryGraphStore(), "test"), conservation_provider=RedProvider())
     record = engine.create("soc", "insider_threat")
 
     assert engine.veto(record.record_id) is True
@@ -172,8 +173,8 @@ def test_pm_11_soc_policy_validates_five_rung_ladder() -> None:
     )
 
 
-def test_pm_12_sqlite_save_load_round_trip_preserves_fields(tmp_path) -> None:
-    store = PromotionStore(str(tmp_path / "promotion.sqlite3"))
+def test_pm_12_graph_save_load_round_trip_preserves_fields(tmp_path) -> None:
+    store = PromotionStore(InMemoryGraphStore(), "test")
     engine = PromotionEngine(S2PPromotionPolicy(), store=store)
     record = engine.create("s2p", "approval")
     engine.advance(record.record_id, {"reason": "candidate"})
@@ -234,7 +235,7 @@ def test_pm_16_concurrent_advance_attempts_only_one_succeeds() -> None:
     record = engine.create("s2p", "concurrent")
 
     def advance() -> bool:
-        return engine.advance(record.record_id).advanced
+        return bool(engine.advance(record.record_id).advanced)
 
     with ThreadPoolExecutor(max_workers=8) as executor:
         results = list(executor.map(lambda _: advance(), range(8)))
@@ -267,7 +268,8 @@ def test_pm_18_transfer_creates_record_in_target_context() -> None:
 
     assert result.advanced is True
     assert result.target_record_id is not None
-    target = engine.store.load(result.target_record_id)
+    target = PromotionStore(engine.store.graph_store, "purchasing").load(result.target_record_id)
+    assert engine.store.load(result.target_record_id) is None
     assert target is not None
     assert target.copilot == "purchasing"
     assert target.decision_class == "vendor_risk"
@@ -286,3 +288,26 @@ def test_pm_19_dataops_policy_is_conservative_five_rung_projection() -> None:
 
     assert policy.stage_names == SOCPromotionPolicy().stage_names
     assert policy.conservation_required is True
+
+
+def test_cross_copilot_transfer_is_visible_only_in_destination_namespace() -> None:
+    graph = InMemoryGraphStore()
+    source_store = PromotionStore(graph, "s2p")
+    engine = PromotionEngine(S2PPromotionPolicy(), source_store)
+    record = engine.create("s2p", "supplier_risk")
+    _reach_kept(engine, record.record_id)
+
+    result = engine.transfer(record.record_id, "purchasing", "vendor_risk", _green())
+
+    assert result.advanced
+    assert result.target_record_id is not None
+    destination = PromotionStore(graph, "purchasing")
+    target = destination.load(result.target_record_id)
+    assert target is not None
+    assert target.copilot == "purchasing"
+    assert target.decision_class == "vendor_risk"
+    assert target.current_stage is PromotionStage.DISCOVERED
+    assert source_store.load(result.target_record_id) is None
+    source = source_store.load(record.record_id)
+    assert source is not None
+    assert source.current_stage is PromotionStage.TRANSFERRED

@@ -8,6 +8,7 @@ same simulated conservation constraint: when the rolling accuracy gate pauses,
 the budget is forced to B=2.
 """
 from __future__ import annotations
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 import hashlib, json, random, sys
 from pathlib import Path
 from statistics import mean, pstdev
@@ -78,7 +79,7 @@ def run_arm(cop:str,info:dict[str,Any],seed:int,arm:str,model:Any|None)->dict[st
         if p:pauses+=1
         run=apply(case,i,k[cat],b); correct=bool(run['correct']); hist.append(correct); budgets.append(b)
         total_reads+=int(run['total_reads']); total_info+=int(run['informative_reads'])
-        h.reward_learning_store(h.KUtilityStore(h.SQLiteDecisionStore(),len(i.sigma)),cat,list(info['factor_names']),{},i,run,set(case['informative']))
+        h.reward_learning_store(h.KUtilityStore(h.InMemoryGraphStore(),len(i.sigma)),cat,list(info['factor_names']),{},i,run,set(case['informative']))
         # Simulated poisoned windows are detectable by the same rolling gate.
         if n%400 in range(1,21): poisons+=1; hits+=int(p)
         if n in POINTS:

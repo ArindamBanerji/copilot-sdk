@@ -11,7 +11,7 @@ import pytest
 from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.protocol import ProtocolV2GraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 CONSERVATION_VALUES: dict[str, tuple[int, float, float]] = {
@@ -29,7 +29,7 @@ def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[ProtocolV2
     if backend == "memory":
         graph_store: ProtocolV2GraphStore = InMemoryGraphStore(domain="test")
     else:
-        graph_store = SQLiteGraphStore(str(tmp_path / "five_domains.db"), "test", "TEST-")
+        graph_store = make_memory_store(str(tmp_path / "five_domains.db"), "test", "TEST-")
     try:
         yield graph_store
     finally:
@@ -242,3 +242,4 @@ def test_mixed_domain_isolation(store: ProtocolV2GraphStore) -> None:
         assert conservation[0]["domain"] == domain
         assert all(row["domain"] == domain for row in trajectory)
         assert all(row["source_domain"] == domain for row in transfers)
+

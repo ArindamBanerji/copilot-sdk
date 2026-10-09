@@ -2,22 +2,17 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from pathlib import Path
+from typing import TypeAlias, cast
 
 import pytest
 
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
-
-Store = InMemoryGraphStore | SQLiteGraphStore
+Store: TypeAlias = InMemoryGraphStore
 
 
-@pytest.fixture(params=["memory", "sqlite"])
-def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[Store]:
-    graph_store: Store
-    if request.param == "memory":
-        graph_store = InMemoryGraphStore(domain="test")
-    else:
-        graph_store = SQLiteGraphStore(tmp_path / "evolution-links.sqlite", domain="test")
+@pytest.fixture
+def store() -> Iterator[Store]:
+    graph_store = InMemoryGraphStore(domain="test")
     try:
         yield graph_store
     finally:
@@ -25,13 +20,13 @@ def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[Store]:
 
 
 def _write_decision(store: Store, domain: str = "test") -> str:
-    return store.write_decision(
+    return cast(str, store.write_decision(
         domain,
         category="quality",
         action="approve",
         confidence=0.9,
         factors={"risk": 0.1},
-    )
+    ))
 
 
 def _write_event(
@@ -60,13 +55,6 @@ def _stored_event_decision_id(store: Store, event_id: str) -> str | None:
             ):
                 return str(edge["decision_id"])
         return None
-    if isinstance(store, SQLiteGraphStore):
-        row = store.connection.execute(
-            "SELECT decision_id FROM evolution_events WHERE event_id = ?",
-            (event_id,),
-        ).fetchone()
-        assert row is not None
-        return None if row["decision_id"] is None else str(row["decision_id"])
     raise AssertionError(f"unsupported test store: {type(store)!r}")
 
 
@@ -88,3 +76,4 @@ def test_evolution_event_wrong_domain_no_edge(store: Store) -> None:
     _write_event(store, "event-cross-domain", "s2p", decision_id)
 
     assert _stored_event_decision_id(store, "event-cross-domain") is None
+

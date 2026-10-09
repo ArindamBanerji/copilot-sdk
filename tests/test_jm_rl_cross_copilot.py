@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import os
 from typing import Any
 
 import pytest
@@ -11,7 +12,7 @@ from copilot_sdk.config import GraphConfig
 from ci_platform.graph.age_graph_store import AGEGraphStore
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
+from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.rl import (
     BinaryRewardFunction,
     CreditAssigner,
@@ -31,6 +32,7 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 
 DOMAINS = ("soc", "s2p", "trading", "purchasing", "dataops")
 PENALTY_RATIOS = {"soc": 20.0, "s2p": 5.0, "trading": 2.0, "purchasing": 3.0, "dataops": 10.0}
+CONFIG_TEST_DSN = "postgresql://test:test@127.0.0.1:1/test?connect_timeout=1"
 
 
 def _store() -> InMemoryGraphStore:
@@ -41,8 +43,15 @@ def test_in_memory_store_implements_graphstore_protocol() -> None:
     assert isinstance(_store(), GraphStore)
 
 
-def test_in_memory_store_implements_protocol_v2() -> None:
-    assert isinstance(_store(), ProtocolV2GraphStore)
+def test_in_memory_store_implements_governed_graph_contract() -> None:
+    required_methods = {
+        "write_centroid_checkpoint",
+        "get_centroid_checkpoints",
+        "write_conservation_status",
+        "get_latest_conservation_statuses",
+    }
+    store = _store()
+    assert all(callable(getattr(store, method, None)) for method in required_methods)
 
 
 def test_graphstore_has_all_platform_state_methods() -> None:
@@ -67,7 +76,9 @@ def test_age_graph_store_has_all_platform_state_methods() -> None:
 
 @pytest.mark.parametrize("domain", DOMAINS)
 def test_domain_config_uses_shared_age_graph(domain: str) -> None:
-    config = GraphConfig.load(domain)
+    env = dict(os.environ)
+    env.update({"GRAPH_BACKEND": "age", "GRAPH_DSN": CONFIG_TEST_DSN})
+    config = GraphConfig.load(domain, env=env)
     assert config.backend == "age"
     assert config.graph == "soc_graph"
     assert config.authorized == f"{domain}:soc_graph"
@@ -101,17 +112,6 @@ def test_theta_min_gate_is_common() -> None:
     for domain in DOMAINS:
         result = gate.evaluate({"total": 0, "accuracy": 0.0, "baseline_accuracy": 0.0, "sufficient": False})
         assert result["checks"]["conservation"] is False
-
-
-def test_sqlite_is_not_protocol_v2() -> None:
-    from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
-    from copilot_sdk.scoring.scorer import CompoundingScorer
-    store = SQLiteGraphStore(":memory:", domain="test")
-    try:
-        with pytest.raises(RuntimeError, match="AGE-backed"):
-            CompoundingScorer.from_preset("trading", graph_store=store, profile="production")
-    finally:
-        store.close()
 
 
 @pytest.mark.parametrize("reward", [BinaryRewardFunction(), GradedFinancialRewardFunction(), TradingReward(), PurchasingReward(), DataOpsReward()])

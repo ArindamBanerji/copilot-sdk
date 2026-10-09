@@ -10,6 +10,8 @@ from typing import Any, Callable, Optional, Protocol, runtime_checkable
 
 import numpy as np
 from copilot_sdk.config.graph_config import resolve_profile
+from copilot_sdk.graph.protocol import GraphStore, ScoringPersistenceStore
+from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
 
 
 @dataclass
@@ -461,47 +463,38 @@ def _trace_to_dict(trace: InvestigationTrace) -> dict[str, Any]:
 
 
 class KUtilityStore:
-    """Per-category, per-dimension VLD utility weights stored on an injected connection."""
+    """Per-category, per-dimension weights persisted through GraphStore.
 
-    def __init__(self, decision_store: Any, d: int, profile: str | None = None):
-        self.decision_store = decision_store
+    The extension's episode_id is the category key for cumulative K learning;
+    the last actual episode is retained in metadata alongside n_updates.
+    """
+
+    def __init__(self, graph_store: GraphStore, d: int, profile: str | None = None,
+                 *, domain: str | None = None):
+        self.graph_store = graph_store
+        self.domain = str(domain if domain is not None else getattr(graph_store, "domain", ""))
+        if not self.domain.strip():
+            raise ValueError("KUtilityStore requires a domain")
         self.d = int(d)
         if self.d <= 0:
             raise ValueError("d must be positive")
-        conn = getattr(decision_store, "conn", None) or getattr(decision_store, "_conn", None)
-        if conn is None:
-            raise AttributeError("decision_store must expose conn or _conn")
-        if profile is not None and resolve_profile(profile, domain="") == "production":
-            module_name = type(conn).__module__.lower()
-            if "sqlite" in module_name or isinstance(conn, __import__("sqlite3").Connection):
-                raise RuntimeError(
-                    "Production KUtilityStore requires a graph-backed connection; "
-                    "SQLite is test/offline only"
-                )
-        self.conn: Any = conn
-        self.conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS k_utility (
-                category TEXT NOT NULL,
-                dimension INTEGER NOT NULL,
-                weight REAL DEFAULT 0.5,
-                n_updates INTEGER DEFAULT 0,
-                PRIMARY KEY (category, dimension)
-            )
-            """
-        )
-        self.conn.commit()
+        if profile is not None and resolve_profile(profile, domain=self.domain) == "production":
+            from copilot_sdk.graph.production import age_client_for_store
+            from copilot_sdk.config.graph_config import GraphConfigError
+
+            try:
+                age_client_for_store(graph_store, domain=self.domain)
+            except GraphConfigError as exc:
+                raise RuntimeError(str(exc)) from exc
+        self.persistence: ScoringPersistenceStore = GraphScoringPersistence(graph_store)
 
     def get_weights(self, category: str) -> np.ndarray:
-        rows: Any = self.conn.execute(
-            "SELECT dimension, weight FROM k_utility WHERE category = ?",
-            (str(category),),
-        ).fetchall()
+        rows = self.persistence.get_k_utilities(self.domain, str(category), limit=self.d)
         weights: np.ndarray = np.full(self.d, 0.5, dtype=np.float64)
-        for dim, weight in rows:
-            index = int(dim)
+        for row in rows:
+            index = int(row["k"])
             if 0 <= index < self.d:
-                weights[index] = float(weight)
+                weights[index] = float(row["utility"])
         return weights
 
     def update_weights(
@@ -523,18 +516,15 @@ class KUtilityStore:
             else:
                 weights[dim] = max(0.1, weights[dim] - float(lr_neg))
             updates.increment(dim)
+        previous = {int(row["k"]): row for row in
+                    self.persistence.get_k_utilities(self.domain, str(category), limit=self.d)}
         for dim, count in updates.items():
-            self.conn.execute(
-                """
-                INSERT INTO k_utility(category, dimension, weight, n_updates)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(category, dimension) DO UPDATE SET
-                    weight = excluded.weight,
-                    n_updates = k_utility.n_updates + excluded.n_updates
-                """,
-                (str(category), int(dim), float(weights[dim]), int(count)),
+            metadata = dict(previous.get(dim, {}).get("metadata", {}))
+            metadata["n_updates"] = int(metadata.get("n_updates", 0)) + count
+            metadata["last_episode_id"] = trace.decision_id
+            self.persistence.save_k_utility(
+                self.domain, str(category), int(dim), float(weights[dim]), metadata,
             )
-        self.conn.commit()
 
 
 class CounterLike:

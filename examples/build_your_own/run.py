@@ -27,7 +27,7 @@ def main() -> None:
     parser.add_argument("--output-dir", default=".")
     args = parser.parse_args()
     domain = DOMAINS[args.domain]
-    # The shared engine wires CompoundingScorer, conservation, SQLite, and
+    # The shared engine wires CompoundingScorer, conservation, memory storage, and
     # the promotion gate; this module only selects the domain and mode.
     results = run_domain(domain, decisions=args.decisions, ungoverned=args.ungoverned)
     report.generate_report({"domain": domain.DOMAIN_NAME, "arms": {results["arm"]: results}, "decisions": args.decisions}, args.output_dir)

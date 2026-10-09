@@ -952,6 +952,10 @@ def cmd_preseed(args: argparse.Namespace) -> None:
         ("SOC", SOC_REPO, ["scripts/preseed_demo_scenarios.py"]),
         ("S2P", s2p_repo, ["scripts/preseed_s2p_demo.py"]),
     ]
+    if getattr(args, "heroes", False):
+        # Legacy fixtures deliberately degrade Trading/Purchasing into AMBER;
+        # the opt-in C-1 phase supplies its own patterns after the safe restart.
+        jobs[0][2].remove("--demo-fixtures")
     for _, repo, command in jobs:
         if not (repo / command[0]).is_file():
             raise SystemExit(f"Preseed script missing: {repo / command[0]}")
@@ -1004,6 +1008,10 @@ def cmd_preseed(args: argparse.Namespace) -> None:
         print("PRESEEDED — debug seed mode remains enabled; run --preseed for a normal restart.")
     else:
         print("READY — all copilots preseeded and running", flush=True)
+    if getattr(args, "heroes", False):
+        from scripts.preseed_hero_scenarios import run_heroes
+        if run_heroes():
+            raise SystemExit("Hero states not ready; see verification JSON (base preseed remains intact)")
 
 
 def cmd_start(selected: list[dict], args):
@@ -1699,6 +1707,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--clean", action="store_true",
                         help="Delete scorer databases, preseed state, and record freeze; then exit")
     parser.add_argument("--preseed", action="store_true", help="Start all five, seed, then restart without seed privileges")
+    parser.add_argument("--heroes", action="store_true", help="Add and verify C-1 heroes after --preseed's normal restart")
     parser.add_argument("--preflight", action="store_true", help="Run read-only demo truth checks after start")
     parser.add_argument("--soc-learning", action="store_true",
                         help="Deprecated compatibility flag; SOC learning is enabled by default")
@@ -1738,6 +1747,8 @@ def main():
         app_extra_args = raw_args[separator + 1:]
         raw_args = raw_args[:separator]
     args = parser.parse_args(raw_args)
+    if args.heroes and (not args.preseed or args.preseed_only):
+        parser.error("--heroes requires --preseed and its normal-mode restart; not --preseed-only")
 
     if args.clean:
         cmd_clean()

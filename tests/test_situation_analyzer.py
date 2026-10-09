@@ -5,7 +5,7 @@ import pkgutil
 from dataclasses import dataclass
 from datetime import datetime
 from copy import deepcopy
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -21,7 +21,8 @@ from copilot_sdk.situation import (
     TraversalNode,
     TypedIntent,
 )
-from copilot_sdk.graph import GraphTraversalStore, SQLiteGraphStore
+from copilot_sdk.graph import GraphTraversalStore
+from tests.graph_store_test_helpers import make_memory_store
 
 
 @dataclass
@@ -50,7 +51,7 @@ class FakePattern:
         self.calls: list[tuple[TypedIntent, int]] = []
 
     def supports(self, intent: TypedIntent) -> bool:
-        return intent.domain == self.domain
+        return cast(bool, intent.domain == self.domain)
 
     def traverse(
         self,
@@ -441,7 +442,7 @@ def test_context_chain_allows_pre_render_none() -> None:
 
 
 def test_sqlite_query_context_returns_bounded_results(tmp_path) -> None:
-    store = SQLiteGraphStore(tmp_path / "graph.db", domain="demo")
+    store = make_memory_store(tmp_path / "graph.db", domain="demo")
     decision_id = store.write_decision(
         "demo",
         "price_variance",
@@ -462,7 +463,7 @@ def test_sqlite_query_context_returns_bounded_results(tmp_path) -> None:
 
 
 def test_sqlite_query_context_respects_max_depth(tmp_path) -> None:
-    store = SQLiteGraphStore(tmp_path / "graph.db", domain="demo")
+    store = make_memory_store(tmp_path / "graph.db", domain="demo")
     decision_id = store.write_decision(
         "demo",
         "price_variance",
@@ -533,3 +534,4 @@ def test_analyzer_max_allowed_depth_can_enforce_three() -> None:
             TypedIntent(domain="demo", intent_type="x", verb="explain", subject="thing"),
             max_depth=4,
         )
+

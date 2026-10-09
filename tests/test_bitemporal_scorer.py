@@ -144,7 +144,8 @@ def test_consolidation_flush_passes_batch_time_range(tmp_path: Path) -> None:
     scorer.learn(second.decision_id, second.action)
     assert scorer.flush_centroids(reason="end-of-batch") == 2
 
-    checkpoint = graph_store.get_centroid_checkpoints("test", include_v2=True)[-1]
+    checkpoint = next(row for row in graph_store.get_centroid_checkpoints("test", include_v2=True)
+                      if row["metadata"].get("boundary") == "end-of-batch")
     assert checkpoint["metadata"]["decision_time_start"] == "2026-05-19T10:00:00Z"
     assert checkpoint["metadata"]["decision_time_end"] == "2026-05-20T10:00:00Z"
     scorer.graph_store.close()
@@ -158,7 +159,8 @@ def test_consolidate_true_passes_batch_time_range(tmp_path: Path) -> None:
     scorer.learn(first.decision_id, first.action)
     scorer.learn(second.decision_id, second.action, consolidate=True)
 
-    checkpoint = graph_store.get_centroid_checkpoints("test", include_v2=True)[-1]
+    checkpoint = next(row for row in graph_store.get_centroid_checkpoints("test", include_v2=True)
+                      if row["metadata"].get("boundary") == "learn")
     assert checkpoint["metadata"]["decision_time_start"] == "2026-05-18T10:00:00Z"
     assert checkpoint["metadata"]["decision_time_end"] == "2026-05-19T10:00:00Z"
     scorer.graph_store.close()
@@ -190,7 +192,6 @@ def test_batch_range_resets_after_consolidate_true(tmp_path: Path) -> None:
 def test_warm_start_checkpoint_has_null_decision_range(tmp_path: Path) -> None:
     scorer = CompoundingScorer.from_preset(
         "s2p",
-        db_path=str(tmp_path / "s2p.sqlite"),
         profile="test",
         graph_store=InMemoryGraphStore(),
     )
@@ -216,7 +217,6 @@ def test_warm_start_checkpoint_has_null_decision_range(tmp_path: Path) -> None:
 def test_warm_start_skips_when_learned_checkpoint_exists(tmp_path: Path) -> None:
     scorer = CompoundingScorer.from_preset(
         "s2p",
-        db_path=str(tmp_path / "s2p.sqlite"),
         profile="test",
         graph_store=InMemoryGraphStore(),
     )
