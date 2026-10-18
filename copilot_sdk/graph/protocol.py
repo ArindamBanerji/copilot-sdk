@@ -10,6 +10,20 @@ from copilot_sdk.graph.enrichment import (
     EntityEnrichmentRecord,
     ProvenancedValue,
 )
+from copilot_sdk.graph.query import (
+    DecisionAggregate,
+    DecisionChangePage,
+    DecisionCursor,
+    DecisionFilter,
+    DecisionGenerationChanged,
+    DecisionGroup,
+    DecisionMetric,
+    DecisionOrder,
+    DecisionPageRequest,
+    DecisionPageResult,
+    DecisionProjection,
+    ProjectionCardinalityExceeded,
+)
 
 
 @runtime_checkable
@@ -113,6 +127,9 @@ class GraphStore(Protocol):
         domain: str,
         category: str | None = None,
         limit: int = 400,
+        *,
+        offset: int = 0,
+        chronological: bool = False,
     ) -> list[dict[str, Any]]:
         ...
 
@@ -128,7 +145,15 @@ class GraphStore(Protocol):
         """Return every archived Decision for one domain in archive order."""
         ...
 
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
+    def get_verified_decisions(
+        self,
+        domain: str,
+        *,
+        offset: int = 0,
+        limit: int | None = None,
+        chronological: bool = False,
+        verified_after: tuple[float, str] | None = None,
+    ) -> list[dict[str, Any]]:
         ...
 
     def count_verified(self, domain: str) -> int:
@@ -616,3 +641,54 @@ class L5LearningStore(Protocol):
 
     def count_categories_with_n(self, domain: str, n: int = 1) -> int:
         ...
+
+
+@runtime_checkable
+class BoundedProjectionStore(GraphStore, Protocol):
+    """Optional bounded queries over this store's existing governed graph.
+
+    This is an optional capability. A GraphStore that implements
+    BoundedProjectionStore provides filtered, paginated, aggregated
+    reads over the same governed decision data. Consumers that need
+    bounded projections accept/require this type explicitly.
+
+    The protocol overrides count_decisions with filter support.
+    The base GraphStore.count_decisions(domain) -> int remains
+    the default for non-bounded stores.
+    """
+
+    def query_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        projection: DecisionProjection = "summary",
+        page: DecisionPageRequest | None = None,
+        as_of_generation: int | None = None,
+    ) -> DecisionPageResult: ...
+
+    def count_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+    ) -> int: ...
+
+    def aggregate_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        group_by: tuple[DecisionGroup, ...] = (),
+        metrics: tuple[DecisionMetric, ...] = ("count",),
+    ) -> tuple[DecisionAggregate, ...]: ...
+
+    def get_decision_changes(
+        self,
+        domain: str,
+        *,
+        after_generation: int,
+        limit: int = 1_000,
+        projection: DecisionProjection = "full",
+        filters: DecisionFilter | None = None,
+    ) -> DecisionChangePage: ...

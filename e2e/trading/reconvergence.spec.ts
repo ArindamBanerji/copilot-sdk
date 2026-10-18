@@ -12,7 +12,9 @@ async function gotoPerformance(page: Page) {
 test("re-convergence panel renders", async ({ page }) => {
   await gotoPerformance(page);
   await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible();
-  await expect(page.getByText("Centroid Timeline")).toBeVisible();
+  await expect(
+    page.getByTestId("centroid-timeline-panel").getByRole("heading", { name: "Centroid Timeline", exact: true }),
+  ).toBeVisible();
 });
 
 test("re-convergence shows ARCH experimental label", async ({ page }) => {

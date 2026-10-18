@@ -15,6 +15,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Body, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
+from app import context_router
 from app.routers.data_import import _trade_store_ref
 from app.services.subcategory import get_subcategory
 from copilot_sdk.scoring.mutation_lock import serialize_mutation
@@ -82,10 +83,46 @@ def create_journal_router(
 
     @router.get("/trades/{trade_id}", response_model=None)
     def get_trade(trade_id: str, request: Request):
+        if graph_store_factory is not None:
+            try:
+                decision = graph_store_factory().get_decision(
+                    trade_id,
+                    domain,
+                    include_outcome=True,
+                )
+            except Exception as exc:
+                raise HTTPException(status_code=503, detail="Trading graph unavailable") from exc
+            if isinstance(decision, dict):
+                return context_router._trade_detail_payload(
+                    decision,
+                    saved_metadata=context_router._saved_trade_metadata(trade_id),
+                )
         for trade in _records(request):
             if str(trade.get("trade_id")) == str(trade_id):
-                return trade
-        return JSONResponse(status_code=404, content={"error": "Trade not found"})
+                return context_router._trade_detail_payload(
+                    trade,
+                    saved_metadata=context_router._saved_trade_metadata(trade_id),
+                )
+        return {
+            "trade_id": trade_id,
+            "ticker": None,
+            "direction": None,
+            "entry_price": None,
+            "exit_price": None,
+            "size": None,
+            "entry_time": None,
+            "exit_time": None,
+            "strategy_tag": None,
+            "category": None,
+            "regime": None,
+            "pnl": None,
+            "factors": {},
+            "options_factors": {},
+            "options_analytics_only": False,
+            "action": None,
+            "confidence": None,
+            "metadata": {},
+        }
 
     @router.post("/journal/entry")
     @serialize_mutation(domain, event="score")

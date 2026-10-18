@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
@@ -14,6 +15,7 @@ from app.routers.data_import import _trade_store_ref
 from app.services.pattern_detector import detect_patterns
 from app.services.trust_analysis import TrustAnalyzer
 from copilot_sdk.state.cached_static import cached_static
+from copilot_sdk.backend.self_computation_router import _merge_verified_fields
 from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
@@ -238,6 +240,142 @@ def _safe_float(value: Any) -> float | None:
     return number
 
 
+def _saved_trade_metadata(trade_id: str) -> dict[str, Any]:
+    payload = _load_json_optional("trade_metadata.json") or {}
+    if not isinstance(payload, dict):
+        return {}
+    record = payload.get(str(trade_id))
+    return dict(record) if isinstance(record, dict) else {}
+
+
+def _decision_factors(decision: dict[str, Any]) -> dict[str, float]:
+    raw = decision.get("factors")
+    if isinstance(raw, dict):
+        return {
+            str(name): float(value)
+            for name, value in raw.items()
+            if _safe_float(value) is not None
+        }
+
+    metadata = decision.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    vector = decision.get("factor_vector") or metadata.get("factor_vector")
+    names = decision.get("factor_names") or metadata.get("factor_names")
+    if not isinstance(names, list):
+        names = list(TradingPreset().shape.factor_names)
+    if not isinstance(vector, list):
+        return {}
+    return {
+        str(name): float(value)
+        for name, value in zip(names, vector, strict=False)
+        if _safe_float(value) is not None
+    }
+
+
+def _decision_outcome(decision: dict[str, Any]) -> str:
+    status_value = str(decision.get("status") or "").strip().lower()
+    outcome = decision.get("outcome")
+    if isinstance(outcome, dict):
+        outcome_value = str(outcome.get("status") or outcome.get("result") or "").strip().lower()
+    else:
+        outcome_value = str(outcome or "").strip().lower()
+    if (
+        status_value == "overridden"
+        or outcome_value == "overridden"
+        or decision.get("was_override") is True
+    ):
+        return "overridden"
+    if (
+        status_value in {"confirmed", "verified"}
+        or outcome_value in {"confirmed", "verified"}
+        or decision.get("actual_action") is not None
+        or decision.get("is_correct") is not None
+        or decision.get("verified_at_epoch") is not None
+    ):
+        return "verified"
+    return "pending"
+
+
+def _decision_timestamp(decision: dict[str, Any], metadata: dict[str, Any]) -> str:
+    value = (
+        decision.get("timestamp")
+        or decision.get("created_at")
+        or decision.get("entry_time")
+        or metadata.get("timestamp")
+        or metadata.get("created_at")
+        or metadata.get("entry_time")
+        or metadata.get("date")
+    )
+    numeric = _safe_float(value)
+    if numeric is not None:
+        return datetime.fromtimestamp(numeric, tz=timezone.utc).isoformat()
+    return str(value or "")
+
+
+def _trade_detail_payload(
+    decision: dict[str, Any],
+    *,
+    saved_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    stored_metadata = decision.get("metadata")
+    stored_metadata = dict(stored_metadata) if isinstance(stored_metadata, dict) else {}
+    metadata = {**stored_metadata, **(saved_metadata or {})}
+    trade_id = str(
+        decision.get("trade_id")
+        or decision.get("decision_id")
+        or metadata.get("trade_id")
+        or metadata.get("decision_id")
+        or ""
+    )
+    confidence = _safe_float(
+        decision.get("confidence")
+        if decision.get("confidence") is not None
+        else metadata.get("confidence")
+    )
+    composite_score = _safe_float(
+        decision.get("composite_score")
+        if decision.get("composite_score") is not None
+        else metadata.get("composite_score")
+    )
+    if composite_score is None:
+        composite_score = confidence if confidence is not None else 0.0
+    thesis = (
+        decision.get("thesis")
+        or metadata.get("thesis")
+        or decision.get("reflection")
+        or decision.get("notes")
+        or metadata.get("reflection")
+        or metadata.get("notes")
+        or decision.get("strategy_tag")
+        or metadata.get("strategy_tag")
+        or metadata.get("thesis_type")
+        or ""
+    )
+    action = (
+        decision.get("recommended_action")
+        or decision.get("action")
+        or metadata.get("recommended_action")
+        or metadata.get("action")
+        or "unknown"
+    )
+    ticker = decision.get("ticker") or metadata.get("ticker") or ""
+    payload = dict(decision)
+    payload.update(
+        trade_id=trade_id,
+        ticker=str(ticker),
+        timestamp=_decision_timestamp(decision, metadata),
+        category=str(decision.get("category") or metadata.get("category") or ""),
+        action=str(action),
+        thesis=str(thesis),
+        factors=_decision_factors(decision),
+        composite_score=float(composite_score),
+        outcome=_decision_outcome(decision),
+        confidence=float(confidence if confidence is not None else 0.0),
+        metadata=metadata,
+    )
+    return payload
+
+
 def _was_correct(trade: dict[str, Any]) -> bool:
     pnl = _safe_float(trade.get("pnl"))
     if pnl is not None:
@@ -372,25 +510,37 @@ def portfolio_summary(request: Request) -> dict[str, Any]:
     return cast(dict[str, Any], _analytics_from_store(store)["portfolio_summary"])
 
 
-def _analytics_from_store(store: Any) -> dict[str, Any]:
-    decisions = store.get_all_decisions(domain="trading")
-    return _analytics_from_decisions(list(decisions))
+def _analytics_from_store(store: Any, regime_monitor: Any | None = None) -> dict[str, Any]:
+    decisions = list(store.get_all_decisions(domain="trading"))
+    verified = list(store.get_verified_decisions(domain="trading"))
+    return _analytics_from_decisions(
+        decisions,
+        verified,
+        regime_monitor=regime_monitor,
+    )
 
 
-def _analytics_from_decisions(decisions: list[dict[str, Any]]) -> dict[str, Any]:
+def _analytics_from_decisions(
+    decisions: list[dict[str, Any]],
+    verified: list[dict[str, Any]] | None = None,
+    *,
+    regime_monitor: Any | None = None,
+) -> dict[str, Any]:
+    merged = _merge_verified_fields(decisions, verified or [])
     categories: dict[str, int] = {}
-    for decision in decisions:
+    for decision in merged:
         category = str(decision.get("category") or "unknown")
         categories[category] = categories.get(category, 0) + 1
     closed = [
-        decision for decision in decisions
-        if decision.get("status") in {"confirmed", "overridden"}
+        decision for decision in merged
+        if isinstance(decision.get("is_correct"), bool)
+        or decision.get("status") in {"confirmed", "overridden"}
         or decision.get("outcome") is not None
     ]
     aligned: list[str] = []
     misaligned: list[str] = []
     neutral: list[str] = []
-    for decision in decisions:
+    for decision in merged:
         decision_id = str(decision.get("decision_id") or decision.get("_age_id") or "")
         correctness = _graph_decision_correctness(decision)
         if correctness is True:
@@ -412,18 +562,26 @@ def _analytics_from_decisions(decisions: list[dict[str, Any]]) -> dict[str, Any]
         elif correctness is False:
             bucket["misaligned"] += 1
 
-    total = len(decisions)
+    total = len(merged)
     concentration = {
         category: (count / total if total else 0.0)
         for category, count in categories.items()
     }
+    rolling_candidates = [
+        decision
+        for decision in merged
+        if isinstance(decision.get("is_correct"), bool)
+    ]
+    rolling_candidates.sort(key=_analytics_verified_time, reverse=True)
     rolling = [
         {
             "decision_id": str(decision.get("decision_id") or decision.get("_age_id") or ""),
-            "correct": _graph_decision_correctness(decision),
+            "correct": bool(decision["is_correct"]),
         }
-        for decision in decisions[-10:]
+        for decision in rolling_candidates[:10]
     ]
+    regime_analysis = _analytics_regime(merged, regime_monitor)
+    monetary = _analytics_monetary_impact(rolling_candidates)
     return {
         **_empty_analytics(),
         "source": "graph",
@@ -438,12 +596,11 @@ def _analytics_from_decisions(decisions: list[dict[str, Any]]) -> dict[str, Any]
         },
         "counterfactual": {
             "skipped_trade_count": len(misaligned),
-            "dollars_saved": None,
-            "basis": "graph_outcomes; monetary impact unavailable",
+            **monetary,
         },
         "calendar_heatmap": calendar,
         "thesis_breakdown": categories,
-        "regime_analysis": {"source": "graph", "regime": None},
+        "regime_analysis": regime_analysis,
         "research_impact": {"verified_decisions": len(closed)},
         "portfolio_concentration": concentration,
         "rolling_10": rolling,
@@ -457,6 +614,114 @@ def _analytics_from_decisions(decisions: list[dict[str, Any]]) -> dict[str, Any]
             "open_positions": total - len(closed),
             "win_rate": (len(aligned) / len(closed)) if closed else None,
         },
+    }
+
+
+def _analytics_verified_time(decision: dict[str, Any]) -> float:
+    for value in (
+        decision.get("verified_at"),
+        decision.get("verified_at_epoch"),
+        decision.get("created_at"),
+    ):
+        numeric = _safe_float(value)
+        if numeric is not None:
+            return numeric
+        if value is not None:
+            try:
+                parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.timestamp()
+    return 0.0
+
+
+def _analytics_decision_time(decision: dict[str, Any]) -> float:
+    value = decision.get("created_at")
+    numeric = _safe_float(value)
+    if numeric is not None:
+        return numeric
+    if value is not None:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return 0.0
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.timestamp()
+    return 0.0
+
+
+def _analytics_regime(
+    decisions: list[dict[str, Any]],
+    regime_monitor: Any | None,
+) -> dict[str, Any]:
+    for decision in sorted(decisions, key=_analytics_decision_time, reverse=True):
+        metadata = decision.get("metadata")
+        if not isinstance(metadata, dict):
+            continue
+        regime_metadata = metadata.get("regime_metadata")
+        regime = metadata.get("regime_tag")
+        if not regime and isinstance(regime_metadata, dict):
+            regime = regime_metadata.get("regime")
+        if regime:
+            return {
+                "source": "decision_metadata",
+                "regime": str(regime),
+                "available": True,
+            }
+
+    monitor_regime = getattr(regime_monitor, "current_regime", None)
+    if monitor_regime:
+        return {
+            "source": "regime_monitor",
+            "regime": str(monitor_regime),
+            "available": True,
+        }
+    return {
+        "source": "unavailable",
+        "regime": None,
+        "available": False,
+        "status": "unavailable",
+    }
+
+
+def _analytics_monetary_impact(
+    verified: list[dict[str, Any]],
+) -> dict[str, Any]:
+    values: list[float] = []
+    keys = ("dollars_saved", "monetary_impact", "pnl_dollars", "dollar_impact", "pnl")
+    for decision in verified:
+        containers = [decision]
+        for name in ("outcome_metadata", "metadata"):
+            nested = decision.get(name)
+            if isinstance(nested, dict):
+                containers.append(nested)
+        value = next(
+            (
+                numeric
+                for container in containers
+                for key in keys
+                if (numeric := _safe_float(container.get(key))) is not None
+            ),
+            None,
+        )
+        if value is not None:
+            values.append(value)
+
+    if values:
+        return {
+            "dollars_saved": round(sum(values), 2),
+            "dollars_saved_available": True,
+            "status": "available",
+            "basis": "persisted_verified_monetary_metadata",
+        }
+    return {
+        "dollars_saved": None,
+        "dollars_saved_available": False,
+        "status": "unavailable",
+        "basis": "verified outcomes contain no persisted monetary metadata",
     }
 
 
@@ -500,7 +765,8 @@ def analytics(request: Request) -> dict[str, Any]:
         if isinstance(result, dict):
             return result
     store = getattr(request.app.state, "graph_store", request.app.state.trading_selected_graph_store)
-    return _analytics_from_store(store)
+    regime_monitor = getattr(request.app.state, "trading_regime_monitor", None)
+    return _analytics_from_store(store, regime_monitor)
 
 
 @router.get("/trust-analysis")

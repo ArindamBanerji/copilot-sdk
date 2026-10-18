@@ -30,7 +30,7 @@ def decision(ns: GraphStoreNamespace, category: str = "risk") -> str:
     return result
 
 
-@pytest.mark.parametrize("namespace", ["", " ", "a::b", "::", "a::"])
+@pytest.mark.parametrize("namespace", ["", " "])
 def test_invalid_namespace(namespace: str) -> None:
     with pytest.raises(ValueError, match="namespace"):
         GraphStoreNamespace(InMemoryGraphStore(), namespace)
@@ -39,13 +39,17 @@ def test_invalid_namespace(namespace: str) -> None:
 def test_single_colons_and_domain_helpers(pair: Pair) -> None:
     store, _, _ = pair
     ns = GraphStoreNamespace(store, "s2p:run1:ci")
-    assert ns._domain("scoring") == "s2p:run1:ci::scoring"
+    assert ns._domain("scoring").startswith("jmns__")
+    assert ":" not in ns._domain("scoring")
     assert ns._logical_domain(ns._domain("scoring")) == "scoring"
-    assert ns._domain("other::scoring") == "s2p:run1:ci::other::scoring"
-    for invalid in ("", " "):
+    assert GraphStoreNamespace._parse_physical_domain(ns._domain("under_score")) == (
+        "s2p:run1:ci", "under_score",
+    )
+    for invalid in ("", " ", "other::scoring"):
         with pytest.raises(ValueError):
             ns._domain(invalid)
-    for foreign in ("scoring", "s2p:run1:ci2::scoring", "s2p:run1:ci::"):
+    foreign_ns = GraphStoreNamespace(store, "s2p:run1:ci2")
+    for foreign in ("scoring", foreign_ns._domain("scoring"), "jmns__bad__"):
         with pytest.raises(ValueError):
             ns._logical_domain(foreign)
 
@@ -53,8 +57,10 @@ def test_single_colons_and_domain_helpers(pair: Pair) -> None:
 def test_row_rewrites_detached_structural_fields_only(pair: Pair) -> None:
     _, ns, _ = pair
     payload = {"domain": "business", "nested": [1]}
-    row = {"domain": "arm_a::scoring", "metadata": payload, "factor_mapping": payload,
-           "fingerprint": payload, "children": [{"source_domain": "arm_a::x", "target_domain": "arm_a::y"}]}
+    row = {"domain": ns._domain("scoring"), "metadata": payload,
+           "factor_mapping": payload, "fingerprint": payload,
+           "children": [{"source_domain": ns._domain("x"),
+                         "target_domain": ns._domain("y")}]}
     rewritten = ns._row(row)
     assert rewritten["domain"] == "scoring"
     assert rewritten["children"] == [{"source_domain": "x", "target_domain": "y"}]
@@ -62,14 +68,13 @@ def test_row_rewrites_detached_structural_fields_only(pair: Pair) -> None:
         assert rewritten[field] == payload
     rewritten["metadata"]["nested"].append(2)
     assert payload["nested"] == [1]
-    assert row["domain"] == "arm_a::scoring"
+    assert row["domain"] == ns._domain("scoring")
 
 
 @pytest.mark.parametrize("row", [
-    {}, {"domain": None}, {"domain": "arm_b::scoring"},
-    {"metadata": {"domain": "arm_a::scoring"}},
-    {"domain": "arm_a::scoring", "child": {"domain": "arm_b::scoring"}},
-    {"source_domain": "arm_a::scoring", "target_domain": "arm_b::scoring"},
+    {}, {"domain": None}, {"domain": "foreign"},
+    {"metadata": {"domain": "opaque"}},
+    {"source_domain": "foreign-a", "target_domain": "foreign-b"},
 ])
 def test_foreign_or_unscoped_rows_fail_closed(pair: Pair, row: dict[str, Any]) -> None:
     _, ns, _ = pair
@@ -81,8 +86,11 @@ def test_foreign_or_unscoped_rows_fail_closed(pair: Pair, row: dict[str, Any]) -
 
 def test_rows_preserve_order_and_nested_projection(pair: Pair) -> None:
     _, ns, _ = pair
-    rows: list[dict[str, Any]] = [{"decision": {"domain": "arm_a::scoring", "id": "second"}},
-            {"domain": "arm_b::scoring"}, {"domain": "arm_a::scoring", "id": "first"}]
+    rows: list[dict[str, Any]] = [
+        {"decision": {"domain": ns._domain("scoring"), "id": "second"}},
+        {"domain": GraphStoreNamespace(ns._store, "arm_b")._domain("scoring")},
+        {"domain": ns._domain("scoring"), "id": "first"},
+    ]
     assert ns._rows(rows) == [{"decision": {"domain": "scoring", "id": "second"}},
                              {"domain": "scoring", "id": "first"}]
 
@@ -99,7 +107,12 @@ def test_complete_protocol_signatures_and_no_production_marker(pair: Pair) -> No
         assert name in vars(GraphStoreNamespace)
         assert inspect.signature(vars(GraphStoreNamespace)[name]) == inspect.signature(method), name
     source = ast.parse(Path(inspect.getfile(GraphStoreNamespace)).read_text())
-    assert not any(isinstance(node, ast.FunctionDef) and node.name == "__getattr__" for node in ast.walk(source))
+    getattr_methods = [
+        node for node in ast.walk(source)
+        if isinstance(node, ast.FunctionDef) and node.name == "__getattr__"
+    ]
+    assert len(getattr_methods) == 1
+    assert "_BOUNDED_ONLY_READS" in ast.unparse(getattr_methods[0])
     assert not any(isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
                    and node.func.id in {"getattr", "hasattr", "setattr"} for node in ast.walk(source))
 
@@ -118,13 +131,14 @@ def test_decision_isolation_and_physical_domain(pair: Pair) -> None:
     own = a.get_decision(first, "scoring")
     assert own is not None and own["domain"] == "scoring"
     assert b.get_decision(first, "scoring") is None
-    assert store.get_decision(first, "arm_a::scoring")["domain"] == "arm_a::scoring"
+    assert store.get_decision(first, a._domain("scoring"))["domain"] == a._domain("scoring")
     assert a.count_decisions("scoring") == b.count_decisions("scoring") == 1
     assert [r["decision_id"] for r in a.get_all_decisions("scoring")] == [first]
     assert [r["decision_id"] for r in b.get_decisions("scoring", category="risk", limit=1)] == [second]
     assert a.get_decisions("scoring", category="other") == []
     assert a.get_decisions("scoring", limit=0) == []
-    assert a.get_decision(second, "arm_b::scoring") is None
+    with pytest.raises(ValueError):
+        a.get_decision(second, "arm_b::scoring")
 
 
 def test_outcomes_and_counts_are_isolated(pair: Pair) -> None:
@@ -155,7 +169,7 @@ def test_legacy_id_override_is_delegated(pair: Pair) -> None:
         "scoring", "risk", "reject", 0.2, {}, {"decision_id": "explicit-id"}
     )
     assert key == "explicit-id"
-    assert store.get_decision(key, "arm_a::scoring") is not None
+    assert store.get_decision(key, a._domain("scoring")) is not None
 
 
 @pytest.mark.parametrize("family", ["evolution", "posterior", "promotion", "ledger", "governance"])
@@ -201,7 +215,7 @@ def test_centroids_and_checkpoint_results(pair: Pair) -> None:
     assert row["decisions_count"] == 7
     latest = a.load_latest_checkpoint_for_regime("scoring", "normal")
     assert latest is not None and latest["domain"] == "scoring"
-    assert store.get_centroid_checkpoints("arm_a::scoring")[0]["domain"] == "arm_a::scoring"
+    assert store.get_centroid_checkpoints(a._domain("scoring"))[0]["domain"] == a._domain("scoring")
 
 
 def test_governed_ids_and_conflicts(pair: Pair) -> None:
@@ -221,11 +235,11 @@ def test_governed_ids_and_conflicts(pair: Pair) -> None:
 def test_observation_and_entity_writes(pair: Pair) -> None:
     store, a, b = pair
     a.write_observation("observation-a", "scoring", "risk", "accept", 0.8, "/score", "v1", "v1", "supplier", [0.5], ["cost"])
-    assert store._observations["observation-a"]["domain"] == "arm_a::scoring"
+    assert store._observations["observation-a"]["domain"] == a._domain("scoring")
     assert a.count_decisions("scoring") == b.count_decisions("scoring") == 0
     key = decision(a)
     a.link_entity(key, "supplier", "Supplier", "scoring")
-    assert store._edges[-1]["domain"] == "arm_a::scoring"
+    assert store._edges[-1]["domain"] == a._domain("scoring")
     assert a.contextual_judgment("scoring", "suppliers", "risk")[0]["decision"]["domain"] == "scoring"
     assert b.contextual_judgment("scoring", "suppliers", "risk") == []
     assert b.decision_movement("scoring", key) == []
@@ -240,7 +254,7 @@ def test_receipt_chains_are_domain_scoped(pair: Pair) -> None:
     idx_b, hash_b = b.append_evidence_receipt("same-intent", "scoring", second, {"value": 2}, "analyst", "/learn")
     assert idx_a == idx_b == 0
     assert hash_a != hash_b
-    assert store._evidence_receipts[("arm_a::scoring", "same-intent")]["decision_id"] == first
+    assert store._evidence_receipts[(a._domain("scoring"), "same-intent")]["decision_id"] == first
     assert a.append_evidence_receipt("next", "scoring", first, {}, "analyst", "/learn")[0] == 1
 
 
@@ -293,7 +307,10 @@ def test_transfer_filters_and_witness(pair: Pair) -> None:
         assert rows[0]["domain"] == "test"  # Store catalogue, not transfer endpoint.
     assert b.get_transfer_patterns("source", "target") == []
     assert a.transfer_witness("source", "target", "transfer-a")[0]["transfer_pattern"]["target_domain"] == "target"
-    store.write_transfer_pattern("foreign", "arm_a::source", "arm_b::target", "mapping", {}, 0.8, "valid", "GREEN")
+    store.write_transfer_pattern(
+        "foreign", a._domain("source"), b._domain("target"),
+        "mapping", {}, 0.8, "valid", "GREEN",
+    )
     assert len(a.get_transfer_patterns(source_domain="source")) == 1
     assert b.get_transfer_patterns(target_domain="target") == []
 
@@ -309,7 +326,7 @@ def test_enrichment_records_keep_metric_namespace(pair: Pair) -> None:
     assert a.read_entity_enrichment(domain="scoring", entity_type="Supplier", entity_id="supplier", namespace="metrics") == {"risk": metric}
     assert b.read_entity_enrichment(domain="scoring", entity_type="Supplier", entity_id="supplier") == {}
     assert b.list_entity_enrichments(domain="scoring") == []
-    assert store.list_entity_enrichments(domain="arm_a::scoring")[0].domain == "arm_a::scoring"
+    assert store.list_entity_enrichments(domain=a._domain("scoring"))[0].domain == a._domain("scoring")
 
 
 def test_archival_is_domain_bounded(pair: Pair) -> None:
@@ -351,7 +368,7 @@ def test_close_does_not_own_shared_lifecycle(pair: Pair) -> None:
     a.close()
     key = decision(b)
     assert b.get_decision(key, "scoring") is not None
-    assert store.count_decisions("arm_b::scoring") == 1
+    assert store.count_decisions(b._domain("scoring")) == 1
     # Memory close is also a no-op; inspect the adapter to prove it never delegates.
     assert "self._store" not in inspect.getsource(GraphStoreNamespace.close)
 
@@ -363,5 +380,5 @@ def test_single_colon_boundary_cannot_alias_another_namespace(pair: Pair) -> Non
     assert adjacent.get_decision(key, "scoring") is not None
     assert a.get_decision(key, "scoring") is None
     assert not a._belongs({"domain": "arm_a:::scoring"})
-    with pytest.raises(ValueError, match="colon"):
+    with pytest.raises(ValueError, match="letters"):
         a.get_decision(key, ":scoring")

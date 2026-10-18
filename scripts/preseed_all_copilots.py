@@ -15,6 +15,7 @@ import json
 import os
 import sys
 import time
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, NamedTuple, Optional, Protocol, Tuple
 from urllib.parse import urlsplit
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
 
 
 HOST = os.environ.get("COPILOT_HOST", "127.0.0.1")
-TIMEOUT_SECONDS = 10
+TIMEOUT_SECONDS = 30
 READ_TIMEOUT_SECONDS = 30
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if __package__ in (None, ""):
@@ -214,6 +215,9 @@ def _api_json(method: str, base_url: str, path: str, body: Optional[Dict[str, An
         # Consume the complete response before closing, including larger twin
         # curves. Never retry writes: an outcome may already have committed.
         connection.request(method, target, body=data, headers=headers)
+        sock = connection.sock
+        if sock is not None:
+            sock.settimeout(timeout)
         response = connection.getresponse()
         text = response.read().decode("utf-8")
         if not 200 <= response.status < 300:
@@ -370,7 +374,7 @@ def s2p_event(index: int) -> Dict[str, Any]:
         "historical_spend_std": 240.0,
         "vendor_decisions": 20 + index % 11,
         "vendor_approvals": 16 + index % 9,
-        "match_status": "match" if index % 5 else "mismatch",
+        "match_status": 1.0 if index % 5 else 0.0,
         "amount_variance_ratio": round(0.01 + (index % 13) * 0.012, 4),
         "duplicate_score": round(0.04 + (index % 10) * 0.07, 4),
         "supplier_exception_history": round((index % 6) * 0.09, 4),
@@ -395,9 +399,27 @@ def seed_s2p_domain(args: argparse.Namespace) -> DomainResult:
     print("health: ok")
     try:
         already_seeded, trajectory = check_already_seeded(base_url)
-    except ApiError as exc:
-        print("trajectory: unavailable (%s)" % exc)
-        return DomainResult("s2p", total, 0, 1, 0, False, True, 0.0)
+    except ApiError:
+        try:
+            perf_trajectory = api_get(base_url, "/api/s2p/performance/trajectory")
+            perf_total = int(perf_trajectory.get("decisions_total") or 0)
+            if perf_total >= total:
+                already_seeded = True
+                trajectory = perf_trajectory
+            else:
+                already_seeded = False
+                trajectory = perf_trajectory
+        except ApiError:
+            already_seeded = False
+            trajectory = {}
+        if not already_seeded and isinstance(payload, dict):
+            node_count = int(payload.get("node_count") or 0)
+            if node_count >= total:
+                already_seeded = True
+                trajectory = {"decisions_total": node_count, "source": "health_node_count"}
+                print("trajectory: using health node_count=%s as seeded proxy" % node_count)
+            elif not trajectory:
+                print("trajectory: unavailable on both routes (node_count=%s) — treating as empty" % node_count)
     if already_seeded and not args.force:
         print("already seeded: decisions_total=%s target=%s; skipping" % (trajectory.get("decisions_total"), total))
         return DomainResult("s2p", total, 0, 0, 0, True, False, 0.0)
@@ -419,9 +441,9 @@ def seed_s2p_domain(args: argparse.Namespace) -> DomainResult:
             learned = api_post(base_url, "/api/learn", {
                 "decision_id": decision_id,
                 "actual_action": action,
-                "outcome": "overridden" if override else "confirmed",
+                "outcome": "override" if override else "confirmed",
                 "context": {"seed_domain": "s2p", "seed_index": sequence, "is_preseed_override": override},
-                "reason_code": "demo_preseed_override" if override else "demo_preseed_confirmed",
+                "reason_code": "wrong_action" if override else None,
             })
             total_reward += float(learned.get("reward") or 0.0)
             successes += 1
@@ -738,6 +760,12 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
 
 
 def main(argv: List[str]) -> int:
+    warnings.warn(
+        "preseed_all_copilots.py is deprecated. Use seed_all_decisions.py instead. "
+        "This script will be removed in v0.6.0.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     args = parse_args(argv)
     if args.offline:
         if args.dry_run:

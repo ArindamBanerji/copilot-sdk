@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
@@ -93,6 +94,7 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
     def __init__(self) -> None:
         self.graph_store = InMemoryGraphStore(domain="dataops")
         self.learn_contexts: list[dict[str, object] | None] = []
+        self.fingerprint_persist_args: list[bool] = []
 
     def score(
         self,
@@ -145,7 +147,8 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
             outcome="applied",
         )
 
-    def fingerprint(self) -> FakeFingerprintResult:
+    def fingerprint(self, *, persist: bool = True) -> FakeFingerprintResult:
+        self.fingerprint_persist_args.append(persist)
         return FakeFingerprintResult(
             factors=[
                 FakeFingerprintFactor(
@@ -187,6 +190,40 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
 
     def get_alpha(self) -> float:
         return 0.8125
+
+
+class ConcurrentPreparedScorer(FakeScorer):
+    """Prepared-score fixture that proves predictions can overlap."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.prediction_barrier = threading.Barrier(2, timeout=3.0)
+        self._decision_lock = threading.Lock()
+        self._decision_count = 0
+
+    def prepare_score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, object] | None = None,
+    ) -> FakeScoreResult:
+        del metadata
+        self.prediction_barrier.wait()
+        with self._decision_lock:
+            self._decision_count += 1
+            decision_id = f"concurrent-{self._decision_count}"
+        return FakeScoreResult(
+            decision_id=decision_id,
+            action="auto_approve",
+            action_index=0,
+            confidence=0.72,
+            probabilities=[0.72, 0.28],
+            category=category,
+            factors=factors,
+        )
+
+    def persist_prepared_score(self, prepared: FakeScoreResult) -> FakeScoreResult:
+        return prepared
 
 
 class PausingScorer(FakeScorer):
@@ -679,6 +716,7 @@ def test_score_and_learn_rebuild_tab_state_from_invalidated_materializer(monkeyp
     monkeypatch.setattr(invalidation, "_CACHES", {})
     register_tab_state_cache(cache)
     client = build_client(scorer=scorer)
+    client.app.state.materializer = mat
     response = client.post("/score", json={
         "category": "pipeline_failure", "factors": {"impact_scope": 0.5},
     })
@@ -719,6 +757,30 @@ def test_score_returns_action_confidence_probabilities_and_engine():
     assert payload["confidence"] == 0.72
     assert payload["probabilities"] == [0.72, 0.28]
     assert payload["category"] == "pipeline_failure"
+
+
+def test_concurrent_score_predictions_run_before_mutation_lock() -> None:
+    """Two predictions must rendezvous before either durable commit begins."""
+    scorer = ConcurrentPreparedScorer()
+    client = build_client(scorer=scorer)
+
+    def post_score(value: float):
+        return client.post(
+            "/score",
+            json={
+                "category": "pipeline_failure",
+                "factors": {"impact_scope": value},
+            },
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        responses = list(executor.map(post_score, (0.4, 0.6)))
+
+    assert [response.status_code for response in responses] == [200, 200]
+    assert {response.json()["decision_id"] for response in responses} == {
+        "concurrent-1",
+        "concurrent-2",
+    }
 
 
 def test_learn_returns_reward_fields_and_engine():
@@ -1473,7 +1535,8 @@ def test_l5_conservation_persistence_serializes_old_status_read_and_update():
 
 
 def test_fingerprint_returns_factor_data_and_engine():
-    client = build_client()
+    scorer = FakeScorer()
+    client = build_client(scorer=scorer)
 
     response = client.get("/fingerprint")
 
@@ -1482,6 +1545,7 @@ def test_fingerprint_returns_factor_data_and_engine():
     assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
     assert payload["decisions_analyzed"] == 1
     assert payload["factors"][0]["name"] == "impact_scope"
+    assert scorer.fingerprint_persist_args == [False]
 
 
 def test_trajectory_returns_points_current_iks_and_engine():
@@ -1494,6 +1558,56 @@ def test_trajectory_returns_points_current_iks_and_engine():
     assert payload["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
     assert payload["current_iks"] == 25.1
     assert len(payload["points"]) == 2
+
+
+def test_trajectory_reads_materialized_generation_before_live_scorer():
+    scorer = FakeScorer()
+    client = build_client(scorer=scorer)
+
+    class Materializer:
+        def get_or_refresh(self, key: str) -> dict[str, Any]:
+            assert key == "trajectory"
+            return {
+                "points": [{"decisions": 7, "iks": 31.0, "win_rate": 0.75, "timestamp": 1.0}],
+                "current_iks": 31.0,
+                "current_win_rate": 0.75,
+                "decisions_total": 7,
+                "days_active": 1.0,
+            }
+
+    client.app.state.materializer = Materializer()
+    payload = client.get("/trajectory").json()
+
+    assert payload["decisions_total"] == 7
+    assert payload["current_iks"] == 31.0
+
+
+def test_measurement_state_reads_materialized_generation():
+    client = build_client()
+
+    class Materializer:
+        def get_or_refresh(self, key: str) -> dict[str, Any]:
+            assert key == "measurement_state"
+            return {
+                "state": "accumulating",
+                "decisions_verified": 7,
+                "decisions_needed": 23,
+                "arms_measured": 0,
+                "arms_total": 12,
+                "accuracy": None,
+                "iks": None,
+                "message": "Accumulating",
+                "iks_available": False,
+                "degraded": False,
+                "provenance": "accumulating",
+            }
+
+    client.app.state.materializer = Materializer()
+    payload = client.get("/measurement-state").json()
+
+    assert payload["decisions_verified"] == 7
+    assert payload["accuracy"] == 0.0
+    assert payload["accuracy_available"] is False
 
 
 def test_health_endpoint_returns_phase_and_alpha():
@@ -1540,6 +1654,100 @@ def test_history_returns_empty_then_populated_decisions():
 
     assert populated.status_code == 200
     assert len(populated.json()["decisions"]) == 1
+
+
+def test_history_is_bounded_and_reports_pagination_metadata(monkeypatch):
+    scorer = FakeScorer()
+    requested_pages: list[tuple[int, int]] = []
+    original_get_decisions = scorer.graph_store.get_decisions
+
+    def tracked_get_decisions(domain, category=None, limit=400, *, offset=0):
+        requested_pages.append((offset, limit))
+        return original_get_decisions(
+            domain, category=category, limit=limit, offset=offset,
+        )
+
+    monkeypatch.setattr(scorer.graph_store, "get_decisions", tracked_get_decisions)
+    for index in range(75):
+        scorer.graph_store.write_decision(
+            "dataops",
+            "pipeline_failure",
+            "auto_approve",
+            0.7,
+            {"impact_scope": 0.5},
+            metadata={"sequence": index},
+        )
+    client = build_client(scorer=scorer)
+
+    default_payload = client.get("/history").json()
+    page = client.get("/history?limit=10&offset=20").json()
+
+    assert len(default_payload["decisions"]) == 50
+    assert default_payload["total"] == 75
+    assert default_payload["limit"] == 50
+    assert default_payload["offset"] == 0
+    assert len(page["decisions"]) == 10
+    assert page["total"] == 75
+    assert page["limit"] == 10
+    assert page["offset"] == 20
+    assert requested_pages == [(0, 50), (20, 10)]
+
+    excessive_offset = client.get("/history?offset=10001")
+    assert excessive_offset.status_code == 422
+
+
+def test_materializer_status_is_debug_gated(monkeypatch):
+    from copilot_sdk.backend.response_materializer import ResponseMaterializer
+
+    scorer = FakeScorer()
+    client = build_client(scorer=scorer)
+    materializer = ResponseMaterializer(
+        "dataops",
+        lambda: scorer.graph_store,
+        {"trajectory": lambda shared: {"rows": len(shared["decisions"])}},
+    )
+    materializer.refresh()
+    client.app.state.materializer = materializer
+
+    assert client.get("/debug/materializer-status").status_code == 404
+    monkeypatch.setenv("COPILOT_DEBUG_ENDPOINTS", "1")
+    response = client.get("/debug/materializer-status")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["generation"] == 1
+    assert payload["payload_keys"] == ["trajectory"]
+    assert payload["last_refresh_query_count"] == 2
+    assert payload["fallback_count"] == 0
+
+
+def test_pool_status_reports_composed_age_client(monkeypatch):
+    client = build_client()
+
+    class PoolClient:
+        def get_pool_diagnostics(self) -> dict[str, Any]:
+            return {
+                "pool_size": 2,
+                "checked_out": 0,
+                "idle": 2,
+                "total_checkouts": 4,
+                "total_returns": 4,
+                "resets_on_return": 4,
+                "dsn_graph_keys": [["redacted", "dataops"]],
+            }
+
+    class GraphStore:
+        def __init__(self) -> None:
+            self._client = PoolClient()
+
+    client.app.state.graph_store = GraphStore()
+    monkeypatch.setenv("COPILOT_DEBUG_ENDPOINTS", "true")
+
+    response = client.get("/debug/pool-status")
+
+    assert response.status_code == 200
+    assert response.json()["pool_size"] == 2
+    assert response.json()["resets_on_return"] == 4
 
 
 def test_learn_prelookup_prefers_graph_store_over_legacy_store():

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import Any, cast
+from unittest.mock import Mock
+
 import pytest
 
 from copilot_sdk.graph import InMemoryGraphStore
@@ -7,7 +10,10 @@ from copilot_sdk.graph import InMemoryGraphStore
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.routers.evolution_router import create_trading_evolution_router
+from app.routers.evolution_router import (
+    MAX_REJECTION_SCAN,
+    create_trading_evolution_router,
+)
 from app.services.trading_evolver import TRADING_FACTOR_NAMES, TradingAgentEvolver
 
 
@@ -126,6 +132,90 @@ def test_rejection_summary_reads_persisted_preseed_log():
     assert body["rejected_variants"][0]["variant_id"] == "TRADING_AE_v1"
     assert body["provenance"] == "synthetic"
     assert all(entry["provenance"] == "synthetic" for entry in body["rejected_variants"])
+
+
+def test_rejection_summary_graph_failure_returns_valid() -> None:
+    class UnavailableStore:
+        def get_evolution(self, domain: str, variant_id: str) -> None:
+            raise RuntimeError("graph unavailable")
+
+    app = FastAPI()
+    app.include_router(create_trading_evolution_router(
+        evolver=_evolver(),
+        graph_store_factory=UnavailableStore,
+        include_persisted_rejections=True,
+    ))
+
+    response = TestClient(app).get("/api/trading/evolution/rejection-summary")
+
+    assert response.status_code == 200
+    assert "total_rejected" in response.json()
+
+
+def test_rejection_summary_conservation_called_once() -> None:
+    conservation_provider = Mock(return_value={"status": "RED"})
+    evolver = TradingAgentEvolver(
+        baseline_scorer=BaselineScorer(),
+        store_factory=StoreFactory(),
+        factor_names=TRADING_FACTOR_NAMES,
+        conservation_provider=conservation_provider,
+    )
+    for _ in range(12):
+        variant = evolver.generate_variant()
+        evolver._results[str(variant["variant_id"])] = [
+            {
+                "improvement_pp": 3.0,
+                "decisions_tested": 50,
+                "variant_accuracy": 0.73,
+                "baseline_accuracy": 0.70,
+            }
+            for _batch in range(3)
+        ]
+
+    response = _client(evolver).get("/api/trading/evolution/rejection-summary")
+
+    assert response.status_code == 200
+    assert response.json()["total_rejected"] == 12
+    conservation_provider.assert_called_once_with()
+
+
+def test_rejection_summary_caps_scan() -> None:
+    class CountingEvolver:
+        def __init__(self) -> None:
+            self.checks = 0
+
+        def _conservation_safety(self) -> dict[str, str]:
+            return {"status": "RED"}
+
+        def evolution_log(self) -> list[dict[str, Any]]:
+            return [
+                {
+                    "variant_id": f"variant-{index}",
+                    "status": "evaluating",
+                    "batches": 3,
+                }
+                for index in range(MAX_REJECTION_SCAN + 25)
+            ]
+
+        def check_promotion(
+            self,
+            variant_id: str,
+            conservation_state: object,
+        ) -> dict[str, Any]:
+            self.checks += 1
+            return {"promotable": False, "reason": "conservation_not_green"}
+
+    evolver = CountingEvolver()
+    app = FastAPI()
+    app.include_router(create_trading_evolution_router(
+        evolver=cast(Any, evolver),
+    ))
+
+    response = TestClient(app).get("/api/trading/evolution/rejection-summary")
+
+    assert response.status_code == 200
+    assert evolver.checks == MAX_REJECTION_SCAN
+    assert response.json()["total_rejected"] == MAX_REJECTION_SCAN
 
 
 @pytest.mark.parametrize(

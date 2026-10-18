@@ -329,7 +329,10 @@ def test_main_uses_graph_factory_for_dataops_wiring():
     source = (Path(__file__).resolve().parents[1] / "app" / "main.py").read_text(
         encoding="utf-8"
     )
-    assert "from copilot_sdk.graph.factory import create_graph_store" in source
+    assert (
+        "from copilot_sdk.graph.factory import assert_production_graph, create_graph_store"
+        in source
+    )
 
 
 def _active_client(

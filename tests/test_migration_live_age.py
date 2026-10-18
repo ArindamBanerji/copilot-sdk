@@ -11,6 +11,7 @@ import json
 import sqlite3
 import uuid
 from pathlib import Path
+from typing import cast
 
 import psycopg
 import pytest
@@ -35,7 +36,7 @@ def _dsn_or_skip() -> str:
 
 
 def _admin_connection(dsn: str) -> psycopg.Connection:
-    conn = psycopg.connect(dsn, autocommit=True)
+    conn = psycopg.connect(dsn, connect_timeout=3, autocommit=True)
     conn.execute("LOAD 'age'")
     conn.execute('SET search_path = ag_catalog, "$user", public')
     return conn
@@ -66,7 +67,7 @@ def _scalar(rows) -> int:
 
 def _properties(value) -> dict:
     normalized = normalize_agtype_value(value)
-    return json.loads(normalized) if isinstance(normalized, str) else dict(normalized)
+    return cast(dict, json.loads(normalized)) if isinstance(normalized, str) else dict(normalized)
 
 
 def _counts(conn: psycopg.Connection, graph: str) -> dict[str, int]:

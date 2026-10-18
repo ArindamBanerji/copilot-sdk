@@ -38,10 +38,17 @@ MUTATION_PATHS: dict[tuple[str, str], str] = {
 }
 
 _CACHES: dict[str, TabStateCache] = {}
+_MATERIALIZER_PROVIDERS: dict[str, Callable[[], Any]] = {}
 
 
-def register_tab_state_cache(cache: TabStateCache) -> TabStateCache:
+def register_tab_state_cache(
+    cache: TabStateCache,
+    *,
+    materializer_provider: Callable[[], Any] | None = None,
+) -> TabStateCache:
     _CACHES[cache.copilot] = cache
+    if materializer_provider is not None:
+        _MATERIALIZER_PROVIDERS[cache.copilot] = materializer_provider
     return cache
 
 
@@ -56,7 +63,7 @@ def invalidate_cache_event(copilot: str, event: str) -> None:
     In-lock mutation handlers should use apply_cache_invalidation_event().
     """
     cache = get_tab_state_cache(copilot)
-    if cache is None:
+    if cache is None and copilot not in _MATERIALIZER_PROVIDERS:
         return
     from copilot_sdk.scoring.mutation_lock import mutation_lock_held, mutation_lock_scope
 
@@ -69,10 +76,21 @@ def invalidate_cache_event(copilot: str, event: str) -> None:
 
 def apply_cache_invalidation_event(copilot: str, event: str) -> list[str]:
     """Apply recompute/delete while the caller holds the mutation lock."""
+    materializer_provider = _MATERIALIZER_PROVIDERS.get(str(copilot))
+    if materializer_provider is not None:
+        try:
+            materializer = materializer_provider()
+            invalidate = getattr(materializer, "invalidate_mutation", None)
+            if not callable(invalidate):
+                invalidate = getattr(materializer, "invalidate", None)
+            if callable(invalidate):
+                invalidate()
+        except Exception as exc:
+            log.warning("Materializer invalidation %s.%s failed: %s", copilot, event, exc)
     cache = get_tab_state_cache(copilot)
     if cache is None:
         return []
-    urls = cache.get_urls_for_event(event)
+    urls = list(cache.get_urls_for_event(event))
     try:
         cache.invalidate_sync(event)
     except Exception as exc:

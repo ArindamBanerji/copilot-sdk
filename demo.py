@@ -946,16 +946,20 @@ def cmd_preseed(args: argparse.Namespace) -> None:
     """One-command, checked seed lifecycle with an unconditional safe restart."""
     selected: list[dict[str, Any]] = [dict(c) for c in COPILOTS]
     s2p_repo = next(c["be_path"].parent for c in selected if c["name"] == "S2P")
+    # The controlled seed phase sets DEMO_NO_RESEED so startup cannot race the
+    # explicit writer. Seed SDK domains directly into AGE; SOC and S2P retain
+    # their repository-owned seed workflows.
     jobs = [
-        ("SDK", SCRIPT_DIR, ["scripts/preseed_all_copilots.py", "--force", "--demo-fixtures",
-                            "--trading-only", "--purchasing-only", "--dataops-only"]),
+        ("SDK", SCRIPT_DIR, ["scripts/seed_all_decisions.py",
+                            "--domain", "trading", "--domain", "purchasing",
+                            "--domain", "dataops"]),
+    ]
+    if not getattr(args, "heroes", False):
+        jobs.append(("SDK-FIXTURES", SCRIPT_DIR, ["scripts/preseed_demo_fixtures.py"]))
+    jobs.extend([
         ("SOC", SOC_REPO, ["scripts/preseed_demo_scenarios.py"]),
         ("S2P", s2p_repo, ["scripts/preseed_s2p_demo.py"]),
-    ]
-    if getattr(args, "heroes", False):
-        # Legacy fixtures deliberately degrade Trading/Purchasing into AMBER;
-        # the opt-in C-1 phase supplies its own patterns after the safe restart.
-        jobs[0][2].remove("--demo-fixtures")
+    ])
     for _, repo, command in jobs:
         if not (repo / command[0]).is_file():
             raise SystemExit(f"Preseed script missing: {repo / command[0]}")

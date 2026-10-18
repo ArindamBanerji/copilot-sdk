@@ -66,7 +66,11 @@ export default function EvidencePanel({ tradeId }: { tradeId: string }) {
     );
   }
 
-  const factorEntries = Object.entries(evidence.factors || {}).filter(([, value]) => typeof value === "number");
+  const factorEntries = evidence.factors?.length
+    ? evidence.factors.map((factor) => [factor.name, factor.score] as const)
+    : Object.entries(evidence.factorScores || {}).filter(
+        (entry): entry is [string, number] => typeof entry[1] === "number",
+      );
 
   return (
     <section className="copilot-card p-4" style={{ borderLeft: "4px solid var(--copilot-primary)" }}>

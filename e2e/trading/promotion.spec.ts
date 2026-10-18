@@ -16,7 +16,7 @@ async function gotoPerformance(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);
-  await expect(page.getByText("Centroid Timeline")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Performance Summary", exact: true })).toBeVisible({ timeout: 15_000 });
 }
 
 test("Promotion dashboard renders on Performance", async ({ page }) => {

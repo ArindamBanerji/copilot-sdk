@@ -31,7 +31,7 @@ test("evolution panel renders on Performance tab", async ({ page }) => {
 
 test("evolution log shows table or empty state", async ({ page }) => {
   await openPerformanceTab(page);
-  const logHeading = page.getByText("Evolution Log");
+  const logHeading = page.getByRole("heading", { name: "Evolution History" });
   await logHeading.scrollIntoViewIfNeeded();
   await expect(logHeading).toBeVisible();
 });

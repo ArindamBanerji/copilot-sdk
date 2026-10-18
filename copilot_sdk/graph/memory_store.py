@@ -4,14 +4,24 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import time
 import uuid
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import fields, is_dataclass, replace
 from datetime import datetime, timezone
-from typing import Any, TypeVar, cast
+from threading import RLock
+from typing import Any, TypeVar, cast, get_args
 
+from copilot_sdk.graph.query import (
+    IMPLEMENTATION_ONLY_FIELDS, JOURNAL_FIELDS, LEARNING_METADATA_FIELDS,
+    SCORING_FIELDS, SUMMARY_FIELDS, DecisionAggregate, DecisionChangePage,
+    DecisionCursor, DecisionFilter, DecisionGenerationChanged, DecisionGroup,
+    DecisionMetric, DecisionOrder, DecisionPageRequest, DecisionPageResult,
+    DecisionProjection, ProjectionCardinalityExceeded,
+)
+from copilot_sdk.graph.namespace import is_internal_namespace
 from copilot_sdk.timestamps import normalize_timestamp
 
 import numpy as np
@@ -110,6 +120,7 @@ def _read_decision(record: dict[str, Any]) -> dict[str, Any]:
     if "probabilities" in result:
         result["probabilities"] = list(result["probabilities"])
     result.pop("_sequence", None)
+    result.pop("_generation", None)
     metadata = result.get("metadata") or {}
     for field in ("factor_names", "source", "scorer_version", "preset_version", "factor_schema_version"):
         # manual copy: caller isolation without deepcopy overhead
@@ -123,6 +134,198 @@ def _read_decision(record: dict[str, Any]) -> dict[str, Any]:
     for field in ("created_at", "verified_at_epoch"):
         if field in result:
             result[field] = _read_timestamp(result[field])
+    return result
+
+
+def _bounded_integer(value: Any, name: str, minimum: int = 0) -> None:
+    if type(value) is not int or value < minimum:
+        raise ValueError(f"{name} must be an integer >= {minimum}")
+
+
+def _validate_projection(projection: DecisionProjection) -> None:
+    if projection not in get_args(DecisionProjection):
+        raise ValueError(f"invalid projection: {projection!r}")
+
+
+def _validate_filters(filters: DecisionFilter | None, *, routing_only: bool = False) -> None:
+    if filters is None:
+        return
+    if not isinstance(filters, DecisionFilter):
+        raise ValueError("filters must be a DecisionFilter")
+    defaults = DecisionFilter()
+    for field in fields(filters):
+        value = getattr(filters, field.name)
+        if routing_only and field.name not in {"tenant_id", "exclude_legacy_signals"}:
+            if value != getattr(defaults, field.name):
+                raise ValueError(f"change feed supports routing filters only: {field.name}")
+        if isinstance(getattr(defaults, field.name), tuple):
+            if not isinstance(value, tuple) or any(not isinstance(item, str) for item in value):
+                raise ValueError(f"{field.name} must be a tuple of strings")
+            if field.name in {"decision_ids", "exclude_decision_ids"} and any(not item for item in value):
+                raise ValueError(f"{field.name} must contain non-empty IDs")
+    for name in ("confidence_min", "confidence_max", "created_from", "created_to", "verified_from", "verified_to"):
+        value = getattr(filters, name)
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)):
+            raise ValueError(f"{name} must be finite")
+    for name in ("verified", "correct"):
+        value = getattr(filters, name)
+        if value is not None and type(value) is not bool:
+            raise ValueError(f"{name} must be bool or None")
+    if type(filters.exclude_legacy_signals) is not bool:
+        raise ValueError("exclude_legacy_signals must be bool")
+    for name in ("ticker", "tenant_id"):
+        value = getattr(filters, name)
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"{name} must be str or None")
+
+
+def _bounded_value(decision: dict[str, Any], name: str) -> Any:
+    """Resolve canonical top-level values with the existing metadata fallbacks."""
+    metadata = decision.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    value = decision.get(name)
+    if value is None:
+        value = metadata.get(name)
+    if name == "regime" and value is None:
+        value = decision.get("market_regime") or metadata.get("market_regime")
+    if name == "ticker" and value is not None:
+        return str(value).upper()
+    if name == "entry_time" and value is None:
+        return metadata.get("date")
+    if name == "size" and value is None:
+        return metadata.get("shares")
+    if name == "pnl" and value is None:
+        return metadata.get("pnl_dollars")
+    return value
+
+
+def _journal_number(value: Any) -> float | None:
+    """Convert a journal number, retaining the reference's invalid fallback."""
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_journal_fields(decision: dict[str, Any]) -> dict[str, Any]:
+    """Normalize Decision journal fields without importing app overlays.
+
+    The bounded contract uses zero monetary/size defaults, integer sizes and
+    sorted tags. Original evidence remains in the decision's metadata/factors.
+    """
+    factors = decision.get("factors")
+    factors = factors if isinstance(factors, dict) else {}
+    nested = factors.get("metadata")
+    metadata = decision.get("metadata")
+    metadata = {
+        **(nested if isinstance(nested, dict) else {}),
+        **(metadata if isinstance(metadata, dict) else {}),
+    }
+
+    def value(name: str) -> Any:
+        item = decision.get(name)
+        return metadata.get(name) if item is None else item
+
+    def text_or_none(item: Any) -> str | None:
+        return None if item is None else str(item)
+
+    pnl = None
+    for candidate in (decision.get("pnl"), metadata.get("pnl"), metadata.get("pnl_dollars")):
+        pnl = _journal_number(candidate)
+        if pnl is not None:
+            break
+    size_value = decision.get("size")
+    if size_value is None:
+        size_value = metadata.get("size")
+    if size_value is None:
+        size_value = metadata.get("shares")
+    size_number = _journal_number(size_value)
+    size = int(size_number) if size_number is not None and math.isfinite(size_number) else 0
+    raw_tags = value("tags")
+    tags = sorted({str(tag).strip() for tag in raw_tags if str(tag).strip()}) if isinstance(raw_tags, list) else []
+    reflection = (
+        decision.get("reflection") or decision.get("notes")
+        or metadata.get("reflection") or metadata.get("notes")
+    )
+    notes = decision.get("notes") or metadata.get("notes") or reflection
+    trade_id = (
+        decision.get("trade_id") or metadata.get("trade_id")
+        or decision.get("decision_id") or metadata.get("decision_id")
+    )
+    options_factors = next((
+        item for item in (decision.get("options_factors"), metadata.get("options_factors"), factors.get("options_factors"))
+        if isinstance(item, dict)
+    ), None)
+    return {
+        "trade_id": text_or_none(trade_id),
+        "entry_id": text_or_none(decision.get("entry_id") or metadata.get("entry_id") or trade_id),
+        "entry_time": text_or_none(decision.get("entry_time") or metadata.get("entry_time") or metadata.get("date")),
+        "exit_time": text_or_none(decision.get("exit_time") or metadata.get("exit_time")),
+        "entry_price": _journal_number(value("entry_price")),
+        "exit_price": _journal_number(value("exit_price")),
+        "size": size,
+        "pnl": 0.0 if pnl is None else pnl,
+        "tags": tags,
+        "reflection": text_or_none(reflection),
+        "notes": text_or_none(notes),
+        "strategy_tag": (
+            decision.get("strategy_tag") or metadata.get("strategy_tag")
+            or metadata.get("strategy") or metadata.get("thesis_type")
+        ),
+        "options_factors": options_factors,
+    }
+
+
+def _decision_routing(decision: dict[str, Any]) -> tuple[str, str, bool]:
+    metadata = decision.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    legacy = {"signal_detail", "signal_timestamp"}.issubset(metadata)
+    return (
+        str(decision["domain"]),
+        str(_bounded_value(decision, "tenant_id") or "default"),
+        legacy,
+    )
+
+
+def _project_snapshot(record: dict[str, Any], projection: DecisionProjection) -> dict[str, Any]:
+    """Project an event-time normalized record without consulting live state."""
+    if projection == "full":
+        result = {key: value for key, value in record.items() if key not in IMPLEMENTATION_ONLY_FIELDS}
+    else:
+        allowlist = {"summary": SUMMARY_FIELDS, "scoring": SCORING_FIELDS, "journal": JOURNAL_FIELDS}[projection]
+        result = {key: record.get(key) for key in allowlist}
+        if projection == "scoring" and isinstance(result["learning_metadata"], dict):
+            result["learning_metadata"] = {
+                key: value for key, value in result["learning_metadata"].items()
+                if key in LEARNING_METADATA_FIELDS
+            }
+    return deepcopy(result)
+
+
+def _normalize_bounded_record(
+    decision: dict[str, Any], outcome: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Join a Decision and its Outcome using canonical projection field names."""
+    result = _read_decision(decision)
+    for name in SUMMARY_FIELDS:
+        result.setdefault(name, None)
+    for name in SCORING_FIELDS[len(SUMMARY_FIELDS):] + JOURNAL_FIELDS[len(SUMMARY_FIELDS):]:
+        if result.get(name) is None:
+            result[name] = _bounded_value(decision, name)
+    result["ticker"] = _bounded_value(decision, "ticker")
+    result.update(_normalize_journal_fields(decision))
+    verified = decision.get("status") in {"confirmed", "overridden"}
+    correctness = decision.get("correct") if verified else None
+    result["correct"] = correctness
+    result["is_correct"] = correctness
+    for name in ("actual_action", "actual_index", "verified_at"):
+        result[name] = (outcome or {}).get(name) if verified else None
+    result["verified_at"] = _read_timestamp(result["verified_at"])
+    result["outcome_metadata"] = (outcome or {}).get("metadata") if verified else None
+    for name in IMPLEMENTATION_ONLY_FIELDS:
+        result.pop(name, None)
     return result
 
 
@@ -305,7 +508,15 @@ _CONSERVATION_STATUSES = {"GREEN", "AMBER", "RED"}
 def _normalize_domain(domain: Any) -> str:
     if not isinstance(domain, str) or not domain.strip():
         raise ValueError("domain must be a non-empty string")
-    return domain
+    return str(domain)
+
+
+def _normalize_write_domain(domain: Any) -> str:
+    """Reject raw use of the namespace-reserved storage prefix."""
+    normalized = _normalize_domain(domain)
+    if domain.startswith("jmns__") and not is_internal_namespace(domain):
+        raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
+    return cast(str, domain) if is_internal_namespace(domain) else normalized
 
 
 def _normalize_conservation_status(status: Any, field_name: str = "status") -> str:
@@ -446,7 +657,7 @@ class InMemoryGraphStore:
     """Dictionary-backed domain-aware decision and outcome store."""
 
     def __init__(self, domain: str = "test", decision_id_prefix: str = "") -> None:
-        self.domain = str(domain)
+        self.domain = _normalize_write_domain(domain)
         self._decision_id_prefix = str(decision_id_prefix or "")
         self._decisions: dict[str, dict[str, Any]] = {}
         self._outcomes: dict[str, dict[str, Any]] = {}
@@ -477,9 +688,14 @@ class InMemoryGraphStore:
         self._outbox_counter = 0
         self._quarantine_counter = 0
         self._sequence = 0
+        self._lock = RLock()
+        self._domain_generations: dict[str, int] = {}
+        self._feed_events: dict[str, list[dict[str, Any]]] = {}
 
     def save_k_utility(self, domain: str, episode_id: str, k: int, utility: float,
                        metadata: dict[str, Any] | None = None) -> str:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
 
         return str(GraphScoringPersistence(self).save_k_utility(domain, episode_id, k, utility, metadata))
@@ -493,6 +709,8 @@ class InMemoryGraphStore:
 
     def save_holdout_decision(self, domain: str, decision_id: str, holdout_group: str,
                               metadata: dict[str, Any] | None = None) -> str:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         from copilot_sdk.graph.scoring_persistence import GraphScoringPersistence
 
         return str(GraphScoringPersistence(self).save_holdout_decision(domain, decision_id, holdout_group, metadata))
@@ -511,6 +729,8 @@ class InMemoryGraphStore:
         payload: dict[str, Any],
         causal_decision_id: str | None = None,
     ) -> int:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         domain = str(domain)
         operation_type = str(operation_type)
         target_key = str(target_key)
@@ -586,6 +806,8 @@ class InMemoryGraphStore:
         factors: dict[str, Any],
         metadata: dict[str, Any] | None = None,
     ) -> str:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         decision_id = str((metadata or {}).get("decision_id") or uuid.uuid4().hex[:12])
         if self._decision_id_prefix and not decision_id.startswith(self._decision_id_prefix):
             decision_id = f"{self._decision_id_prefix}{decision_id}"
@@ -595,40 +817,49 @@ class InMemoryGraphStore:
         self, decision_id: str, domain: str, category: str, action: str,
         confidence: float, factors: dict[str, Any], metadata: dict[str, Any] | None,
     ) -> str:
-        self._sequence += 1
-        decision_metadata = deepcopy(metadata or {})
-        if self._decision_id_prefix or "decision_id" in decision_metadata:
-            decision_metadata["decision_id"] = decision_id
-        entity_id = str(decision_metadata.get("entity_id") or decision_id)
-        if "entity_id" not in decision_metadata:
-            decision_metadata["entity_id"] = entity_id
-        created_at = normalize_timestamp((metadata or {}).get("created_at", time.time()))
-        category_index = int((metadata or {}).get("category_index", 0))
-        recommended_index = int((metadata or {}).get("recommended_index", 0))
-        factor_vector = deepcopy((metadata or {}).get("factor_vector"))
-        if factor_vector is None:
-            factor_vector = [float(factors[name]) for name in factors]
-        probabilities = deepcopy((metadata or {}).get("probabilities"))
-        if probabilities is None:
-            probabilities = [float(confidence)]
-        self._decisions[decision_id] = {
-            "decision_id": decision_id,
-            "domain": str(domain),
-            "entity_id": entity_id,
-            "category": category,
-            "category_index": category_index,
-            "recommended_action": action,
-            "recommended_index": recommended_index,
-            "confidence": float(confidence),
-            "factors": deepcopy(factors),
-            "factor_vector": factor_vector,
-            "probabilities": probabilities,
-            "status": "pending",
-            "metadata": decision_metadata,
-            "created_at": created_at,
-            "_sequence": self._sequence,
-        }
-        return decision_id
+        domain_value = _normalize_write_domain(domain)
+        with self._lock:
+            self._sequence += 1
+            decision_metadata = deepcopy(metadata or {})
+            if self._decision_id_prefix or "decision_id" in decision_metadata:
+                decision_metadata["decision_id"] = decision_id
+            entity_id = str(decision_metadata.get("entity_id") or decision_id)
+            if "entity_id" not in decision_metadata:
+                decision_metadata["entity_id"] = entity_id
+            created_at = normalize_timestamp((metadata or {}).get("created_at", time.time()))
+            category_index = int((metadata or {}).get("category_index", 0))
+            recommended_index = int((metadata or {}).get("recommended_index", 0))
+            factor_vector = deepcopy((metadata or {}).get("factor_vector"))
+            if factor_vector is None:
+                factor_vector = [float(factors[name]) for name in factors]
+            probabilities = deepcopy((metadata or {}).get("probabilities"))
+            if probabilities is None:
+                probabilities = [float(confidence)]
+            decision: dict[str, Any] = {
+                "decision_id": decision_id,
+                "domain": domain_value,
+                "entity_id": entity_id,
+                "category": category,
+                "category_index": category_index,
+                "recommended_action": action,
+                "recommended_index": recommended_index,
+                "confidence": float(confidence),
+                "factors": deepcopy(factors),
+                "factor_vector": factor_vector,
+                "probabilities": probabilities,
+                "status": "pending",
+                "metadata": decision_metadata,
+                "created_at": created_at,
+                "_sequence": self._sequence,
+            }
+            existing = self._decisions.get(decision_id)
+            if existing is not None and _decision_routing(existing) != _decision_routing(decision):
+                raise ValueError("decision routing identity is immutable")
+            # Prepare the independent event before publishing any decision mutation.
+            payload = self._project_decision(decision, "full")
+            self._decisions[decision_id] = decision
+            self._emit_change(decision, "upsert", payload)
+            return decision_id
 
     def generate_decision_id(self, domain: str) -> str:
         """Return a bare unique ID for the in-memory protocol test store."""
@@ -653,49 +884,53 @@ class InMemoryGraphStore:
         factor_schema_version: str = "",
         metadata: dict[str, Any] | None = None,
     ) -> None:
-        meta = deepcopy(metadata or {})
-        meta.update(
-            {
-                "decision_id": str(decision_id),
-                "category_index": int(category_index),
-                "recommended_index": int(recommended_index),
-                "probabilities": [float(value) for value in probabilities],
-                "factor_vector": [float(value) for value in factor_vector],
-                "factor_names": list(factor_names),
-                "source": source,
-                "scorer_version": scorer_version,
-                "preset_version": preset_version,
-                "factor_schema_version": factor_schema_version,
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
+        domain_value = _normalize_write_domain(domain)
+        with self._lock:
+            meta = deepcopy(metadata or {})
+            meta.update(
+                {
+                    "decision_id": str(decision_id),
+                    "category_index": int(category_index),
+                    "recommended_index": int(recommended_index),
+                    "probabilities": [float(value) for value in probabilities],
+                    "factor_vector": [float(value) for value in factor_vector],
+                    "factor_names": list(factor_names),
+                    "source": source,
+                    "scorer_version": scorer_version,
+                    "preset_version": preset_version,
+                    "factor_schema_version": factor_schema_version,
+                }
+            )
+            factors = {
+                name: float(value)
+                for name, value in zip(factor_names, factor_vector, strict=False)
             }
-        )
-        factors = {
-            name: float(value)
-            for name, value in zip(factor_names, factor_vector, strict=False)
-        }
-        existing = self._decisions.get(str(decision_id))
-        if existing is not None:
-            proposed = {
-                "domain": str(domain),
-                "category": category,
-                "category_index": int(category_index),
-                "recommended_action": recommended_action,
-                "recommended_index": int(recommended_index),
-                "confidence": float(confidence),
-                "factors": factors,
-                "factor_vector": meta["factor_vector"],
-                "probabilities": meta["probabilities"],
-            }
-            current = {key: existing.get(key) for key in proposed}
-            if current == proposed:
-                return None
-            raise ValueError(f"conflicting governed decision_id: {decision_id}")
-        # Governed IDs are caller-owned identities, including historical imports.
-        # Prefix generation belongs to write_decision, not replay of an explicit ID.
-        self._store_decision(
-            str(decision_id), str(domain), category, recommended_action,
-            float(confidence), factors, metadata=meta,
-        )
-        return None
+            existing = self._decisions.get(str(decision_id))
+            if existing is not None:
+                proposed = {
+                    "domain": domain_value,
+                    "category": category,
+                    "category_index": int(category_index),
+                    "recommended_action": recommended_action,
+                    "recommended_index": int(recommended_index),
+                    "confidence": float(confidence),
+                    "factors": factors,
+                    "factor_vector": meta["factor_vector"],
+                    "probabilities": meta["probabilities"],
+                }
+                current = {key: existing.get(key) for key in proposed}
+                if current == proposed:
+                    return None
+                raise ValueError(f"conflicting governed decision_id: {decision_id}")
+            # Governed IDs are caller-owned identities, including historical imports.
+            # Prefix generation belongs to write_decision, not replay of an explicit ID.
+            self._store_decision(
+                str(decision_id), domain, category, recommended_action,
+                float(confidence), factors, metadata=meta,
+            )
+            return None
 
     def write_outcome(
         self,
@@ -715,55 +950,63 @@ class InMemoryGraphStore:
         recommended_action: str | None = None,
         was_override: bool | None = None,
     ) -> None:
-        domain_value = _normalize_domain(domain)
-        if decision_id not in self._decisions:
-            raise KeyError(decision_id)
-        if self._decisions[decision_id].get("domain") != domain_value:
-            raise KeyError(decision_id)
-        if decision_id in self._outcomes:
-            existing = self._outcomes[decision_id]
-            same_action = str(existing.get("actual_action")) == str(actual_action)
-            existing_correct = existing.get("is_correct")
-            same_correct = (
-                existing_correct is None
-                or bool(existing_correct) == bool(is_correct)
-            )
-            if same_action and same_correct:
-                return None
-            raise ValueError(
-                "outcome already exists with a different action for decision_id: "
-                f"{decision_id}"
-            )
-        if self._decisions[decision_id].get("status") != "pending":
-            raise ValueError(f"decision status is not pending for decision_id: {decision_id}")
-        meta = metadata or {}
-        self._outcomes[decision_id] = {
-            "decision_id": decision_id,
-            "domain": domain_value,
-            "actual_action": actual_action,
-            "actual_index": int(meta.get("actual_index", 0)),
-            "is_correct": bool(is_correct),
-            "metadata": deepcopy(meta),
-            "context": deepcopy(meta.get("context", {})),
-            "verified_at": normalize_timestamp(meta.get("verified_at", time.time())),
-        }
-        decision = self._decisions[decision_id]
-        decision["correct"] = bool(is_correct)
-        decision["status"] = "confirmed" if is_correct else "overridden"
-        optional_fields = {
-            "outcome": outcome,
-            "verified_at_epoch": verified_at_epoch,
-            "quality_signal": quality_signal,
-            "override_comment": override_comment,
-            "verified_by": verified_by,
-            "analyst_action": analyst_action,
-            "final_action": final_action,
-            "recommended_action": recommended_action,
-            "was_override": was_override,
-        }
-        for field, value in optional_fields.items():
-            if value is not None:
-                decision[field] = value
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
+        with self._lock:
+            domain_value = _normalize_domain(domain)
+            if decision_id not in self._decisions:
+                raise KeyError(decision_id)
+            if self._decisions[decision_id].get("domain") != domain_value:
+                raise KeyError(decision_id)
+            if decision_id in self._outcomes:
+                existing = self._outcomes[decision_id]
+                same_action = str(existing.get("actual_action")) == str(actual_action)
+                existing_correct = existing.get("is_correct")
+                same_correct = (
+                    existing_correct is None
+                    or bool(existing_correct) == bool(is_correct)
+                )
+                if same_action and same_correct:
+                    return None
+                raise ValueError(
+                    "outcome already exists with a different action for decision_id: "
+                    f"{decision_id}"
+                )
+            if self._decisions[decision_id].get("status") != "pending":
+                raise ValueError(f"decision status is not pending for decision_id: {decision_id}")
+            meta = metadata or {}
+            outcome_record: dict[str, Any] = {
+                "decision_id": decision_id,
+                "domain": domain_value,
+                "actual_action": actual_action,
+                "actual_index": int(meta.get("actual_index", 0)),
+                "is_correct": bool(is_correct),
+                "metadata": deepcopy(meta),
+                "context": deepcopy(meta.get("context", {})),
+                "verified_at": normalize_timestamp(meta.get("verified_at", time.time())),
+            }
+            decision = dict(self._decisions[decision_id])
+            decision["correct"] = bool(is_correct)
+            decision["status"] = "confirmed" if is_correct else "overridden"
+            optional_fields = {
+                "outcome": outcome,
+                "verified_at_epoch": verified_at_epoch,
+                "quality_signal": quality_signal,
+                "override_comment": override_comment,
+                "verified_by": verified_by,
+                "analyst_action": analyst_action,
+                "final_action": final_action,
+                "recommended_action": recommended_action,
+                "was_override": was_override,
+            }
+            for field, value in optional_fields.items():
+                if value is not None:
+                    decision[field] = value
+            payload = _project_snapshot(_normalize_bounded_record(decision, outcome_record), "full")
+            self._outcomes[decision_id] = outcome_record
+            stored_decision = self._decisions[decision_id]
+            stored_decision.update(decision)
+            self._emit_change(stored_decision, "upsert", payload)
 
     def write_observation(
         self,
@@ -780,6 +1023,8 @@ class InMemoryGraphStore:
         factor_names: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         observation_id = str(observation_id)
         if observation_id in self._observations:
             return None
@@ -827,6 +1072,8 @@ class InMemoryGraphStore:
         source_route: str,
         metadata: dict[str, Any] | None = None,
     ) -> tuple[int, str]:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         receipt_intent_id = str(receipt_intent_id)
         domain = str(domain)
         decision_id = str(decision_id)
@@ -879,6 +1126,8 @@ class InMemoryGraphStore:
         status: str,
         policy_version: str,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         status_id = str(status_id)
         snapshot_payload = {
             "snapshot_id": status_id,
@@ -917,6 +1166,8 @@ class InMemoryGraphStore:
         window: int,
         metadata: dict[str, Any] | None = None,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         fingerprint_id = str(fingerprint_id)
         fingerprint_payload = {
             "fingerprint_id": fingerprint_id,
@@ -960,6 +1211,8 @@ class InMemoryGraphStore:
         metadata: dict[str, Any] | None = None,
         decision_id: str | None = None,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         checkpoint_id = str(checkpoint_id)
         metadata = deepcopy(metadata or {})
         decision_id = str(decision_id or metadata.get("decision_id") or "") or None
@@ -1010,6 +1263,8 @@ class InMemoryGraphStore:
         metadata: dict[str, Any] | None = None,
         decision_id: str | None = None,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         event_id = str(event_id)
         event_payload = {
             "event_id": event_id,
@@ -1056,6 +1311,8 @@ class InMemoryGraphStore:
 
     def prune_evolution_events(self, domain: str, keep_recent: int = 10_000) -> int:
         """Delete old proof events while preserving non-proof events first."""
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         domain_value = str(domain)
         keep_recent = max(int(keep_recent), 0)
         domain_events = [
@@ -1139,6 +1396,10 @@ class InMemoryGraphStore:
         evolution_event_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
+        if str(source_domain).startswith("jmns__") and not is_internal_namespace(source_domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
+        if str(target_domain).startswith("jmns__") and not is_internal_namespace(target_domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         pattern_id = str(pattern_id)
         payload = {
             "pattern_id": pattern_id,
@@ -1286,6 +1547,8 @@ class InMemoryGraphStore:
         entity_type: str,
         domain: str,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         decision_id = str(decision_id)
         domain = str(domain)
         if decision_id not in self._decisions:
@@ -1363,14 +1626,31 @@ class InMemoryGraphStore:
         domain: str,
         category: str | None = None,
         limit: int = 400,
+        *,
+        offset: int = 0,
+        chronological: bool = False,
     ) -> list[dict[str, Any]]:
-        decisions = [
+        from itertools import islice
+
+        ordered = (
+            sorted(
+                self._decisions.values(),
+                key=lambda row: (row["created_at"], row["decision_id"]),
+            )
+            if chronological
+            else self._ordered_decisions()
+        )
+        decisions = (
             decision
-            for decision in self._ordered_decisions()
+            for decision in ordered
             if decision.get("domain") == domain
             and (category is None or decision["category"] == category)
-        ]
-        return [_read_decision(row) for row in decisions[:_read_limit(limit)]]
+        )
+        start = max(int(offset), 0)
+        normalized_limit = _read_limit(limit)
+        stop = None if normalized_limit is None else start + normalized_limit
+        page = islice(decisions, start, stop)
+        return [_read_decision(row) for row in page]
 
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
         return self.get_decisions(domain, category=None, limit=len(self._decisions))
@@ -1401,16 +1681,49 @@ class InMemoryGraphStore:
             for row in page
         ]
 
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
+    def get_verified_decisions(
+        self,
+        domain: str,
+        *,
+        offset: int = 0,
+        limit: int | None = None,
+        chronological: bool = False,
+        verified_after: tuple[float, str] | None = None,
+    ) -> list[dict[str, Any]]:
+        from itertools import islice
+
         verified = []
-        for decision in self._ordered_decisions():
-            if decision.get("domain") != domain:
-                continue
-            if decision.get("status") not in {"confirmed", "overridden"}:
-                continue
+        ordered = (
+            sorted(
+                self._decisions.values(),
+                key=lambda row: (row["created_at"], row["_sequence"], row["decision_id"]),
+            )
+            if chronological
+            else self._ordered_decisions()
+        )
+        matching = (
+            decision
+            for decision in ordered
+            if decision.get("domain") == domain
+            and decision.get("status") in {"confirmed", "overridden"}
+            and self._outcomes.get(decision["decision_id"]) is not None
+            and (
+                verified_after is None
+                or (
+                    float(
+                        self._outcomes[decision["decision_id"]].get("verified_at")
+                        or decision.get("created_at")
+                        or 0.0
+                    ),
+                    str(decision["decision_id"]),
+                ) > verified_after
+            )
+        )
+        start = max(int(offset), 0)
+        stop = None if limit is None else start + max(int(limit), 0)
+        for decision in islice(matching, start, stop):
             outcome = self._outcomes.get(decision["decision_id"])
-            if outcome is None:
-                continue
+            assert outcome is not None
             merged = _read_decision(decision)
             merged.update({
                 "actual_action": outcome["actual_action"],
@@ -1444,8 +1757,277 @@ class InMemoryGraphStore:
             )
         )
 
-    def count_decisions(self, domain: str) -> int:
-        return sum(1 for decision in self._decisions.values() if decision.get("domain") == domain)
+    def _next_generation(self, domain: str) -> int:
+        """Allocate a committed generation while holding the mutation lock."""
+        generation = self._domain_generations.get(domain, 0) + 1
+        self._domain_generations[domain] = generation
+        return generation
+
+    def _current_generation(self, domain: str) -> int:
+        """Read a domain's generation; callers hold the store lock."""
+        return self._domain_generations.get(domain, 0)
+
+    def _emit_change(
+        self, decision: dict[str, Any], event_type: str, payload: dict[str, Any],
+    ) -> None:
+        """Commit a prepared, independently owned payload with its mutation."""
+        domain, tenant_id, legacy = _decision_routing(decision)
+        generation = self._next_generation(domain)
+        if event_type == "upsert":
+            decision["_generation"] = generation
+        self._feed_events.setdefault(domain, []).append({
+            "generation": generation,
+            "event_type": event_type,
+            "decision_id": decision["decision_id"],
+            "domain": domain,
+            "tenant_id": tenant_id,
+            "exclude_legacy_signals": legacy,
+            "payload": payload,
+        })
+
+    def _emit_delete(self, decision: dict[str, Any]) -> None:
+        domain, tenant_id, legacy = _decision_routing(decision)
+        self._emit_change(decision, "delete", {
+            "decision_id": decision["decision_id"],
+            "domain": domain,
+            "tenant_id": tenant_id,
+            "exclude_legacy_signals": legacy,
+            "_removed": True,
+        })
+
+    def _project_decision(
+        self, decision: dict[str, Any], projection: DecisionProjection,
+    ) -> dict[str, Any]:
+        return _project_snapshot(
+            _normalize_bounded_record(decision, self._outcomes.get(decision["decision_id"])),
+            projection,
+        )
+
+    def _matches_filter(self, decision: dict[str, Any], filters: DecisionFilter) -> bool:
+        for name, accepted in (
+            ("category", filters.categories), ("recommended_action", filters.actions),
+            ("status", filters.statuses), ("source", filters.sources), ("regime", filters.regimes),
+            ("decision_id", filters.decision_ids),
+        ):
+            if accepted and _bounded_value(decision, name) not in accepted:
+                return False
+        if decision["decision_id"] in filters.exclude_decision_ids:
+            return False
+        if filters.ticker is not None and _bounded_value(decision, "ticker") != filters.ticker.upper():
+            return False
+        verified = decision.get("status") in {"confirmed", "overridden"}
+        if filters.verified is not None and filters.verified != verified:
+            return False
+        if filters.correct is not None and (not verified or decision.get("correct") is not filters.correct):
+            return False
+        confidence = decision.get("confidence")
+        for bound, is_lower in ((filters.confidence_min, True), (filters.confidence_max, False)):
+            if bound is not None:
+                if confidence is None or not (float(confidence) >= bound if is_lower else float(confidence) <= bound):
+                    return False
+        for name, lower, upper in (
+            ("created_at", filters.created_from, filters.created_to),
+            ("verified_at", filters.verified_from, filters.verified_to),
+        ):
+            if lower is None and upper is None:
+                continue
+            if name == "verified_at":
+                if not verified:
+                    return False
+                value = _read_timestamp((self._outcomes.get(decision["decision_id"]) or {}).get(name))
+            else:
+                value = _read_timestamp(decision.get(name))
+            if value is None or (lower is not None and value < lower) or (upper is not None and value >= upper):
+                return False
+        _, tenant_id, legacy = _decision_routing(decision)
+        return (
+            (filters.tenant_id is None or tenant_id == filters.tenant_id)
+            and not (filters.exclude_legacy_signals and legacy)
+        )
+
+    def _bounded_order_key(
+        self, decision: dict[str, Any], order_by: DecisionOrder,
+    ) -> tuple[float, str]:
+        if order_by == "verified_at":
+            value = (self._outcomes.get(decision["decision_id"]) or {}).get("verified_at")
+            if value is None:
+                raise ValueError(f"verified decision {decision['decision_id']} is missing verified_at")
+        else:
+            value = decision.get("created_at")
+        timestamp = _read_timestamp(value)
+        if timestamp is not None and not math.isfinite(timestamp):
+            raise ValueError(f"{order_by} must be finite")
+        # Generic cursors retain the actual ID even for missing timestamps.
+        # Supplemental conservation H ordering is a separate contract.
+        return (0.0 if timestamp is None else timestamp, str(decision["decision_id"]))
+
+    def query_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        projection: DecisionProjection = "summary",
+        page: DecisionPageRequest | None = None,
+        as_of_generation: int | None = None,
+    ) -> DecisionPageResult:
+        domain = _normalize_domain(domain)
+        _validate_projection(projection)
+        _validate_filters(filters)
+        page = page or DecisionPageRequest()
+        _bounded_integer(page.limit, "limit", 1)
+        _bounded_integer(page.offset, "offset")
+        if page.order_by not in get_args(DecisionOrder):
+            raise ValueError(f"invalid order_by: {page.order_by!r}")
+        if type(page.descending) is not bool:
+            raise ValueError("descending must be bool")
+        if page.after is not None:
+            if page.offset or page.after.order_by != page.order_by:
+                raise ValueError("cursor requires matching order_by and zero offset")
+            if not isinstance(page.after.decision_id, str) or not page.after.decision_id:
+                raise ValueError("cursor decision_id must be a non-empty string")
+            if not math.isfinite(page.after.value):
+                raise ValueError("cursor value must be finite")
+        if as_of_generation is not None:
+            _bounded_integer(as_of_generation, "as_of_generation")
+        with self._lock:
+            current = self._current_generation(domain)
+            if as_of_generation is not None and as_of_generation != current:
+                raise DecisionGenerationChanged(as_of_generation, current)
+            rows = [
+                decision for decision in self._decisions.values()
+                if decision.get("domain") == domain
+                and (filters is None or self._matches_filter(decision, filters))
+                and (page.order_by != "verified_at" or decision.get("status") in {"confirmed", "overridden"})
+            ]
+            ordered = sorted(
+                ((self._bounded_order_key(row, page.order_by), row) for row in rows),
+                key=lambda item: item[0], reverse=page.descending,
+            )
+            if page.after is not None:
+                boundary = (page.after.value, page.after.decision_id)
+                ordered = [
+                    item for item in ordered
+                    if (item[0] < boundary if page.descending else item[0] > boundary)
+                ]
+            selected = ordered[page.offset:page.offset + page.limit + 1]
+            has_more = len(selected) > page.limit
+            selected = selected[:page.limit]
+            cursor = None
+            if has_more:
+                last_key = selected[-1][0]
+                cursor = DecisionCursor(page.order_by, last_key[0], last_key[1])
+            return DecisionPageResult(
+                items=tuple(self._project_decision(row, projection) for _, row in selected),
+                next_cursor=cursor, has_more=has_more,
+            )
+
+    def count_decisions(
+        self, domain: str, *, filters: DecisionFilter | None = None,
+    ) -> int:
+        _validate_filters(filters)
+        with self._lock:
+            # Preserve the original domain-only count and visibility.
+            return sum(
+                1 for decision in self._decisions.values()
+                if decision.get("domain") == domain
+                and (filters is None or self._matches_filter(decision, filters))
+            )
+
+    def aggregate_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        group_by: tuple[DecisionGroup, ...] = (),
+        metrics: tuple[DecisionMetric, ...] = ("count",),
+    ) -> tuple[DecisionAggregate, ...]:
+        domain = _normalize_domain(domain)
+        _validate_filters(filters)
+        if not isinstance(group_by, tuple) or any(value not in get_args(DecisionGroup) for value in group_by):
+            raise ValueError("group_by dimension not in allowed set")
+        if not isinstance(metrics, tuple) or any(value not in get_args(DecisionMetric) for value in metrics):
+            raise ValueError("metric not in allowed set")
+        if len(set(group_by)) != len(group_by) or len(set(metrics)) != len(metrics):
+            raise ValueError("duplicate dimensions or metrics")
+        with self._lock:
+            # Per-group reductions, without retaining a second full row collection.
+            groups: dict[tuple[tuple[bool, str], ...], tuple[int, int, float]] = {}
+            if not group_by:
+                groups[()] = (0, 0, 0.0)
+            for decision in self._decisions.values():
+                if decision.get("domain") != domain or (filters is not None and not self._matches_filter(decision, filters)):
+                    continue
+                values = [_bounded_value(decision, "recommended_action" if dim == "action" else dim) for dim in group_by]
+                key = tuple((value is not None, "" if value is None else str(value)) for value in values)
+                count, correct, confidence = groups.get(key, (0, 0, 0.0))
+                groups[key] = (
+                    count + 1,
+                    correct + int(decision.get("status") in {"confirmed", "overridden"} and decision.get("correct") is True),
+                    confidence + (float(decision.get("confidence") or 0.0) if "avg_confidence" in metrics else 0.0),
+                )
+                if len(groups) > 1000:
+                    raise ProjectionCardinalityExceeded(len(groups), 1000)
+            result = []
+            for key, (count, correct, confidence) in sorted(groups.items()):
+                dimensions: dict[str, str] = {dim: value for dim, (present, value) in zip(group_by, key) if present}
+                aggregates: dict[str, float] = {}
+                if "count" in metrics:
+                    aggregates["count"] = float(count)
+                if "correct_count" in metrics:
+                    aggregates["correct_count"] = float(correct)
+                if "avg_confidence" in metrics and count:
+                    aggregates["avg_confidence"] = confidence / count
+                result.append(DecisionAggregate(dimensions, aggregates))
+            return tuple(result)
+
+    def get_decision_changes(
+        self,
+        domain: str,
+        *,
+        after_generation: int,
+        limit: int = 1_000,
+        projection: DecisionProjection = "full",
+        filters: DecisionFilter | None = None,
+    ) -> DecisionChangePage:
+        domain = _normalize_domain(domain)
+        _bounded_integer(after_generation, "after_generation")
+        _bounded_integer(limit, "limit", 1)
+        if limit > 1000:
+            raise ValueError("limit must be 1..1000")
+        _validate_projection(projection)
+        _validate_filters(filters, routing_only=True)
+        with self._lock:
+            high_watermark = self._current_generation(domain)
+            if after_generation > high_watermark:
+                raise ValueError("after_generation exceeds current generation")
+            selected = []
+            for event in self._feed_events.get(domain, ()):
+                if not after_generation < event["generation"] <= high_watermark:
+                    continue
+                if filters is not None:
+                    if filters.tenant_id is not None and event["tenant_id"] != filters.tenant_id:
+                        continue
+                    if filters.exclude_legacy_signals and event["exclude_legacy_signals"]:
+                        continue
+                selected.append(event)
+                if len(selected) == limit + 1:
+                    break
+            has_more = len(selected) > limit
+            selected = selected[:limit]
+            events = []
+            for event in selected:
+                result = dict(event)
+                result["payload"] = (
+                    deepcopy(event["payload"]) if event["event_type"] == "delete"
+                    else _project_snapshot(event["payload"], projection)
+                )
+                events.append(result)
+            return DecisionChangePage(
+                events=tuple(events),
+                next_generation=selected[-1]["generation"] if has_more else high_watermark,
+                current_generation=high_watermark,
+                has_more=has_more,
+            )
 
     def count_categories_with_n(self, domain: str, n: int = 1) -> int:
         counts: dict[str, int] = {}
@@ -1467,6 +2049,8 @@ class InMemoryGraphStore:
         delta_norm: float,
         caused_by_decision_id: str | None = None,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         domain_value = str(domain)
         category_value = str(category)
         action_value = str(action)
@@ -1515,6 +2099,8 @@ class InMemoryGraphStore:
         n_overridden: int | None = None,
         entity_group: str | None = None,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         domain_value = str(domain)
         tensor = _normalize_dk_weight_tensor(weight_tensor)
         decisions_used = _normalize_n_decisions_used(n_decisions_used)
@@ -1586,6 +2172,8 @@ class InMemoryGraphStore:
         caused_by_decision_id: str | None = None,
         old_status: str | None = None,
     ) -> str:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         state = _normalize_conservation_state_values(
             domain=domain,
             status=status,
@@ -1630,6 +2218,8 @@ class InMemoryGraphStore:
         metadata: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._centroid_checkpoints.append(
             {
                 "domain": str(domain),
@@ -1694,6 +2284,8 @@ class InMemoryGraphStore:
         self._platform_state.pop((str(kind), str(domain), str(key)), None)
 
     def save_evolution(self, domain: str, variant_id: str, state: dict[str, Any]) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._save_platform_state("EvolutionState", domain, variant_id, state)
 
     def get_evolution(self, domain: str, variant_id: str) -> dict[str, Any] | None:
@@ -1703,15 +2295,21 @@ class InMemoryGraphStore:
         return self._list_platform_state("EvolutionState", domain)
 
     def delete_evolution(self, domain: str, variant_id: str) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._delete_platform_state("EvolutionState", domain, variant_id)
 
     def save_evolution_state(self, domain: str, variant_id: str, state: dict[str, Any]) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self.save_evolution(domain, variant_id, state)
 
     def get_evolution_state(self, domain: str, variant_id: str) -> dict[str, Any] | None:
         return self.get_evolution(domain, variant_id)
 
     def save_posterior(self, domain: str, key: str, state: dict[str, Any]) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._save_platform_state("PosteriorState", domain, key, state)
 
     def get_posterior(self, domain: str, key: str) -> dict[str, Any] | None:
@@ -1721,9 +2319,13 @@ class InMemoryGraphStore:
         return self._list_platform_state("PosteriorState", domain)
 
     def delete_posterior(self, domain: str, key: str) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._delete_platform_state("PosteriorState", domain, key)
 
     def save_promotion(self, domain: str, rule_id: str, state: dict[str, Any]) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._save_platform_state("PromotionState", domain, rule_id, state)
 
     def get_promotion(self, domain: str, rule_id: str) -> dict[str, Any] | None:
@@ -1733,9 +2335,13 @@ class InMemoryGraphStore:
         return self._list_platform_state("PromotionState", domain)
 
     def delete_promotion(self, domain: str, rule_id: str) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._delete_platform_state("PromotionState", domain, rule_id)
 
     def save_ledger(self, domain: str, entry_id: str, state: dict[str, Any]) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._save_platform_state("CompoundingLedger", domain, entry_id, state)
 
     def get_ledger(self, domain: str, entry_id: str) -> dict[str, Any] | None:
@@ -1745,9 +2351,13 @@ class InMemoryGraphStore:
         return self._list_platform_state("CompoundingLedger", domain)
 
     def delete_ledger(self, domain: str, entry_id: str) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._delete_platform_state("CompoundingLedger", domain, entry_id)
 
     def save_governance(self, domain: str, key: str, state: dict[str, Any]) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._save_platform_state("GovernanceState", domain, key, state)
 
     def get_governance(self, domain: str, key: str) -> dict[str, Any] | None:
@@ -1757,6 +2367,8 @@ class InMemoryGraphStore:
         return self._list_platform_state("GovernanceState", domain)
 
     def delete_governance(self, domain: str, key: str) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._delete_platform_state("GovernanceState", domain, key)
 
     def get_centroid_checkpoints(
@@ -1848,6 +2460,8 @@ class InMemoryGraphStore:
         variant_id: str = "",
         metadata: dict[str, Any] | None = None,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         self._evolution_events.append(
             {
                 "domain": str(domain),
@@ -1887,6 +2501,8 @@ class InMemoryGraphStore:
         dry_run: bool = False,
         idempotency_key: str | None = None,
     ) -> EntityEnrichmentReceipt:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         domain = str(domain)
         entity_type = str(entity_type)
         entity_id = str(entity_id)
@@ -2010,34 +2626,38 @@ class InMemoryGraphStore:
         return _copy_read_value(records[:limit_value])  # manual copy: caller isolation without deepcopy overhead
 
     def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
-        keep_recent = max(int(keep_recent), 0)
-        decisions = [
-            decision
-            for decision in sorted(self._decisions.values(), key=lambda row: (row["created_at"], row["_sequence"], row["decision_id"]))
-            if decision.get("domain") == domain
-        ]
-        if len(decisions) <= keep_recent:
-            return 0
-        to_archive = decisions[: len(decisions) - keep_recent]
-        archived_at = time.time()
-        for decision in to_archive:
-            decision_id = decision["decision_id"]
-            outcome = self._outcomes.get(decision_id)
-            self._archive.append(
-                {
-                    "decision": deepcopy(decision),
-                    "outcome": deepcopy(outcome),
-                    "domain": domain,
-                    "archived_at": archived_at,
-                    "archive_reason": "retention_window",
-                }
-            )
-            self._outcomes.pop(decision_id, None)
-            self._decisions.pop(decision_id, None)
-            self._edges = [
-                edge for edge in self._edges if edge.get("decision_id") != decision_id
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
+        with self._lock:
+            keep_recent = max(int(keep_recent), 0)
+            decisions = [
+                decision
+                for decision in sorted(self._decisions.values(), key=lambda row: (row["created_at"], row["_sequence"], row["decision_id"]))
+                if decision.get("domain") == domain
             ]
-        return len(to_archive)
+            if len(decisions) <= keep_recent:
+                return 0
+            to_archive = decisions[: len(decisions) - keep_recent]
+            archived_at = time.time()
+            for decision in to_archive:
+                decision_id = decision["decision_id"]
+                outcome = self._outcomes.get(decision_id)
+                self._archive.append(
+                    {
+                        "decision": deepcopy(decision),
+                        "outcome": deepcopy(outcome),
+                        "domain": domain,
+                        "archived_at": archived_at,
+                        "archive_reason": "retention_window",
+                    }
+                )
+                self._outcomes.pop(decision_id, None)
+                self._decisions.pop(decision_id, None)
+                self._emit_delete(decision)
+                self._edges = [
+                    edge for edge in self._edges if edge.get("decision_id") != decision_id
+                ]
+            return len(to_archive)
 
     def count_archived(self, domain: str) -> int:
         return sum(1 for row in self._archive if row.get("domain") == domain)
@@ -2082,135 +2702,143 @@ class InMemoryGraphStore:
         status_filter: str = "pending",
         confirm_verified: bool = False,
     ) -> int:
-        domain = str(domain)
-        status_filter = str(status_filter)
-        if status_filter in {"confirmed", "overridden"} and not confirm_verified:
-            raise ValueError(
-                "Archiving verified decisions reduces active V. "
-                "Pass confirm_verified=True to proceed."
-            )
-        if status_filter not in {"pending", "confirmed", "overridden"}:
-            raise ValueError(f"Unsupported archive status_filter: {status_filter}")
-        to_archive = [
-            decision
-            for decision in self._ordered_decisions()
-            if decision.get("domain") == domain
-            and decision.get("status") == status_filter
-            and float(decision.get("created_at", 0.0)) < float(before)
-        ]
-        archived_at = time.time()
-        for decision in to_archive:
-            decision_id = decision["decision_id"]
-            outcome = self._outcomes.get(decision_id)
-            self._archive.append(
-                {
-                    "decision": deepcopy(decision),
-                    "outcome": deepcopy(outcome),
-                    "domain": domain,
-                    "archived_at": archived_at,
-                    "archive_reason": f"protocol_v2_{status_filter}",
-                }
-            )
-            self._outcomes.pop(decision_id, None)
-            self._decisions.pop(decision_id, None)
-            self._edges = [
-                edge for edge in self._edges if edge.get("decision_id") != decision_id
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
+        with self._lock:
+            domain = str(domain)
+            status_filter = str(status_filter)
+            if status_filter in {"confirmed", "overridden"} and not confirm_verified:
+                raise ValueError(
+                    "Archiving verified decisions reduces active V. "
+                    "Pass confirm_verified=True to proceed."
+                )
+            if status_filter not in {"pending", "confirmed", "overridden"}:
+                raise ValueError(f"Unsupported archive status_filter: {status_filter}")
+            to_archive = [
+                decision
+                for decision in self._ordered_decisions()
+                if decision.get("domain") == domain
+                and decision.get("status") == status_filter
+                and float(decision.get("created_at", 0.0)) < float(before)
             ]
-        return len(to_archive)
+            archived_at = time.time()
+            for decision in to_archive:
+                decision_id = decision["decision_id"]
+                outcome = self._outcomes.get(decision_id)
+                self._archive.append(
+                    {
+                        "decision": deepcopy(decision),
+                        "outcome": deepcopy(outcome),
+                        "domain": domain,
+                        "archived_at": archived_at,
+                        "archive_reason": f"protocol_v2_{status_filter}",
+                    }
+                )
+                self._outcomes.pop(decision_id, None)
+                self._decisions.pop(decision_id, None)
+                self._emit_delete(decision)
+                self._edges = [
+                    edge for edge in self._edges if edge.get("decision_id") != decision_id
+                ]
+            return len(to_archive)
 
     def domain_scoped_reset(self, domain: str) -> None:
-        domain = str(domain)
-        decision_ids = {
-            decision_id
-            for decision_id, decision in self._decisions.items()
-            if decision.get("domain") == domain
-        }
-        for decision_id in list(decision_ids):
-            self._decisions.pop(decision_id, None)
-            self._outcomes.pop(decision_id, None)
-        self._outcomes = {
-            decision_id: outcome
-            for decision_id, outcome in self._outcomes.items()
-            if outcome.get("domain") != domain
-        }
-        self._observations = {
-            observation_id: observation
-            for observation_id, observation in self._observations.items()
-            if observation.get("domain") != domain
-        }
-        self._observation_entity_edges = [
-            edge for edge in self._observation_entity_edges if edge.get("domain") != domain
-        ]
-        self._observation_factor_vectors = {
-            observation_id: vector
-            for observation_id, vector in self._observation_factor_vectors.items()
-            if vector.get("domain") != domain
-        }
-        self._evidence_receipts = {
-            key: receipt
-            for key, receipt in self._evidence_receipts.items()
-            if receipt.get("domain") != domain
-        }
-        self._evidence_receipt_chains.pop(domain, None)
-        self._conservation_snapshots = {
-            snapshot_id: snapshot
-            for snapshot_id, snapshot in self._conservation_snapshots.items()
-            if snapshot.get("domain") != domain
-        }
-        self._fingerprints = {
-            fingerprint_id: fingerprint
-            for fingerprint_id, fingerprint in self._fingerprints.items()
-            if fingerprint.get("domain") != domain
-        }
-        self._protocol_centroid_checkpoints = {
-            checkpoint_id: checkpoint
-            for checkpoint_id, checkpoint in self._protocol_centroid_checkpoints.items()
-            if checkpoint.get("domain") != domain
-        }
-        self._l5_centroids = {
-            key: centroid
-            for key, centroid in self._l5_centroids.items()
-            if key[0] != domain
-        }
-        self._l5_dk_weights.pop(domain, None)
-        self._l5_conservation_state.pop(domain, None)
-        self._centroid_checkpoints = [
-            checkpoint
-            for checkpoint in self._centroid_checkpoints
-            if checkpoint.get("domain") != domain
-        ]
-        self._protocol_evolution_events = {
-            event_id: event
-            for event_id, event in self._protocol_evolution_events.items()
-            if event.get("domain") != domain
-        }
-        self._evolution_events = [
-            event for event in self._evolution_events if event.get("domain") != domain
-        ]
-        self._edges = [
-            edge
-            for edge in self._edges
-            if edge.get("domain") != domain and edge.get("decision_id") not in decision_ids
-        ]
-        self._rl_state = {
-            key: value
-            for key, value in self._rl_state.items()
-            if key[0] != domain
-        }
-        self._platform_state = {
-            key: value for key, value in self._platform_state.items() if key[1] != domain
-        }
-        self._archive = [row for row in self._archive if row.get("domain") != domain]
-        self._outbox = [row for row in self._outbox if row.get("domain") != domain]
-        self._outbox_quarantine = [
-            row for row in self._outbox_quarantine if row.get("domain") != domain
-        ]
-        self._entity_enrichments = {
-            key: record
-            for key, record in self._entity_enrichments.items()
-            if key[0] != domain
-        }
-        return None
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
+        with self._lock:
+            domain = str(domain)
+            decision_ids = {
+                decision_id
+                for decision_id, decision in self._decisions.items()
+                if decision.get("domain") == domain
+            }
+            for decision_id in sorted(decision_ids):
+                self._emit_delete(self._decisions[decision_id])
+                self._decisions.pop(decision_id, None)
+                self._outcomes.pop(decision_id, None)
+            self._outcomes = {
+                decision_id: outcome
+                for decision_id, outcome in self._outcomes.items()
+                if outcome.get("domain") != domain
+            }
+            self._observations = {
+                observation_id: observation
+                for observation_id, observation in self._observations.items()
+                if observation.get("domain") != domain
+            }
+            self._observation_entity_edges = [
+                edge for edge in self._observation_entity_edges if edge.get("domain") != domain
+            ]
+            self._observation_factor_vectors = {
+                observation_id: vector
+                for observation_id, vector in self._observation_factor_vectors.items()
+                if vector.get("domain") != domain
+            }
+            self._evidence_receipts = {
+                key: receipt
+                for key, receipt in self._evidence_receipts.items()
+                if receipt.get("domain") != domain
+            }
+            self._evidence_receipt_chains.pop(domain, None)
+            self._conservation_snapshots = {
+                snapshot_id: snapshot
+                for snapshot_id, snapshot in self._conservation_snapshots.items()
+                if snapshot.get("domain") != domain
+            }
+            self._fingerprints = {
+                fingerprint_id: fingerprint
+                for fingerprint_id, fingerprint in self._fingerprints.items()
+                if fingerprint.get("domain") != domain
+            }
+            self._protocol_centroid_checkpoints = {
+                checkpoint_id: checkpoint
+                for checkpoint_id, checkpoint in self._protocol_centroid_checkpoints.items()
+                if checkpoint.get("domain") != domain
+            }
+            self._l5_centroids = {
+                key: centroid
+                for key, centroid in self._l5_centroids.items()
+                if key[0] != domain
+            }
+            self._l5_dk_weights.pop(domain, None)
+            self._l5_conservation_state.pop(domain, None)
+            self._centroid_checkpoints = [
+                checkpoint
+                for checkpoint in self._centroid_checkpoints
+                if checkpoint.get("domain") != domain
+            ]
+            self._protocol_evolution_events = {
+                event_id: event
+                for event_id, event in self._protocol_evolution_events.items()
+                if event.get("domain") != domain
+            }
+            self._evolution_events = [
+                event for event in self._evolution_events if event.get("domain") != domain
+            ]
+            self._edges = [
+                edge
+                for edge in self._edges
+                if edge.get("domain") != domain and edge.get("decision_id") not in decision_ids
+            ]
+            self._rl_state = {
+                key: value
+                for key, value in self._rl_state.items()
+                if key[0] != domain
+            }
+            self._platform_state = {
+                key: value for key, value in self._platform_state.items() if key[1] != domain
+            }
+            self._archive = [row for row in self._archive if row.get("domain") != domain]
+            self._outbox = [row for row in self._outbox if row.get("domain") != domain]
+            self._outbox_quarantine = [
+                row for row in self._outbox_quarantine if row.get("domain") != domain
+            ]
+            self._entity_enrichments = {
+                key: record
+                for key, record in self._entity_enrichments.items()
+                if key[0] != domain
+            }
+            return None
 
     def link_decision_to_entity(
         self,
@@ -2220,6 +2848,8 @@ class InMemoryGraphStore:
         *,
         domain: str,
     ) -> None:
+        if str(domain).startswith("jmns__") and not is_internal_namespace(domain):
+            raise ValueError("domain prefix 'jmns__' is reserved for namespace routing")
         domain_value = str(domain).strip()
         if not domain_value:
             raise ValueError("link_decision_to_entity requires a non-empty domain")
@@ -2499,27 +3129,30 @@ class InMemoryGraphStore:
         return matches
 
     def reset(self) -> None:
-        self._decisions.clear()
-        self._outcomes.clear()
-        self._edges.clear()
-        self._centroid_checkpoints.clear()
-        self._protocol_centroid_checkpoints.clear()
-        self._l5_centroids.clear()
-        self._l5_dk_weights.clear()
-        self._l5_conservation_state.clear()
-        self._fingerprints.clear()
-        self._protocol_evolution_events.clear()
-        self._evolution_events.clear()
-        self._rl_state.clear()
-        self._platform_state.clear()
-        self._archive.clear()
-        self._outbox.clear()
-        self._outbox_quarantine.clear()
-        self._outbox_counter = 0
-        self._quarantine_counter = 0
-        self._l5_dk_weight_counter = 0
-        self._l5_conservation_state_counter = 0
-        self._sequence = 0
+        with self._lock:
+            self._decisions.clear()
+            self._outcomes.clear()
+            self._edges.clear()
+            self._centroid_checkpoints.clear()
+            self._protocol_centroid_checkpoints.clear()
+            self._l5_centroids.clear()
+            self._l5_dk_weights.clear()
+            self._l5_conservation_state.clear()
+            self._fingerprints.clear()
+            self._protocol_evolution_events.clear()
+            self._evolution_events.clear()
+            self._rl_state.clear()
+            self._platform_state.clear()
+            self._archive.clear()
+            self._outbox.clear()
+            self._outbox_quarantine.clear()
+            self._outbox_counter = 0
+            self._quarantine_counter = 0
+            self._l5_dk_weight_counter = 0
+            self._l5_conservation_state_counter = 0
+            self._sequence = 0
+            self._domain_generations.clear()
+            self._feed_events.clear()
 
     def close(self) -> None:
         return None

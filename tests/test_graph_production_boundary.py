@@ -190,13 +190,21 @@ def test_g043_probe_is_read_only_redacted_and_checks_graph_oid(config):
 
 
 def test_g042_age_adapter_binding_rechecks_injected_destination(config, monkeypatch):
+    from ci_platform.graph.age_client import AGEClient
     from ci_platform.graph.age_sdk_adapter import AGEGraphStoreAdapter
 
+    monkeypatch.setattr(AGEClient, "_sync_connect", lambda self: None)
     monkeypatch.setattr(
         AGEGraphStoreAdapter,
         "production_ready",
         property(lambda self: True),
         raising=False,
+    )
+    # This test exercises legacy adapter destination revalidation, not the
+    # P2b activation-marker probe performed by the bounded adapter.
+    monkeypatch.setattr(
+        "copilot_sdk.graph.factory._load_bounded_age_adapter",
+        lambda _legacy: None,
     )
     canonical = GraphIdentity("same-db", "soc_graph", 42)
     monkeypatch.setattr("copilot_sdk.graph.production._probe_client_identity", lambda client: canonical)

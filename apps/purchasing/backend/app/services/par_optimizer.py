@@ -14,6 +14,10 @@ from statistics import NormalDist, mean, pstdev
 from typing import Any
 
 
+class ParHistoryUnavailableError(ValueError):
+    """Raised when an item has no usable QBO order history."""
+
+
 @dataclass
 class ParRecommendation:
     item_name: str
@@ -56,7 +60,9 @@ class ParLevelOptimizer:
         _assert_no_sample_orders(orders)
         item_orders = self._item_order_history(item_name, orders)
         if not item_orders:
-            raise ValueError(f"No QBO order history for item '{item_name}'")
+            raise ParHistoryUnavailableError(
+                f"No QBO order history for item '{item_name}'"
+            )
 
         avg_daily_usage, usage_std = self._compute_usage_stats(item_orders)
         data_days = self._data_days(item_orders)

@@ -7,11 +7,12 @@ import logging
 import math
 import os
 import threading
+import time
 from dataclasses import asdict, is_dataclass
 from typing import Any, Callable
 
 import numpy as np
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
@@ -31,6 +32,7 @@ from copilot_sdk.backend.models import (
     ScoringHistoryResponse,
     TrajectoryResponse,
 )
+from copilot_sdk.backend.scorer_proxy import StalePreparedScoreError
 from copilot_sdk.scoring import CompoundingScorer
 from copilot_sdk.scoring.dk_persistence import (
     DKWelfordTracker,
@@ -120,38 +122,56 @@ def create_scoring_router(
         return scorer_cache["scorer"]
 
     @router.post("/score", response_model=ScoreResponse)
-    async def score(request: ScoreRequest) -> dict[str, Any]:
-        return await run_in_threadpool(score_sync, request)
+    async def score(request: ScoreRequest, http_request: Request) -> dict[str, Any]:
+        return await run_in_threadpool(score_sync, request, http_request)
 
-    def score_sync(request: ScoreRequest) -> dict[str, Any]:
-        with mutation_lock_scope(domain):
-            scorer = get_scorer()
-            try:
-                if variant_selector is not None:
-                    selected_variant = variant_selector(request.category)
-                    if selected_variant and not _decision_variant_id({"metadata": request.metadata or {}}):
-                        request.metadata = {
-                            **(request.metadata or {}),
-                            "variant_id": str(selected_variant),
-                        }
-                result = _score_with_optional_metadata(scorer, request)
-            except AssertionError as exc:
-                raise HTTPException(status_code=400, detail=str(exc)) from exc
-            except ValueError as exc:
-                raise HTTPException(status_code=400, detail=str(exc)) from exc
-            except GRAPH_CONNECTION_ERRORS as exc:
-                raise graph_unavailable(exc) from exc
-            payload = _json_safe(result)
-            payload["engine"] = ENGINE
-            payload = _score_response_payload(payload)
-            if score_payload_enricher is not None:
-                payload = score_payload_enricher(payload)
-            apply_cache_invalidation_event(domain, "score")
-            return payload
+    def score_sync(request: ScoreRequest, http_request: Request) -> dict[str, Any]:
+        scorer = get_scorer()
+        try:
+            if variant_selector is not None:
+                selected_variant = variant_selector(request.category)
+                if selected_variant and not _decision_variant_id({"metadata": request.metadata or {}}):
+                    request.metadata = {
+                        **(request.metadata or {}),
+                        "variant_id": str(selected_variant),
+                    }
+            prepare = getattr(scorer, "prepare_score", None)
+            persist = getattr(scorer, "persist_prepared_score", None)
+            if callable(prepare) and callable(persist):
+                prepared = _prepare_with_optional_metadata(scorer, request)
+                with mutation_lock_scope(domain):
+                    try:
+                        result = persist(prepared)
+                    except StalePreparedScoreError:
+                        # A learn linearized between optimistic prediction and
+                        # commit. Re-predict once under the domain lock so the
+                        # persisted Decision reflects the latest scorer state.
+                        result = persist(_prepare_with_optional_metadata(scorer, request))
+                    _invalidate_materializer(http_request)
+                    apply_cache_invalidation_event(domain, "score")
+            else:
+                # Compatibility for custom scorers that have not adopted the
+                # split prediction/persistence contract.
+                with mutation_lock_scope(domain):
+                    result = _score_with_optional_metadata(scorer, request)
+                    _invalidate_materializer(http_request)
+                    apply_cache_invalidation_event(domain, "score")
+        except AssertionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except GRAPH_CONNECTION_ERRORS as exc:
+            raise graph_unavailable(exc) from exc
+        payload = _json_safe(result)
+        payload["engine"] = ENGINE
+        payload = _score_response_payload(payload)
+        if score_payload_enricher is not None:
+            payload = score_payload_enricher(payload)
+        return payload
 
     @router.post("/learn", response_model=LearnResponse,
                  responses={423: {"model": LearnLockedResponse}})
-    def learn(request: LearnRequest) -> dict[str, Any] | JSONResponse:
+    def learn(request: LearnRequest, http_request: Request) -> dict[str, Any] | JSONResponse:
         with mutation_lock_scope(domain):
             scorer = get_scorer()
             try:
@@ -289,20 +309,26 @@ def create_scoring_router(
                 ),
             )
             _finalize_learn_persistence(payload)
+            _invalidate_materializer(http_request)
             apply_cache_invalidation_event(domain, "learn")
             return payload
 
     @router.get("/fingerprint", response_model=FingerprintResponse)
-    def fingerprint() -> dict[str, Any]:
+    def fingerprint(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
-        payload = _json_safe(graph_call(scorer.fingerprint))
+        payload = _materialized_read(request, "fingerprint")
+        if payload is None:
+            payload = _json_safe(graph_call(_fingerprint_read_only, scorer))
         payload["engine"] = ENGINE
         return payload
 
     @router.get("/trajectory", response_model=TrajectoryResponse)
-    def trajectory() -> dict[str, Any]:
-        scorer = get_scorer()
-        payload = _json_safe(graph_call(scorer.trajectory))
+    def trajectory(request: Request) -> dict[str, Any]:
+        payload = _materialized_read(request, "trajectory")
+        if payload is None:
+            log.warning("Trajectory materializer bypass for %s; using live scorer", domain)
+            scorer = get_scorer()
+            payload = _json_safe(graph_call(scorer.trajectory))
         payload["engine"] = ENGINE
         return payload
 
@@ -332,28 +358,88 @@ def create_scoring_router(
             raise graph_unavailable(exc) from exc
 
     @router.get("/history", response_model=ScoringHistoryResponse)
-    def history(request: Request) -> dict[str, Any]:
+    def history(
+        request: Request,
+        limit: int = Query(default=50, ge=1, le=100),
+        offset: int = Query(default=0, ge=0, le=10_000),
+    ) -> dict[str, Any]:
         scorer = get_scorer()
         store = _scorer_data_store(scorer)
         store_domain = _store_domain(store, domain)
-        decisions = graph_call(require_graph_store(store).get_decisions, store_domain, limit=10**12)
-        return {"engine": ENGINE, "decisions": _json_safe(decisions)}
+        graph_store = require_graph_store(store)
+        total = int(graph_call(graph_store.count_decisions, store_domain))
+        started = time.monotonic()
+        decisions = graph_call(
+            graph_store.get_decisions,
+            store_domain,
+            limit=limit,
+            offset=offset,
+        )
+        elapsed_ms = (time.monotonic() - started) * 1000.0
+        log.debug(
+            "[HISTORY] Query returned %d decisions in %.1fms. Offset: %d.",
+            len(decisions), elapsed_ms, offset,
+        )
+        return {
+            "engine": ENGINE,
+            "decisions": _json_safe(decisions),
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+        }
 
-    def measurement_payload() -> dict[str, Any]:
-        scorer = get_scorer()
-        payload = graph_call(compute_measurement_state, scorer).to_dict()
+    def measurement_payload(request: Request) -> dict[str, Any]:
+        payload = _materialized_read(request, "measurement_state")
+        if payload is None:
+            log.warning(
+                "Measurement-state materializer bypass for %s; using live scorer",
+                domain,
+            )
+            scorer = get_scorer()
+            payload = graph_call(compute_measurement_state, scorer).to_dict()
         payload["engine"] = ENGINE
         return _measurement_http_payload(payload)
 
+    @router.get("/debug/materializer-status", include_in_schema=False)
+    def materializer_status(request: Request) -> dict[str, Any]:
+        """Expose cache diagnostics only when debug endpoints are enabled."""
+        if os.environ.get("COPILOT_DEBUG_ENDPOINTS", "").strip().lower() not in {
+            "1", "true", "yes", "on",
+        }:
+            raise HTTPException(status_code=404, detail="Not found")
+        materializer = getattr(request.app.state, "materializer", None)
+        status = getattr(materializer, "status", None)
+        if not callable(status):
+            raise HTTPException(status_code=503, detail="Materializer unavailable")
+        return dict(status())
+
+    @router.get("/debug/pool-status", include_in_schema=False)
+    def pool_status(request: Request) -> dict[str, Any]:
+        """Expose AGE pool diagnostics only when debug endpoints are enabled."""
+        if os.environ.get("COPILOT_DEBUG_ENDPOINTS", "").strip().lower() not in {
+            "1", "true", "yes", "on",
+        }:
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = getattr(request.app.state, "graph_store", None)
+        client = _find_pool_diagnostics_client(candidate)
+        if client is None:
+            scorer = get_scorer()
+            client = _find_pool_diagnostics_client(
+                getattr(scorer, "graph_store", getattr(scorer, "_graph_store", None))
+            )
+        if client is None:
+            raise HTTPException(status_code=503, detail="AGE pool unavailable")
+        return dict(client.get_pool_diagnostics())
+
     @router.get("/measurement-state", response_model=MeasurementStateResponse)
-    def measurement_state() -> dict[str, Any]:
-        return measurement_payload()
+    def measurement_state(request: Request) -> dict[str, Any]:
+        return measurement_payload(request)
 
     @router.get("/{copilot}/measurement-state", response_model=MeasurementStateResponse)
-    def prefixed_measurement_state(copilot: str) -> dict[str, Any]:
+    def prefixed_measurement_state(copilot: str, request: Request) -> dict[str, Any]:
         if copilot != domain:
             raise HTTPException(status_code=404, detail=f"Unknown copilot: {copilot}")
-        return measurement_payload()
+        return measurement_payload(request)
 
     return router
 
@@ -410,6 +496,84 @@ def _score_with_optional_metadata(scorer: Any, request: ScoreRequest) -> Any:
     if metadata and _score_accepts_metadata(score):
         return score(request.factors, request.category, metadata=metadata)
     return score(request.factors, request.category)
+
+
+def _prepare_with_optional_metadata(scorer: Any, request: ScoreRequest) -> Any:
+    metadata = request.metadata or None
+    prepare = scorer.prepare_score
+    if metadata and _score_accepts_metadata(prepare):
+        return prepare(request.factors, request.category, metadata=metadata)
+    return prepare(request.factors, request.category)
+
+
+def _materialized_read(request: Request, key: str) -> dict[str, Any] | None:
+    """Read a display payload from the app generation when configured."""
+    materializer = getattr(request.app.state, "materializer", None)
+    if materializer is None:
+        return None
+    try:
+        result = materializer.get_or_refresh(key)
+    except Exception as exc:
+        record_fallback = getattr(materializer, "record_fallback", None)
+        if callable(record_fallback):
+            record_fallback()
+        log.warning("Materialized %s read failed; using live scorer: %s", key, exc)
+        return None
+    if not isinstance(result, dict):
+        record_fallback = getattr(materializer, "record_fallback", None)
+        if callable(record_fallback):
+            record_fallback()
+        return None
+    if result.get("status") == "unavailable" and "error" in result:
+        record_fallback = getattr(materializer, "record_fallback", None)
+        if callable(record_fallback):
+            record_fallback()
+        return None
+    return dict(result)
+
+
+def _find_pool_diagnostics_client(value: Any) -> Any | None:
+    """Find a composed AGE client without coupling to ci-platform types."""
+    seen: set[int] = set()
+    current = value
+    for _ in range(5):
+        if current is None or id(current) in seen:
+            return None
+        seen.add(id(current))
+        if callable(getattr(current, "get_pool_diagnostics", None)):
+            return current
+        current = next(
+            (
+                getattr(current, name)
+                for name in (
+                    "_client",
+                    "_" + "".join(("s", "t", "o", "r", "e")),
+                    "graph_store",
+                    "_graph_store",
+                )
+                if getattr(current, name, None) is not None
+            ),
+            None,
+        )
+    return None
+
+
+def _invalidate_materializer(request: Request) -> None:
+    materializer = getattr(request.app.state, "materializer", None)
+    invalidate = getattr(materializer, "invalidate_mutation", None)
+    if not callable(invalidate):
+        invalidate = getattr(materializer, "invalidate", None)
+    if callable(invalidate):
+        invalidate()
+
+
+def _fingerprint_read_only(scorer: Any) -> Any:
+    fingerprint = scorer.fingerprint
+    try:
+        accepts_persist = "persist" in inspect.signature(fingerprint).parameters
+    except (TypeError, ValueError):
+        accepts_persist = False
+    return fingerprint(persist=False) if accepts_persist else fingerprint()
 
 
 def _score_accepts_metadata(score: Any) -> bool:

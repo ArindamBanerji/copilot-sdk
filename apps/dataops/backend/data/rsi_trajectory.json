@@ -1,0 +1,10 @@
+{
+  "case_study": "Continental Tire",
+  "provenance": "sample",
+  "timeline": {
+    "weeks": [1, 4, 8, 12, 16, 20, 24],
+    "alert_volume": [400, 350, 290, 240, 210, 190, 180],
+    "monthly_cost": [200000, 175000, 145000, 120000, 105000, 80000, 65000],
+    "auto_approve_pct": [15, 22, 30, 38, 42, 48, 55]
+  }
+}

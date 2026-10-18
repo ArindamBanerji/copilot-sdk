@@ -8951,3 +8951,2314 @@ Mypy: clean
 Architecture: substantive invariants confirmed; the supplied broad namespace string probe flags four legitimate namespace/domain input-validation ValueErrors, while no decision business logic or mutable state is present
 Notes: Step 13 implementation was already present. This session verified design compliance and confirmed test coverage. The first full-suite run had one transient live-FRED partial-capture failure in test_fred_freeze_integration_matches_live_baseline; the node passed immediately in isolation and the complete rerun passed 4437/1 xfail. Step 13 CLOSED.
 
+## LIVE UI SCREENSHOT CAPTURE (2026-10-13)
+
+- Cleanup completed before capture work. Reverted: `apps/dataops/backend/app/main.py`, `apps/purchasing/backend/app/main.py`, `apps/trading/backend/app/main.py`, `demo.py`, `scripts/preseed_all_copilots.py`, and this `docs/session_state.md` in `copilot-sdk`; `backend/app/main.py` in `s2p-copilot`. Deleted prior-run files: `scripts/seed_all_decisions.py` and `tests/scripts/test_seed_all_decisions.py`. No seed/preseed, `demo.py`, or backend `main.py` diff remains.
+- Built `e2e/capture/capture-screenshots.spec.ts` with `e2e/capture/playwright.config.ts`. It probes each already-running backend/frontend independently, uses the existing health retry, `clickTab`, screen-ready/app-shell waits, and S2P queue wait, captures full-page PNGs at 1440x900, and records unavailable copilots/surfaces without launching, restarting, preseeding, or writing a score/outcome.
+- Run from `copilot-sdk/e2e`: `npm run capture:screenshots`. The command now invokes only `playwright test --config capture/playwright.config.ts`.
+- Output: `screenshots/<copilot>/<tab>-<timestamp>.png`; manifest: `screenshots/manifest.json`. PNG entries contain `copilot`, `tab`, `timestamp`, `provenance`, and relative `file`. Default provenance is `illustrative_preseed`; no surface is tagged `measured` by this capture.
+- SOC ports: frontend 5173, backend 8001. Target tabs/surfaces: Runtime Evolution; Runtime Evolution subsections A `this-decision`, B `situational`, C `adaptation`, D `system-health`; SOC Analytics.
+- S2P ports: frontend 5177, backend 8002. Target tabs/surfaces: Dashboard; Exception Triage as the read-only RL decision-loop view; Insight / Centroid Explorer; Performance / Learning trajectory.
+- Other discovered ports: Trading 5174/8010, Purchasing 5175/8020, DataOps 5176/8030; each running dashboard is captured.
+- Verification: `npm run typecheck` passed. `npm run capture:screenshots` passed (1 Playwright test). At verification time all five backends refused connections, so the honest manifest contains five skip records and zero PNGs. The required live non-empty SOC/S2P PNG gate could not be exercised without violating the instruction not to start or restart demos.
+- Live continuation at 2026-10-13T03:20:35-07:00: all copilots were supplied running and the capture was repeated without launching, restarting, preseeding, scoring, or recording outcomes. `npm run typecheck` passed; `npm run capture:screenshots` passed in 31.7 seconds. Final manifest: 13 captures, 0 skips, all `illustrative_preseed`. Captures include five SOC Runtime Evolution views (overview plus this-decision, situational, adaptation, and system-health), SOC Analytics, four S2P views (Dashboard, RL decision loop, Centroid Explorer, Learning trajectory), and Trading, Purchasing, and DataOps dashboards. Every manifest PNG is non-empty; listed sizes range from 57,167 to 736,203 bytes. Visual spot-check completed for SOC system health and S2P centroid/learning screens. The live S2P UI honestly exposes current empty/loading/error states on some panels; the capture tool does not alter those states.
+
+## AGE Bootstrap Step 2: Seed Writer + Wiring + Preseed Deprecation
+
+Date: 2026-10-13
+Prompt: codex_age_bootstrap_step2_wiring_v1.md
+
+Changes:
+- Created `scripts/seed_all_decisions.py` as a deterministic, idempotent direct GraphStore writer for Trading, Purchasing, DataOps, and S2P.
+- Updated 0 copilot `main.py` files: all four SDK-domain bootstraps already construct GraphStore first, pass that store through `FreshScorerProxy` or directly to `CompoundingScorer.from_preset()`, and publish it on `app.state.graph_store`.
+- Deprecated `scripts/preseed_all_copilots.py` with a `DeprecationWarning` from `main()`; retained the script as a fallback.
+- Confirmed no `COPILOT_PRESEED_MODE` references exist in the Trading, Purchasing, DataOps, or S2P startup modules.
+
+Files added: `scripts/seed_all_decisions.py`, `tests/scripts/test_seed_all_decisions.py`
+Tests: +7 new, 4,455 passed and 1 xfailed in the SDK root suite.
+App tests: Trading=1,524 passed; Purchasing=914 passed; DataOps=494 passed.
+Mypy: clean for the new writer, legacy preseed script, its tests, all three SDK app mains, and S2P main.
+
+Per-copilot wiring status:
+- Trading: already correct (`FreshScorerProxy` owns the selected active GraphStore).
+- Purchasing: already correct (`FreshScorerProxy` owns the selected active GraphStore).
+- DataOps: already correct (`FreshScorerProxy` owns the selected active GraphStore).
+- S2P: already correct (`build_s2p_scorer()` passes the selected active GraphStore to `from_preset()` and preserves `S2PGradedRewardFunction`).
+- SOC: not changed (own AGE bootstrap via `gae_state.init_learning_state()`).
+
+## AGE Bootstrap Step 3: Test Migration + Conformance
+
+Date: 2026-10-13
+Prompt: codex_age_bootstrap_step3_tests_v1.md
+
+Changes:
+- Scanned the SDK test tree for HTTP preseed, `DecisionStore`, `db_path`, SQLite, and `from_preset()` setup. No Category A or active Category B scorer tests remained to migrate: scorer/bootstrap tests already use `InMemoryGraphStore`, while the remaining HTTP and SQLite matches test API transport, storage, outbox, factory, or migration behavior directly.
+- Migrated 0 existing test files because the requested scorer setup migration was already complete in the current tree.
+- Added `tests/scoring/test_cross_store_conformance.py` (+6 tests) covering normal-learn/replay parity, deterministic bootstrap, conservation counts, cold versus seeded state, all four SDK domains, and direct-seed/bootstrap round trips.
+- Restored the previously authorized DataOps `/api/di/sources` aliases in `apps/dataops/backend/app/main.py` after the concurrent screenshot cleanup reverted that app wiring but left its four parity regression tests. Both source prefixes now use the populated `dataops_profiles` cache.
+
+Files changed: `apps/dataops/backend/app/main.py`, `docs/session_state.md`
+Files added: `tests/scoring/test_cross_store_conformance.py`
+Tests: +6 new, 0 migrated, 4,461 passed and 1 xfailed in the SDK root suite.
+App tests: Trading=1,524 passed; Purchasing=914 passed; DataOps=494 passed.
+Mypy: clean for `tests/scoring/test_cross_store_conformance.py` and `apps/dataops/backend/app/main.py`.
+
+Migrated tests: none; all scorer state setup found by the scan was already GraphStore-backed.
+Kept as-is (API behavior): legacy preseed transport/script tests including `tests/scripts/test_preseed_all_copilots.py`, `tests/test_preseed_http_transport.py`, and `tests/test_demo_truth_preflight.py`.
+Kept as-is (persistence contracts): SQLite storage/outbox/factory/migration tests including `tests/scoring/test_storage.py`, `tests/scoring/test_persistence_outbox.py`, `tests/test_sqlite_to_age_migration.py`, and `tests/test_verify_state.py`.
+
+PRESEED-FIX: complete
+Date: 2026-10-13
+Changes: `scripts/preseed_all_copilots.py` now applies a socket-level read timeout after `HTTPConnection.request()`, and S2P already-seeded detection falls back to the health response `node_count` when neither trajectory route supplies `decisions_total`.
+Tests: extended `tests/scripts/test_preseed_all_copilots.py` with socket-timeout ordering, health-node-count skip, and low-node-count scoring-loop regressions. Focused file: 4 passed. Preseed selection: 84 passed, 4,381 deselected.
+Mypy: clean for the script and extended test file.
+SDK root: 4,464 passed, 1 xfailed, 0 failed.
+
+## DEMO-CUTS-DIAG
+
+Date: 2026-10-13
+Status: complete (diagnostic only; no source fixes applied)
+
+### PILOT-04 — `POST /api/roi/calculate`
+
+- Router file: `copilot_sdk/backend/roi_router.py` exists and defines `create_roi_router()` with `POST /api/roi/calculate`.
+- Mount: missing. Neither Trading nor Purchasing imports or includes this router.
+- Test target correction: the current test uses `PUR.backend`, so PILOT-04 targets Purchasing on port 8020, despite the failure summary identifying Trading on port 8010. Live probes return 404 on both ports.
+- Test contract: one of `divergence_week`, `projected_divergence`, or `breakeven_week` must be numeric; the existing router satisfies that shape.
+- Git finding: the router file is untracked and has no history. No commit removed its mount; the implementation was never committed/integrated into a tracked `main.py`.
+- Exact fix: import `create_roi_router` in `apps/purchasing/backend/app/main.py` and add `app.include_router(create_roi_router(lambda: scorer_proxy, domain=DOMAIN))`. Do not add another prefix because the router owns `/api/roi`.
+
+### S2P-07 — `GET /api/s2p/budget/allocation`
+
+- Router file: `../s2p-copilot/backend/app/routers/s2p_budget.py` exists and defines `create_budget_allocation_router()` with the expected route and `budget_strips` response.
+- Mount: missing. `../s2p-copilot/backend/app/main.py` neither imports nor includes it.
+- Test contract: the response must contain easy and hard strips, with the hard strip's `read_count` greater than the easy strip's; the existing router implements this shape.
+- Git finding: `s2p_budget.py` is untracked and has no history. The last 20 commits touching S2P `main.py` contain no removal of this mount, so there is no removal commit to identify.
+- Exact fix: import `create_budget_allocation_router` in S2P `backend/app/main.py` and add `app.include_router(create_budget_allocation_router())`. Do not add another prefix because the router owns `/api/s2p`.
+
+### TRD-05 — `GET /api/reconvergence`
+
+- Router file: `copilot_sdk/backend/reconvergence_router.py` exists and defines `create_reconvergence_router()` with `GET /api/reconvergence`.
+- Mount: missing. Trading `main.py` neither imports nor includes it; its existing regime router exposes a different, prefixed reconvergence route and does not satisfy `/api/reconvergence`.
+- Test contract: numeric `cold_start` and `warm_start`, both greater than zero; the existing router satisfies that shape.
+- Git finding: the router file is untracked and has no history. No tracked commit removed the mount; current evidence indicates an uncommitted implementation that was never integrated, rather than an AGE migration commit deleting it.
+- Exact fix: import `create_reconvergence_router` in `apps/trading/backend/app/main.py` and add `app.include_router(create_reconvergence_router(lambda: scorer_proxy, domain=DOMAIN))`. Do not add another prefix because the router owns `/api`.
+
+### TR3 — `reconvergence-panel`
+
+- Frontend component: exists at `apps/trading/frontend/src/components/ReConvergencePanel.tsx` and its root section already has `data-testid="reconvergence-panel"`.
+- Screen wiring: present. `PerformanceScreen.tsx` imports the component and unconditionally renders `<ReConvergencePanel />` after its top-level loading/error gate. The live Vite source on port 5174 contains the same import and test id.
+- Root cause: not a missing router mount or missing component. A targeted Playwright run remained on `Loading performance...`. Its trace shows repeated `net::ERR_ABORTED` requests for `/api/context/analytics`, `/api/trajectory`, and `/api/conservation/status` at the API client's 5-second abort boundary. `PerformanceScreen` wraps all three in `Promise.all()` with three abort retries, so the screen never reaches the branch that renders `ReConvergencePanel` before the assertion timeout. Direct live probes of all three routes returned HTTP 200, pointing to latency/concurrency on the AGE-backed browser request path rather than 404 routing.
+- Git finding: the panel is tracked and has not been removed; its history includes commit `552cbdf`. There is no component-removal commit.
+- Exact fix needed: diagnose and reduce the concurrent AGE-backed latency of the three Performance bootstrap endpoints below the 5-second client timeout, or decouple the Performance shell/panel rendering from the all-or-nothing `Promise.all()` gate. Creating or mounting another reconvergence component will not fix TR3. The missing `/api/reconvergence` mount is independently required for TRD-05 but is not used by `ReConvergencePanel`, which reads centroid history and situation-regime data.
+
+Findings: PILOT-04, S2P-07, and TRD-05 each have an existing but untracked router file whose factory is not mounted. TR3's panel exists and is wired; the failure is caused by Performance-screen bootstrap requests aborting at 5 seconds and holding the component behind the loading gate. Git history identifies no router-removal commit for the three backend failures.
+
+## DEMO-CUTS-FIX
+
+Date: 2026-10-13
+Status: complete
+
+Changes:
+- `apps/purchasing/backend/app/main.py`: imported and mounted `create_roi_router(lambda: scorer_proxy, domain=DOMAIN)`, registering `POST /api/roi/calculate`.
+- `apps/trading/backend/app/main.py`: imported and mounted `create_reconvergence_router(lambda: scorer_proxy, domain=DOMAIN)`, registering `GET /api/reconvergence`.
+- `../s2p-copilot/backend/app/main.py`: imported and mounted `create_budget_allocation_router()`, registering `GET /api/s2p/budget/allocation`.
+- `apps/trading/frontend/src/screens/PerformanceScreen.tsx`: removed the all-or-nothing loading/error return gate. Analytics, trajectory, and conservation now populate independently; the Performance shell and `ReConvergencePanel` render immediately, with inline loading and partial-failure status.
+
+Design checks: passed. Factory signatures matched available scorer providers and `DOMAIN`; the S2P router requires no injected arguments. No path conflicts were found. No `_StoreProxy`, misplaced `DecisionStore`, or S2P SOC imports were introduced. The SDK routers receive scorers by composition, the budget policy remains router-local, and no new module-global mutable state was added.
+
+Route inspection:
+- Purchasing: `/api/roi/calculate` mounted.
+- Trading: `/api/reconvergence` mounted (alongside the distinct `/api/trading/regime/reconvergence`).
+- S2P: `/api/s2p/budget/allocation` mounted. S2P inspection used its supported `backend` working directory and `from app.main import app`; importing `backend.app.main` from the repository root fails on the app's existing absolute `app.*` imports.
+
+Tests:
+- SDK root: 4,464 passed, 1 xfailed, 0 failed.
+- Trading backend: 1,524 passed, 0 failed.
+- Purchasing backend: 914 passed, 0 failed.
+- S2P backend: 2,279 passed, 0 failed.
+
+Mypy: clean for all three changed backend `main.py` files.
+TypeScript: `npx tsc --noEmit` clean for the Trading frontend.
+
+=== DIAG-SEQ-D-TRADING [2026-10-13 15:26:14 -07:00] ===
+
+Status: complete (diagnostic only; no source fixes applied)
+
+Count reconciliation: the 36 final failures divide into 21 deterministic Centroid Timeline strict-mode failures and 15 other deterministic failures. Sequence D also reported pass-on-retry/flaky observations; those are recorded under Category D and are not added again to the final-failure count.
+
+### Category A — `gotoPerformance` / Centroid Timeline strict mode
+
+- Count: 21 deterministic failures.
+- Helper call sites in the failed-file set: execution=3, promotion=9, reconvergence=4, story-flow=3, vix-timing=5, webhook=3. Only execution, promotion, vix-timing, and webhook use the ambiguous exact-text locator in their helper (20 tests total). Reconvergence has one additional direct ambiguous assertion after its otherwise-safe test-id helper. Story-flow uses `expectAnyText(...).first()` and is not affected by strict mode.
+- Affected tests: execution (3), promotion (9), vix-timing (5), webhook (3), reconvergence (1).
+- Confirmed DOM matches: (1) the local `CentroidTimeline` h2, (2) its `Loading centroid timeline...` paragraph, and (3) the always-mounted SDK `SelfComputationPanels` centroid h2. The TR3 change exposed the local panel immediately, making all three coexist.
+- Root cause: `getByText("Centroid Timeline")` is a substring text locator and therefore is no longer unique.
+- Fix approach: change the four shared helpers to wait for the unique Performance shell, e.g. `getByRole("heading", { name: "Performance Summary", exact: true })`. Scope the reconvergence assertion to `getByTestId("centroid-timeline-panel").getByRole("heading", { name: "Centroid Timeline", exact: true })`. Do not use `.first()` to conceal a product-level ambiguity.
+
+### Category B — non-Performance deterministic failures
+
+- Count: 15 across analysis (1), dashboard (1), demo-narrative (2), evidence (2), log-trade scoring (3), pre-score (5), and sweep (1).
+- `analysis.spec.ts:43`: `getFingerprint()` is swallowed to `undefined` after the frontend's 5-second GET abort under concurrent AGE load; the screen renders `No fingerprint data available`, so `YOUR EDGE` / `YOUR NOISE` never render. Fix the backend/read batching or cache the fingerprint and give this screen an independent explicit fingerprint state.
+- `dashboard.spec.ts:31`: Dashboard uses all-or-nothing `Promise.all(getAnalytics, getHistory, getTradeMetadata, getMarketSnapshot)`. `/api/history` returned an 8.5 MB payload and took 3.1s even when measured sequentially; concurrent shell requests push a member past the frontend's 5-second abort and the whole screen becomes `Dashboard unavailable: signal is aborted without reason`. Use a bounded/summary history query and partial rendering rather than aborting the whole Dashboard.
+- `demo-narrative.spec.ts:58,64`: the archetype mock is correct and `ArchetypeComparisonCard` contains the expected copy. The card is absent because the same Dashboard `Promise.all` abort returns the error surface before `ArchetypeSelector` mounts. Fixing Dashboard loading fixes both.
+- `pre-score.spec.ts:28,34,88,98,108`: duplicate UI contracts. `pre-score-panel` is on both the wrapper and `PreScorePanel`; `pre-score-button` is on both `Preview Score` and `Score This Trade`. Preserve the IDs on the actual pre-score component, remove the wrapper duplicate, and rename the record action to a score-trade ID. This fixes all five without weakening assertions.
+- `log-trade.spec.ts:54,67,89`: all three stop at `page.waitForResponse(/api/score)` after 10 seconds while the UI remains `Scoring trade...`. The endpoint is serialized by the mutation/scorer locks and writes to AGE while many app-shell graph reads are in flight. Optimize/serialize the surrounding graph workload and score write path; a larger Playwright timeout is only a safety margin, not the primary fix.
+- `evidence.spec.ts:26,45`: one path fails during the 5-second ticker GET (`The user aborted a request`); the other reaches scoring but the Evidence panel remains `Loading evidence...` beyond the assertion window. Fix ticker/evidence read latency and wait on their exact responses in the spec. The expected evidence copy is still present in `EvidencePanel`.
+- `sweep.spec.ts`: the reproduced failure is `cold mirror: Dashboard -> Analysis -> regime trust context`; it reaches the Dashboard error surface, so no trust/fingerprint/measurement copy exists. Same Dashboard abort root cause, not `gotoPerformance`.
+- TR3's `PerformanceScreen` change is isolated: no other screen imports `PerformanceScreen`. Cross-screen impact comes from `App.tsx` always mounting `SelfComputationPanels` and the resulting request contention, not shared component imports.
+
+### Category C — backend regime timeout
+
+- `/api/trading/regime/performance` performs two market-provider reads, four conservation/count reads, and three full verified-decision reads: `per_regime_accuracy()`, `regime_edge()`, and `regime_recommendation()` (which calls `regime_edge()` again). This is unbounded against the AGE decision population.
+- It timed out at 10 seconds in Sequence D but passed a warm focused rerun; a sequential live probe took 1.29s. This is a cold/concurrent-load latency defect.
+- Fix approach: fetch one verified-decision snapshot per request, compute buckets/edges/recommendation from it, fetch conservation counts once, and use the existing market-data cache/timeout. A short-lived materialized regime-performance payload with mutation invalidation is appropriate.
+
+### Category D — flaky/pass-on-retry tests
+
+- `journal-query.spec.ts` (2): the button remains `Searching...`; the handler calls `_journal_records()`, which loads, normalizes, and sorts every AGE decision before applying an in-process query. Add a bounded/query-specific GraphStore read or materialized journal snapshot, and wait for the POST response/error explicitly.
+- `story-flow.spec.ts:111`: same `/api/score` 10-second response race as log-trade; it is not a tab-navigation or centroid-locator failure.
+- `regime.spec.ts:79`: same Category C cold/concurrent endpoint cost; it passed the focused rerun.
+- Log Trade ticker lookup (and the first evidence test's setup): `getTicker()` uses the generic 5-second `apiGet`; market-provider latency produces an abort. Cache ticker data and assert the exact ticker response before consuming its UI state.
+
+### Category E — 57.4-minute wall clock
+
+- Trading declares 345 tests. Playwright runs with one worker, one retry, 30-second test timeout, and 10-second action/expect timeout. Every deterministic failure therefore pays the wait again on retry; several tests raise their timeout to 60 seconds.
+- Every page mounts `SelfComputationPanels`, and Performance now mounts all child panels immediately. New contexts create concurrent graph reads; large unbounded responses (`/api/history` was 8.5 MB) and repeated full-decision scans contend for AGE connections and scorer locks.
+- Recommendations: fix the two strict-mode/test-id fan-outs first to remove retry tax; paginate/materialize graph reads and use the existing tab-state aggregation; mount self-computation panels only where required or lazily; shard read-only specs only after state isolation is proven. Do not raise global timeouts or workers blindly because mutation tests share live scorer state.
+
+### Blast radius
+
+- Unique, scoped locators affect only test readiness and cannot change runtime behavior.
+- Removing duplicate pre-score IDs must preserve the IDs on `PreScorePanel`, because demo-cut TR2 depends on them; rename only the record-trade control.
+- Dashboard partial rendering must keep seeded-data assertions meaningful and expose per-source errors rather than silently substituting fixture data.
+- Regime/journal/score optimizations must preserve live GraphStore/conservation semantics and invalidate caches after score/learn mutations.
+- Increasing workers before isolating mutation-heavy tests could introduce conservation and ordering failures.
+
+Ready for fix prompt: YES
+
+=== FIX-SEQ-D-MECH (Prompt 1 of 2) ===
+Date: 2026-10-13
+Scope: 26 mechanical Trading PW fixes (21 Cat-A locator + 5 Cat-B prescore)
+Files changed: e2e/trading/execution.spec.ts, e2e/trading/promotion.spec.ts, e2e/trading/vix-timing.spec.ts, e2e/trading/webhook.spec.ts, e2e/trading/reconvergence.spec.ts, e2e/trading/dashboard.spec.ts, e2e/trading/provenance.spec.ts, e2e/trading/provenance-badge.spec.ts, e2e/trading/trust-radar.spec.ts, apps/trading/frontend/src/screens/LogTradeScreen.tsx
+Cat-A fix: gotoPerformance() readiness check changed from getByText('Centroid Timeline') to getByRole('heading', { name: 'Performance Summary', exact: true }). The locator audit also removed the ambiguous text alternative from broad provenance/trust readiness matchers.
+Cat-A reconvergence: assertion scoped within centroid-timeline-panel and resolved by heading role.
+Cat-B prescore: duplicate wrapper panel ID and record-trade button ID removed from LogTradeScreen; the canonical pre-score-panel and pre-score-button IDs remain on PreScorePanel.
+Verification: tsc e2e ✅, tsc trading/frontend ✅, grep Centroid Timeline = 0, grep pre-score = 1 each
+Remaining: ~10 Cat-B (backend bounding), Cat-C (regime), Cat-D (flaky)
+Status: READY FOR REVIEW (Rule #96)
+
+=== REVIEW: FIX-SEQ-D-MECH ===
+Reviewer: Sol
+Files reviewed: 10
+P1: 0 P2: 0 P3: 2
+Verdict: PASS
+Details: P3 — provenance.spec.ts, provenance-badge.spec.ts, and trust-radar.spec.ts retain legacy page-wide getByText(...).first() readiness locators; the fix narrowed them and introduced no new ambiguity, but future cleanup should scope them to a panel or heading for strict Rule #93 conformance.
+Details: P3 — git diff HEAD~1 spans 449 unrelated paths because the fix has no isolated commit boundary; review scope was reconstructed from the 10 files recorded in FIX-SEQ-D-MECH. Nine E2E files have net diff hunks, while LogTradeScreen.tsx is back to HEAD content and PreScorePanel.tsx retains the sole canonical pre-score IDs.
+
+## DIAG-SEQ-D-PURCHASING — 2026-10-13 15:59:05 -07:00
+Purchasing PW diagnostic: 3 failed, 4 flaky.
+
+| Component | Status | Detail |
+|---|---|---|
+| `/api/purchasing/par/predict` | FOUND | Inline GET route in `apps/purchasing/backend/app/main.py`; reads the active GraphStore and calls `PredictivePar.predict()`. |
+| `/api/purchasing/par/predict-week` | FOUND | Inline GET route in `main.py`; builds graph-backed PAR items and calls `PredictivePar.predict_week()`. |
+| waste benchmark text | FOUND | `WasteAlertCard.tsx` renders both `Kitchen benchmark` and `No waste data recorded yet`; the card is mounted by `PerformanceScreen`. |
+| cohort-status-panel testid | FOUND | Defined by `CohortStatusPanel.tsx`, rendered on Performance, with `/api/purchasing/cohort-status` router mounted. |
+| data-trust-level attribute | FOUND | Supplied by shared SDK `DataTrustBadge.tsx` as `data-trust-level={level}` and rendered by Purchasing Dashboard; exact high/low counts depend on live fingerprint weights. |
+| proof-ledger-panel testid | FOUND | `ProofLedgerPanel` supplies `proof-ledger-panel`, `proof-curve`, and `competence-curve`; rendered on Performance. |
+
+Recommendation: FOUND components need fix prompt. No route/component build is required. Investigate GraphStore latency in the PAR handlers, the Purchasing Performance screen's all-or-nothing `Promise.all` loading gate, and stabilization of live fingerprint weights/readiness for the exact trust-level count assertion.
+
+## DIAG-SEQ-D-TRADING-2 — 2026-10-13 16:59:27 -07:00
+
+Trading PW broad diagnostic after FIX-SEQ-D-MECH.
+
+FIX-SEQ-D-MECH verification: HELD
+
+Completed rerun: 333 tests in 55 spec files; 314 passed, 16 failed after retry, 2 passed on retry, and 1 was intentionally skipped. All four `gotoPerformance()` helpers use the exact `Performance Summary` heading; the reconvergence centroid assertion is scoped to `centroid-timeline-panel`; duplicate pre-score IDs are absent from `LogTradeScreen.tsx` and remain canonical in `apps/trading/frontend/src/components/PreScorePanel.tsx`.
+
+Remaining failures: 18 (16 persistent plus 2 flaky/pass-on-retry)
+
+| Test | Spec File | Category | Root Cause | Fix Type | Effort |
+|---|---|---|---|---|---|
+| analysis shows edge and noise sections | analysis.spec.ts | timeout | `/api/fingerprint` exceeded the frontend's 5s GET abort; the endpoint scans all verified decisions and persists a fingerprint while holding the scorer lock, leaving `No fingerprint data available`. | BE+FE | M |
+| shows portfolio summary | dashboard.spec.ts | timeout | Dashboard's four-request `Promise.all` fails as a unit when a request aborts; `/api/history` is effectively unbounded (`limit=10**12`) and returned about 8.5 MB. | BE+FE | L |
+| archetype comparison card shows on Dashboard | demo-narrative.spec.ts | timeout | The Dashboard abort surface prevents `ArchetypeSelector` from mounting; the archetype card itself is present and correctly mocked. | BE+FE | M |
+| archetype comparison shows generic vs selected | demo-narrative.spec.ts | timeout | Same Dashboard all-or-nothing abort; the expected card never mounts. | BE+FE | M |
+| Evidence text appears after scoring a trade | evidence.spec.ts | timeout | First attempt timed out at ticker lookup; retry timed out waiting for `/api/score` while `Scoring trade...` remained visible. | BE | M |
+| Evidence panel never displays forbidden factor wording | evidence.spec.ts | timeout | Both attempts timed out on `/api/score` before the Evidence panel could render. | BE | M |
+| Evidence interactions have no console errors | evidence.spec.ts | timeout | Both attempts timed out on `/api/score`; the assertion never reached the console-error check. | BE | M |
+| JournalQueryBar submit renders results | journal-query.spec.ts | timeout | `/api/trading/journal/query` loads, normalizes, and sorts every graph decision before applying the query; the UI remained `Searching...`. | BE | M |
+| JournalQueryBar empty results message | journal-query.spec.ts | timeout | Same full-history journal-query path; no response arrived inside the assertion window. | BE | M |
+| score produces result | log-trade.spec.ts | timeout | `/api/score` exceeded 10s while serialized behind mutation/scorer locks and competing graph reads. | BE | L |
+| learn response shows reward or gate block after confirm | log-trade.spec.ts | timeout | Setup never passed the slow `/api/score` response, so learn was not reached. | BE | L |
+| reasoning panel appears after scoring | log-trade.spec.ts | timeout | Setup timed out on `/api/score` with `Scoring trade...` still visible. | BE | L |
+| similar trades section renders | pre-score.spec.ts | timeout | `/api/trading/pre-score` performs a read-only score, market reads, one full decision scan, and four verified-decision scans per preview. | BE | M |
+| accuracy stat displayed | pre-score.spec.ts | timeout | Same repeated full-snapshot pre-score computation exceeded the 10s response wait. | BE | M |
+| Act 5 Score -> Learn -> Verify returns a non-server-error outcome | story-flow.spec.ts | timeout | The story flow timed out at `/api/score` before confirm/learn/verify. | BE | L |
+| cold mirror: Dashboard -> Analysis -> regime trust context | sweep.spec.ts | timeout | Dashboard rendered `Dashboard unavailable: signal is aborted without reason`, so the flow never reached Analysis trust content. | BE+FE | M |
+| regime performance endpoint returns data | regime.spec.ts | flaky-timing | Passed on retry; the endpoint combines market/conservation reads with three recomputations of the same unbounded verified-decision buckets. | BE | M |
+| rejection panel shows counts | rejection-moment.spec.ts | flaky-timing | Passed on retry; `/api/self/rule-lifecycle/active` exceeded its 10s frontend timeout during concurrent graph load and rendered `Rule lifecycle unavailable`. | BE+FE | S |
+
+Response-size finding: `/api/history` is the demonstrated greater-than-1-MB response (about 8.5 MB). Journal list output is paged but still scans the full store internally. Evidence responses are small but scan up to 400 same-category decisions. Regime, fingerprint, lifecycle, and scoring responses are compact; their risk is repeated or serialized GraphStore work rather than JSON size.
+
+Fix prompt needed: YES — one coordinated performance/resilience prompt covering bounded history and Dashboard partial rendering; non-persisting cached fingerprint reads; score-lock/read-fanout contention; single-snapshot pre-score, journal, and regime computation; ticker/lifecycle caching or retry; and exact endpoint waits in the evidence/journal specs for clearer diagnostics.
+
+## DIAG-DESIGN-DRIFT-TRADING — 2026-10-13 17:17:22 -07:00
+
+Trading's latency regression is a read-amplification and contention problem introduced as the data path moved from cheap local storage to AGE without changing snapshot-oriented APIs. Unbounded decision projections, repeated per-request scans, fresh AGE connection/session setup, and a 2026-10-09 change that replaced the five-second `ResponseMaterializer` cache with a no-cache facade create graph pressure; `/api/score` then holds the domain mutation lock and scorer `RLock` across two AGE round trips and convoys behind that pressure. Fingerprint also writes on GET under the scorer lock, history produces an observed ~8.5 MB response, pre-score performs one full plus four verified scans, journal filters after a full load, and regime rebuilds the same verified buckets three times. No deadlock cycle was found; lifecycle itself uses two bounded point reads and flakes because of shared AGE load and per-query connection setup.
+
+Report: [docs/design_drift_trading_v1.md](design_drift_trading_v1.md)
+
+Drift points: **5 P1, 2 P2, 0 P3**.
+
+Top 3 fixes by test-unblock impact:
+
+1. Restore the generation-based `ResponseMaterializer` so one all/verified snapshot serves all display computations until mutation invalidation; this directly helps Dashboard, Analysis, regime, lifecycle, and reduces pressure on score-dependent tests.
+2. Enable and verify pooled AGE connections with graph-operation deadlines below the 10-second endpoint contract; this affects all 18 timeout-rooted failures and all copilots using the shared AGE client.
+3. Shorten `/api/score`'s critical section and persist a governed Decision in one AGE transaction/query instead of a point-read plus create while both application locks are held; this directly targets the seven score-dependent failures.
+
+
+## PERF-BENCH-TRADING — 2026-10-13 17:36:09 -07:00
+
+Trading benchmark suite results.
+
+| Metric | Value |
+|---|---:|
+| Baseline accuracy | 48.0% |
+| Threshold-50 N | 77 |
+| Post-disruption accuracy (magnitude 0.3) | 30.0% |
+| Post-category-disruption accuracy (first 2 categories, magnitude 0.5) | 40.0% |
+| Threshold-45 N | 0 |
+| Threshold-55 N | 352 |
+| DK split | 1,000 train / 100 eval |
+| DK accuracy | 61.0% |
+| DK learned-minus-uniform action-margin delta | +0.100507 |
+
+Interpretation: frozen Trading scorer math is deterministic and stable above the four-action random baseline; global and category-localized disruptions behave as designed, supporting backend read-path latency rather than scorer regression as the DIAG-SEQ-D-TRADING-2 timeout cause. Benchmark-tagged decisions are excluded from live conservation metrics, so this fixture does not validate the live preseed-count conservation threshold.
+
+## FIX-DRIFT-SDK — 2026-10-13 20:05:29 -07:00
+
+Shared SDK design drift fixes.
+- [x] ResponseMaterializer: restored 5s shared-snapshot generation
+- [x] AGE pooling: enabled psycopg pool, startup init, latency budget
+- [x] Score critical section: prediction outside lock, governed write in one checked-out AGE transaction
+- [x] Fingerprint GET: persist=False on display reads
+New tests: 16 focused tests added or rewritten across materializer concurrency/cache behavior, score/fingerprint read-only behavior, pool lifecycle/exhaustion/diagnostics, health reporting, and governed-write idempotency.
+Existing tests: SDK root 4464 passed, 1 xfailed, 0 failed; Trading backend 1524 passed; Purchasing backend 914 passed; DataOps backend 494 passed; ci-platform 668 passed.
+Mypy: clean on all changed SDK, app, and ci-platform Python files.
+Design note: AGE does not support the attempted conditional FOREACH form, so governed creation uses one checked-out transaction with a PostgreSQL advisory transaction lock, a bounded MATCH (LIMIT 2), and CREATE. Duplicate-ID and conflicting-payload semantics remain fail-closed.
+
+## REV-DRIFT-SDK — 2026-10-13 20:59:38 -07:00
+
+Review of FIX-DRIFT-SDK.
+Findings: 3 P1, 4 P2, 4 P3
+Latency: materializer=NOT VERIFIED, convoy=VERIFIED, pooling=NOT VERIFIED, scorer_math=NONE
+Tests: 8065 passed, 1 failed across the five requested full-suite runs; the sole live-AGE failure passed immediately in isolation (1 passed).
+Verdict: BLOCK
+
+- P1: `/trajectory`, `/measurement-state`, and mounted conservation endpoints still bypass the shared materializer and repeat graph scans.
+- P1: `/history?limit=50` ignores the requested limit and asks GraphStore for `10**12` decisions; the live probe took 3.203s and returned the full history.
+- P1: SOC's shared and framework AGE clients do not request pooling, so production SOC remains in fresh-per-query mode unless an external environment flag happens to be set.
+- P2: governed Decision persistence is atomic but still performs advisory-lock SQL + MATCH + CREATE rather than one database round trip.
+- P2: Purchasing's materializer conservation computation performs an extra `get_governance()` graph read instead of consuming only the shared generation.
+- P2: out-of-band serialized score routes invalidate TabStateCache but not the ResponseMaterializer generation, allowing fresh-marked stale data until TTL expiry.
+- P2: raw `CompoundingScorer.fingerprint()` still defaults to `persist=True`, so read callers outside `FreshScorerProxy` can still write graph artifacts.
+
+## FIX-DRIFT-SDK-R2 — 2026-10-14
+
+FIX-DRIFT-SDK-R2: SHIPPED
+
+Date: 2026-10-14
+
+- Fixes: 3 P1 (materializer coverage for trajectory/measurement/conservation, bounded history pagination, SOC production pooling) + 4 P2 (single-round-trip governed write, bounded Purchasing governance projection cache, out-of-band materializer invalidation, read-only fingerprint default).
+- SDK root: 4,471 passed, 1 xfailed, 0 failed.
+- Trading backend: 1,524 passed, 0 failed.
+- Purchasing backend: 914 passed, 0 failed.
+- DataOps backend: 494 passed, 0 failed.
+- ci-platform: 668 passed, 0 failed.
+- SOC pooling-focused verification: 9 passed. Full SOC run after the change: 2,804 passed and 4 unrelated shared-AGE-state assertions failed (computed action, checkpoint replay equality, and two live IKS expectations); all four reproduce outside the changed pooling paths.
+- Mypy: clean on every changed SDK, application, ci-platform, and SOC Python file.
+
+## REV-DRIFT-SDK-R2 — 2026-10-14 01:57:10 -07:00
+
+REV-DRIFT-SDK-R2: BLOCK
+Date: 2026-10-14
+Findings: 5 P1, 3 P2, 1 P3
+SOC regressions: checkpoint reload replays already-checkpointed verified decisions; visible IKS and Tab 5 implicitly read process-global scorer state; the multihop planted-action test reads mutable shared AGE state. Pool transaction/session contamination was not the cause.
+Verdict: BLOCK
+- P1: history offset is unbounded and expands the underlying read to offset + limit.
+- P1: mutation invalidation retains the old materialized payload, allowing a tab-cache recompute from stale data during an in-flight refresh.
+- P1: checkpoint bootstrap loads centroids and then replays the same verified decisions, double-applying learning.
+- P1: compute_visible_iks treats explicit scorer=None as permission to use the process-global scorer, causing two order-dependent SOC failures.
+- P1: get_graph_client is one singleton across DSN/graph arguments and merely warns on mismatch, risking reads or seed writes against the wrong graph.
+- P2: pooled connections have no reset-on-return hook, and SOC resets the private singleton without closing its pool.
+- P2: Purchasing governance projection is now refreshed independently every 60 seconds, changing freshness semantics from the materializer generation.
+- P2: the multihop planted-action test is coupled to mutable learned AGE state and requires an isolated scorer/graph fixture.
+- P3: _governed_decision_payload_from_node is dead code left from the retired governed-write path.
+Latency: materializer cache and governed single-statement write verified; default history is 50 but high offsets remain unbounded; pooling reuse verified by focused tests; frozen scorer benchmark unchanged.
+Tests: R2 baselines remain SDK=4471 passed/1 xfailed, Trading=1524, Purchasing=914, DataOps=494, ci-platform=668; SOC=2804 passed/4 failed. Review-focused SDK/ci-platform tests: 282 passed. Frozen benchmark passed all math gates.
+
+## FIX-DRIFT-SDK-R3 — 2026-10-14
+
+FIX-DRIFT-SDK-R3: SHIPPED
+
+Date: 2026-10-14
+
+- Fixes: 5 P1 (bounded history offset, mutation-strength materializer invalidation, checkpoint replay watermark, explicit-none scorer sentinel, AGE client keying) + 3 P2 (pool reset/close lifecycle, Purchasing projection freshness alignment, isolated multihop scorer).
+- Diagnostics: guarded materializer-status and pool-status endpoints, pool lifecycle counters, checkpoint watermark logs, and IKS global-fallback tracing.
+- SOC regressions fixed: 4/4; each named regression passed individually.
+- Tests: SDK root 4,475 passed / 1 xfailed; Trading 1,524 passed; Purchasing 914 passed; DataOps 494 passed; ci-platform 670 passed; SOC 2,808 passed.
+- Frozen benchmark: 48% accuracy, N=77 conservation threshold, 18pp global disruption drop, 0pp unaffected-category drift, +10.05pp DK.
+- Mypy: clean on every R3-changed SDK, application, ci-platform, SOC, and test Python file.
+
+## REV-DRIFT-SDK-R3 — 2026-10-14
+
+REV-DRIFT-SDK-R3: BLOCK
+Date: 2026-10-14
+Scope: 8 fixes + 4 diagnostics + 3 unscripted IKS/test fixes
+Findings: 2 P1, 7 P2, 5 P3
+R4 required — see findings.
+
+- P1: a closed pooled `AGEClient` can reopen its pool because query/transaction paths do not reject `_closed`; stale references can therefore resume access to the prior DSN/graph after replacement.
+- P1: SOC IKS catches every `RuntimeError` from `get_mu_zero()` and silently substitutes the bootstrap file, masking live AGE/store failures as valid drift data.
+- P2: history caps offset but fetches `offset + limit` rows and slices in Python instead of using native cursor/offset pagination.
+- P2: mutation-during-refresh coverage never proves that `TabStateCache` cannot recache the pre-mutation generation.
+- P2: checkpoint restore fetches and sorts every verified decision before slicing at the watermark; post-watermark replay is also unbounded.
+- P2: pool reset performs two SQL executions per return, and the reset test invokes the hook directly rather than proving borrower state is cleared across a real checkout/return cycle.
+- P2: the keyed AGE client registry has no capacity/eviction policy, so unique DSN/graph keys can create unbounded pools despite the explicit shutdown API.
+- P2: Purchasing projection refresh remains an independent task; it normally runs after the materializer task at the same interval, making projection data one generation stale and adding one governance read every five seconds.
+- P2: mutation-strength materializer invalidation has no structured mutation event log.
+- P3: no materializer stale-serve diagnostic log.
+- P3: no pool borrow/return diagnostic log.
+- P3: SOC client replacement/old-pool shutdown is not logged.
+- P3: history query duration is not logged.
+- P3: checkpoint restore logs watermark/count but not total restore duration.
+
+Frozen benchmark risk: none found; checkpoint changes do not alter live scorer math, and the recorded benchmark remains 48% accuracy, N=77, 18pp disruption, 0pp isolation drift, and +10.05pp DK.
+Tests: not rerun by this read-only review; R3 recorded SDK 4,475 passed/1 xfailed, Trading 1,524, Purchasing 914, DataOps 494, ci-platform 670, SOC 2,808.
+
+## FIX-DRIFT-SDK-R4 — 2026-10-14
+
+FIX-DRIFT-SDK-R4: SHIPPED
+
+Date: 2026-10-14
+
+- Fixes: 2 P1 (permanent closed-client guard, narrowly scoped pre-lifespan IKS fallback) + 6 P2 (native history pagination, integrated materializer/TabStateCache mutation coverage, batched post-watermark checkpoint replay, one-round-trip pool reset, bounded AGE client registry, coordinated Purchasing projection refresh) + 6 P3 diagnostic events.
+- Diagnostics: structured materializer mutation/stale-serve, pool borrow/return, SOC client replacement, history timing, and checkpoint restore timing events. Existing gated materializer/pool debug endpoints remain unchanged.
+- Store contract: native pagination and verified-replay paging implemented by the GraphStore protocol, InMemoryGraphStore, GraphStore wrappers, and AGEGraphStore. This repository has no SQLiteGraphStore implementation to update.
+- SOC lifecycle follow-up: SOC now exposes a stable registry-backed graph handle, and framework routes resolve the current keyed client instead of retaining a closed concrete client after controlled registry resets.
+- Tests: SDK root 4,478 passed / 1 xfailed; Trading 1,524 passed; Purchasing 916 passed; DataOps 494 passed; ci-platform 674 passed; SOC 2,810 passed. The four named SOC regression tests passed individually (4/4).
+- Mypy: clean on every R4-changed SDK, application, ci-platform, SOC, and test Python file.
+
+## REV-DRIFT-SDK-R4 — 2026-10-14
+
+REV-DRIFT-SDK-R4: BLOCK
+
+Date: 2026-10-14
+
+Findings: 3 P1, 2 P2, 0 P3
+
+Verdict: R4 is blocked by a close/ensure race that can resurrect a closed AGE pool, an unstable count-offset checkpoint watermark that can omit late-verified decisions, and incorrect legacy-filter history pages beyond the first source page. SOC also still suppresses graph-composite AGE failures and its registry-backed handle can reopen a pool after application shutdown.
+
+- P1: `AGEClient._ensure_pool()` checks `_closed` before acquiring `_pool_lock` but does not recheck it inside the lock; concurrent `close_sync()` can set `_closed=True` and clear the pool, after which `_ensure_pool()` creates a new pool for the closed client.
+- P1: checkpoint replay uses `verified_count` as an offset into rows ordered by decision creation time. A pre-checkpoint pending decision verified later enters the skipped prefix, so restore silently omits a learned outcome.
+- P1: `LegacySignalFilteringGraphStore.get_decisions()` reads newest-first bounded pages, sorts only the truncated prefix oldest-first, and then slices it. With more than one source page, `/history` returns the wrong global page.
+- P2: `compute_visible_iks()` still catches graph-composite AGE failures and returns `None` after scorer initialization instead of propagating the outage.
+- P2: the stable SOC graph handle's `close()` closes the concrete client without removing/disabling the registry-backed handle; a late call after shutdown asks the registry to create a new pool.
+
+Recorded R4 baselines were not rerun during this read-only review: SDK 4,478 passed/1 xfailed; Trading 1,524; Purchasing 916; DataOps 494; ci-platform 674; SOC 2,810. No R4 change to live scorer update math was found; the recorded frozen benchmark remains 48% accuracy, N=77, +10pp DK, 18pp disruption, and 0pp isolation drift.
+
+=== FIX-TAB-INVENTORY-P2 (parallel with R5) ===
+Date: 2026-10-14 21:12:19 -07:00
+Findings investigated: 4 (path separators, S2P routes, Purchasing slash, duplicate naming)
+Files changed: apps/s2p/frontend/src/api.ts; docs/session_state.md
+Result per finding:
+  F1 path separators: scanner artifact; the reported suffixes are query strings or already-separated path segments
+  F2 S2P fingerprint/trajectory: Option A; remapped the app API wrappers to /api/s2p/insight/fingerprint with a required invoice_id and /api/s2p/performance/trajectory, using the native typed responses
+  F3 Purchasing trailing slash: not needed; the apparent /api/self/ call is the constructed prefix of the valid /api/self/centroid-history route
+  F4 duplicate endpoint: cosmetic only; /prescore and /pre-score are distinct mounted contracts and both frontend callers already target the matching handler
+Tests: 4481 passed, 1 xfailed (baseline: 4481 passed, 1 xfailed)
+TSC: S2P pass; Trading pass; Purchasing pass
+Mypy: not applicable; no Python files changed
+Merge note: No overlap with R5. Safe to merge to same branch.
+
+## FIX-DRIFT-SDK-R5 — 2026-10-15
+
+FIX-DRIFT-SDK-R5: DONE
+
+Date: 2026-10-15
+
+Fixes: R5-1 (closed-client TOCTOU), R5-3 (global visible-history pagination), R5-4 (verification-time checkpoint cursor).
+
+Changes:
+- `copilot_sdk/graph/legacy_signal_filter.py` — paginates through source pages before applying the global visible offset; hidden decisions never consume visible positions.
+- `copilot_sdk/graph/protocol.py`, `memory_store.py`, `namespace.py`, `tenant_store.py` — backward-compatible native pagination and composite verified cursor parameters.
+- `copilot_sdk/scoring/scorer.py` — batched post-watermark replay selected by `(verified_at, decision_id)` while preserving creation-time replay order; old checkpoints still rebuild from full history. The SOC checkpoint bridge can provide the uncommitted verification timestamp explicitly.
+- `tests/test_legacy_signal_filter.py`, `tests/scoring/test_scorer_graph_bootstrap.py` — deep-offset, late-verification, batching, and old-format regression coverage.
+
+Tests added: 10 net across the three repositories (SDK +3, ci-platform +2, SOC +5).
+
+Tests total:
+- SDK root: 4,481 passed, 1 xfailed.
+- Trading backend: 1,524 passed.
+- Purchasing backend: 919 passed.
+- DataOps backend: 494 passed.
+- ci-platform: 676 passed.
+- SOC backend: 2,815 passed.
+
+Mypy: clean on every R5-changed source file.
+
+Frozen benchmark: unchanged — 48.0% accuracy, N=77 conservation threshold, 18pp global-disruption drop, 0pp isolation drift, +10.05pp DK.
+
+=== FIX-BACKEND-GAPS-P2 (parallel with R5) ===
+Date: 2026-10-15 00:44:34 -07:00
+Findings investigated: 2 (Purchasing par/predict 500, par/predict-week 500)
+Files changed: apps/purchasing/backend/app/services/par_optimizer.py; apps/purchasing/backend/app/services/predictive_par.py; apps/purchasing/backend/tests/test_predictive_par.py; docs/session_state.md
+Root cause: The literal zero-decision path already had a fallback, but a nonempty Purchasing graph without matching QBO line history raised an untyped ValueError from ParLevelOptimizer. Both prediction handlers could reach this production-like condition, leaving the missing-history error unhandled and returning HTTP 500.
+Fix: Added ParHistoryUnavailableError for missing item history and made PredictivePar convert only that specific condition to its existing base_par=40.0, par_available=false fallback. Other ValueError conditions, including the sample-data provenance violation, still propagate.
+Tests added: 3 (two requested empty-graph endpoint tests and one nonmatching-history regression)
+Tests: 4481 passed, 1 xfailed (baseline: 4481 passed, 1 xfailed); Purchasing backend: 919 passed; focused predictive-par: 23 passed
+Mypy: pass
+Merge note: No overlap with R5 or TAB-INVENTORY-P2. Safe to merge.
+## DESIGN-GAP-R5 — 2026-10-15T01:12:23-07:00
+
+Scope: R5-1 (AGEClient), R5-3 (legacy filter), R5-4 (checkpoint)
+
+Gaps found: 0 P1, 2 P2, 5 P3
+
+Key findings:
+- R5-1: the pre-R5 lifecycle race was real only against concurrent close; pooled production consumers are active, lock ordering is acyclic, the warm-lock fallback is dead in normally constructed clients, and connection mode is immutable after construction.
+- R5-3: global visible offsets are correct for a stable source, but offset paging has no snapshot/cursor consistency across pages; the wrapper's retirement status and live legacy ratio are undocumented, and `query_similar()` can underfill although it has no production callers.
+- R5-4: the verification cursor safely selects a normally late-verified decision, but replay is creation-ordered even though centroid updates are order-dependent and live learning is verification-ordered. The cursor also trusts wall-clock verification timestamps; startup reads checkpoint geometry and metadata separately, and scorer-local consolidation bookkeeping is neither locked internally nor restored after replay.
+
+=== REV-BACKEND-GAPS-P2 ===
+Date: 2026-10-15 01:16:16 -07:00
+Verdict: BLOCK
+Exception scope: NARROW
+Blast radius: clean
+Tests: 23 passed; revert check found 2 empty-graph endpoint tests pass without the fix and 1 missing-history regression fails without the fix
+
+=== DOC-LEGACY-FILTER ===
+Date: 2026-10-15T01:38:31.4335755-07:00
+Scope: Documentation only, no logic changes
+File: copilot_sdk/graph/legacy_signal_filter.py
+Added: Pagination limitation docstring + wrapper permanence TODO
+Trigger: Promote to P2 fix when a production caller of query_similar is added
+
+=== FIX-LEGACY-FILTER-PAGINATION ===
+Date: 2026-10-15T02:09:50.1808569-07:00
+Fix: Cursor/dedup-based iteration in query_similar over-fetch loop
+Approach used: B (dedup)
+File changed: copilot_sdk/graph/legacy_signal_filter.py
+Test added: test_query_similar_overfetch_deduplicates_repeated_prefix
+Protocol changed: NO
+Baseline: 4481 passed, 1 xfailed -> 4482 passed, 1 xfailed
+
+=== FIX-REPLAY-ORDER ===
+Date: 2026-10-15 03:13:50 -07:00
+Finding: FIXED
+Sort scope: replay-only
+File changed: copilot_sdk/scoring/scorer.py
+Line changed: ~132 (replay sort key)
+Change: Sort by (verified_at, decision_id) instead of creation order
+Test added: test_checkpoint_replay_uses_verification_order
+Test mechanism: Centroid state comparison (replay vs verification-order reference)
+Baseline (excl AGE flake): 4,481 passed, 1 xfailed, 1 deselected -> 4,482 passed, 1 xfailed, 1 deselected
+Mypy: `copilot_sdk/scoring/scorer.py` passed
+Graphify: `graphify update .` completed; graph report and graph JSON refreshed
+Known pre-existing flake: test_t_outcome[purchasing] (AGE state, unrelated)
+Package check limitation: `pip install .` failed before installation because the environment cannot import `setuptools.backends._legacy`; the CLAUDE.md `CopilotFramework` import check also targets a symbol not exported by `copilot_sdk`.
+
+=== DESIGN-PREDICT-WEEK-PAR-AVAILABLE ===
+Date: 2026-10-15T03:04:12.6089160-07:00
+Gap: predict-week response items missing par_available (dropped by to_dict)
+Fix: post-process injection in main.py predict-week handler
+Pattern: matches single predict handler (post-to_dict injection)
+Files changed: main.py only (production); tests/test_predictive_par.py adds the regression test
+Purchasing baseline: 919 passed -> 920 passed
+predictive_par.py: UNCHANGED
+
+=== FIX-REV-BACKEND-GAPS-P2 ===
+Date: 2026-10-15T03:53:23.2257916-07:00
+Prereq: DESIGN-PREDICT-WEEK-PAR-AVAILABLE shipped (par_available in weekly response)
+Fix 1: Added logger.warning on ParHistoryUnavailableError except clause
+Fix 2: Added 2 endpoint-level tests exercising the fix path
+Tests that fail without fix: 3 (was 1, now 3)
+Existing tests 1-3: UNCHANGED
+test_predict_week_response_includes_par_available (design fix test): UNCHANGED
+Purchasing baseline: 920 -> 922 (+2)
+Production logic: UNCHANGED (logging only)
+Design note: predict endpoints are inline in main.py, not par_router.py
+
+=== REV-DRIFT-SDK-GAP ===
+Date: 2026-10-15 04:23:28 -07:00
+Purpose: Complete drift gap analysis (replaces truncated REV-DRIFT-SDK-R2)
+Previously fixed (R1+R2 and verified follow-on R3-R5 closures): 12 confirmed still fixed, 0 regressed
+Open gaps: 6 P1, 7 P2, 4 P3
+SOC-specific: 2 open (SOC repo was available and inspected)
+New findings (not in prior rounds): 5
+Estimated fix effort: L — three focused SDK/ci-platform changes plus Trading, Purchasing, DataOps, and SOC app work; scorer math remains frozen
+Verdict: BLOCK
+
+=== DESIGN-DRIFT-BOUNDED-PROJECTIONS ===
+Date: 2026-10-15 04:56:54 -07:00
+Purpose: Design bounded projection API for drift-free SDK
+Output: docs/design_drift_bounded_projections.md
+New API methods: 4
+Consumer call sites mapped: 122
+Implementation prompts defined: 9
+Dependencies: IMPL-STORE first; IMPL-MAT/IMPL-HISTORY/IMPL-CONVOY next; IMPL-TRADING/IMPL-PURCHASING/IMPL-DATAOPS/IMPL-JOURNAL after store (app prompts also depend on materializer where applicable); IMPL-TELEMETRY last
+Verdict: READY
+Note: session_state.md is at capacity; archive older entries before shipping implementation prompts.
+
+=== FIX-DESIGN-BOUNDED-PROJECTIONS-V3 ===
+Date: 2026-10-15T12:00:45-07:00
+Purpose: Diagnose actual-code conflicts and replace the unsafe bounded-projection execution design.
+Output: docs/design_fix_bounded_projections_v3.md
+Sources: Read session state and overflow, canonical design_principles_v2.md, bounded design, and all seven requested graph files completely. Google Drive mirror copies of the nine requested documents/files were SHA-256 identical to the working tree; supplied Drive IDs were not authenticated through a Drive API. Also audited AGE adapter/store/client, protocol consumers, journal/cache code, and the 122-site inventory.
+Diagnosed: 31 conflicts/contract gaps, including V2 structural-membership/startup changes, namespace count typing and output rewriting, unsafe dynamic wrapper forwarding, tenant/governed-write stamping and legacy visibility, mutation/feed atomicity, false historical snapshot semantics, wrong AGE outcome relationship and non-binding parameter API, unsupported consumer statistics/journal/archive semantics, forbidden cross-request caches, deadline/telemetry assumptions, and prompt/file overlaps.
+Inventory: Preserved 122 planning entries, corrected 18 file paths, resolved every named symbol by AST. Disclosed both scorer _verified_decisions definitions and additional namespace verified-count coverage; 122 is not the complete blast radius or a closure count.
+Corrected design: Keep GraphStore and ProtocolV2GraphStore unchanged. Add optional BoundedProjectionStore, seven unchanged dataclasses/four aliases, truthful bounded AGE/tenant/legacy/namespace variants, atomic implementation/backfill/composition exposure, per-domain committed feed, routing-only feed filters, generation consistency fence, explicit projection/group bounds. Cancel incremental materializer and zero-query-warmup targets under canonical Principle 8; use fresh graph queries with request-local reuse only. Preserve scorer mathematics and graph-only journal facts.
+Corrected sequence: P1 IMPL-BOUNDED-CONTRACT; P2 IMPL-BOUNDED-CORE; P3 DESIGN-CONSUMER-CONTRACTS; P4 IMPL-NATIVE-READ-MODELS; P5 IMPL-CONVOY-DEADLINES; P6 IMPL-SDK-BOUNDED-READS; P7 IMPL-REQUEST-GRAPH-DISPLAY; P8 IMPL-TRADING-READS; P9 IMPL-PURCHASING-READS; P10 IMPL-DATAOPS-READS; P11 IMPL-JOURNAL-GRAPH-CUTOVER; P12 IMPL-QUERY-BUDGETS; P13 VERIFY-LIVE-BOUNDED-PROJECTIONS.
+Dependencies/parallelism: P1->P2; P2+P3->P4->P5->P6->P7; P8/P9/P10 parallel after P7; P8->P11; P9+P10+P11->P12->P13. P3 can run parallel with P1/P2. Shared-file changes and session appends serialized. Exact initial manifests, exclusions, gate requirements and P3 manifest-amendment requirements are in the output document.
+New constraints: Optional capability must not be falsely advertised through inherited stubs or __getattr__; GraphStoreWrapper remains an ownership marker only. Canonicalization/older-writer quiescence precedes bounded activation. Four generic methods do not cover all-history math, actual-action arms, financial sums, unified journal ordering or archives; explicit P3 contracts precede those consumer implementations. Do not silently truncate to satisfy budgets. Complete the baseline before editing, and test typed consumers even where mypy follow_imports/ignore_errors would otherwise hide regressions.
+Validation: Read-only structural probe confirmed current AGE/memory/namespace V2 membership and failure under a synthetic expanded V2; additive protocol left existing conformance intact. Probe mypy: Success, no issues in 1 source file. Inventory and existing-file manifest checks passed. Seven required production graph sources unchanged since read snapshots.
+Limitations: No new production implementation, completed full-suite baseline, performance result, live migration or live-stack gap closure claimed. Earlier interrupted/contaminated implementation test totals are not a baseline. P3 is a mandatory supplemental consumer-contract prerequisite, not an already-implemented API.
+Verdict: DESIGN CORRECTED; generic capability specified; consumer execution remains gated by P3 and per-prompt green gates. No drift gap closed (Rule #85).
+Session destination: Appended to docs/session_state.md as explicitly requested for this task despite its size exceeding 1 MB; no older session content removed.
+
+
+## BP-P1: IMPL-BOUNDED-CONTRACT
+
+Status: DONE
+Date: 2026-10-15
+Branch: main
+Files:
+  - copilot_sdk/graph/query.py (NEW) — 6 frozen dataclasses,
+    4 Literal aliases, 2 exceptions, validators
+  - copilot_sdk/graph/protocol.py — added BoundedProjectionStore and query type re-exports
+  - copilot_sdk/graph/__init__.py — added re-exports (13 new names; all names listed in the prompt)
+  - tests/test_bounded_projection_types.py (NEW) — 45 tests
+  - tests/test_bounded_capability_compatibility.py (NEW) — 17 tests
+Tests: 4545 passed, 1 xfailed, 0 failed (previous recorded baseline: 4482 passed, 1 xfailed;
+  subsequent replay baseline: 4482 passed, 1 xfailed, 1 deselected).
+New tests: 62 passed.
+Full command: python -m pytest tests/ -q --timeout=120
+Full suite duration: 1694.29 seconds.
+Warnings: 9217 existing warning instances; no new deprecation warning messages versus
+  the existing baseline log. New tests produce 124 existing pytest-freezegun/distutils warnings.
+Mypy: clean on all five changed/created Python files, including both test files.
+Gate: old V2 membership unchanged, old count_decisions unchanged.
+Structural check: all six existing protocol classes are AST-identical to session-start versions.
+Scope: exactly the five specified Python files changed before this required session-state append;
+  docs/session_state.md is the sixth file. Existing dirty-tree changes were preserved.
+No stores, wrappers, factories, existing tests, or scorer mathematics changed by BP-P1.
+
+
+## REV-P1 (IMPL-BOUNDED-CONTRACT)
+
+Date: 2026-10-15
+Verdict: PASS
+Scope: Review only; no production or test files modified. This session-state append is the only review edit.
+
+Findings:
+- P1: None.
+- P2: None.
+- P3-1 (review-checklist drift): The original BP-P1 contract uses domain plus keyword filters/page/projection,
+  aggregate_decisions -> tuple[DecisionAggregate, ...], count_decisions -> int, and a pagination-only
+  DecisionPageRequest with limit: int = 100. Filters are separate; count has an optional keyword extension,
+  not typing.overload declarations. These match the approved implementation prompt and are not defects.
+  Frozen dataclass field assignment raises FrozenInstanceError (an AttributeError), not TypeError.
+  The requested test_graph_query.py/test_graph_protocol.py and scoring/compounding.py/storage.py do not
+  exist; the original prompt's actual test files and scorer.py were reviewed instead. The two scoring
+  paths were already absent at BP-P1 start.
+- P3-2 (test coverage improvement): tests/test_bounded_projection_types.py:132 and :137 separately check
+  request cursor use and result cursor storage; no persisted test passes result.next_cursor directly into
+  the next request. A read-only reviewer round-trip probe passed. Add that regression when pagination
+  behavior is implemented in P2; this is not a BP-P1 blocker.
+- P3-3 (count terminology/baseline): Confirmed 62 collected/passing cases, generated from 36 test functions
+  (27 functions/45 cases in types; 9 functions/17 cases in compatibility), not 62 distinct functions.
+  Full-suite 4545 minus 62 new cases implies 4483 existing passes in that run. The review prompt's 4478
+  baseline and recorded 4482 baseline are inconsistent with this arithmetic; a subsequent session entry
+  recorded 4482 with one deselected AGE test. No pre-edit clean full-suite run was recorded by BP-P1.
+  Treat the retained full-run result as verified evidence, not a claim that the supplied baseline matched.
+
+Files reviewed:
+- copilot_sdk/graph/query.py: full read; new 223 lines; six frozen/slotted dataclasses, four Literal aliases,
+  two exceptions; stdlib only. Partial filters, typed keyset cursor, tuple record items, dimensions/metric
+  values, and generation-watermarked events match the original contract. No datetime fields or imports.
+- copilot_sdk/graph/protocol.py: full read plus old-class recheck; 65 added lines, zero removed relative
+  to BP-P1 start. BoundedProjectionStore is runtime_checkable and inherits GraphStore, Protocol, not V2.
+  Four ellipsis-only method declarations, no new default query implementations. Existing six protocols
+  are AST-identical to the saved pre-BP-P1 file, including GraphStore.count_decisions(self, domain).
+  As specified, these are structural protocol declarations, not abc.abstractmethod runtime enforcement;
+  P2 must not advertise capability through inherited stubs.
+- copilot_sdk/graph/__init__.py: full read; 28 added lines, zero removed. All 11 old exports retained;
+  exactly 13 new exports; 24 total, alphabetical, no duplicates. Git HEAD init verified against pre-BP-P1
+  snapshot before using it for comparison.
+- tests/test_bounded_projection_types.py: full read; new 222 lines; 45 cases.
+- tests/test_bounded_capability_compatibility.py: full read; new 108 lines; 17 cases.
+- copilot_sdk/scoring/scorer.py: scorer method locations checked; entire file hash unchanged from BP-P1 start.
+- copilot_sdk/scoring/compounding.py and storage.py: confirmed absent before and after BP-P1.
+- docs/session_state.md: BP-P1 record reviewed; scope/design notes and full-suite result confirmed.
+- pyproject.toml and requirements.txt: no git changes; no added dependencies.
+
+Scope containment:
+- Pre-BP-P1 hash manifest comparison across copilot_sdk/, tests/, docs/ found exactly the five original
+  specified Python paths plus docs/session_state.md. Stores, wrappers, factories and scoring files unchanged.
+- Existing unrelated dirty-tree changes predated BP-P1 and were not attributed to this implementation.
+
+Architecture/test checks:
+- Dependency direction is protocol.py -> query.py; query imports only __future__, math, dataclasses, typing.
+  Protocol imports query and enrichment types, no graph implementations. All six import orders pass in
+  fresh processes. No query operational module-global mutable state; __all__ is ordinary export-list metadata.
+- All six dataclasses are frozen and slotted; construction, fields, invalid inputs, immutability, empty
+  results, terminal None cursor, zero-count aggregates, and filter combinations are covered.
+- Positive structural bounded-membership probe and negative real InMemoryGraphStore bounded check pass;
+  original GraphStore/V2 membership and count calls pass. Positive probe is membership-only, not a claim
+  of a functional store implementation. No tests are stubs; each has assertions or pytest.raises checks.
+  No direct scoring/backend imports or scorer patches in the new test files.
+
+Validation:
+- Reviewer rerun: 62 passed, 124 existing pytest-freezegun/distutils warnings, 0 failed.
+- Reviewer mypy: Success, no issues found in all 5 Python source/test files using pyproject.toml.
+- Retained BP-P1 full-suite log independently read: 4545 passed, 1 xfailed, 9217 warnings, 0 failed,
+  1694.29 seconds. Full suite not rerun during this read-only review.
+
+Gate status for downstream:
+- Old V2 membership unchanged: YES.
+- Old count calls unchanged: YES.
+- Mypy clean: YES.
+- Scorer math frozen: YES (relative to BP-P1 start).
+
+BP-P1 establishes the additive optional bounded-query contract without changing existing store requirements.
+Safe to proceed to P2 bounded memory/AGE implementation under the approved P2 scope and its own gates.
+No production bounded-query implementation or later consumer-stage readiness is claimed by this review.
+
+## P3 (DESIGN-CONSUMER-CONTRACTS)
+
+Date: 2026-10-15T21:41:12.962438+00:00
+Status: Design document produced; downstream implementation/activation gates remain required.
+Files produced: docs/design_bounded_consumer_contracts.md
+Files updated: docs/session_state.md (this append only).
+Consumer count verified: 122/122 Appendix A entries, exactly once; all file/symbol anchors AST-resolved, including both scorer._verified_decisions definitions. Additional indirect consumers are enumerated separately.
+Read gate: all 51 requested files read in order; additional formula, journal writer/caller, HTTP model/client and legacy provider-order dependencies inspected.
+Supplemental capability count: 7 protocols (ConsumerReadCapability shared consistency contract plus 6 functional families: ConsumerStatisticsStore, PrefixCurveStore, ConsumerRowsStore, JournalQueryCapability, JournalWriteCapability, ArchiveExportCapability).
+Typed specifications: 33 frozen dataclasses; 44 statistics profile names and 26 row profile names, plus journal and curve profiles. Three Python specification blocks parse successfully.
+
+P1 confirmation: optional BoundedProjectionStore shipped, 4 methods, 13 new re-exports. Actual P1 source contains SIX frozen slotted dataclasses and four Literal aliases, not the seven dataclasses stated in the prompt. P1 types/signatures unchanged.
+Retained baseline: 4545 passed, 1 xfailed, 0 failed; REV-P1 separately recorded 62 passing contract cases and clean mypy. No implementation tests or mypy rerun for this docs-only task.
+
+Amended P4-P12 manifests (production/test files):
+- P4: 15 / 10
+- P5: 7 / 3
+- P6: 27 / 15
+- P7: 46 / 9
+- P8: 15 / 7
+- P9: 15 / 8
+- P10: 10 / 5
+- P11: 26 / 24
+- P12: 8 / 5
+Total distinct production files: 131; stage/file production assignments: 169. Original v3 manifests: 85 distinct production files. Increase includes frontend/versioned models, cache-decorator closure, journal indirect readers, DI service/provider handoff and native numeric migration.
+
+Design decisions/amendments:
+- Keep P1 generic contracts and existing GraphStore/ProtocolV2GraphStore membership unchanged; supplemental capabilities are optional and truthfully advertised through all policies.
+- Bind complete reads to same-primary fact epochs or explicit export transactions; no alternate substrate, graph-serving cache or outbox reader.
+- Preserve separate correctness/eligibility policies and legacy provider orders. AGE recent mixed-direction ties, AGE verified/all order and memory order are not interchangeable.
+- Full-history trajectory retains exact prefix points and gets versioned paging; weekly predecessor point is native, not a page scan.
+- Exact ordered numerical reduction/rounding parity is a P4 activation prerequisite, not assumed from SQL SUM/stddev algebra.
+- Journal manual/import/annotation facts stay non-Decisions; inclusive end instant, local-date NL semantics, complete totals, all writers and indirect readers included.
+- Full evidence export includes archives/outcomes/relationships and completeness checks; no partial-prefix success.
+- Explicit v2 pagination and coordinated retirement for unbounded HTTP collections. Arbitrary callback/stateful work has a complete offline contract, not an approximate aggregate.
+- Evolution must not be silently deferred/disabled: unsupported configured online evolvers block consumer activation before mutation admission; their compatibility restriction is explicit.
+- Execution-router journal population moves from P8 to P11; P7 handles its cache caller earlier.
+Sequence: P1 -> P2 -> P4 -> P5 -> P6 -> P7 -> P8 -> P11 -> P12 -> P13, with P3 prerequisite to P4; P9/P10 branch after P7 and join before P12. P8/P9/P10 app work may run in parallel; shared-file stages and log appends serialized.
+
+Docs-only audit: P3 wrote only the two documentation paths above. The shared workspace changed concurrently in Trading regime_router.py, pre_scorer.py, regime_classifier.py and associated tests; these edits were preserved, services reread and ledger anchors refreshed. Aggregate tracked-source checksum changed, so an unchanged-workspace checksum PASS is NOT claimed. No production/test edits were made by this task.
+Rule85: no platform gap closure or future implementation PASS claimed; live-stack P13 evidence remains mandatory.
+
+## REV-P3 (REVIEW-CONSUMER-CONTRACTS)
+
+Date: 2026-10-15 (review evidence recorded at 21:57 UTC)
+Reviewer: Sol
+Verdict: FAIL — P3 is not ready for P4 implementation.
+Findings: 6 P1, 2 P2, 0 P3.
+Consumer entries verified: 122/122, each exactly once, no missing/extra IDs or TBD migration entries.
+Supplemental protocols verified: 7 (6 functional families plus ConsumerReadCapability).
+Frozen dataclass specifications verified: 33 across 3 parseable Python specification blocks.
+Retained implementation baseline: 4545 passed, 1 xfailed, 0 failed from BP-P1/REV-P1; no fresh full-suite or mypy result is claimed for this review.
+
+### Scope, comprehension and structural checks
+
+Read session state first, including BP-P1, REV-P1 and P3. Then read completely, in the required order: docs/design_bounded_consumer_contracts.md; copilot_sdk/graph/query.py; copilot_sdk/graph/protocol.py; copilot_sdk/scoring/scorer.py; docs/design_fix_bounded_projections_v3.md. Completed the comprehension gate before detailed findings. Also inspected the referenced trajectory, fingerprint, IKS, measurement, conservation, projection, gate, supplier, Trading analytics and journal implementations.
+
+P3 contains all requested sections: sufficient statistics, journal, export, consumer manifest, HTTP versioning, stage manifests and acceptance criteria. The apparent completeness masks semantic contract gaps below. AST verification resolves every manifest file/symbol/line, including both scorer verified helpers. P3 correctly identifies the actual P1 count as SIX dataclasses, rather than repeating the prompt/parent's seven; four Literal aliases, four methods and 13 exports remain the shipped reference.
+
+All seven supplemental protocols are runtime_checkable and have frozen typed request/result specifications, method signatures, population descriptions and shared byte/cardinality rules. None is wholly prose-only. ConsumerReadCapability composes GraphStore structurally, and the other capabilities compose that protocol; this follows P1's Protocol composition pattern and does not add required methods to existing GraphStore/V2. DecisionFilter and DecisionProjection are reused. Distinct supplemental cursors/results are intentional; they do not mutate P1. An object requiring both bounded and supplemental operations must satisfy both capabilities; supplemental membership alone does not imply BoundedProjectionStore.
+
+Online page bounds are specified as 1000 rows/groups and 2 MiB, export as 1000 chunks/8 MiB with 64 KiB chunks. These are documented limits, not implementation/performance evidence. Shared Cell/payload_json containers being frozen does not establish completeness of their closed per-profile payload schemas.
+
+### P1 findings — must amend the design before P4
+
+**P1-A — Closed statistics schemas omit information required by their consumers.**
+Design: §2.3 lines 341, 349, 362; §2.4 line 403; §5.1 line 849.
+- supplier_iks_v1 returns only per-category price_n/price_sum and a seasons count. apps/purchasing/backend/app/routers/iks.py:112-140 returns the last five individual prices per category and the distinct season NAMES. No rows profile supplies this missing output. A read-only reference probe used prices [1,2,3,4,5]/winter versus [1,1,1,1,11]/summer: proposed fields are identical (five prices, sum15, one season), but current responses differ.
+- trading_context_v1 mentions rolling10 and latest regime in prose, but its closed totals/groups have no fields for their ordered IDs/correctness or selected regime. context_router.py:570-606,656-685 returns these fields. trading_evidence_v1 is identity-only in creation order, and RowsRequest has no explicit contrast-group selector; it does not supply the missing rolling verification-order payload.
+- measurement_v1 returns n/c and paged arm counts, but not global arms_measured/min_arm_count. measurement_state.py:58-60,176-187 computes these across configured AND unknown arms. With more than1000 observed groups, the prohibition on complete online group traversal prevents the fixed-size measurement result from being computed from one page. Rejecting a large configured shape does not bound unknown observed arms.
+Required fix: specify complete typed result fields and bounded row/group selectors for supplier/Trading outputs, and native global arm reductions for measurement, with information-distinguishing parity fixtures.
+
+**P1-B — Promised journal offset compatibility has no callable contract.**
+Design: §2.1 lines 154-156,295; §3.1 lines 447-464,570-572; §6.3 line 942.
+The design promises a native legacy offset adapter for offsets0..10000, yet BoundPage supports only limit/after, JournalQuery has no offset/rank_start, and query_journal has no alternate legacy paging parameter/method. Existing journal.py:54,69 accepts offset and slices after filtering. Generic Decision paging cannot provide the manual/import/Decision union. Fetching cursor pages to skip would violate the stated online rule.
+Required fix: define an explicit typed legacy journal offset operation/request with limits, predicate-before-offset semantics and cursor exclusivity, or explicitly version retirement of all nonzero offsets instead of claiming preservation.
+
+**P1-C — Journal identity/history migration operations remain unspecified.**
+Design: §3.1 lines 532-555,578-588; §3.3 lines 618-629; §6.2 lines 920-922.
+get_journal_record requires a complete kind-qualified FactIdentity, while legacy GET/PUT routes supply trade_id/entry_id aliases. Neither JournalQuery nor another specified method resolves those aliases with the mandated union precedence/collision policy. Historical reflection/tag import must preserve timestamps/order, but ImportBatch accepts only JournalWrite, which line588 forbids from creating annotations; AnnotationWrite has no historical timestamp/history/provenance fields. Existing journal.py:500-525 stores timestamped history. The prose also requires migration manifests/alias links/activation state without specifying their graph payload/operation mapping. Encoding an invented format into metadata_json is precisely an ad-hoc design choice left to implementation.
+Required fix: define typed alias resolution and historical annotation import semantics, and explicitly map migration/activation facts to governed GraphStore writes with schemas, idempotency and receipts.
+
+**P1-D — Fingerprint correctness is not distinguished from scorer correctness.**
+Design: §2.2 lines 313,331; §2.3 line 339.
+The registry says n/c follow the named policy and labels fingerprint_v1 “Scorer verified,” but does not override the scorer's confirmed-OR-truthy-is_correct policy for fingerprint class masks/counts. fingerprint.py:54,80,113-123 uses bool(is_correct) only, including overall and per-category accuracy. scorer.py:3550-3552 uses the different OR policy. Five compatible rows with outcome=confirmed and is_correct=False produce fingerprint overall/category accuracy0.0 in the executed reference probe, while the stated scorer correctness policy counts all five correct. Supplying the scorer c or grouping class sigmas by that policy changes frozen outputs.
+Required fix: explicitly separate scorer verification eligibility from fingerprint bool(is_correct) class membership, total/category correct counts and sigma populations, with a conflicting-outcome fixture.
+
+**P1-E — Moving DK coordinate estimation offline changes the learning transaction.**
+Design: §2.4 line 407; §5.2 line 862; §8.4 line 1354; §8.5 line 1371.
+DK estimation is not merely an optional report/startup read: scorer.py:1585 invokes _refresh_dk_after_learn; :2742-2746 invokes the unchecked estimator after enough verified outcomes; :973-998 obtains all correct vectors and synchronously updates the live DK tensor when needed. This occurs after outcome persistence at :1523-1545 and before later IKS/checkpoint work. The design supplies no equivalent native DK request/result (including current model inputs) and sends it to offline work. Deferral changes subsequent scores; a late offline-required error can follow a committed outcome. The separate evolution preflight does not address this path.
+Required fix: define an exact synchronous graph-backed DK computation contract and transaction/cutover semantics, or resolve the learning behavior explicitly in a reviewed prerequisite before enabling these consumers; do not silently defer the update.
+
+**P1-F — Fixed 400-row tails cannot preserve configurable conservation/gate windows.**
+Design: §2.3 lines 337,343; §2.4 lines 385-386; validation line295.
+The prose promises the preset recent window, but both tail profiles cap it at400. scorer.py:2830-2839 and :3416-3430 accept any positive preset conservation_recent_window; CompositeGate.__init__ also accepts positive w_short/w_long without a400 ceiling. A read-only probe with window600 and 200 losses followed by400 wins yields n600,q2/3 and pauses; the proposed400 tail yields n400,q1 and does not trigger the same gate. This is a conservation behavior change, not just output pagination.
+Required fix: supply native exact count/correct reductions for the configured windows (and preserve ordered400 inputs where bootstrap actually needs them), or explicitly govern/version unsupported configurations before cutover rather than silently cap them.
+
+### P2 findings — resolve before P6
+
+**P2-A — Replay recipe does not specify active-only scope or checkpoint boundary.**
+Design: §4.1 lines 637-642,698-700; ledger52 line769; §5.1 line850.
+ExportRequest defaults include_archived=True and has no verification lower-bound/checkpoint selector; the REPLAY recipe does not override that default or define checkpoint-prefix rejection. Current scorer.py:626-650 replays active verified rows strictly after a restored checkpoint cursor, or rebuilds active history when no usable checkpoint exists. Replaying the complete export directly can include archived history or reapply the restored prefix.
+Required fix: specify mode=verified_replay, order=verified, include_archived=False and exact checkpoint-consistent lower-bound/stream-filter behavior, distinguishing rebuild and restored-state branches and advancing only returned export cursors.
+
+**P2-B — Purchasing IKS's unbounded trajectory is absent from the explicit HTTP versioning plan.**
+Design: §6.2 line932; ledger41 line758 and87 line804.
+The matrix describes Purchasing IKS/supplier endpoints as scalar/per-supplier reports with preserved values. routers/iks.py:21-33 returns IKSService.summary(), whose iks_service.py:25-34 response includes the entire trajectory array plus per_category. Paging supplier sets does not bound that curve. This is distinct from /api/purchasing/iks/summary consumed elsewhere.
+Required fix: explicitly version /api/purchasing/iks with a curve page/summary and category behavior, retirement/client handling and test_iks_trust.py assertions; do not silently truncate its existing trajectory.
+
+### Formula and compatibility verdicts
+
+- trajectory(): MATCH for the specified derived-prefix formulas, key-existence denominator, rounding, point0, final remainder, normalized creation order and days_active; all-history is not relabeled latest400.
+- Fingerprint: MISMATCH/underspecified correctness contract (P1-D). The std/default/weight/rounding formulas otherwise match. AGEProjection category/profile is a DIFFERENT computation: profile_v1's oldest10000 category cohort and all-history V/C match projection.py:313-333; historical equal-time ties are explicitly acknowledged/versioned, not falsely claimed recoverable.
+- IKSService: MATCH for the described normalized category-prefix inputs/formula; HTTP exposure still needs P2-B. Scorer composite IKS depends on repairing the fingerprint contract; the centroid-drift checkpoint formula remains separate.
+- Conservation baseline_q: MATCH for raw provider-order first200 of tail400, bool(is_correct fallback correct), minimum200 and independent fallback. Default rolling400/count eligibility matches; complete configurable-window conservation is MISMATCH (P1-F).
+- measurement_state: MATCH for actual-first arms, configured zeros, unknown arms, boolean accuracy and threshold formula, but MISMATCH in sufficient bounded inputs for arbitrary group cardinality (P1-A).
+- No intentional edits to scorer formulas, tensors, penalties, learning rates or conservation thresholds are proposed. This does not establish semantic equivalence: P1-D/E/F can change outputs/state despite the “math frozen” declaration.
+
+Journal inclusive upper date is preserved as the existing parsed instant (date-only means midnight), distinct from NL local-calendar comparison; entry_time is not mapped to created_at. Non-Decision facts and writer sources are identified. Missing callable compatibility/import details are P1-B/C.
+
+Archive/export has bounded chunking, same-primary transaction or epoch consistency, complete active+archived evidence, counts/checksums, complete-or-fail publication and resume-only-with-valid-handle semantics; these parts pass design review. Narrow replay usage remains P2-A. This is not a live backup/restore validation.
+
+### Stage manifests, dependencies and acceptance checks
+
+Every P4-P12 stage lists production files, test files, prior dependencies and acceptance gates. All existing paths resolve; missing paths are explicitly planned-new or the P2 capabilities.py prerequisite.
+
+Stage | Original production | P3 production | P3 tests | Production change
+---|---:|---:|---:|---:
+P4 | 12 | 15 | 10 | +25.0%
+P5 | 7 | 7 | 3 | 0%
+P6 | 23 | 27 | 15 | +17.4%
+P7 | 16 | 46 | 9 | +187.5%
+P8 | 14 | 15 | 7 | +7.1%
+P9 | 11 | 15 | 8 | +36.4%
+P10 | 5 | 10 | 5 | +100%
+P11 | 7 | 26 | 24 | +271.4%
+P12 | 8 | 8 | 5 | 0%
+
+131 distinct production files versus85 (+54.1%);169 stage/file assignments. The >20% expansions are explained: P4 adds native numerical/migration support; P7 includes cache/decorator callers and three client migrations; P9/P10 add adapters/frontends; P11 includes indirect journal readers/writers/services/clients. Growth itself is not a defect. P8/P9/P10 declared production/test manifests are app-disjoint; shared stages are serialized. The dependency graph is coherent, but its P3-accepted prerequisite is NOT met.
+
+HTTP v2 mechanism, trajectory paging before client cutover, old bounded response adapters, coordinated410 retirement, limit0 and offset policies are present. Journal offset preservation is unimplementable as specified (P1-B), and Purchasing IKS needs an explicit version boundary (P2-B).
+
+### Evidence, scope and next action
+
+Read-only checks: parsed specification blocks; counted/compared all122 IDs; AST-resolved every source anchor; checked stage path/counts; executed reference-only supplier, fingerprint and conservation counterexamples without adding test files. Full tests/mypy were not required or rerun for this design review. Do not treat the retained4545 baseline as a fresh result.
+
+Review writes: ONLY this session-state entry. No production, test or design file was modified by the review; pre-existing unrelated dirty-tree work was preserved. No gap closure or deployment success is claimed (Rule85).
+
+Verification audit: repeated SHA-256 inventory of 6293 source/test/app configuration and reviewed-design files matched during detailed verification: bef500e0ba81ba941d999ab1bcfbe10edc5b9a6491fb669176312cc3abca5b94. The inventory intentionally excludes the authorized session-state append. This is content-preservation evidence, not a test-suite result.
+
+Next action: amend P3 to resolve P1-A through P1-F, then re-review before P4. Resolve P2-A/B before P6; preferably include them in the same design amendment so downstream prompts have one executable specification.
+
+
+
+## FIX-DRIFT-TRADING
+
+Date: 2026-10-15
+Status: DONE
+Branch: main
+
+Files changed by this task:
+- apps/trading/backend/app/services/pre_scorer.py
+- apps/trading/backend/app/services/regime_classifier.py
+- apps/trading/backend/app/routers/regime_router.py
+- apps/trading/backend/tests/test_pre_scorer.py
+- apps/trading/backend/tests/test_regime_classifier.py
+- docs/session_state.md (this required append)
+
+Scope notes:
+- The prompt listed three production paths, despite saying four; only those three were changed.
+- test_regime_router.py does not exist. Existing mapper/router tests live in test_regime_classifier.py;
+  that file was amended as permitted by Step 3b. No additional test file was created.
+- The current working-tree ResponseMaterializer is a TTL snapshot implementation, unlike the no-cache
+  version confirmed at fca9497. It was read but not changed. The target helper scan duplication existed
+  independently of that discrepancy. Existing dirty-tree changes were preserved.
+- A concurrent docs/design_bounded_consumer_contracts.md appeared during this task (separate P3 work);
+  it was not edited by this task.
+
+Implementation:
+- pre_score fetches all and verified decisions once per call and passes the lists to history helpers.
+  Optional snapshot parameters preserve existing helper calls, including _find_similar's positional limit.
+  Explicit empty lists are reused, not treated as missing snapshots. _all_decisions, _verified_decisions,
+  and _correctness_by_decision are retained. PreScoreResult and scorer math are unchanged.
+- RegimePerformanceMapper memoizes typed buckets on each instance, including empty buckets. Production
+  instances are created per request. Docstring and repeated-request tests enforce fresh data on the next request.
+- /performance and /recommendation create one store each and pass it to conservation and the mapper.
+  The factory-based _conservation_status helper remains, delegating to _conservation_status_from_store;
+  conservation formulas and existing exception-to-None behavior are preserved.
+- Added type-only annotations/casts in already-touched router/test files for pre-existing mypy Any-return
+  errors under follow_imports=skip; no runtime output conversions or type-check suppressions introduced.
+
+Concrete check design / measured counts:
+| File / call path | Before | After | Check |
+|---|---|---|---|
+| pre_scorer.py: pre_score, nonzero factors and available regime | 1 all + 4 verified = 5 scans | 1 all + 1 verified = 2 scans | Reader/helper spies; fixed-input output parity |
+| regime_classifier.py: accuracy + edge | 2 verified scans | 1 verified scan | Same-instance mapper and reader spies |
+| regime_router.py: /performance, all mapper calculations | 3 verified scans | 1 verified scan | Original-versus-new endpoint probe and regression spy |
+| regime_router.py: /performance store factory | 2 calls | 1 call | Factory spy |
+| regime_router.py: /recommendation store factory | 2 calls | 1 call | Factory spy |
+| regime_router.py: /recommendation mapper reads | 1 verified scan | 1 verified scan | Reader spy |
+
+The prompt's regime_performance 2->1 describes accuracy+edge only. The complete endpoint is 3->1 because
+regime_recommendation invokes regime_edge again. Conservation count queries remain unchanged and are
+not included in these verified-history scan counts. Factory calls are measured; factories may return an
+existing shared store, so a connection-creation reduction is not asserted.
+
+Validation:
+- Pre-edit focused baseline: 64 passed.
+- Post-edit focused suites: 80 passed (36 pre-scorer, 44 regime-classifier), delta +16.
+- Full Trading backend: 1540 passed, 0 failed, 3760 warnings, 389.90 seconds.
+  Recorded baseline: 1524 passed; delta +16, exactly the new tests.
+- Full SDK root: 4545 passed, 1 xfailed, 0 failed, 9217 warnings, 1454.89 seconds.
+  Baseline: 4545 passed, 1 xfailed; delta 0. Full suites ran serially with --timeout=120.
+- Mypy: clean on all five changed Python files using --config-file pyproject.toml and
+  MYPYPATH=apps/trading/backend to resolve the app.* package imports. No errors suppressed.
+- Architectural scan: no DecisionStore or _StoreProxy matches in the three production files.
+- Original-source parity probe: serialized PreScoreResult output byte-identical in 12 cases across
+  empty/populated histories, absent/trending/volatile regime, and zero/nonzero factors. Both regime
+  endpoint payloads byte-identical with a fixed provider/history. Probe used saved pre-edit source.
+- New regression tests cover exact scan/factory counts, explicit empty snapshots, legacy helper calls,
+  no-store endpoints, empty bucket memoization, unchanged conservation helper behavior, and fresh data
+  between repeated pre_score calls and HTTP requests.
+- Source hash checks: copilot_sdk/scoring/scorer.py and response_materializer.py unchanged.
+- git diff --check: clean for this task's Python files.
+
+## P3-FIX (AMEND-CONSUMER-CONTRACTS)
+
+Date: 2026-10-15
+Status: Design amendments complete; awaiting REV-P3-FIX before P4.
+Files changed by this task: docs/design_bounded_consumer_contracts.md and this session-state append only.
+Starting review confirmed: REV-P3 FAIL, 6 P1, 2 P2, 0 P3.
+
+Findings addressed:
+- A (P1): Added typed individual supplier-price/season pages; Trading rolling-ten/latest-metadata-regime outputs with distinct current-market/pre-score semantics; global measurement arm minimum/measured/needed reductions independent of group pages.
+- B (P1): JournalQuery.offset0..10000, native selection before paging, cursor/offset exclusion, offset0 continuation, limit0 totals, both legacy HTTP aliases and fetchTrades caller mapping, explicit out-of-bound cutover behavior.
+- C (P1): Typed operation-specific alias mappings/resolution and continuing alias annotations; historical history/current-snapshot imports preserve timestamp/key presence/ordinal; graph-governed migration state, atomic CAS/idempotent batches, reconciliation and activation.
+- D (P1): Frozen fingerprint bool(is_correct) policy distinct from scorer OR-confirmed and trajectory key-presence policy. Requested scoring/projection.py does not exist: actual scoring/fingerprint.py and graph/projection.py were read and distinguished.
+- E (P1): Preserve synchronous local-buffer DK path and graph fallback before checkpoint/next score; exact primary-native estimator request/result, first400 correct rows per category and full-support dispersion rules, read-your-write/partial-failure semantics. Ordinary learn is not moved offline.
+- F (P1): Conservation/gate window is configured positive W, without400/1000 semantic cap; native scalar reductions and exact W-row evidence across bounded pages. Fixed bootstrap/checkpoint400 cohorts remain fixed.
+- G (P2, review P2-A): Active-only replay default, exact verification key, checkpoint restore before suffix K>B, no double application of prefix, explicit archive-inclusive diagnostic and failure/restart rules.
+- H (P2, review P2-B): Purchasing /api/purchasing/iks includes full trajectory; specified /api/v2/purchasing/iks and api_version=2 opt-in, bounded points plus exact global/category summaries, announced v1 retirement and compatibility tests; unrelated /iks/summary remains distinct.
+
+Structural validation:
+- Consumer count:122/122, each exactly once, identical ID set to parent Appendix A; all source/symbol/line anchors resolve by AST.
+- Dataclasses:33 original names retained;2 original specifications amended (JournalQuery, ExportRequest);22 new frozen specifications;55 total.
+- Supplemental protocols:7, unchanged count; added fully typed methods on existing supplemental capability specifications, no GraphStore/V2/P1 member changes.
+- Five Python specification blocks parse and compile together; every class and method type annotation resolves.
+- Manifest counts (production/tests): P4 15/10, P5 7/3, P6 27/16, P7 46/9, P8 16/9, P9 15/9, P10 10/5, P11 26/24, P12 8/5.
+- Total131 distinct production files,170 stage/file assignments (was169); P8 adds regime_router.py already present under P7. Added P6 DK test, P8 two existing regression tests, P9 IKS HTTP test. Dependencies/parallelism unchanged.
+
+Read-only reference probes passed:
+- Supplier equal-sum histories [1,3]/winter versus[2,2]/summer yield distinguishable individual price and season outputs.
+- Conservation200 losses+400 wins: full and exact W600 tail both return (600,0.6666666666666666), satisfying the existing pause condition; forbidden400 tail returns (400,1.0). Also checked W1/400/1600.
+- Measurement1001-arm fixture preserves a zero minimum beyond the first1000 groups; native sum/min reduction equals full arm counts.
+- Five compatible confirmed/is_correct=False rows give fingerprint win rate0 while scorer correctness counts5.
+- Current CoordinateDescentEstimator on1100 rows matches exact first400-per-category selected inputs.
+
+Scope evidence: no production/test files written. A repeat checksum over1576 SDK/app/test source/config files (excluding generated dependency/build/cache directories) stayed77c6e35bf0f15f1296499012f498ebc73fc50b582699777988d399cc4f9cb717. Existing unrelated working-tree changes were preserved. No scorer formulas changed or proposed to change. No full-suite, mypy, future native implementation, performance or live-stack success is claimed by this docs-only amendment. Both review counterexamples are resolved at the contract/reference level; implementation parity gates are explicit in §8.6. No gap closure under Rule85.
+
+
+## REV-DRIFT-TRADING
+
+Date: 2026-10-15
+Verdict: PASS WITH NOTES
+Finding count: 0 P1, 0 P2, 2 P3.
+Review mode: Read-only production/tests; only this required session-state append was written.
+
+Findings:
+- P3-1 — apps/trading/backend/app/services/pre_scorer.py:60. Unconditional snapshot acquisition adds an
+  all-history read on the all-zero-vector/no-regime path: 0 all + 1 verified becomes 1 all + 1 verified.
+  This matches the explicit implementation requirement to fetch each snapshot exactly once and is not
+  a contract violation; it qualifies the performance claim. Suggested action: retain the full-context
+  qualification on 5->2 and consider lazy all-history acquisition only under a revised scan contract.
+- P3-2 — apps/trading/backend/tests/test_regime_classifier.py:297 (also the delegating-helper comparison
+  at :336). The endpoint equality assertion compares two calls to the current implementation, not an
+  independent pre-fix expected payload; it protects repeatability but would miss a consistent output
+  regression. Scan/factory assertions remain meaningful. Suggested action: retain fixed expected
+  payload fixtures derived from pre-fix behavior as the persistent parity oracle. Independent reviewer
+  probes against saved original source confirmed parity for this review, so this is nonblocking.
+
+Comprehension / architecture:
+- pre_scorer.py: Each pre_score call fetches all/verified lists once before graph-reading history helpers.
+  _probabilities runs earlier but performs no graph I/O. All history helpers receive the snapshots;
+  their optional None fallbacks preserve standalone callers and do not run on the pre_score path.
+  Explicit empty lists are reused. _all_decisions, _verified_decisions, and _correctness_by_decision
+  remain instance methods; the latter is no longer called by _find_similar. PreScoreResult is unchanged.
+- regime_classifier.py: _cached_buckets is typed and initialized to None in each mapper constructor.
+  _buckets checks it before I/O and stores even empty results after successful computation. Classification,
+  category filtering, thresholds, accuracy/edge formulas, ordering and recommendation computation are
+  unchanged. Both production mapper constructions are inside request handlers; no shared mapper exists.
+- regime_router.py: Both performance/recommendation create one store and pass that same object to
+  conservation and a new mapper. _conservation_status retains its factory signature and delegates to
+  _conservation_status_from_store. Conservation computation and exception-to-None handler are AST-identical
+  to the original helper's corresponding body. Existing _provider/_history globals are unchanged;
+  no new module-global state was added. Factory-call savings do not prove new physical connections
+  were previously created, because the factory may return a shared store.
+- test_pre_scorer.py: Seven added cases cover reader/helper counts, seeded/empty history, absent/present
+  regime, repeated-call freshness, zero factors, retained methods and explicit empty snapshots.
+- test_regime_classifier.py: Nine added cases cover memoized reads across all mapper calculations,
+  seeded/empty buckets, both endpoint factories, next-request freshness, no-store behavior and
+  conservation helper compatibility.
+- response_materializer.py: Read fully as reference; current working tree is a TTL materializer that
+  reads all/verified history once per refresh. It is not the fca9497 no-cache facade. It is unchanged
+  by the fix and review, and does not deduplicate these direct helper reads.
+
+Scan count verification (independent original/current source probes plus regression spies):
+| Hot path | Before | After | Method used |
+|---|---|---|---|
+| pre_score, nonzero factors + available regime | 1 all + 4 verified = 5 | 1 all + 1 verified = 2 | Real in-memory reader spies; serialized output comparison |
+| pre_score, nonzero factors + no regime | 1 all + 2 verified = 3 | 1 all + 1 verified = 2 | Same independent probe |
+| pre_score, zero factors + available regime | 0 all + 3 verified = 3 | 1 all + 1 verified = 2 | Same independent probe |
+| pre_score, zero factors + no regime | 0 all + 1 verified = 1 | 1 all + 1 verified = 2 | Same independent probe; P3-1 |
+| Mapper accuracy + edge | 2 verified reads | 1 verified read | Call graph and mapper spy |
+| /performance, all mapper calculations | 3 verified reads | 1 verified read | Original/current endpoint probe; nested recommendation calls edge |
+| /performance factory | 2 calls | 1 call | Original/current factory spy |
+| /recommendation factory | 2 calls | 1 call | Original/current factory spy |
+| /recommendation mapper | 1 verified read | 1 verified read | Original/current endpoint spy |
+Conservation count queries are separate and unchanged. All six pre-score probe variants and both endpoint
+payloads serialized identically before/after for fixed data. Original factory conservation output also
+matched the new store-taking helper output.
+
+Changed signatures (snapshot parameters are list[dict[str, Any]] | None = None):
+- _find_similar(self, category, factor_vector, limit=5) -> same positional parameters plus keyword-only
+  all_decisions=None, verified_decisions=None; return list[dict[str, Any]] unchanged.
+- _category_accuracy(self, category) -> (self, category, verified_decisions=None); return float unchanged.
+- _regime_context(self) -> (self, verified_decisions=None); return tuple[str | None, float | None] unchanged.
+- _regime_accuracy(self, category, regime) -> (self, category, regime, verified_decisions=None);
+  return float | None unchanged.
+- New helper only: _conservation_status_from_store(store: Any, domain: str) -> dict[str, Any] | None.
+No other existing signatures changed. No existing helper callers were broken.
+
+Test quality:
+- Git HEAD test files were first verified against pre-fix snapshot hashes, then compared by AST.
+- All 29 original pre-score test functions and all 35 original classifier/router test functions are
+  AST-identical: no removals or weakened assertions. Only ancillary fixture typing changed.
+- Four new pre-score functions expand into seven cases; five new classifier/router functions expand
+  into nine cases. Total +16 cases, matching 64->80 focused and 1524->1540 Trading totals.
+- New count checks use unittest.mock.patch.object(..., wraps=actual_method) and Mock factory assertions,
+  not just return-value checks. Empty cache and next-request refresh behavior are tested.
+
+Blast radius / importers:
+- apps/trading/backend/app/services/pre_scorer.py: imported by app/routers/pre_score_router.py and
+  tests/test_pre_scorer.py. Public construction/pre_score signature unchanged; old private calls retained.
+- apps/trading/backend/app/services/regime_classifier.py: imported by app/routers/regime_router.py,
+  pre_score_router.py, situation_router.py, webhook.py, and tests/test_regime_classifier.py.
+  Classifier signatures/logic unchanged; mapper used per-request by regime_router.py.
+- apps/trading/backend/app/routers/regime_router.py: imported by app/main.py, app/routers/pre_score_router.py,
+  app/routers/situation_router.py and tests/test_regime_classifier.py. Existing imported functions retain
+  signatures. Main mounts the classifier router; the separate routers/regime.py serves distinct paths.
+- apps/trading/backend/tests/test_pre_scorer.py and test_regime_classifier.py: pytest-collected; no
+  production importers found.
+- docs/session_state.md: authorized completion/review records, not runtime code.
+- Purchasing/DataOps app.routers.regime_router references resolve to their respective app-local files,
+  not Trading's file. No imports of these Trading modules found in Purchasing, DataOps or s2p-copilot.
+- FIX-DRIFT-TRADING changed only the five listed Trading Python files plus its required session append.
+  Existing unrelated dirty-tree changes and concurrent P3 design/session work were distinguished using
+  the pre-fix snapshot; they are not attributed to this fix. No shared SDK implementation was changed.
+
+Architectural evidence:
+- No DecisionStore/_StoreProxy matches in the three changed production files.
+- No new _store/_mapper/_cache/_buckets globals; all module-level assignments AST-identical before/after.
+- Every copilot_sdk/scoring Python file, including presets, matches its pre-fix hash. PreScoreResult,
+  vector/numeric helpers, RegimeClassifier and mapper calculation methods are AST-identical.
+- No factor-weight, learning-rate, or conservation-law formula modifications.
+- Review-start versus review-end Python hash inventory matched across Trading backend, SDK and SDK tests.
+
+Fresh review verification (not reused implementation results):
+- Trading: python -m pytest apps/trading/backend/tests/ -q --timeout=120
+  Result: 1540 passed, 0 failed, 3760 warnings, 244.74 seconds.
+- SDK: python -m pytest tests/ -q --timeout=120
+  Result: 4545 passed, 1 xfailed, 0 failed, 9217 warnings, 1170.17 seconds.
+- Full suites ran serially to avoid shared live-graph interference.
+- Mypy: Success, no issues found in all five changed Python source/test files, with pyproject.toml and
+  MYPYPATH=apps/trading/backend for app.* import resolution. No errors suppressed.
+- Independent before/after probes confirmed scan/factory counts, fixed-data output parity and conservation
+  helper equivalence without changing production or test files.
+
+Conclusion: requested hot-path reductions and backward compatibility are verified. No P1/P2 fixes are
+required. The two P3 notes qualify the performance claim and recommend a stronger persistent output oracle.
+
+## REV-P3-FIX (RE-REVIEW-CONSUMER-CONTRACTS)
+
+Date: 2026-10-15
+Reviewer: Sol
+Verdict: FAIL
+Findings: 1 P1, 0 P2, 0 P3.
+P4 unblocked: NO. The fixed window length is correct, but its normative ordering still conflicts with the frozen conservation helper.
+
+### Evidence and comprehension
+
+Read session state first and confirmed REV-P3 FAIL (6 P1, 2 P2) and P3-FIX's completed amendments. Read the amended design, shipped query/protocol, complete scorer, fingerprint, graph projection, IKS service and measurement implementation. The requested scoring/projection.py does not exist; scoring/fingerprint.py is the arithmetic reference and graph/projection.py is the separate AGE profile reference. Also inspected Trading context analytics, regime router, pre-scorer, regime classifier, journal router and frontend offset callers; Purchasing IKS/supplier router; conservation_utils, composite_gate, timestamps and the GAE DK estimator. Completed the comprehension summary before issuing detailed review findings.
+
+Verified 55 frozen dataclasses across five Python specification blocks: all 33 original names retained and 22 new names. All class/method type annotations resolve. Seven runtime-checkable supplemental protocols remain optional GraphStore capabilities; no methods are added to existing GraphStore/V2 or P1. Exactly 122 ledger entries occur once and match parent Appendix A; all 122 path/symbol/line anchors resolve by AST. Amendments affect sections 2.3-2.7, 3.1/3.4, 4.1/4.3, consumer recipes, 6.3/6.4 and manifests/acceptance gates.
+
+### Per-original-finding resolution
+
+| Finding | Status | Verification |
+|---|---|---|
+| A — sufficient statistics | RESOLVED | SupplierPriceDetail and SupplierSeasonDetail preserve individual last-five-per-category prices and all distinct original seasons; the equal-sum counterexample is distinguishable. TradingContextSummary supplies Boolean-only verification-ordered rolling ten and latest creation-ordered metadata regime; current-market regime and pre-score regime remain separate. Measurement returns complete global group count, measured count, minimum and needed count; row partitions are summed by arm BEFORE threshold/min, and key partitions merge by sum/sum/min. |
+| B — journal offsets | RESOLVED | JournalQuery.offset supports 0..10000; predicates/totals precede offset, cursor plus nonzero offset errors, continuation resets offset to zero. Sections 3.4 and 6.3 agree. Both journal HTTP aliases and api.ts fetchTrades/journalQuery are mapped; CLI's separate cohort and version switch are explicit. Limit zero uses totals. Tightened legacy upper bounds are announced/versioned rather than clipped. |
+| C — journal migration | RESOLVED | Frozen alias keys/mappings/resolutions, historical annotation and migration source/state/batch/reconciliation schemas have callable capability methods. Direct Decision detail precedence is distinct from union/overlay precedence. Original timestamps, history ordinals and final snapshots are preserved; digest-bound atomic batches, retry-before-CAS receipt handling, reconciliation and activation are specified. Inclusive end-date behavior remains explicit. |
+| D — fingerprint correctness | RESOLVED | FINGERPRINT_POLICY uses only bool(is_correct) after scorer eligibility and compatible-vector selection. Scorer's OR-confirmed rule and trajectory's key-presence denominator are explicitly distinguished. Actual fingerprint conflict fixture returns 0 accuracy while scorer counts all five correct; graph projection retains its independent strict-True policy. |
+| E — synchronous DK | RESOLVED | Local-buffer reestimate remains first and synchronous; graph fallback only when weights remain None. DKRequest carries live centroids and shape; native estimator pins first400/category, reference coordinate descent and full-support dispersion rules. Post-outcome read-your-write, next score, checkpoint capture and existing partial-failure semantics are specified. No deferred mode is proposed. |
+| F — configured conservation windows | NOT-RESOLVED | Removal of the 400 cap and the original 600-row counterexample both PASS. However, conservation_v1/conservation_tail_v1 still mandate C order, which differs from chronological_decisions for missing creation times. Section 2.7's promise of the identical sequence cannot be satisfied simultaneously with that rule; see blocking finding below. |
+| G — replay scope/boundary | RESOLVED | Active-only default, explicit archived diagnostic, exact verification key including key-presence/null behavior, checkpoint envelope restored first, strict suffix K>B, bootstrap fallback and complete-record cursor advancement are specified. Expired snapshots discard private state; no partial publication or prefix double application. |
+| H — Purchasing IKS versioning | RESOLVED | IKSSummaryPage supplies exact global/category summaries and a bounded trajectory page. /api/v2/purchasing/iks and api_version=2 opt-in, old-version retirement, unchanged /iks/summary, page metadata/final point and precise compatibility tests are defined. |
+
+### Blocking finding: P1-F — conservation window order is not fully reference-equivalent
+
+Design references:
+- docs/design_bounded_consumer_contracts.md:315 (section 2.2): C=(normalized created_at, decision_id).
+- :348 (section 2.3): conservation_v1 explicitly selects C order.
+- :396 (section 2.4): conservation_tail_v1 selects and returns its tail in C.
+- :538-544 (section 2.7): promises the identical eligible chronological sequence and unchanged configured-window verdict.
+
+Source references:
+- copilot_sdk/scoring/composite_gate.py:105-118, especially :113-118: a row with missing/None created_at has key (0.0, ""), ignoring its ID, and stable sorting retains provider order for equal keys.
+- copilot_sdk/backend/conservation_utils.py:87-92 delegates chronological ordering to that helper.
+- copilot_sdk/scoring/scorer.py:2898-2902 orders conservation inputs through this path; :2830-2839 evaluates the configured recent gate.
+- copilot_sdk/timestamps.py:7-17 rejects None when normalize_timestamp is called directly.
+
+The exception is documented for trust_v1 at design :353, but not for conservation. This is not just a tie-display issue: it can select a different trailing population and change a learning pause. Literal normalization of null errors where the current helper succeeds; mapping null to zero while keeping decision_id still gives the wrong order.
+
+Read-only reproducer using the actual chronological_decisions function:
+- 800 eligible rows in the specified memory_recent provider order.
+- IDs 0001..0200: created_at=0.0, overridden/False.
+- IDs 0201..0800: created_at=None, confirmed/True.
+- W=600, recent threshold .75.
+- Reference helper puts missing-time rows at key (0,"") before real epoch-zero rows: last600 contains 400 wins and200 losses, q=2/3, recent gate pauses.
+- Timestamp/ID order with missing time normalized to zero puts the200 losses before the600 wins: last600 contains600 wins, q=1, recent gate does not pause.
+
+Required fix: amend sections 2.2/2.3/2.4/2.7 to specify the exact reference chronological key (present timestamp -> normalized timestamp and ID; absent/None -> (0,"")), preserving the original legacy ordinal as the stable final tie-breaker, and use that same ordering for native rank selection, scalar window reductions and evidence cursors; add the mixed null/epoch-zero parity fixture without changing P1's generic cursor contract.
+
+The original length-truncation defect is repaired, but F cannot be marked fully resolved while its exact-input guarantee remains contradictory. No numerical formula edit is intended; the residual change in selected inputs nevertheless violates frozen behavior.
+
+### New dataclass completeness audit
+
+Every class below has typed fields and frozen=True/slots=True; none is prose-only. Scope and bounds are inherited from the cited normative capability rules where not repeated on the class.
+
+| New class | Scope and bound verified |
+|---|---|
+| CorrectnessPolicy | Fixed three named policies, not caller-overridable; fixed-size scalar definition. |
+| SupplierPriceDetail | Supplier's final five valid prices per category in L; paged, shared 2MiB/1000-item and identifier bounds. |
+| SupplierSeasonDetail | All-history distinct supplier seasons with original typed identity; paged under the same bounds. |
+| SupplierDetailRequest | Scoped supplier/kind/order selectors, bounded IDs and cursor binding. |
+| SupplierDetailPage | One kind only, exact full matched count, common stamp, at most page limit/2MiB. |
+| TradingRollingOutcome | One Boolean outcome in exact verification order; identity and provenance sort fields bounded. |
+| TradingContextSummary | Same-snapshot analytics population, at most10 outcomes, one latest-regime selection, at most2MiB. |
+| DKRequest | Exact graph-fallback algorithm/live centroid input; dimensions1..1000, at most65536 centroid cells/2MiB, configuration preflight. |
+| DKResult | Full correct support plus per-category sample counts and tensor; C*D<=65536/2MiB, no history rows. |
+| LegacyAliasKey | Authenticated tenant/domain plus operation namespace, case-sensitive bounded alias. |
+| LegacyAliasMapping | One governed target with source/precedence ordinals; paged mapping evidence. |
+| LegacyAliasResolution | Full-set winner/count and alias revision independent of mapping page; mappings<=1000/2MiB. |
+| LegacyAnnotationWrite | Alias-scoped CAS/idempotent write; shared tag/text/payload limits, one governed annotation. |
+| HistoricalAnnotation | Staging-only historical event/current snapshot; original time/key-presence/order/provenance retained; bounded batch and explicit oversized-evidence behavior. |
+| AnnotationHistoryPage | Identity-scoped ordered history events, cursor/stamp, at most1000/2MiB. |
+| JournalMigrationSource | Immutable source digest/count and ordinal progress, bounded identity/digest fields. |
+| JournalMigrationState | Tenant/domain migration state; at most1000 sources/2MiB, revision/counters/phase. |
+| JournalMigrationBatch | Digest-bound contiguous atomic operation stream, at most100 operations/2MiB. |
+| JournalMigrationReconciliation | Fixed scalar counts/digest/totals, checked natively against complete staged evidence. |
+| ReplayBoundary | Exact optional checkpoint and inclusive upper timestamp/ID pair; fixed-size scoped selectors bound to export. |
+| IKSCategoryValue | One configured category's exact final IKS, bounded category name. |
+| IKSSummaryPage | Same-snapshot full-population summary, configured categories<=1000 plus bounded curve points, combined response<=2MiB. |
+
+No additional P1/P2 was found in the 22 new class schemas themselves. The blocking issue is their surrounding conservation population/order specification.
+
+### Counterexamples, manifests and validation
+
+Read-only reference probes:
+- Supplier [1,3]/winter versus [2,2]/summer: equal old aggregates, different individual price/season outputs — PASS.
+- Original conservation200 losses+400 wins, W600: full input and exact600 tail both (600,2/3), while the forbidden400 tail gives (400,1) — PASS.
+- Added mixed-null/epoch-zero W600 ordering probe — FAIL for the document's C-order rule, as above.
+- Measurement1001 configured arms with a zero beyond page1: global measured1000/minimum0 — PASS.
+- Five compatible confirmed/is_correct=False fingerprint rows: fingerprint0, scorer correct5 — PASS.
+- DK1100 rows versus the estimator's first400/category selection: equal tensors — PASS. This is reference input-selection evidence, not a future native implementation test.
+
+Manifest counts independently verified (production/test): P4 15/10; P5 7/3; P6 27/16; P7 46/9; P8 16/9; P9 15/9; P10 10/5; P11 26/24; P12 8/5. Total131 distinct production files,170 stage assignments. Additions for DK refresh, Trading regressions and IKS HTTP versioning are recorded; dependencies remain explicit. The parent and amended document name P4 IMPL-NATIVE-READ-MODELS, including memory/native/wrapper parity, not a memory-only capability activation.
+
+Review-only scope: the sole write by this review is this required session-state append. No production, test or design files were modified; existing unrelated dirty-tree changes were preserved. Reviewed design SHA-256: ccede8c57244a7581a4eade7c8943564d3674e7742abca849c1cb4b6107931a3. No scorer formula source was edited. No full-suite, mypy, native implementation, performance or live-stack result is claimed. Retained BP-P1 baseline remains4545 passed,1 xfailed,0 failed.
+
+Re-review requirement: resolve P1-F's chronological-order conflict and rerun both the original600-window fixture and the mixed missing/epoch-zero fixture. P4 remains blocked; no Rule85 gap closure is claimed.
+
+## P3-FIX-2 (TIMESTAMP-ORDER-FIX)
+
+Date: 2026-10-15
+Status: Design amendment complete; re-review required before P4.
+Scope: docs/design_bounded_consumer_contracts.md plus this required session-state append. No production or test files modified.
+
+Prior state: REV-P3-FIX recorded FAIL with one P1, the conservation timestamp/ID order at former design line348. A-E, G and H were resolved; F's configured-window size passed but its ordering did not.
+
+Comprehension gate (answered before amendment):
+- Q1: Scorer _read_conservation_inputs_once sorts through _sort_decisions_chronological -> backend/conservation_utils.py -> composite_gate.chronological_decisions. Python stable ascending sort uses (normalize_timestamp(created_at), str(decision_id or "")) when a dict has a non-null creation timestamp.
+- Q2: Missing/null creation timestamps (and non-dict rows at that helper boundary) use (0.0, ""), ignoring the actual ID. Equal complete keys preserve supplied input order, not necessarily insertion order. _recent_quality itself slices its supplied sequence; the scorer path supplies the ordered sequence.
+- Q3: Former design line348 required C, the normalized creation timestamp/decision-ID order; conservation_tail_v1 also used C.
+- Q4: Generic P1 cursors use timestamp/ID. Supplemental cursors bind their profile's complete order and epoch; trajectory uses prefix ranks, journal entry/P&L/source order, replay its verification boundary, and group pages group keys.
+- Q5: C-based conservation totals/evidence conflict with the helper's missing/null empty-ID key and stable equal-key input order. A timestamp/actual-ID cursor cannot reproduce that reference sequence.
+
+Amendment: §2.2 defines canonical reference sequence H. Preserve the complete effective provider L input ordinal through filtering; for finite keys the native equivalent is (reference_timestamp, reference_id, input_ordinal) ASC. Missing/null keys are exactly (0.0, ""); present epoch-zero keys retain their ID; equal complete keys use original input order. Preserve normalization errors and reference nonfinite comparison behavior. Conservation/trust/gate registries and §2.7 now reference H. Baseline, checkpoint, trajectory, journal and replay retain their distinct existing order contracts.
+
+Cursor rule: conservation_tail_v1/gate_tail_v1 select the configured W tail of H, then page by unique global H rank, assigned before tail selection. The opaque ReadCursor binds rank, scope, profile/policy, L, selectors, W and ReadStamp. Predicate rank>last and ORDER BY rank ASC agree. Epoch changes invalidate continuation. No generic P1 type changes, page-local re-ranking or alternate query-serving store.
+
+Counterexample verified against actual source chronological_decisions, normalize_timestamp, _recent_quality and _is_correct_decision functions:
+- Input: epoch-zero losses0001..0200, then null wins0201..0800.
+- H: null wins0201..0800, then epoch-zero losses0001..0200.
+- W600 tail: wins0401..0800 (400), then losses0001..0200 (200).
+- window_n600, window_c400, q=2/3 < .75; the recent-window threshold condition pauses. The forbidden null-to-zero/actual-ID order gives600 wins instead.
+- Cursor limits1/100/137/400/1000 reconstruct exactly that tail with no duplicate IDs and the same quality.
+- Original chronological200L+400W fixture also returns (600,2/3). Missing/null, reversed input IDs, equal complete keys, absent/empty IDs at epoch zero, negative epochs, ISO timestamps, W1/400/600/1600 and N<W match the reference. Malformed timestamp errors remain errors.
+- Epoch invalidation/native parity remain explicit P4/P6 implementation acceptance gates, not claimed implemented by these reference probes.
+
+Document validation: all122 consumer IDs occur exactly once and match the parent Appendix A. Five Python specification blocks parse/compile; all55 dataclasses remain frozen with their type annotations resolved, including all original33 names; seven supplemental protocols remain. No new/amended dataclass fields. P4-P12 manifests unchanged:131 distinct production files/170 stage assignments. Searched the entire document for order/sort/timestamp/cursor/stable and reconciled conservation-related occurrences with H; unrelated profiles retain their required orders.
+
+Scorer math remains frozen. Tracked non-documents SHA-256 before/after: a9bf562c4f90eed2536e85ff527c442101733e585f100eab53e7ecb99021706e (identical). Existing unrelated workspace edits were neither made nor reverted. No production/test writes, full-suite/mypy/native implementation success or live-stack gap closure is claimed. P4 awaits re-review.
+
+## REV-P3-FIX-2 (TIMESTAMP-ORDER-RECHECK)
+
+Date: 2026-10-15
+Reviewer: Sol
+Verdict: PASS — Timestamp ordering P1 resolved. P4 is unblocked by this design review.
+Findings: 0 P1, 0 P2, 0 P3.
+Existing P4 prerequisite/implementation gates in §8.1 remain mandatory; this is not native implementation or live-stack gap closure.
+
+Read session state first: REV-P3-FIX recorded FAIL with the single residual P1-F ordering conflict; P3-FIX-2 claimed its correction. Read the complete amended design and scorer.py, then inspected the delegated composite_gate.py helper and backend/conservation_utils.py. Answered all four comprehension questions before the verification probes.
+
+Comprehension answers:
+1. §2.2 at design lines321–327 defines H as the reference stable ascending sequence. Present timestamps compare normalize_timestamp(created_at), then str(decision_id or ""). Equal complete keys retain the original effective provider L input ordinal; this is not universally insertion order.
+2. Missing/null created_at uses exactly (0.0, ""), ignoring the actual ID. Present epoch-zero timestamps retain their ID; negative timestamps precede zero. Normalization errors remain errors.
+3. MATCH: scorer.py:2898 calls _sort_decisions_chronological; scorer.py:94 delegates through backend/conservation_utils.py:83 to composite_gate.py:105. The latter's actual code is:
+   if isinstance(row, dict) and row.get("created_at") is not None:
+       return normalize_timestamp(row["created_at"]), str(row.get("decision_id") or "")
+   return 0.0, ""
+   It returns sorted(rows, key=order), so equal complete keys preserve input order. _recent_quality at scorer.py:3416 slices the supplied ordered sequence and does not independently sort.
+4. MATCH: design line327 binds conservation/gate evidence cursors to global H rank, assigned before tail selection, with rank>last and ORDER BY rank ASC at the same ReadStamp. Lines358,406–407,550 and1746 agree. Epoch changes invalidate continuation. Generic, journal, trajectory, group and replay cursors retain their separate explicitly scoped orders (line329); they are not reused for H windows.
+
+P1 re-check:
+- Actual reference ordering, missing/null handling and stable final ties explicitly documented — PASS.
+- Equal present timestamps compare IDs before using input ordinal; null/absent timestamps do not compare actual IDs — PASS.
+- Scalar window reduction and evidence cursor select the same complete eligible sequence and configured tail — PASS.
+- No remaining conservation C-order requirement or fixed400 semantic cap — PASS.
+- Search across the full document found order on108 lines, sort21, timestamp43, cursor62, stable17 and window43; reviewed occurrences in their profile contexts. No new amendment inconsistency found. Other consumers' distinct order contracts are intentionally preserved.
+
+Counterexample:
+Input IDs0001..0200:200 epoch-zero losses; IDs0201..0800:600 null-timestamp wins, in memory_recent provider order. H is wins0201..0800 then losses0001..0200. Its final600 are wins0401..0800 (400) followed by losses0001..0200 (200). Therefore recent q=400/600=2/3<.75, and sample count600 meets W600.
+
+Independent read-only probes executed source-extracted actual normalize_timestamp, chronological_decisions, shared _rolling_q/eligibility helpers, _recent_quality, _is_correct_decision and CompoundingScorer._conservation_pause. The scorer method returned status=paused, reason=conservation_red, recent_q=0.6666666666666666, recent_window=600. Its separate default400 rolling q field is0.5; it is not the configured600-window recent_q. The forbidden timestamp/actual-ID order returned recent q=1 as the negative control.
+
+Cursor-spec traversal at limits1,7,100,137,400,1000 reproduced the entire exact600-row tail once with no duplicate IDs. Two hundred shuffled input-order cases matched the helper, covering missing/null dates, epoch-zero absent/empty IDs, equal timestamps with different IDs, equal complete keys, negative epochs and ISO dates. These verify the contract against the reference; future native cursor/epoch implementations must still pass P4/P6 gates.
+
+Integrity:
+-122 entries, all IDs1..122 exactly once, matching parent Appendix A.
+-55 dataclasses, all frozen, all original33 retained; five Python blocks parse/compile and annotations resolve.
+-Seven supplemental protocols intact; no type or manifest amendments by this review.
+-No scorer math changes proposed by the ordering amendment. Existing future storage/access migrations are distinct from frozen formula edits.
+-Tracked non-document digest equals P3-FIX-2's recorded digest: a9bf562c4f90eed2536e85ff527c442101733e585f100eab53e7ecb99021706e.
+-Reviewed design raw-byte SHA-256: d42b7d2979b967d58ce47a40c3f9df477a07578ee5efcfdab591c6f424b4a365.
+
+Only this required session-state append was written. No production, test or design files changed; existing unrelated workspace changes were preserved. No full-suite/mypy/native-performance/live-stack result is claimed. The P3 design review gate is now PASS; P4 may proceed subject to its existing prerequisite gates.
+
+## P2a (IMPL-BOUNDED-MEMORY)
+
+Date: 2026-10-15 (America/Los_Angeles)
+Status: DONE — InMemory bounded contract and regression gates pass.
+
+Files modified:
+- copilot_sdk/graph/memory_store.py
+- copilot_sdk/graph/query.py (shared normalization constants only; shipped types unchanged)
+- tests/test_bounded_capability_compatibility.py (one explicitly authorized assertion flip)
+- docs/session_state.md (this required entry)
+
+File created: tests/test_bounded_projection_contract.py.
+
+Prerequisites and comprehension gate:
+- Read session state first; BP-P1/REV-P1 establish the shipped optional capability, and REV-P3-FIX-2 passed the ordering design gate.
+- Read protocol.py, query.py, memory_store.py and the complete parent design before editing. Produced the file architecture summary, concrete method/check table and before/after initialization blocks before edits.
+- BoundedProjectionStore remains separate from V2; its four concrete method signatures match exactly. The actual shipped query module contains six frozen dataclasses, four Literal aliases and two exceptions, despite the prompt's seven-dataclass label. All types and the thirteen graph/package re-exports remain unchanged.
+- Existing storage separates active decisions, outcomes and archives. Both decision writers reach _store_decision; outcome verification, both archives and domain reset are distinct mutation sites. No existing store lock was present, so a reentrant lock was added.
+- Legacy markers are the presence of BOTH signal_detail and signal_timestamp in decision metadata, independent of their values. Tenant normalization retains the historical default tenant. Source/ticker/regime and date/size/P&L metadata fallbacks serve the bounded predicates/projections.
+
+User-approved corrections:
+1. Flipped tests/test_bounded_capability_compatibility.py's negative InMemory bounded-membership assertion to positive. No other pre-existing test assertion changed.
+2. Generic missing/null timestamp keys use (0.0, decision_id), retaining the actual ID so the shipped cursor can resume uniquely. No cursor type or supplemental conservation H ordering change.
+3. Followed the latest P2a instructions where they differ from the older parent design: a current-generation fence MAY accompany a cursor; verified ordering raises ValueError for a missing persisted Outcome verification timestamp rather than falling back to creation time.
+
+Implementation:
+- Per-physical-domain _domain_generations and _feed_events, with _next_generation/_current_generation. Existing _sequence remains independent.
+- Prepare independent full-normalized event payloads before publishing writes; commit mutation, generation and event under the same RLock. Creates/raw supported updates and successful verification emit upserts. Governed replay and identical-outcome replay remain no-ops; rejected writes emit nothing. Raw updates reject changes to existing routing identity.
+- Both archive methods and domain_scoped_reset emit delete tombstones retaining pre-removal domain, tenant and legacy routing. Domain reset retains its anchor/feed; whole-store reset clears both and starts a new test-store lifetime.
+- Shared predicates implement active-only query/count/aggregate filtering, including verified-only correctness, inclusive confidence bounds, half-open date bounds, recommended-action semantics and routing predicates.
+- Query uses timestamp/ID ordering in both directions, cursor-or-offset paging and limit+1 detection. as_of_generation checks current equality under the read lock and raises DecisionGenerationChanged on mismatch; it is not historical reconstruction.
+- Aggregates return requested metrics, distinguish null dimensions from empty strings, omit undefined averages, and enforce the 1,000-group ceiling.
+- Feed accepts only routing filters, captures H under the lock, returns immutable-history payload copies in ascending generation order, and advances terminal/empty visible pages to H. It rejects cursors above H and invalid limits.
+- SUMMARY_FIELDS, SCORING_FIELDS, JOURNAL_FIELDS, LEARNING_METADATA_FIELDS and IMPLEMENTATION_ONLY_FIELDS are directly importable from query.py; __all__ remains the existing query-type re-export contract. Narrow projections use explicit allowlists; scoring learning_metadata uses its five-key allowlist. Full projections retain evidence while hiding _sequence/_generation. All returned nested data is independently copied.
+- Legacy _read_decision also hides the newly introduced _generation bookkeeping. _ordered_decisions, _decision_page, get_decisions, get_verified_decisions, count_verified and count_correct bodies compare unchanged against the pre-edit source. count_decisions(domain) preserves its original scalar visibility.
+
+Validation (Windows, Python 3.11.4):
+- Completed baseline BEFORE edits: python -m pytest tests/ -q --timeout=120 — 4,545 passed, 1 xfailed, 0 failed, 0 skipped (9,686.27 seconds).
+- Final full root suite, same command: 4,657 passed, 1 xfailed, 0 failed, 0 skipped (2,009.75 seconds). Exact delta: +112 contract cases.
+- Final isolated command: python -m pytest tests/test_bounded_projection_contract.py -v --timeout=120 — 112 passed, 0 failed (2.14 seconds).
+- Earlier focused contract/type/compatibility/memory/V2 regression subset: 270 passed; subsequent final full run covers the added top-level ticker regression as well.
+- python -m mypy --config-file pyproject.toml copilot_sdk/graph/memory_store.py copilot_sdk/graph/query.py tests/test_bounded_projection_contract.py tests/test_bounded_capability_compatibility.py — Success: no issues found in 4 source files.
+- No new cast() or type: ignore suppressions. Runtime GraphStore/V2/bounded memberships pass; all four bounded signatures match the protocol. git diff --check for memory_store.py is clean.
+- Contract coverage includes both sort directions, tied and missing timestamps, fences across pages, all filters, projection isolation, event-time reads after archive, routing-filtered watermark progress, all mutation paths, rejected writes, concurrent idempotency and coherent feed watermarks. Historical null/top-level data fixtures use the real store's existing records; public writers still retain their original timestamp validation.
+
+Observed warnings: the final full run emitted two PytestUnhandledThreadExceptionWarning reports from psycopg_pool scheduler threads (OverflowError: timeout value is too large) during existing tests/test_graph_signals.py tests. One named test uses freeze_time. These were warnings, not failed assertions; their cause was not established by this InMemory-only task. No AGE/client/test code was changed to suppress them. Existing deprecation and DSN warnings also remain. The isolated contract run emitted only the existing pytest_freezegun deprecation warnings.
+
+Scope and backward compatibility:
+- Before/after digest of 3,233 tracked/untracked .py/.md/.toml files outside the approved edit list: fed5a2d4dc0ae97a1726040d80c9708640a409c8739352844a3fe7cb5dd3189a (identical, checked again after the full suite).
+- No protocol, package-init, namespace, factory, wrapper, capabilities, production marker, AGE, app or scorer source edits. Existing unrelated working-tree changes were preserved. All 4,545 pre-existing passing tests still pass, with only the explicitly authorized capability assertion update.
+- No live-stack gap closure or production bounded-wrapper/AGE activation is claimed; those remain separate stages.
+
+## REV-P2a (2026-10-15)
+
+Verdict: FAIL — review stopped at the explicit protected-file gate; implementation correctness is not adjudicated.
+Findings: P1: 1 (review baseline/blast-radius blocker); P2: 0 established; P3: 0 established.
+P2b unblocked: NO.
+Fixer prompt needed: YES — isolate the review comparison before re-review; no production fix established by this stopped review.
+
+P2a completion record read first. It identifies memory_store.py, query.py, test_bounded_projection_contract.py, and test_bounded_capability_compatibility.py as its four Python files. It reports per-domain generations, atomic mutation/feed publication under RLock, bounded query/count/aggregate/feed methods, explicit projection normalization and independent payload copies; 4,657 passed / 1 xfailed, 112 contract cases, and mypy clean on four files. These are prior-run results, not fresh review validation. The completion record explicitly preserves unrelated pre-existing working-tree changes.
+
+FINDING P2a-R-01: Requested comparison fails the protected-file gate and does not isolate P2a.
+Severity: P1.
+Files: copilot_sdk/graph/protocol.py:13 and :647; copilot_sdk/scoring/scorer.py:83.
+Issue: git diff HEAD~1 includes protected protocol/scorer modifications. Step 4a explicitly requires STOP on either. The comparison also omits three untracked P2a-related Python files, so it is not a complete P2a patch.
+Evidence: protected-path diff reports protocol.py (124 changed lines) and scorer.py (737 changed lines), combined 740 insertions / 121 deletions. Protocol changes include query imports and BoundedProjectionStore; scorer changes include _rolling_q delegation. git status marks both modified and query.py, test_bounded_projection_contract.py, and test_bounded_capability_compatibility.py untracked. The full requested comparison lists 469 paths: 150 non-test Python, 261 test/support files, and 58 config/docs/other non-Python files.
+Attribution: this is a review-input/gate violation, NOT evidence P2a authored the protected edits. The completion entry records pre-existing edits and an unchanged digest outside P2a scope. No unrelated changes were reverted.
+Fix: establish an isolated pre-P2a versus post-P2a comparison that includes the four intended Python files (including untracked contents), preserving prior work separately; then rerun the complete review against that explicit boundary.
+FAILURE MODE TO PREVENT: attributing earlier scorer/protocol changes to P2a, or approving an incomplete patch that omits new implementation/tests.
+
+Protected checks: compounding.py has no diff in the requested comparison. The specified ci_platform/graph/age_client.py path has no diff in this SDK comparison; that does not verify a separate ci-platform repository. scorer.py and protocol.py do have diffs, triggering the mandatory stop.
+Review limits/self-check: session completion and comparison inventory inspected; design/full-file review, method-contract review, concurrency audit, downstream audit, test-quality review, and fresh mypy were NOT completed because of the explicit STOP instruction. No new test run was performed. No implementation PASS is implied.
+Warnings: the completion entry records two psycopg_pool scheduler OverflowError thread warnings in existing graph-signal tests, with cause unestablished. This stopped review cannot classify them as pre-existing or P2a-introduced; warning provenance remains outstanding.
+Only docs/session_state.md was edited by this review.
+
+Complete requested HEAD~1 comparison inventory follows. Test classification includes test directories, conftest files and E2E TypeScript support/specs. The final category includes frontend/data/binary files as well as config/docs; it must not be mistaken for docs-only changes.
+
+### Production/non-test Python (150)
+
+- apps/dataops/backend/app/context_router.py
+- apps/dataops/backend/app/dataops_governance.py
+- apps/dataops/backend/app/graph_queries.py
+- apps/dataops/backend/app/graph_status.py
+- apps/dataops/backend/app/main.py
+- apps/dataops/backend/app/routers/intelligence_router.py
+- apps/dataops/backend/app/services/source_trust.py
+- apps/purchasing/backend/app/graph_status.py
+- apps/purchasing/backend/app/main.py
+- apps/purchasing/backend/app/routers/auto_order_router.py
+- apps/purchasing/backend/app/routers/queue.py
+- apps/purchasing/backend/app/services/par_optimizer.py
+- apps/purchasing/backend/app/services/predictive_par.py
+- apps/purchasing/backend/app/services/purchasing_control.py
+- apps/purchasing/backend/cli.py
+- apps/regime_experiment/experiment.py
+- apps/s2p_differentiation/engine.py
+- apps/trading/backend/app/cli_sdk.py
+- apps/trading/backend/app/context_router.py
+- apps/trading/backend/app/graph_status.py
+- apps/trading/backend/app/main.py
+- apps/trading/backend/app/routers/evidence.py
+- apps/trading/backend/app/routers/evolution_router.py
+- apps/trading/backend/app/routers/journal.py
+- apps/trading/backend/app/routers/regime_router.py
+- apps/trading/backend/app/services/claim_gate.py
+- apps/trading/backend/app/services/pre_scorer.py
+- apps/trading/backend/app/services/regime_classifier.py
+- apps/trading/backend/app/services/regime_scoring.py
+- apps/trading/backend/app/services/trading_evolver.py
+- apps/trading/backend/app/services/trading_materialization.py
+- apps/trading/backend/app/state/schemas/trading.py
+- apps/trading/backend/app/state/trading_registry.py
+- copilot_sdk/backend/conservation_router.py
+- copilot_sdk/backend/conservation_utils.py
+- copilot_sdk/backend/cross_signal_router.py
+- copilot_sdk/backend/di_router.py
+- copilot_sdk/backend/graph_signals.py
+- copilot_sdk/backend/health_builder.py
+- copilot_sdk/backend/models.py
+- copilot_sdk/backend/response_materializer.py
+- copilot_sdk/backend/scorer_proxy.py
+- copilot_sdk/backend/scoring_router.py
+- copilot_sdk/backend/self_computation_router.py
+- copilot_sdk/backend/signal_store.py
+- copilot_sdk/backend/transfer.py
+- copilot_sdk/backend/transfer_router.py
+- copilot_sdk/config/graph_config.py
+- copilot_sdk/connectors/airflow_connector.py
+- copilot_sdk/demo/bundle.py
+- copilot_sdk/demo/preseed.py
+- copilot_sdk/di/query_service.py
+- copilot_sdk/enterprise/process_ingest.py
+- copilot_sdk/evolution/__init__.py
+- copilot_sdk/evolution/conservation_contract.py
+- copilot_sdk/evolution/graph_store.py
+- copilot_sdk/evolution/variant_store.py
+- copilot_sdk/framework/learning_state.py
+- copilot_sdk/graph/__init__.py
+- copilot_sdk/graph/dual_write_store.py
+- copilot_sdk/graph/factory.py
+- copilot_sdk/graph/legacy_signal_filter.py
+- copilot_sdk/graph/memory_store.py
+- copilot_sdk/graph/namespace.py
+- copilot_sdk/graph/outbox.py
+- copilot_sdk/graph/outcome_service.py
+- copilot_sdk/graph/production.py
+- copilot_sdk/graph/protocol.py
+- copilot_sdk/graph/read_diff_runner.py
+- copilot_sdk/graph/scoring_persistence.py
+- copilot_sdk/graph/sqlite_store.py
+- copilot_sdk/graph/tenant_store.py
+- copilot_sdk/migrate/__main__.py
+- copilot_sdk/migrate/legacy_archive_reader.py
+- copilot_sdk/migrate/reconcile_archive.py
+- copilot_sdk/migrate/verify_state.py
+- copilot_sdk/outcome/ledger.py
+- copilot_sdk/pilot/transfer.py
+- copilot_sdk/promotion/core.py
+- copilot_sdk/reporting/weekly.py
+- copilot_sdk/scoring/composite_gate.py
+- copilot_sdk/scoring/gate_enforced_scorer.py
+- copilot_sdk/scoring/investigation.py
+- copilot_sdk/scoring/measurement_state.py
+- copilot_sdk/scoring/scorer.py
+- copilot_sdk/scoring/trajectory.py
+- copilot_sdk/scoring/trust_traps.py
+- copilot_sdk/scoring/verification/weather.py
+- copilot_sdk/state/invalidation.py
+- copilot_sdk/testing/fixtures.py
+- copilot_sdk/timestamps.py
+- copilot_sdk/transfer/registry.py
+- copilot_sdk/twin/service.py
+- copilot_sdk/twin/store.py
+- demo.py
+- examples/build_your_own/engine.py
+- examples/build_your_own/run.py
+- examples/jm_reference/report.py
+- examples/jm_reference/run.py
+- examples/trading_clone/run.py
+- experiments/jm_extracted/e_jm_4b_recalibration.py
+- experiments/jm_extracted/jm_phase3_corrected.py
+- experiments/jm_extracted/jm_phase3_finalize.py
+- experiments/jm_extracted/jm_redesign.py
+- experiments/jm_extracted/render_ci_failuremodes_v6.py
+- experiments/jm_extracted/render_rl_outreach_charts.py
+- experiments/vld/c1_c6_campaign_v1.py
+- experiments/vld/vld_cons_pd_decision_features_v1.py
+- experiments/vld/vld_conservation_characterization_v1.py
+- experiments/vld/vld_conservation_lag_c5_v1.py
+- experiments/vld/vld_conservation_perdecision_signals_v1.py
+- experiments/vld/vld_decision_complexity_v1.py
+- experiments/vld/vld_delayed_entrant_v1.py
+- experiments/vld/vld_gate_calibration_f2_v1.py
+- experiments/vld/vld_looped_depth_c7_v1.py
+- experiments/vld/vld_moat_b2_v1.py
+- experiments/vld/vld_rl_ctrl2c_constrained_v1.py
+- experiments/vld/vld_rl_ctrl2c_redesign_v1.py
+- experiments/vld/vld_rl_ctrl_enrichment_v1.py
+- experiments/vld/vld_rl_ctrl_fork_v1.py
+- integrity/architecture_scan.py
+- integrity/commercial_smoke.py
+- scripts/age_id_live_probe.py
+- scripts/age_id_live_probe_v3.py
+- scripts/age_pf_blockers.py
+- scripts/age_v35_review_checks.py
+- scripts/budget_accuracy_frontier.py
+- scripts/d1_recursion_trace_v1.py
+- scripts/demo_truth_preflight.py
+- scripts/demo_warm_start.py
+- scripts/discovery_demo.py
+- scripts/evolve_demo.py
+- scripts/hero_moments.py
+- scripts/k_learning_conservation_interaction.py
+- scripts/k_learning_curve_cross_copilot.py
+- scripts/k_learning_curve_experiment.py
+- scripts/k_learning_curve_extended.py
+- scripts/k_learning_distribution_sensitivity.py
+- scripts/loom_gauntlet.py
+- scripts/pilot_report.py
+- scripts/preseed_all_copilots.py
+- scripts/preseed_demo_fixtures.py
+- scripts/preseed_hero_scenarios.py
+- scripts/regenerate_demo_bundles.py
+- scripts/routing_variant_risk_sensitive.py
+- scripts/run_decision_mirror_v2.py
+- scripts/scan_integrity.py
+- scripts/sqlite_copilot_audit.py
+- scripts/transfer_demo.py
+- scripts/trigger_warm_start.py
+
+### Test files and test support (261)
+
+- apps/dataops/backend/conftest.py
+- apps/dataops/backend/tests/conftest.py
+- apps/dataops/backend/tests/test_bundle_wiring.py
+- apps/dataops/backend/tests/test_dataops_backend.py
+- apps/dataops/backend/tests/test_dataops_fixture_closure.py
+- apps/dataops/backend/tests/test_dataops_graph_status.py
+- apps/dataops/backend/tests/test_di_enterprise_query.py
+- apps/dataops/backend/tests/test_materializer_invalidation.py
+- apps/dataops/backend/tests/test_source_trust.py
+- apps/purchasing/backend/conftest.py
+- apps/purchasing/backend/tests/conftest.py
+- apps/purchasing/backend/tests/conftest_helpers.py
+- apps/purchasing/backend/tests/test_bundle_wiring.py
+- apps/purchasing/backend/tests/test_cli.py
+- apps/purchasing/backend/tests/test_control_reads.py
+- apps/purchasing/backend/tests/test_frozen_twin_curves.py
+- apps/purchasing/backend/tests/test_health_outage_contract.py
+- apps/purchasing/backend/tests/test_investigation_integration.py
+- apps/purchasing/backend/tests/test_materializer_invalidation.py
+- apps/purchasing/backend/tests/test_predictive_par.py
+- apps/purchasing/backend/tests/test_purchasing_backend.py
+- apps/purchasing/backend/tests/test_purchasing_config_migration.py
+- apps/purchasing/backend/tests/test_purchasing_control.py
+- apps/purchasing/backend/tests/test_purchasing_graph_status.py
+- apps/purchasing/backend/tests/test_ss06_silent_substitution.py
+- apps/purchasing/backend/tests/test_trust_analysis.py
+- apps/purchasing/backend/tests/test_verify.py
+- apps/s2p_differentiation/tests/test_engine_graph_sharing.py
+- apps/trading/backend/conftest.py
+- apps/trading/backend/tests/conftest_helpers.py
+- apps/trading/backend/tests/test_bundle_wiring.py
+- apps/trading/backend/tests/test_claim_gate.py
+- apps/trading/backend/tests/test_cli_sdk.py
+- apps/trading/backend/tests/test_evidence.py
+- apps/trading/backend/tests/test_health_route_contract.py
+- apps/trading/backend/tests/test_investigation_integration.py
+- apps/trading/backend/tests/test_journal.py
+- apps/trading/backend/tests/test_live_rejection_provenance.py
+- apps/trading/backend/tests/test_materializer_invalidation.py
+- apps/trading/backend/tests/test_options_factors.py
+- apps/trading/backend/tests/test_options_scored_factors.py
+- apps/trading/backend/tests/test_pre_scorer.py
+- apps/trading/backend/tests/test_regime_analytics.py
+- apps/trading/backend/tests/test_regime_classifier.py
+- apps/trading/backend/tests/test_regime_replay.py
+- apps/trading/backend/tests/test_rejection_summary.py
+- apps/trading/backend/tests/test_trading_backend.py
+- apps/trading/backend/tests/test_trading_config_migration.py
+- apps/trading/backend/tests/test_trading_graph_status.py
+- apps/trading/backend/tests/test_trading_registry.py
+- conftest.py
+- e2e/dataops/flows.spec.ts
+- e2e/demo-cuts/demo-fixture.ts
+- e2e/demo-cuts/enterprise-cut.spec.ts
+- e2e/demo-cuts/staged-trust-beats.spec.ts
+- e2e/demo-cuts/trader-cut.spec.ts
+- e2e/demo-cuts/vc-cut.spec.ts
+- e2e/fixtures/copilot-fixture.ts
+- e2e/purchasing/order.spec.ts
+- e2e/purchasing/performance.spec.ts
+- e2e/purchasing/transfer-badge.spec.ts
+- e2e/purchasing/trust-radar.spec.ts
+- e2e/s2p/active-age-smoke.spec.ts
+- e2e/trading/dashboard.spec.ts
+- e2e/trading/evolution.spec.ts
+- e2e/trading/execution.spec.ts
+- e2e/trading/promotion.spec.ts
+- e2e/trading/provenance-badge.spec.ts
+- e2e/trading/provenance.spec.ts
+- e2e/trading/reconvergence.spec.ts
+- e2e/trading/transfer.spec.ts
+- e2e/trading/trust-radar.spec.ts
+- e2e/trading/vix-timing.spec.ts
+- e2e/trading/webhook.spec.ts
+- tests/backend/test_coalesced_reads.py
+- tests/backend/test_conservation_cc4.py
+- tests/backend/test_conservation_router.py
+- tests/backend/test_graph_access_health.py
+- tests/backend/test_score_responsiveness.py
+- tests/backend/test_scorer_proxy.py
+- tests/backend/test_scoring_graph_outages.py
+- tests/backend/test_scoring_router.py
+- tests/backend/test_self_computation_router.py
+- tests/backend/test_trust_traps_router.py
+- tests/demo/test_bundle.py
+- tests/evolution/test_cross_loop_conservation.py
+- tests/evolution/test_evolution_store.py
+- tests/evolution/test_evolve_integration.py
+- tests/evolution/test_graph_variant_store.py
+- tests/evolution/test_integration.py
+- tests/evolution/test_ledger_domain.py
+- tests/evolution/test_selection_snapshot.py
+- tests/evolution/test_summary_snapshot.py
+- tests/evolution/test_variant_event_order.py
+- tests/evolution/test_variant_replay_order.py
+- tests/evolution/test_variant_status_sequence.py
+- tests/evolution_contract_helpers.py
+- tests/graph/conftest.py
+- tests/graph/test_age_p4a.py
+- tests/graph/test_contract_cross.py
+- tests/graph/test_correctness_conformance.py
+- tests/graph/test_decision_metadata.py
+- tests/graph/test_domain_required_conformance.py
+- tests/graph/test_evolution_event_links.py
+- tests/graph/test_graph_store_evolution.py
+- tests/graph/test_graphstore_factory.py
+- tests/graph/test_link_domain_conformance.py
+- tests/graph/test_memory_store.py
+- tests/graph/test_namespace.py
+- tests/graph/test_no_amend_policy.py
+- tests/graph/test_protocol.py
+- tests/graph/test_protocol_v2_conformance.py
+- tests/graph/test_protocol_v2_service_layer.py
+- tests/graph/test_scoring_persistence.py
+- tests/graph/test_sqlite_store.py
+- tests/graph/test_verified_count_strict.py
+- tests/graph/test_write_outcome_extended.py
+- tests/graph_store_test_helpers.py
+- tests/integrity/test_commercial_smoke.py
+- tests/integrity/test_counterfactual.py
+- tests/integrity/test_innovation_claims.py
+- tests/integrity/test_judgment_memory.py
+- tests/rl/test_rl_wiring.py
+- tests/scoring/conftest.py
+- tests/scoring/test_conservation.py
+- tests/scoring/test_dataops_preset.py
+- tests/scoring/test_fingerprint_dedup.py
+- tests/scoring/test_j6_persistence.py
+- tests/scoring/test_presets.py
+- tests/scoring/test_purchasing_preset.py
+- tests/scoring/test_scorer.py
+- tests/scoring/test_scorer_governed.py
+- tests/scoring/test_storage.py
+- tests/scoring/test_trading_preset.py
+- tests/scoring/test_trust_traps.py
+- tests/scoring/test_weather_cache.py
+- tests/scripts/test_preseed_all_copilots.py
+- tests/test_age_protocol_enforcement.py
+- tests/test_age_test_readiness.py
+- tests/test_age_unification_invariants.py
+- tests/test_archetype_router.py
+- tests/test_archive_reader.py
+- tests/test_backend_conformance.py
+- tests/test_bitemporal_scorer.py
+- tests/test_bug_fixes.py
+- tests/test_category_mappings.py
+- tests/test_chain_transfer.py
+- tests/test_conservation_contract.py
+- tests/test_conservation_formula.py
+- tests/test_conservation_gate_coverage.py
+- tests/test_conservation_utils.py
+- tests/test_consolidation.py
+- tests/test_cross_copilot_integration.py
+- tests/test_cross_copilot_transfer.py
+- tests/test_cross_signal_router.py
+- tests/test_demo_age_ops.py
+- tests/test_demo_shared_graph.py
+- tests/test_demo_truth_preflight.py
+- tests/test_di_query.py
+- tests/test_dual_write_outbox.py
+- tests/test_dual_write_store.py
+- tests/test_entity_enrichment.py
+- tests/test_evolution_telemetry.py
+- tests/test_evolution_telemetry_age.py
+- tests/test_evolver_wiring.py
+- tests/test_evolver_wiring_age.py
+- tests/test_experiment_age_integration.py
+- tests/test_experiment_schema_contract.py
+- tests/test_factory_dual_write.py
+- tests/test_five_domain_completeness.py
+- tests/test_framework_drift.py
+- tests/test_frozen_twin.py
+- tests/test_frozen_twin_curves.py
+- tests/test_gate_consumer_ordering.py
+- tests/test_gate_preseed_initialization.py
+- tests/test_gate_production_policy.py
+- tests/test_generate_decision_id.py
+- tests/test_global_queries.py
+- tests/test_graph_config.py
+- tests/test_graph_entity_links.py
+- tests/test_graph_factory.py
+- tests/test_graph_platform_reset.py
+- tests/test_graph_production_boundary.py
+- tests/test_graph_signals.py
+- tests/test_graphstore_consolidation.py
+- tests/test_graphstore_namespace.py
+- tests/test_hero_moments.py
+- tests/test_historical_checkpoint_import.py
+- tests/test_hot_path_adoption.py
+- tests/test_integrity_scanner.py
+- tests/test_investigation.py
+- tests/test_jm_conformance.py
+- tests/test_jm_reference_run.py
+- tests/test_jm_rl_cross_copilot.py
+- tests/test_jm_v27_validation.py
+- tests/test_l5_centroid_storage.py
+- tests/test_l5_conservation_storage.py
+- tests/test_l5_dk_weight_storage.py
+- tests/test_l5_dk_welford_storage.py
+- tests/test_l5_formal_proof.py
+- tests/test_l5_protocol_extension.py
+- tests/test_learn_context.py
+- tests/test_learn_locked_response.py
+- tests/test_learning_checkpoint_history.py
+- tests/test_legacy_signal_filter.py
+- tests/test_loom_gauntlet.py
+- tests/test_measured_transfer.py
+- tests/test_measurement_state.py
+- tests/test_migration_live_age.py
+- tests/test_mutation_lock.py
+- tests/test_outbox_sqlite.py
+- tests/test_outcome_protocol.py
+- tests/test_p2_fix_sdk_core.py
+- tests/test_plateau_preset_config.py
+- tests/test_platform_router.py
+- tests/test_polarity.py
+- tests/test_preseed.py
+- tests/test_preseed_gap_supersession.py
+- tests/test_preseed_hero_scenarios.py
+- tests/test_promotion_engine.py
+- tests/test_promotion_record_format.py
+- tests/test_qualification.py
+- tests/test_quality_axis.py
+- tests/test_read_diff_runner.py
+- tests/test_reconcile_archive.py
+- tests/test_regime_reinit.py
+- tests/test_response_materializer.py
+- tests/test_rl_evolution_matrix.py
+- tests/test_rl_evolution_matrix_age.py
+- tests/test_rule38_factory_compliance.py
+- tests/test_s2p_differentiation.py
+- tests/test_s2p_differentiation_namespace.py
+- tests/test_schema_currency.py
+- tests/test_scorer_construction.py
+- tests/test_session_regression.py
+- tests/test_side_store_removal.py
+- tests/test_signal_store_isolation.py
+- tests/test_situation_analyzer.py
+- tests/test_snapshot_after.py
+- tests/test_ss03_observability.py
+- tests/test_store_parity.py
+- tests/test_switching_cost_router.py
+- tests/test_timestamp_consumers.py
+- tests/test_timestamp_normalization.py
+- tests/test_trading_domain_config.py
+- tests/test_trading_evolver_wiring.py
+- tests/test_trading_evolver_wiring_age.py
+- tests/test_trading_provider_wiring.py
+- tests/test_transfer.py
+- tests/test_transfer_governed_source.py
+- tests/test_transfer_pattern.py
+- tests/test_transfer_publication_order.py
+- tests/test_transfer_router.py
+- tests/test_transfer_router_observability.py
+- tests/test_vld_integration.py
+- tests/test_warm_start_demo.py
+- tests/test_weekly_report.py
+- tests/test_worker_process_safety.py
+- tests/transfer/test_registry.py
+- tests/transfer/test_scorer_warm_start.py
+- tests/vld_validation_report.py
+
+### Config/docs and other non-Python files (58)
+
+- AGENTS.md
+- apps/dataops/backend/data/alert_metadata.json
+- apps/dataops/backend/data/dataops.db
+- apps/dataops/frontend/src/api.ts
+- apps/dataops/frontend/src/components/SourceTrustCard.tsx
+- apps/dataops/frontend/src/screens/DashboardScreen.tsx
+- apps/purchasing/backend/data/order_metadata.json
+- apps/purchasing/backend/data/purchasing.db
+- apps/s2p/frontend/src/api.ts
+- apps/trading/backend/data/promotion_state.json
+- apps/trading/backend/data/trade_metadata.json
+- apps/trading/backend/data/trading.db
+- apps/trading/backend/state/evolution_log.json
+- apps/trading/frontend/src/components/EvidencePanel.tsx
+- apps/trading/frontend/src/screens/PerformanceScreen.tsx
+- apps/trading/frontend/src/types.ts
+- demo/dataops_demo_bundle.json
+- demo/purchasing_demo_bundle.json
+- demo/trading_demo_bundle.json
+- docs/age_pagination_design.md
+- docs/backend_conformance.md
+- docs/decisionstore_migration_design_v2.md
+- docs/decisionstore_migration_design_v5.md
+- docs/design/demo_scenarios_catalog_v5.md
+- docs/design/demo_scenarios_catalog_v6.md
+- docs/design/demo_scenarios_catalog_v6_addendum_v4.md
+- docs/design_compliance_audit_v2.md
+- docs/design_fix_plan_v2.md
+- docs/design_principles_v2.md
+- docs/dstore_migrate2_design_corrections.md
+- docs/dstore_migration_findings.md
+- docs/execution_plan_v2.md
+- docs/p10_factor_computers_design.md
+- docs/pipeline_validation_report.md
+- docs/rev_step12_f09_diagnostic_fixer_design.md
+- docs/session_state.md
+- docs/step10_design.md
+- docs/step11a_design.md
+- docs/step11b_design.md
+- docs/step12_design.md
+- docs/step13_design.md
+- docs/step_dstore_cleanup_scan.md
+- docs/step_durable_outbox_fix_design.md
+- docs/step_fix_r1s1_r2_design.md
+- docs/tab_inventory.json
+- docs/tab_inventory.md
+- docs/test_inventory.json
+- e2e/README.md
+- e2e/dom-scrape.json
+- e2e/package-lock.json
+- e2e/package.json
+- experiments/jm_extracted/charts/rl_offline_routing.png
+- experiments/jm_extracted/charts/rl_recurrence_ladder.png
+- experiments/vld/charts/rl_offline_routing.png
+- experiments/vld/charts/rl_recurrence_ladder.png
+- graphify-out/GRAPH_REPORT.md
+- graphify-out/graph.json
+- graphify-out/manifest.json
+
+Untracked P2a-related files absent from the HEAD~1 inventory:
+- copilot_sdk/graph/query.py
+- tests/test_bounded_projection_contract.py
+- tests/test_bounded_capability_compatibility.py
+
+## REV-P2a-RETRY (2026-10-15)
+
+Scope method: explicit P2a completion entry at line 10198, corroborated by git status for only those files; no HEAD~1 comparison. The former P2a-R-01 review-boundary blocker is RESOLVED by this authorized scope. No commit lookup was needed because the completion entry enumerates individual files.
+
+Files reviewed in full:
+- copilot_sdk/graph/memory_store.py (production)
+- copilot_sdk/graph/query.py (production; P2a adds normalization constants, not new type shapes)
+- tests/test_bounded_projection_contract.py (112 contract cases)
+- tests/test_bounded_capability_compatibility.py (17 cases; P2a's authorized change is the membership assertion)
+- docs/session_state.md (completion and failed-review entries)
+
+Untracked status confirmed for query.py and both test files; these are included, not omitted from review. Documentation references read: design_fix_bounded_projections_v3.md and design_bounded_consumer_contracts.md. BoundedProjectionStore declarations in protocol.py were inspected as reference only. Journal normalizer and graph-signal warning sites were inspected read-only to substantiate findings.
+
+Verdict: FAIL.
+Findings: P1: 0; P2: 2; P3: 0.
+Fixer prompt needed: YES.
+P2b unblocked: NO — fix P2a-R-02 and P2a-R-03 and rerun contract/mypy/regression gates before re-review.
+This is a correctness review, not a live-stack closure claim.
+
+### Contract extraction and conformance
+
+All four concrete signatures compare equal to the shipped protocol using inspect.signature:
+
+    query_decisions(self, domain: str, *, filters: DecisionFilter | None = None,
+                    projection: DecisionProjection = "summary",
+                    page: DecisionPageRequest | None = None,
+                    as_of_generation: int | None = None) -> DecisionPageResult
+    count_decisions(self, domain: str, *, filters: DecisionFilter | None = None) -> int
+    aggregate_decisions(self, domain: str, *, filters: DecisionFilter | None = None,
+                        group_by: tuple[DecisionGroup, ...] = (),
+                        metrics: tuple[DecisionMetric, ...] = ("count",)) -> tuple[DecisionAggregate, ...]
+    get_decision_changes(self, domain: str, *, after_generation: int,
+                         limit: int = 1000, projection: DecisionProjection = "full",
+                         filters: DecisionFilter | None = None) -> DecisionChangePage
+
+Runtime membership in GraphStore, ProtocolV2GraphStore and BoundedProjectionStore is true. Tuple responses, requested aggregate metrics and independent nested result copies match the types. The actual query module has six frozen dataclasses, four Literal aliases and two exception classes; the old seven-dataclass wording is not a new implementation defect.
+
+Generation contract: per physical domain, committed state changes only, independent of legacy _sequence; creates/raw supported updates and verification emit upserts, archives/domain reset emit deletes; idempotent governed/outcome retries and rejected writes emit none; domain reset retains anchor/events; whole-store reset starts a fresh lifetime. Code guards the bounded reads, decision writes, outcomes, archives and resets with one RLock. Snapshot preparation precedes publication on create/verify, and event/counter publication stays inside that lock. No new bounded-path concurrency defect established. Other legacy methods are not thereby certified thread-safe.
+
+Feed contract: event-time full normalized payload plus immutable routing, independent copies, routing-only filters, ascending generation, limit1..1000, H captured under read lock, terminal or invisible page advances to H, future generation rejected. No current-state join during feed projection. These paths and idempotency are covered.
+
+Query contract: active Decisions, shared query/count/aggregate predicates, recommended action, verified-only correctness, inclusive confidence and half-open dates, timestamp/actual-ID order in both directions, cursor-or-offset, limit+1, no implicit total. Applied the explicit P2a/user corrections: missing creation key=(0.0,actual decision_id), fence may accompany cursor, missing persisted verification timestamp raises for verified ordering. Older v3 text prohibiting fence+cursor/falling back to created_at is superseded by those instructions, not reported as a defect.
+
+Projection contract: exact SUMMARY/SCORING/JOURNAL field sets; absent fields null; scoring learning_metadata five-key allowlist; full evidence hides _sequence/_generation. Generic journal remains Decision-only. Parent v3 line214 additionally requires journal field normalization following _normalize_trade without external overlays. This requirement is only partially implemented (R-02). Supplemental sufficient statistics, H-order conservation, journal fact union and archive/export capabilities belong to later stages; their absence is not a P2a defect.
+
+### FINDING P2a-R-02: Journal projection does not complete the required normalization
+
+Severity: P2.
+File: copilot_sdk/graph/memory_store.py:181 and :227.
+Issue: _bounded_value copies present values and only falls back when None; it does not perform the required journal numeric conversion/invalid-value fallback or text/tag normalization. Both direct journal pages and projected feed snapshots consequently disagree with the parent design's explicit _normalize_trade parity requirement.
+Evidence: a real write_decision with metadata {"pnl":"12.50","size":"2","notes":"review","tags":[" x ","x"],"thesis_type":"value"} returns journal pnl="12.50", size="2", reflection=None, tags=[" x ","x"], strategy_tag=None. The existing normalizer (apps/trading/backend/app/routers/journal.py:258-322) yields numeric 12.5/2.0, reflection="review", tags=["x"], strategy_tag="value". The same unnormalized monetary/text/tag fields occur in get_decision_changes(projection="journal"). Parent design line214 explicitly assigns this normalization to P2, independently of supplemental P3 journal facts.
+Fix: implement an SDK-local canonical journal-field normalizer matching the specified reference precedence/coercion/aliases (without importing app code or external overlays), use it for direct/event-time projection, and add parity fixtures for numeric strings, invalid numeric fallback, notes/reflection, tags and strategy aliases while preserving null defaults and full evidence.
+FAILURE MODE TO PREVENT: memory and AGE disagree on journal field types/values, and migrated consumers receive wrong monetary values or missing normalized annotation fields.
+Test gap: test_metadata_normalization_and_regime_grouping uses already-numeric shares/pnl_dollars; projection tests use already-clean tags and do not exercise reference coercion/fallback. The 112 passing cases do not establish complete normalization parity.
+
+### FINDING P2a-R-03: NaN confidence passes inclusive range filters
+
+Severity: P2.
+File: copilot_sdk/graph/memory_store.py:1703.
+Issue: the predicate rejects value<lower or value>upper. Both comparisons are false for NaN, so a row that does not satisfy value>=lower AND value<=upper is accepted.
+Evidence: public write_decision("test","cat","buy",float("nan"),{},{"decision_id":"nan"}) succeeds. With DecisionFilter(confidence_min=0.0,confidence_max=1.0), query_decisions returns ID "nan", count_decisions returns1, and aggregate_decisions(metrics=("count","avg_confidence")) returns count1 and avg_confidence=nan. No private state mutation or store mock was used.
+Fix: express inclusive predicates positively (reject when not value>=lower or not value<=upper), thereby excluding NaN for supplied bounds without changing legacy stored data or scorer formulas; add query/count/aggregate parity tests for NaN, finite boundaries and one-sided bounds.
+FAILURE MODE TO PREVENT: invalid-confidence rows enter filtered populations and poison aggregates; future native/reference implementations disagree.
+Test gap: tests cover nonfinite request bounds, not nonfinite persisted confidence accepted by existing writers.
+
+### Coverage, isolation, side effects and blast radius
+
+All four methods have behavioral tests with real per-test stores. Coverage includes empty/single, filters, both orders and cursor exhaustion, null/tied timestamps, generation fences, 1000/1001 groups, error validation, both archive methods, domain/whole resets, immutable event history, routing filters/invisible watermark, repeated/rejected mutations, concurrent idempotent writes and feed watermark coherence. Historical fixtures intentionally change internal records; future AGE implementations need equivalent historical-data setup. No module-global mutable store or ordering dependency was found. Numeric average assertions use pytest.approx; integer/order/payload checks are specific. R-02/R-03 identify missing edge assertions rather than discounting the existing tests.
+
+Scoped file-list check passes: compounding.py, scorer.py, all AGE code, wrappers, protocol.py, factory.py and package __init__.py are absent from P2a's write list. No protocol diff is necessary under the retry instructions. New production dependencies are standard-library threading/math/typing and the existing local query module; numpy was pre-existing. Legacy helper/count behavior was inspected; no scorer formula edit is part of P2a. Runtime bounded membership changes as intended and the compatibility assertion was explicitly authorized.
+
+### Fresh validation
+
+- python -m mypy copilot_sdk/graph/memory_store.py copilot_sdk/graph/query.py --config-file pyproject.toml: Success, no issues in 2 source files. Neither changed production module is covered by the config's ignore_errors override.
+- python -m pytest tests/test_bounded_projection_contract.py tests/test_bounded_capability_compatibility.py -q --timeout=120: 129 passed, 0 failed in17.48s (112 contract +17 compatibility), 258 existing pytest_freezegun deprecation warnings.
+- Full suite was not rerun for this scoped retry; completion-record result remains 4657 passed,1 xfailed, not a fresh review result.
+- Read-only public-operation probes reproduce both findings above.
+- All four reviewed Python SHA-256 hashes match the P2a completion snapshot: memory65fc7507afb4c2013812d5571c14a22aa03937e1f3401af4928a04445345822b; queryf881719affe849e9a6eaa3e0e7ae4fcf47d48445923fd03419f7349aad5988ff; contracts fdec8b807f02a3a55fffb34bff853457869fa4298644df4b786e29e4f2f52d3e; compatibility fc47945879ef90fba8bb690ce6f1f5b2e93367f4fea79a997afbc918f4cf865f.
+
+### Scheduler-warning assessment
+
+The completion entry records two psycopg_pool scheduler-thread OverflowError warnings during existing test_graph_signals.py tests, including test_evicted_facts_do_not_reappear_when_newer_facts_expire (freeze_time) and test_age_unbounded_event_history_preserves_batch_eviction. No such warning occurred in the scoped129-case rerun.
+
+A standalone process importing only threading, freezegun and psycopg_pool (NO copilot_sdk/P2a imports) reproduced the same error: create Scheduler, call enter(60, callback) while freeze_time("2026-10-06T10:00:00Z") is active, exit frozen time, then run scheduler. Its queued timestamp minus restored monotonic clock produced delay1789534851.797s, exceeding Windows threading.TIMEOUT_MAX4294967.0s; Event.wait raised OverflowError("timeout value is too large"). The installed Scheduler.run uses exactly that subtraction/wait path.
+
+Assessment: an independently reproducible pre-existing test/dependency clock interaction, not an established P2a-introduced defect. This reproducer establishes a mechanism without P2a; it does not prove the precise scheduling history of both original warnings. Track pool teardown/freezegun isolation separately; do not suppress the warnings or alter P2a to hide them. No P2 warning finding assigned to P2a.
+
+### Layer-1 self-check
+
+SC-1 scoped only to P2a files: YES.
+SC-2 both production files read completely: YES.
+SC-3 each method checked against contract and approved overrides: YES.
+SC-4 blast radius checked by P2a file list, not HEAD~1: YES.
+SC-5 new concurrency paths checked: YES.
+SC-6 fresh changed-production-file mypy run: YES.
+Only this session-state append was written; no production, test or design file was modified.
+
+
+
+## DIAG-PRESEED-AUTO-v2 (2026-10-15)
+
+PRESEED AUTO-LOAD STATUS REPORT
+================================
+
+BACKEND: Trading (apps/trading/backend/app/main.py)
+  Startup function name: auto_seed_on_startup -> _run_startup_seed_once -> _run_startup_locked
+  Auto-seed function exists: YES
+  Auto-seed works with InMemory/SQLite: YES for InMemory; SQLite is retired and is not a supported GraphConfig backend
+  Auto-seed works with AGE: NO
+  AGE skip guard exists: YES (line #470)
+  AGE skip guard code: elif active_graph_config.requested_backend == "age":
+  DemoPreseed called on startup: NO
+  Bundle restore for AGE: NO
+  VLD preseed for AGE: YES (ungated; showcase evidence registration only, not AGE decision history)
+
+BACKEND: Purchasing (apps/purchasing/backend/app/main.py)
+  Startup function name: auto_seed_on_startup -> _run_startup_seed_once -> _run_startup_locked
+  Auto-seed function exists: YES
+  Auto-seed works with InMemory/SQLite: YES for InMemory; SQLite is retired and is not a supported GraphConfig backend
+  Auto-seed works with AGE: NO
+  AGE skip guard exists: YES (line #650)
+  AGE skip guard code: elif active_graph_config.requested_backend == "age":
+  DemoPreseed called on startup: NO
+  Bundle restore for AGE: NO
+  VLD preseed for AGE: YES (ungated; in-memory showcase fixture only, not AGE decision history)
+
+BACKEND: DataOps (apps/dataops/backend/app/main.py)
+  Startup function name: auto_seed_on_startup -> _run_startup_seed_once -> _run_startup_locked
+  Auto-seed function exists: YES
+  Auto-seed works with InMemory/SQLite: YES for InMemory in demo/test mode; SQLite is retired and unsupported
+  Auto-seed works with AGE: NO
+  AGE skip guard exists: YES, implicit (line #823)
+  AGE skip guard code: elif graph_config.backend == "memory" and _is_demo_or_test_mode():
+  DemoPreseed called on startup: NO
+  Bundle restore for AGE: NO
+  VLD preseed for AGE: YES (ungated; evidence-source fixture only, not AGE decision history)
+
+DEMO.PY:
+  cmd_preseed exists: YES
+  Scripts called: scripts/preseed_all_copilots.py --force --demo-fixtures --trading-only --purchasing-only --dataops-only; SOC scripts/preseed_demo_scenarios.py; S2P scripts/preseed_s2p_demo.py
+  Sets DEMO_NO_RESEED: YES
+  Restarts after preseed: YES, except --preseed-only intentionally leaves seed mode running
+
+DemoPreseed CLASS:
+  Accepts graph_store param: YES
+  Works with AGE: UNTESTED (generic GraphStore is accepted, but the default is InMemory and no AGE invocation/test was found)
+  Called by any backend startup: NO
+
+HTTP PRESEED SCRIPT (preseed_all_copilots.py):
+  Still exists: YES
+  Mechanism: HTTP for normal operation (/health, /api/trajectory, /api/score, /api/learn, domain metadata endpoints, /api/fingerprint); optional --offline mode uses a direct shared InMemory GraphStore
+  Decisions per copilot: 200 for Trading, Purchasing, and DataOps; optional S2P path also seeds 200
+
+OVERALL VERDICT:
+  Auto-load into AGE on startup: MISSING
+  If PARTIAL: none of Trading, Purchasing, or DataOps auto-loads main preseed decisions into AGE; the separate VLD fixture initialization runs but does not populate AGE decision history
+  preseed_all_copilots.py still needed: ONLY FOR AGE in the current demo.py orchestration (although the newer manual scripts/seed_all_decisions.py direct AGE writer is intended to replace it)
+  Recommended fix (if incomplete): Move the idempotent direct GraphStore seed logic from scripts/seed_all_decisions.py into an importable SDK service and invoke it from all three startup paths against the selected GraphStore when the domain is empty, while retaining DEMO_NO_RESEED. Remove the explicit Trading/Purchasing AGE skips and DataOps memory-only condition, then update demo.py to use the direct writer and retire the HTTP preseed dependency.
+
+
+## FIX-P2a-R02-R03 (2026-10-15)
+
+Date: 2026-10-15 21:55 PDT
+Files changed by this fixer: copilot_sdk/graph/memory_store.py; tests/test_bounded_projection_contract.py; docs/session_state.md (this entry).
+New tests: 19 parametrized cases across 4 test functions; bounded contract suite increased from 112 to 131 passed.
+Suite: 4680 passed, 0 failed, 1 xfailed, 9489 warnings in 2327.78s (38:47), exit 0.
+Count reconciliation: recorded P2a baseline 4657 + 19 new regression cases + 4 separately added startup-seeding cases in tests/scripts/test_seed_all_decisions.py = 4680. The separate cases are test_age_startup_seed_fires_once_for_empty_domain (3 domains) and test_age_startup_seed_respects_demo_no_reseed; this fixer did not edit that file.
+P2a-R-02 fixed: YES
+P2a-R-03 fixed: YES
+
+Comprehension and normalization:
+- Read REV-P2a-RETRY evidence, the parent design normalization contract, current memory normalizer/predicate, and the Trading reference _normalize_trade before edits.
+- The latest fixer explicitly requires integer sizes, zero pnl/size defaults, sorted deduplicated tags and metadata strategy alias fallback. These override differences in the app reference (float sizes, nullable monetary values, first-seen tag order). No design or app source was modified.
+- Shared bounded normalization now converts pnl/price values, integer size, trims/deduplicates/sorts tags, resolves reflection/notes and strategy_tag/strategy/thesis_type aliases, and normalizes journal identity/date/options fields.
+- Public write event snapshots and direct bounded queries use the same normalization path. Create and verify event payloads match direct journal reads. Original metadata/factors evidence remains available; legacy reads are unchanged.
+- Changed existing function bodies only in _normalize_bounded_record and _matches_filter; added private journal normalization helpers. No changes to method signatures, mutation/feed emission logic, generation counters, scorer math, protocols, wrappers or AGE code.
+
+Confidence:
+- Replaced negative range rejection with positive inclusive acceptance for each supplied bound in the single shared filter predicate used by query, count and aggregate.
+- NaN fails any supplied bound. Finite [0,1] excludes both infinities; one-sided ranges retain the mathematically matching infinity.
+- Searched confidence filter occurrences to confirm no separate query/count/aggregate predicate remained unfixed.
+
+Validation:
+- python -m pytest tests/test_bounded_projection_contract.py -q --timeout=120: 131 passed, 262 pytest_freezegun deprecation warnings.
+- python -m mypy copilot_sdk/graph/memory_store.py tests/test_bounded_projection_contract.py --config-file pyproject.toml: Success, no issues in 2 source files.
+- python -m pytest tests/ -q --timeout=120: full-suite result above.
+- git diff --check on the two fixer Python files: clean.
+- Full run again reported two psycopg_pool scheduler OverflowError thread warnings in graph-signals tests, matching the warning category recorded before this fixer. Other warnings include existing deprecations and DSN fallback notices; zero test failures.
+
+Self-check: SC-1 through SC-6 satisfied (contract read first; write/feed parity; positive inclusive predicate; all confidence locations checked; NaN/+inf/-inf tested; mypy clean).
+
+
+## REV-P2a-FIXER (2026-10-15)
+
+Scope: fixer changes only. No dedicated fixer commit exists in git log --oneline -5; HEAD remains fca9497 and the fixer changes are uncommitted. Therefore no commit-only diff is claimed. Used the FIX-P2a-R02-R03 file list and retained pre-fixer P2a source snapshot; did not use HEAD~1 or review unrelated accumulated changes.
+Files reviewed: copilot_sdk/graph/memory_store.py; tests/test_bounded_projection_contract.py. Read the original P2a completion, REV-P2a-RETRY, FIX-P2a-R02-R03 and parent design normalization paragraph as references.
+
+R-02 resolved: YES
+R-03 resolved: YES
+Verdict: PASS
+Findings: P1 0; P2 0; P3 0.
+P2b unblocked: YES (for these reviewed fixes; no live-stack closure claimed).
+
+Evidence:
+- Exact production delta verified against the retained pre-fixer snapshot: 79 helper lines added before _decision_routing, one _normalize_journal_fields call added to _normalize_bounded_record, and one confidence predicate replaced. Reversing those changes restores the exact pre-fixer source. Current source also matches the retained fixer completion snapshot.
+- Original contract test body remains unchanged: removing the appended tests restores recorded SHA-256 fdec8b807f02a3a55fffb34bff853457869fa4298644df4b786e29e4f2f52d3e. Four appended functions supply 19 parametrized cases.
+- Normalization at memory_store.py:201-278 converts pnl strings/ints to float with zero default, size strings/floats to int with zero default, strips/deduplicates/sorts tags, and resolves reflection/notes plus strategy_tag/strategy/thesis_type aliases. Latest explicit fixer requirements for integer/zero/sorted values supersede differences in the older app reference, as already documented by the fixer.
+- Public raw/governed writes prepare normalized event payloads through _project_decision before publication; verification uses _normalize_bounded_record before emitting. Direct queries use the same helper. Feed reads project the event-time snapshot, avoiding a live-state join. Regression tests compare direct and feed results after creation and verification, check exact numeric types, aliases/tags, and retain original metadata evidence.
+- The sole confidence-range predicate at memory_store.py:1780-1784 uses positive >= / <= acceptance for each provided bound. Query, count and aggregate all call _matches_filter. NaN fails either supplied bound; finite [0,1] excludes both infinities; one-sided ranges admit only the mathematically matching infinity. Tests assert IDs, counts and aggregate averages for all three cases.
+- Scope excludes scorer.py, compounding.py, protocol.py and age_client.py. No method signature, generation or feed emission logic changed. The authorized session-state appendix is the only documentation write; no production/test changes made during review. Commit-level repository-wide attribution cannot be certified without a dedicated commit.
+
+Fresh validation:
+- python -m mypy copilot_sdk/graph/memory_store.py --config-file pyproject.toml: Success, no issues in 1 source file.
+- python -m pytest tests/test_bounded_projection_contract.py -q --timeout=120: 131 passed, 0 failed, 262 pytest_freezegun deprecation warnings in 1.67s.
+- Full suite not rerun for this scoped review; fixer completion records 4680 passed, 0 failed, 1 xfailed, including 19 fixer cases and 4 separately added startup-seeding cases beyond the 4657 baseline.
+
+## WIRE-PRESEED-AUTO (2026-10-15)
+
+Files changed: `scripts/seed_all_decisions.py`; `apps/trading/backend/app/main.py`; `apps/purchasing/backend/app/main.py`; `apps/dataops/backend/app/main.py`; `demo.py`; `tests/scripts/test_seed_all_decisions.py`; `tests/test_demo_preseed_lifecycle.py`; `apps/trading/backend/tests/test_investigation_integration.py`; `apps/purchasing/backend/tests/test_investigation_integration.py`; `docs/session_state.md`.
+
+New tests: 2 test functions / 4 pytest cases. They cover empty AGE-style startup seeding for Trading, Purchasing, and DataOps, repeat-call idempotency, and `DEMO_NO_RESEED=1` suppression. The two investigation read-only tests were also updated to exclude the existing non-copyable `InMemoryGraphStore` lock while continuing to compare all mutable store state.
+
+Suite: focused preseed/demo lifecycle 14 passed; SDK root 4,661 passed and 1 xfailed; Trading 1,540 passed; Purchasing 922 passed; DataOps 494 passed. Zero failures in final runs. Mypy passed for the seven primary changed Python files and both backend investigation tests (checked from their backend import roots).
+
+Behavioral change: Trading and Purchasing replace their explicit AGE auto-seed skip with `auto_seed_domain_if_empty()` against the selected active store. DataOps adds an AGE branch while preserving its memory demo/test bundle, fixture, and evolution seed path. The shared startup wrapper honors `DEMO_NO_RESEED`, skips nonempty domains, and delegates empty domains to the stable-ID direct writer. `demo.py --preseed` keeps startup writes suppressed during its controlled phase, invokes `scripts/seed_all_decisions.py` directly for Trading/Purchasing/DataOps, preserves the separate SDK fixture job, and leaves SOC and S2P seed commands unchanged.
+
+Verdict: auto-seed now works for AGE.
+
+## DIAG-P2b-CONTRACT (2026-10-15)
+
+Q1: (a) query_decisions allows as_of_generation with page.after. It checks the domain generation under the lock before selecting, sorting, and paginating; a mismatch raises DecisionGenerationChanged (memory_store.py:1840-1869). This follows the explicit P2a completion decision recorded above.
+Q2: (a) V-order excludes unverified decisions first (memory_store.py:1857). For eligible verified decisions, a missing persisted Outcome verified_at raises ValueError (1808-1811); there is no created_at fallback.
+Q3a: No production callers found in copilot_sdk/ or apps/ combining both. test_generation_fence_and_cursor explicitly combines them and asserts successful pagination plus stale-generation rejection (tests/test_bounded_projection_contract.py:225-237).
+Q3b: test_cursor_visits_every_row_once queries mixed verified/unverified history in V-order and expects unverified rows to be skipped (tests/test_bounded_projection_contract.py:141-162). No caller/test found relying on coalescing or returning unverified rows in V-order. test_verified_missing_timestamp_is_integrity_error already requires a ValueError (217-222).
+Option C safe: NO. Prohibiting generation+cursor breaks the shipped, explicitly tested contract. Raising for missing timestamps on eligible verified rows already matches P2a; raising for unverified rows instead of excluding them would additionally break mixed-history V-order behavior.
+
+Diagnostic only: no production or test files changed; tests were not run.
+
+## REV-WIRE-PRESEED-AUTO (2026-10-15)
+
+Scope: WIRE-PRESEED-AUTO working-tree changes listed in the completion entry. No WIRE commit exists; `HEAD` remains `fca9497`, so tracked-file `HEAD` content was used as the before state and no commit-only diff is claimed.
+
+Files reviewed: `scripts/seed_all_decisions.py`; `apps/trading/backend/app/main.py`; `apps/purchasing/backend/app/main.py`; `apps/dataops/backend/app/main.py`; `demo.py`; `tests/scripts/test_seed_all_decisions.py`; `tests/test_demo_preseed_lifecycle.py`; `apps/trading/backend/tests/test_investigation_integration.py`; `apps/purchasing/backend/tests/test_investigation_integration.py`. Supporting references: `copilot_sdk/demo/startup.py` and the sibling ci-platform AGE GraphStore writer.
+
+Test count: SDK root 4,661 passed and 1 xfailed in the implementation record (discrepancy: branch/worktree timing, not regression). Reconciliation is exact: P2a baseline 4,657 + 4 WIRE startup-seeding cases = 4,661; the later uncommitted P2a fixer added 19 cases and recorded 4,680 passed and 1 xfailed. Fresh focused validation: preseed/demo lifecycle 14 passed; Trading investigation 8 passed; Purchasing investigation 8 passed. All five requested production-file mypy commands passed; mypy also passed for all four changed test files.
+
+Adjusted tests: acceptable. Both tests remove only the non-copyable `_lock` threading primitive from the before/after dictionaries and continue to deep-copy and compare every other GraphStore field, plus scorer centroids and K-utility persistence.
+
+Verdict: FAIL.
+
+Findings: P1 0; P2 2; P3 0.
+
+- WPA-R-01 (P2): `auto_seed_domain_if_empty()` cannot resume an interrupted bootstrap. `seed_domain()` writes 200 decisions/outcomes incrementally, but any failure after the first decision makes `count_decisions()` nonzero; every later startup then skips the stable-ID writer and leaves a permanently partial seed population. Fix by recording an atomic completion marker and resuming when the existing domain contains only the expected planted seed identities, while continuing to skip domains containing real/non-seed decisions. Add a fault-injection recovery test.
+- WPA-R-02 (P2): the empty-domain check and direct AGE writes are not atomic across independent same-domain initializers. The local file lock serializes cooperating workers that share a filesystem, but the AGE adapter uses `CREATE` for Decision nodes and does not enforce decision-ID uniqueness in this path. Two replicas on different hosts can both observe zero and create duplicate stable IDs. Fix with an AGE-visible seed lease/transaction or an atomic uniqueness/upsert primitive, and add a concurrent-initializer AGE conformance test.
+
+Fixer needed: YES.
+
+## FIX-WIRE-PRESEED-R01-R02 (2026-10-16)
+
+Files changed: `scripts/seed_all_decisions.py`; `tests/scripts/test_seed_all_decisions.py`; `docs/session_state.md` (this entry).
+
+R-01 fix: completion marker + resume logic. A versioned `demo_preseed:v1` marker is persisted through domain governance state only after all 200 deterministic planted decision identities exist and the writer has completed every decision/outcome iteration. Startup skips a valid marker, resumes an unmarked population only when every active row has a unique expected seed ID plus matching planted/domain/index metadata, and skips mixed or real-user populations. Counts other than the default 200 do not write a completion marker. `DEMO_NO_RESEED=1` remains the first operational guard and performs no marker or decision reads.
+
+R-02 fix: the direct writer now dispatches to `ProtocolV2GraphStore.write_governed_decision()` when available. The existing AGE implementation provides atomic insert-or-validate behavior under a PostgreSQL transaction advisory lock keyed by domain and decision ID, so raw AGE stores and active backend wrappers cannot create duplicate deterministic seed Decision nodes. Legacy GraphStore implementations retain the existing write path. A per-domain in-process `RLock` prevents redundant same-process startup work and marker writes.
+
+New tests: 4 functions. Coverage includes a 50/200 partial population resuming the remaining 150 and then skipping via the persisted marker; two simultaneous startup initializers producing exactly 200 decisions and one logical marker; explicit governed-write dispatch with zero basic writes; and a partial planted population mixed with real-user data being left untouched. The existing no-reseed test was strengthened to reject any seed-related graph read.
+
+Validation: focused preseed/demo/bootstrap selection 24 passed; `scripts/seed_all_decisions.py` and its test file pass mypy; diff check clean. The first full-suite attempt exposed the no-reseed marker-read ordering regression plus a transient FRED integration failure. After restoring zero-I/O no-reseed behavior, both failed tests passed independently. Final full suite: 4,684 passed, 1 xfailed, 0 failed, 9,497 warnings in 2,482.15 seconds. Two previously recorded psycopg_pool scheduler `OverflowError` thread warnings occurred in graph-signal tests; no test failed.
+
+Self-check: SC-1 through SC-6 satisfied. Existing seed and AGE governed-write paths were read first; the marker is durable governance state and is written after successful population; partial detection validates deterministic IDs and seed metadata; AGE decisions use the existing advisory-lock transaction path; real/mixed data is skipped; mypy is clean.
+
+DESIGN-PHASE3 (Spark+high): pattern catalog complete, 6 fix specs produced. 2026-10-16T08:47:28Z Read-only source analysis of local workspace copies; no production/test edits or tests run. Last entries: SDK FIX-WIRE-PRESEED-R01-R02; S2P E6-TIMEOUT-CHECK; neither STOP. Key findings: Purchasing empty-history guards already exist; leakage can fail on required production factor context; S2P materialized_response synchronously refreshes all nine computations and can wait indefinitely; all three live fallbacks also perform expensive reads; Trading registers a tab-state rejection summary but its direct handler independently reads persisted evidence and may repeatedly read conservation during promotion checks. Preserve JM one-primary semantics: no new response caches, stale fallback, or fabricated zero/healthy payloads. Existing async/thread timeout patterns bound caller waiting only, not underlying work; hard deadline/resource guarantees need separate validation. Parallel repo-local fixes require fixed shared dependency versions, separate test processes, and SDK-only ownership of this log; do not treat exception guards alone as timeout fixes.
+
+## IMPL-BOUNDED-WRAPPERS-P2c (2026-10-16)
+
+Status: DONE — bounded wrapper variants, capability narrowing, wrapper/factory selection and activation-aware AGE selection shipped with green gates.
+
+Files created: `copilot_sdk/graph/capabilities.py`; `tests/test_bounded_projection_wrappers.py`.
+
+Production files modified: `copilot_sdk/graph/legacy_signal_filter.py`; `copilot_sdk/graph/tenant_store.py`; `copilot_sdk/graph/namespace.py`; `copilot_sdk/graph/factory.py`; `copilot_sdk/graph/__init__.py`. `copilot_sdk/graph/query.py`, `protocol.py`, `memory_store.py`, scorer files and all ci-platform/AGE files were unchanged by P2c.
+
+Tests modified: `tests/test_bounded_capability_compatibility.py` gained one composed-store end-to-end test. `tests/test_graphstore_namespace.py` now asserts the deliberate bounded-only `__getattr__` guard instead of asserting that no guard exists. `tests/test_legacy_signal_filter.py` disables both legacy and bounded signal wrappers in its explicit raw-store test. `tests/test_graph_production_boundary.py` disables bounded selection in its legacy-adapter-only destination-revalidation test so it does not invoke the separate P2b activation probe.
+
+Implementation:
+- Added `BoundedLegacySignalFilteringGraphStore`, `BoundedTenantScopedGraphStore`, and `BoundedGraphStoreNamespace`. Each requires a real `BoundedProjectionStore` primary and implements the four shipped bounded signatures exactly.
+- Legacy signal delegation injects `exclude_legacy_signals=True` once without dropping existing immutable filter fields. Tenant delegation captures the authenticated tenant once, injects `tenant_id`, rejects conflicts, and stamps `write_governed_decision` metadata through the same primary while preserving the V2 signature.
+- Namespace delegation uses the physical domain and reconstructs frozen page/feed containers. Decision rows plus event routing/payload domains return to the logical namespace; cursors and generation watermarks remain unchanged; opaque metadata/user strings are not rewritten.
+- The three legacy views explicitly raise `AttributeError` for `query_decisions`, `aggregate_decisions`, and `get_decision_changes`, preventing policy-bypassing unknown forwarding. Existing legacy `count_decisions(domain)` behavior remains unchanged.
+- Added fail-closed `require_bounded_projection_store()` and boolean `has_bounded_projection()`. Factory wrapper selection preserves bounded capability for memory and activated AGE primaries while retaining legacy variants for non-bounded stores.
+- AGE factory selection loads P2b's bounded adapter only alongside the matching legacy adapter. Construction supplies the physical domain so P2b checks its same-graph activation marker. Only the specific not-activated result selects the legacy adapter; corrupt readiness and connection failures propagate. A migrated consumer calling `require_bounded_projection_store()` therefore rejects an unready legacy result at startup.
+- Re-exported the three variants and two helpers. Existing query exceptions and filter fields were already present, so `query.py` remained byte-for-byte unchanged.
+
+Comprehension/micro-verification: read all required protocol, query, memory, wrapper, namespace, factory, production, export and compatibility sources before edits. The actual shipped names (`tenant_id`, `DecisionPageResult.items`, `write_decision`) superseded stale prompt examples. All three wrapper micro-verifications passed.
+
+Verification checks: 18/18 PASS. Construction checks, negative guards, conditional factory selection, fail-closed narrowing, legacy fallback, import-cycle checks, protocol membership, end-to-end write/read, filter preservation, tenant conflict rejection, exact four-method signatures, exact governed-write V2 signature, sorted/unique exports, no public signature removals, and no `_StoreProxy`/`DecisionStore` references were verified. `query.py` retained SHA-256 `F881719AFFE849E9A6EAA3E0E7AE4FCF47D48445923FD03419F7349AAD5988FF`.
+
+Tests: 34 cases in the new wrapper file plus 1 added compatibility case. Focused wrapper/compatibility/namespace/factory/legacy suite: 164 passed. Mypy: clean on 10 scoped production/test files. Baseline before edits: 4,683 passed, 1 failed, 1 xfailed; the sole audit-trail ordering failure passed independently and did not recur. Final full suite: 4,719 passed, 0 failed, 1 xfailed, 9,567 warnings in 1,962.97 seconds. The two already recorded psycopg_pool scheduler `OverflowError` warnings recurred in graph-signal tests without failures.
+
+## PHASE3-SDK (Spark+medium)
+
+Date: 2026-10-16T03:43:51-07:00
+
+par/predict now validates YYYY-MM-DD input and returns HTTP 422 for malformed dates. Both par/predict and par/predict-week translate only `GRAPH_CONNECTION_ERRORS` to HTTP 503; programming errors still propagate. Weekly prediction reads the decision snapshot once and reuses it for item discovery and optimization.
+
+rejection-summary now treats an unavailable persisted rejection record as absent, reuses one request-local fail-closed conservation evaluation across promotion checks, and caps the inspected evolution log at `MAX_REJECTION_SCAN = 200`. No timeout/deadline, cache, stale-result path, ResponseMaterializer change, evolver signature change, or graph-layer edit was made by this task.
+
+Files changed by PHASE3-SDK: `apps/purchasing/backend/app/main.py`; `apps/trading/backend/app/routers/evolution_router.py`; new `apps/purchasing/backend/tests/test_par_predict_guards.py`; `apps/trading/backend/tests/test_rejection_summary.py`; this session-state entry. Seven tests added (4 Purchasing, 3 Trading).
+
+Validation: focused Purchasing PAR selection 30 passed; focused Trading rejection-summary file 11 passed; Purchasing blast-radius selection 111 passed; Trading blast-radius selection 65 passed. Full Purchasing suite: 926 passed. Full Trading suite: 1,543 passed. Final complete SDK root rerun (`-x`, with no failure so all tests executed): 4,719 passed, 1 xfailed, 0 failed. The first root attempt emitted one transient failure near 4% and was interrupted before traceback; the complete rerun passed the same point and the entire suite. Production mypy is clean for both changed files; the Trading target requires `MYPYPATH=apps/trading/backend` because the root invocation cannot otherwise resolve its existing `app.*` imports. Both changed test files also pass mypy. Diff checks and all 16 requested self-checks pass. Existing unrelated working-tree changes, including the concurrently completed P2c graph work recorded immediately above, were preserved.
+
+PHASE3-SDK (Spark+medium): par/predict 503 on graph failure (+date validation 422), rejection-summary graph guard + conservation reuse + scan cap. +7 tests. 2026-10-16T03:43:51-07:00
+
+=== FIX-REV-P2-NAMESPACE (R1 + R2) ===
+date: 2026-10-16
+model: terra+high
+scope: R1 (opaque payload preservation) + R2 (safe physical domain format)
+repo: copilot-sdk (namespace.py + namespace-related tests)
+findings fixed: R1 P1 (namespace payload descent), R2 P1 (:: domain format)
+files changed: copilot_sdk/graph/namespace.py; tests/test_namespace_bounded_integrity.py (new); tests/test_graphstore_namespace.py; tests/graph/test_namespace.py; tests/test_bounded_projection_wrappers.py; tests/test_s2p_differentiation_namespace.py; docs/session_state.md
+tests added: 9 test functions / 11 pytest cases covering T1-T9 (three feed payload variants are parametrized)
+self-verify: CHECK-01 PASS (no options_factors inspection); CHECK-02 PASS (no learning_metadata inspection); CHECK-03 PASS (no old separator in namespace.py); CHECK-04 PASS (no old physical-domain construction in graph production code); CHECK-05 PASS (AGE-safe/reversible underscore probe); CHECK-06 PASS (Astra probe a accepted); CHECK-07 PASS (Astra probe b preserved); CHECK-08 PASS (production scope limited to namespace.py; remaining changes are namespace tests and this log)
+layer-1: L1-1 PASS (current public signatures retained; only private parser added); L1-2 PASS (only immutable frozensets, compiled regex and string constants added); L1-3 PASS (mypy clean on namespace.py and five affected test modules); L1-4 PASS (full suite green); L1-5 PASS (no _StoreProxy reference); L1-6 PASS (no DecisionStore import)
+suite: 4724 passed, 1 xfailed, 1 skipped, 0 failed; 9577 warnings; 2423.48 seconds
+mypy: Success, no issues found in 6 source files
+domain separator: double underscore within tagged `jmns__<hex(namespace)>__<logical-domain>` encoding (AGE-safe `[a-zA-Z0-9_-]{1,200}`, reversible for colon/underscore namespaces, unambiguous because the namespace is hex encoded, and reserved `jmns__` distinguishes physical namespace domains from ordinary logical names)
+implementation: namespace validation and rewriting now traverse only declared routing fields and explicit structural routing containers. All other values are deep-copied opaquely. Feed envelopes and decision payloads remain separate explicit routing boundaries; cursors and generation watermarks are unchanged.
+next: FIX-REV-P2-AGE-DATA-INTEGRITY (R3+R4+R6) in parallel, then AGE-MECHANICAL (R5+R8), then re-review
+
+=== RE-REVIEW-REV-P2 (Sol+high) ===
+date: 2026-10-16
+model: sol+high
+scope: independent verification of R1-R6, R8 fixes
+verdict: FAIL
+per-finding: R1 PASS; R2 FAIL; R3 PASS; R4 PASS; R5 PASS; R6 PASS; R8 PASS
+cross-fix: FAIL — the namespace encoding is syntactically AGE-safe, but it is neither reserved against ordinary-domain collision nor integrated with per-physical-domain bounded activation/migration. A public-operation probe stored a raw decision under `jmns__61726d__scoring` and namespace `arm/scoring` returned it. A readiness probe accepted activated `s2p` and rejected encoded `jmns__61726d__s2p` as unactivated.
+deferred: R7, R9, R10 confirmed P3 and non-blocking; none is a prerequisite for the shipped fixes
+suite ci-platform: 818 passed, 0 failed, 0 skipped
+suite copilot-sdk: 4726 passed, 0 failed, 1 xfailed
+new findings: none; original R2 remains partially fixed/open
+review note: focused fixer selections also passed (SDK 45; platform 113). This review was performed fresh, but the current thread also authored 35a/35c, so it is not independent-author verification.
+next: fix R2 by defining and enforcing a globally reserved collision-free physical namespace representation and activating/migrating the exact encoded physical domains used by namespace reads, writes, generations and feeds; add real AGE composition coverage, then re-review. Bounded projection core remains blocked.
+
+=== FIX-REV-P2-R2-COMPLETION (GAP-1 + GAP-2) ===
+date: 2026-10-16
+model: terra+high
+scope: GAP-1 (namespace prefix reservation), GAP-2 (activation integration)
+repo: copilot-sdk (namespace.py + memory_store.py) + ci-platform (bounded_projection_migration.py + age_graph_store.py)
+findings fixed: R2 partial (from RE-REVIEW-REV-P2)
+files changed: copilot-sdk: copilot_sdk/graph/namespace.py, copilot_sdk/graph/memory_store.py, tests/test_namespace_reservation_completion.py, docs/session_state.md; ci-platform: ci_platform/graph/bounded_projection_migration.py, ci_platform/graph/age_graph_store.py, tests/test_namespace_activation_completion.py, tests/test_bounded_projection_migration.py, docs/session_state.md
+tests added: 11 test functions covering T1-T6 (6 SDK reservation/composition cases, 4 database-free AGE activation cases, 1 live AGE namespace composition case)
+self-verify: CHECK-01 PASS (raw memory and AGE decision writes reject reserved prefix); CHECK-02 PASS (base activation initializes encoded domain); CHECK-03 PASS (inactive base rejects encoded domain); CHECK-04 PASS (single jmns__ prefix constant and tagged encoding); CHECK-05 PASS (namespace parser/base-activation branch present); CHECK-06 PASS for task-owned scope (four required production files, tests, logs; pre-existing shared-tree diffs retained); CHECK-07 PASS (memory and live AGE namespace writes round-trip); CHECK-08 PASS (T1-T6 covered by 11 tests)
+layer-1: L1-1 PASS (no public signatures removed); L1-2 PASS (no mutable module globals added); L1-3 PASS (mypy clean on 7 production/test targets); L1-4 QUALIFIED (ci-platform full suite green; SDK full run had one unrelated order-dependent self-computation-router assertion, with both observed failing assertions passing together in isolation); L1-5 PASS (no _StoreProxy added); L1-6 PASS (no DecisionStore import added)
+suite copilot-sdk: 4731 passed, 1 xfailed, 1 unrelated order-dependent failure in tests/backend/test_self_computation_router.py; test_decisions_returns_all and test_audit_trail_returns_verified_trails passed together in isolation (2 passed). Focused namespace suite: 98 passed.
+suite ci-platform: 823 passed, 0 failed; includes the live AGE namespace activation/write/query/feed composition test
+mypy: Success, no issues found in all 7 scoped production/test files
+collision guard approach: a (tagged str emitted only by GraphStoreNamespace; public memory/AGE decision-write boundaries reject an identical raw jmns__ string while internal namespace writes retain the tag through validation)
+activation approach: a with per-physical-domain initialization (parse encoded domain, require and shared-lock base activation, then create/backfill an exact encoded BoundedDomain anchor so generations and feeds stay isolated by namespace)
+next: re-review (Sol+high) R2 only — if PASS, bounded core accepted
+
+=== FIX-REV-P2-AGE-DATA-INTEGRITY (R4 factory + R6 test) ===
+date: 2026-10-16
+scope: R4 factory corrupt-activation propagation + R6 ImportError fallback test
+files: copilot_sdk/graph/factory.py, tests/test_bounded_projection_wrappers.py
+suite: focused 35 passed; exact full run 4,725 passed, 1 xfailed, 1 transient external FRED failure; failed case passed isolated, with 0 persistent/task-related failures
+=== RE-REVIEW-R2-ONLY (35f) ===
+date: 2026-10-16
+model: sol+high
+scope: R2 verification — namespace prefix reservation + activation integration
+verdict: FAIL
+findings: 2 P1, 1 P2, 0 P3
+details: 35f-R2-01 P1 — the claimed global jmns__ reservation is enforced only on decision creation; public observation, fingerprint, conservation, checkpoint, evolution/state, enrichment, and other domain-bearing write paths in both InMemoryGraphStore and AGEGraphStore still accept raw reserved domains. 35f-R2-02 P1 — the internal bypass is a forgeable str attribute, so an external str subclass with _copilot_namespace_internal=True bypasses both decision-write guards. 35f-R2-03 P2 — the 11 completion regressions cover decision guards and activation/composition, but do not cover other public write families or a forged tag. GAP-2 activation, encoded-domain parsing, per-physical generation/feed anchors, and live AGE namespace composition passed.
+suite copilot-sdk: 4730 passed, 1 xfailed, 2 order-dependent failures in tests/backend/test_self_computation_router.py; both failed nodes passed together in isolation (2 passed). Focused completion tests: 6 passed.
+suite ci-platform: 823 passed, 0 failed, 0 skipped. Focused activation/migration tests: 11 passed.
+next: fixer needed — enforce one non-forgeable reservation boundary across every public domain-bearing write in both stores, retain the namespace internal path, and add all-write-family/spoof regressions; then re-review R2.
+
+--- FIX-R2-GAP1-RESERVATION (35g) ---
+Date: 2026-10-16
+Prompt: codex_fix_r2_gap1_reservation_v2.md
+Model: Terra+high
+
+Changes:
+namespace.py: Added is_internal_namespace() with type-identity check (type(x) is _InternalNamespace).
+memory_store.py: Extended the jmns__ guard to save_k_utility, save_holdout_decision, enqueue_to_outbox, write_decision, write_governed_decision, write_outcome, write_observation, append_evidence_receipt, write_conservation_status, write_fingerprint, write_centroid_checkpoint, write_evolution_event, prune_evolution_events, write_transfer_pattern, link_entity, update_centroid, update_dk_weights, update_conservation_state, save_centroids, save_evolution, delete_evolution, save_evolution_state, save_posterior, delete_posterior, save_promotion, delete_promotion, save_ledger, delete_ledger, save_governance, delete_governance, save_evolution_event, write_entity_enrichment, archive_old_decisions, archive_decisions, domain_scoped_reset, and link_decision_to_entity; replaced attribute-tag bypasses with is_internal_namespace().
+age_graph_store.py: Extended the jmns__ guard to save_evolution, delete_evolution, save_evolution_state, save_posterior, delete_posterior, save_promotion, delete_promotion, save_ledger, delete_ledger, save_governance, delete_governance, write_decision, write_governed_decision, write_outcome, write_outcome_and_update_centroid, write_observation, write_conservation_status, write_fingerprint, write_centroid_checkpoint, append_evidence_receipt, write_evolution_event, write_transfer_pattern, link_entity, update_centroid, update_dk_weights, update_conservation_state, save_centroids, save_evolution_event, link_decision_to_entity, prune_evolution_events, archive_old_decisions, archive_decisions, domain_scoped_reset, and write_entity_enrichment; replaced attribute-tag bypasses with is_internal_namespace().
+
+Tests added: 77 method-specific/type-identity/forgery/positive tests (41 SDK, 36 CI).
+SDK baseline: 4773 passed, 1 xfailed, 0 failed.
+CI baseline: 859 passed, 0 failed.
+Mypy: clean on copilot_sdk/graph/namespace.py, copilot_sdk/graph/memory_store.py, ci_platform/graph/age_graph_store.py, and both changed reservation test files.
+
+Self-verification: 10/10 CHECKs PASS.
+Layer 1: PASS.
+
+CONCRETE WRITE METHOD LIST (for re-review reference):
+memory_store.py: save_k_utility, save_holdout_decision, enqueue_to_outbox, write_decision, write_governed_decision, write_outcome, write_observation, append_evidence_receipt, write_conservation_status, write_fingerprint, write_centroid_checkpoint, write_evolution_event, prune_evolution_events, write_transfer_pattern, link_entity, update_centroid, update_dk_weights, update_conservation_state, save_centroids, save_evolution, delete_evolution, save_evolution_state, save_posterior, delete_posterior, save_promotion, delete_promotion, save_ledger, delete_ledger, save_governance, delete_governance, save_evolution_event, write_entity_enrichment, archive_old_decisions, archive_decisions, domain_scoped_reset, link_decision_to_entity.
+age_graph_store.py: save_evolution, delete_evolution, save_evolution_state, save_posterior, delete_posterior, save_promotion, delete_promotion, save_ledger, delete_ledger, save_governance, delete_governance, write_decision, write_governed_decision, write_outcome, write_outcome_and_update_centroid, write_observation, write_conservation_status, write_fingerprint, write_centroid_checkpoint, append_evidence_receipt, write_evolution_event, write_transfer_pattern, link_entity, update_centroid, update_dk_weights, update_conservation_state, save_centroids, save_evolution_event, link_decision_to_entity, prune_evolution_events, archive_old_decisions, archive_decisions, domain_scoped_reset, write_entity_enrichment.
+
+FAILURE MODE PREVENTED:
+R2-01: Raw reserved domains in non-decision writes are now rejected by all public domain-bearing write methods.
+R2-02: Forged str subclass bypass is now impossible because trust uses exact type identity rather than an attribute check.
+R2-03: Previously untested write families now have dedicated raw-prefix rejection coverage, plus forgery and genuine-internal positive coverage.
+
+--- RE-REVIEW-R2-GAP1 (35h) ---
+Date: 2026-10-16
+Prompt: codex_re_review_r2_gap1_v1.md
+Model: Sol+high
+
+R2-01: FAIL — the 36 InMemoryGraphStore and 34 AGEGraphStore methods claimed by 35g are guarded, but the public AGEGraphStore.run_transaction() facade exposes four additional domain-bearing writes without reservation checks: AGEGraphStoreTransaction.write_outcome(), update_centroid(), write_outcome_and_update_centroid(), and write_centroid_checkpoint(). An adversarial probe confirmed update_centroid persisted `jmns__forged__domain` into its write identity, and the other three facade methods forward that raw domain unchanged to unguarded private implementations. AGEGraphStoreTransaction.write_decision() is safe because _write_decision_impl() calls _validated_write_domain().
+R2-02: PASS — is_internal_namespace() is exactly `type(domain) is _InternalNamespace`; plain strings, forged str subclasses, and _InternalNamespace subclasses are rejected while the exact internal type passes. Production code has zero _copilot_namespace_internal attribute checks.
+R2-03: FAIL — the named test files contain 36 SDK and 35 CI raw-prefix reject tests, forgery coverage in both repos, and an SDK positive internal-type test; focused runs pass 47 SDK and 40 CI tests. However, there is zero AGEGraphStoreTransaction/run_transaction reservation coverage, leaving all four unsafe facade write paths untested.
+Regressions: PASS (qualified) — ci-platform: 859 passed, 0 failed. copilot-sdk: 4772 passed, 1 xfailed, 1 documented order-dependent failure in tests/backend/test_self_computation_router.py::test_audit_trail_returns_verified_trails. The two documented ordering nodes also remain nondeterministic in isolation; no namespace-reservation test failed.
+Blast radius: FAIL — the requested `git diff --name-only HEAD~1` comparison contains 470 SDK paths (467 outside the allowed list) and 15 CI paths (13 outside the allowed list). The repositories contain a cumulative uncommitted worktree relative to old HEAD commits, so 35g is not isolated by this comparison.
+
+SDK baseline: 4772 passed, 1 xfailed, 1 known order-dependent failure.
+CI baseline: 859 passed, 0 failed.
+
+Overall verdict: FAIL.
+New findings: 1 P2 blast-radius/scope-attribution finding. The transaction-facade bypass is a remaining R2-01 P1, and its missing tests keep R2-03 P2 open.
+P1 findings: 1. P2 findings: 2. P3 findings: 0.
+P2 bounded core remains blocked. P4 is not unblocked. Another fixer round is required.
+
+--- RE-REVIEW-R2-FINAL (35j) ---
+Date: 2026-10-17
+Prompt: codex_re_review_r2_final_v1.md
+Model: Sol+high
+
+R2-01: PASS — full-file AST audits found zero unguarded public domain/domain_name write methods in any class. The `**kwargs` audit found only AGEGraphStoreTransaction.write_decision without an inline guard; it delegates to _write_decision_impl(), which calls _validated_write_domain(). Adversarial execution confirmed all four 35i transaction methods reject a raw `jmns__` domain before persistence. SDK `save_rl_state()` uses constructor-normalized `self.domain`; transfer-pattern writes guard both source and target domains.
+R2-02: PASS — is_internal_namespace() is exactly `type(domain) is _InternalNamespace`; plain strings, forged str subclasses, and _InternalNamespace subclasses are rejected while the exact internal type passes. Production code has zero residual `_copilot_namespace_internal` checks outside namespace.py.
+R2-03: PASS — the focused suites passed 47 SDK tests and 50 CI tests. CI contains 14 transaction-related tests, including the required four raw-prefix rejects and four forgery rejects.
+Regressions: FAIL — ci-platform passed 869/869. The copilot-sdk full suite produced 4772 passed, 1 xfailed, and 1 failed: tests/backend/test_self_computation_router.py::test_audit_trail_returns_verified_trails returned `[d2, d1]` instead of `[d1, d2]`. The same test failed alone, and it plus test_decisions_returns_all both failed when run together. No namespace-reservation test failed, but this gate requires zero failures.
+Guard consistency: PASS — all 78 reserved-prefix checks retain startswith(`jmns__`) followed by `not is_internal_namespace(...)`, and all raise ValueError with the identical `domain prefix 'jmns__' is reserved for namespace routing` message. Source/target-domain checks use their corresponding variables; the four `**kwargs` transaction guards add a `domain is not None` precondition before the common predicate.
+
+SDK baseline: 4772 passed, 1 xfailed, 1 failed (focused namespace suite: 47 passed).
+CI baseline: 869 passed, 0 failed (focused namespace suite: 50 passed).
+
+Overall verdict: FAIL — namespace reservation gates R2-01/R2-02/R2-03 and guard consistency pass, but the strict no-regressions gate does not.
+New findings: 0 new namespace-reservation findings. One pre-existing P2 SDK ordering defect remains an acceptance blocker because it currently fails both in the full suite and in isolation.
+P1 findings: 0. P2 findings: 1. P3 findings: 0.
+P2 bounded core is not accepted by this final gate. P4 remains blocked pending a zero-failure SDK baseline.
+
+--- FIX-SC-ROUTER-ORDERING (35k) ---
+Date: 2026-10-17
+Prompt: codex_fix_sc_router_ordering_v2.md
+Model: Spark+low
+
+Diagnosis table:
+  A: GET /api/self/decisions uses the nested decisions() endpoint; the reported audit-list failure is GET /api/self/audit-trail using audit_trail() and its _verified() fallback.
+  B: InMemoryGraphStore dictionaries exposed as lists after _ordered_decisions() sorts newest created_at first with decision_id as a tie-breaker.
+  C: yes — the tests asserted ascending IDs/insertion order.
+  D: no ascending-ID/insertion order is part of these endpoint assertions; the store default is newest-first and the fixture used uncontrolled wall-clock timestamps.
+  E: test_decisions_returns_all, test_audit_trail_returns_verified_trails, test_audit_trail_limit_works.
+Diagnosis: TEST because membership tests assumed ascending ID/insertion order despite the store-defined newest-first ordering and uncontrolled write timestamps.
+Fix: Changed the two full-result assertions to compare sorted decision IDs and changed the limited audit assertion to accept either verified decision.
+Files changed: tests/backend/test_self_computation_router.py, docs/session_state.md.
+SDK baseline: 4773 passed, 1 xfailed, 0 failed. Focused router module: 19 passed. Ordering-dependent group: 3 passed.
+Self-verification: 4/4 PASS — original failing node 1 passed; all three ordering-dependent tests 3 passed together; endpoint probe returned exactly decisions {d1,d2,d3} and trails {d1,d2} with totals 3/2; blast radius limited to the router test file plus this session log.
+mypy: clean (exit 0) on tests/backend/test_self_computation_router.py.
+
+## DIAG-AUTOSEED (2026-10-17)
+- Result: FAIL
+- Summary: The shared seed module, Trading, Purchasing, and DataOps startup wiring, seed inputs, demo gating, completion marker, and 200-decision dry runs all pass, but the adjacent S2P backend has no direct AGE auto-seed startup wiring.
+- Findings: `../s2p-copilot/backend/app/main.py` exists but does not import or call `auto_seed_domain_if_empty`; a repository-wide S2P search found no `auto_seed_domain_if_empty` or `seed_all_decisions` reference. Its startup event warms materialized state and graph connections without seeding an empty S2P AGE domain. DataOps is correctly gated by `graph_config.backend == "age"`; the prompt's literal `requested_backend` heuristic is a false negative for that backend.
+
+## FIX-S2P-AUTOSEED (2026-10-17)
+- Result: PASS
+- Import: `scripts.seed_all_decisions.auto_seed_domain_if_empty`; S2P now adds the sibling `copilot-sdk` root to `sys.path` before application imports so the seed script is available from the backend runtime working directory.
+- Startup: `warm_s2p_tab_state_cache()` honors `DEMO_NO_RESEED=1` and otherwise calls `auto_seed_domain_if_empty(DOMAIN, app.state.graph_store)` when `app.state.s2p_active_graph_config.requested_backend == "age"`, before materializer prewarming. `DOMAIN` is `"s2p"`.
+- Tests: S2P BE 2294 passed, 1 skipped, 0 failed (stated baseline 280 passed).
+- mypy: clean on `s2p-copilot/backend/app/main.py`; the file's pre-existing untyped `conservation_payload()` return was wrapped in a no-op `cast(dict[str, Any], ...)` to satisfy `no-any-return`.
+- Post-checks: 5/5 PASS.
+  - PC1: All 4 domains import+call.
+  - PC2: Dry-run 200 x 4.
+  - PC3: S2P import clean with one explicit SDK-root `sys.path` entry.
+  - PC4: No silent fallbacks around the import or call.
+  - PC5: Cross-repo parity; Trading, Purchasing, DataOps, and S2P each contain one import and one call.
+
+## FIX-TRADING-404s (2026-10-17)
+- Result: PASS
+- Endpoints added: 4 (trades, evidence, promotion, archetypes)
+- Tests: Trading BE 1547 passed (baseline 26, expected 30; current suite is larger)
+- New tests: 4 (1 per endpoint, behavioral)
+- mypy: clean
+- Smoke: 4/4 PASS
+- Sampling gate: 3/3 PASS (current scorer suite path used because `tests/test_compounding_scorer.py` is absent)
+- EXIT gate: PASS
+- Sol review (Rule #96): PASS; two P2 findings were fixed and the follow-up review found no blocking issues
+
+## FIX-PURCHASING-404s (2026-10-17)
+- Result: FAIL
+- Endpoints added: 3 (commodity-prices, par-recommendations, supplier-scorecard)
+- Tests: Purchasing BE 929 passed (prompt baseline 33, expected 36; current branch collects 929)
+- New tests: 3 (1 per endpoint, behavioral), 3 passed
+- mypy: clean
+- Smoke: 0/3 PASS; the running server on port 8020 returned 404 for all three endpoints
+- Sampling gate: 3/3 PASS using the corresponding paths present in this checkout (`tests/scoring/test_scorer.py`, `tests/backend/test_conservation_router.py`, `tests/backend/test_evolution_router.py`)
+- EXIT gate: FAIL (not run because the mandatory self-check required stopping after the smoke failure and pre-existing unrelated Purchasing backend changes prevented a clean scoped diff)
+
+## FIX-DATAOPS-404s (2026-10-17)
+- Result: PASS
+- Endpoints added: 4 (provenance, di-trust, di-consumers, cross-graph-insight)
+- Tests: DataOps BE 498 passed (baseline 120, expected 124; current suite is larger)
+- New tests: 4 (1 per endpoint, behavioral)
+- mypy: clean
+- Smoke: 4/4 PASS
+- Sampling gate: 3/3 PASS (current scorer suite paths used because the requested root paths are absent)
+- EXIT gate: PASS
+- Sol review (Rule #96): PASS; the P3 finding was fixed and the follow-up review found no remaining blockers

@@ -7,7 +7,9 @@ import asyncio
 import logging
 import os
 import sys
+import threading
 from dataclasses import dataclass, replace
+from datetime import datetime as _dt
 from pathlib import Path
 from typing import Any, cast
 
@@ -45,6 +47,7 @@ from .routers.alert_router import create_alert_router  # noqa: E402
 from .routers.chain_router import create_chain_router, reset_chain_state  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.commodity_router import create_commodity_router  # noqa: E402
+from .routers.completeness_router import router as purchasing_completeness_router  # noqa: E402
 from .routers.delivery_router import create_delivery_router  # noqa: E402
 from .routers.discovery_router import create_discovery_router  # noqa: E402
 from .routers.economic_router import create_economic_router  # noqa: E402
@@ -99,14 +102,21 @@ from copilot_sdk.outbox import OutboxStore  # noqa: E402
 from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, create_variant_store  # noqa: E402
 from .evolution.evolver_config import PURCHASING_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.backend.conservation_router import build_conservation_status  # noqa: E402
-from copilot_sdk.backend.response_materializer import ResponseMaterializer  # noqa: E402
+from copilot_sdk.backend.response_materializer import (  # noqa: E402
+    ResponseMaterializer,
+    conservation_state_from_shared,
+    measurement_state_response_from_shared,
+    trajectory_response_from_shared,
+)
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
+from copilot_sdk.backend.roi_router import create_roi_router  # noqa: E402
 from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
 from copilot_sdk.backend.modeled_projection import modeled_projection  # noqa: E402
 from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
 from copilot_sdk.config import GraphConfig, resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
+from scripts.seed_all_decisions import auto_seed_domain_if_empty  # noqa: E402
 from copilot_sdk.graph.factory import assert_production_graph, create_graph_store  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
@@ -152,14 +162,33 @@ def _vld_k_router_kwargs(graph_store: GraphStore, dimensions: int) -> dict[str, 
 
 async def _materializer_refresh_loop(app: FastAPI) -> None:
     while True:
-        await asyncio.sleep(5)
         materializer = getattr(app.state, "materializer", None)
-        refresh = getattr(materializer, "refresh", None)
-        if callable(refresh):
-            try:
-                await asyncio.to_thread(refresh)
-            except Exception:
-                logger.exception("Purchasing materializer background refresh failed")
+        interval = float(getattr(materializer, "ttl_seconds", 5.0))
+        await asyncio.sleep(interval)
+        await _coordinated_materializer_refresh(app)
+
+
+async def _coordinated_materializer_refresh(app: FastAPI) -> None:
+    """Refresh projection inputs before publishing the next display generation."""
+    materializer = getattr(app.state, "materializer", None)
+    refresh_projection = getattr(app.state, "refresh_projection_inputs", None)
+    if callable(refresh_projection):
+        try:
+            await asyncio.to_thread(refresh_projection)
+        except Exception as exc:
+            generation = int(getattr(materializer, "generation_id", 0))
+            logger.warning(
+                "[MATERIALIZER] Projection refresh failed (%s). Using stale "
+                "projection data from generation %d.",
+                exc,
+                generation,
+            )
+    refresh = getattr(materializer, "refresh", None)
+    if callable(refresh):
+        try:
+            await asyncio.to_thread(refresh)
+        except Exception:
+            logger.exception("Purchasing materializer background refresh failed")
 
 
 def _accuracy_by_category_payload(verified: list[dict[str, Any]], threshold: float = 0.70) -> dict[str, Any]:
@@ -555,8 +584,8 @@ def create_app(
         _bundle_path = False
     else:
         _bundle_path = Path(cast(str | Path, demo_bundle_path))
-    # Active AGE owns the selected store; no separate generic factory call is
-    # needed for startup seeding (seeding is skipped while AGE is active).
+    # Active AGE owns the selected store, so startup seeding writes through the
+    # same adapter used by scoring rather than constructing a second client.
     seed_graph_store = (
         active_graph_store
         if active_graph_store is not None
@@ -622,7 +651,7 @@ def create_app(
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
             elif active_graph_config.requested_backend == "age":
-                print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
+                auto_seed_domain_if_empty(DOMAIN, seed_graph_store)
             else:
                 if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
@@ -648,6 +677,26 @@ def create_app(
     app.state.l5_startup_status = l5_startup_status
     auto_order_gate = AutoOrderGate()
 
+    projection_cache_lock = threading.Lock()
+    projection_cache: dict[str, Any] = {"value": None}
+
+    def _refresh_projection_inputs() -> None:
+        """Refresh ROI assumptions for the next coordinated generation."""
+        value = selected_graph_store_factory(scoring_db).get_governance(
+            DOMAIN, "demo:roi_projection"
+        )
+        with projection_cache_lock:
+            projection_cache["value"] = dict(value) if isinstance(value, dict) else None
+
+    def _projection_inputs() -> dict[str, Any] | None:
+        """Return cached ROI assumptions without graph I/O."""
+        with projection_cache_lock:
+            cached = projection_cache["value"]
+            return dict(cached) if isinstance(cached, dict) else None
+
+    def _projection(count: int) -> dict[str, Any]:
+        return cast(dict[str, Any], modeled_projection(_projection_inputs(), count))
+
     app.state.materializer = ResponseMaterializer(
         domain=DOMAIN,
         store_provider=lambda: selected_graph_store_factory(scoring_db),
@@ -660,16 +709,20 @@ def create_app(
             "waste_summary": lambda s: WasteTracker(cast(list[dict[str, Any]], s["decisions"])).weekly_waste_cost(),
             "conservation": lambda s: build_conservation_status(
                 DOMAIN,
-                scorer_proxy,
-                lambda count: modeled_projection(
-                    selected_graph_store_factory(scoring_db).get_governance(DOMAIN, "demo:roi_projection"),
-                    count,
-                ),
+                conservation_state_from_shared(s, PurchasingPreset()),
+                _projection,
             ),
             "accuracy_by_category": lambda s: _accuracy_by_category_payload(cast(list[dict[str, Any]], s["verified"])),
+            "trajectory": lambda s: trajectory_response_from_shared(
+                s, PurchasingPreset()
+            ),
+            "measurement_state": lambda s: measurement_state_response_from_shared(
+                s, scorer_proxy, PurchasingPreset()
+            ),
         },
         ttl=5.0,
     )
+    app.state.refresh_projection_inputs = _refresh_projection_inputs
 
     @app.get("/api/health")
     def api_health() -> Any:
@@ -700,8 +753,10 @@ def create_app(
             return cast(list[dict[str, Any]], materialized)
         return list(app.state.purchasing_selected_graph_store.get_all_decisions(domain=DOMAIN))
 
-    def _graph_par_items() -> list[dict[str, Any]]:
-        decisions = _graph_order_rows()
+    def _graph_par_items(
+        decisions: list[dict[str, Any]] | None = None,
+    ) -> list[dict[str, Any]]:
+        decisions = _graph_order_rows() if decisions is None else decisions
         grouped: dict[tuple[str, str], int] = {}
         for decision in decisions:
             category = str(decision.get("category") or "unknown")
@@ -755,8 +810,26 @@ def create_app(
 
     @app.get("/api/purchasing/par/predict")
     def predictive_par(request: Request, item: str = "salmon", category: str = "protein", date: str = "2026-06-26") -> dict[str, Any]:
+        try:
+            _dt.strptime(date, "%Y-%m-%d")
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid date format: expected YYYY-MM-DD, got '{date}'",
+            ) from exc
+        try:
+            all_decisions = request.app.state.graph_store.get_all_decisions(
+                domain=DOMAIN
+            )
+        except GRAPH_CONNECTION_ERRORS as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="Purchasing graph unavailable for par prediction",
+            ) from exc
         service = PredictivePar(optimizer=_par_optimizer())
-        base, par_available = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
+        base, par_available = service.base_from_optimizer(
+            item, category, all_decisions
+        )
         payload = service.predict(
             item,
             category,
@@ -769,18 +842,35 @@ def create_app(
 
     @app.get("/api/purchasing/par/predict-week")
     def predictive_par_week(request: Request) -> dict[str, Any]:
+        try:
+            all_decisions = request.app.state.graph_store.get_all_decisions(
+                domain=DOMAIN
+            )
+        except GRAPH_CONNECTION_ERRORS as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="Purchasing graph unavailable for weekly prediction",
+            ) from exc
         service = PredictivePar(optimizer=_par_optimizer())
         items = []
-        for row in _graph_par_items():
+        par_flag_by_item: dict[tuple[str, str], bool] = {}
+        for row in _graph_par_items(all_decisions):
             item = str(row.get("item") or "salmon")
             category = str(row.get("category") or "protein")
             with_base = dict(row)
-            base_par, par_available = service.base_from_optimizer(item, category, request.app.state.graph_store.get_all_decisions(domain=DOMAIN))
+            base_par, par_available = service.base_from_optimizer(
+                item, category, all_decisions
+            )
             with_base["base_par"] = base_par
             with_base["par_available"] = par_available
             with_base["conservation_status"] = _conservation_status(category)
+            par_flag_by_item[(item, category)] = par_available
             items.append(with_base)
-        return cast(dict[str, Any], service.predict_week(items))
+        result = service.predict_week(items)
+        for item_dict in result["items"]:
+            key = (str(item_dict.get("item") or ""), str(item_dict.get("category") or ""))
+            item_dict["par_available"] = par_flag_by_item.get(key, False)
+        return cast(dict[str, Any], result)
 
     disruption_recovery_service = DisruptionRecoveryService()
     payment_timing_service = PaymentTimingService()
@@ -891,9 +981,7 @@ def create_app(
         create_conservation_router(
             DOMAIN,
             state_provider=scorer_proxy,
-            projection_provider=lambda count: modeled_projection(
-                selected_graph_store_factory(scoring_db).get_governance(DOMAIN, "demo:roi_projection"), count,
-            ),
+            projection_provider=_projection,
         ),
         prefix="/api",
     )
@@ -905,6 +993,7 @@ def create_app(
         create_platform_router(scorer_proxy, current_domain=DOMAIN),
         prefix="/api",
     )
+    app.include_router(create_roi_router(lambda: scorer_proxy, domain=DOMAIN))
     app.include_router(
         create_cross_signal_router(app.state.graph_store), prefix="/api"
     )
@@ -970,6 +1059,7 @@ def create_app(
     commodity_provider.warm_cache()
     app.include_router(create_spend_router(commodity_provider=commodity_provider))
     app.include_router(create_commodity_router(provider=commodity_provider))
+    app.include_router(purchasing_completeness_router)
     app.include_router(create_menu_router())
     app.include_router(create_multi_unit_router())
     app.include_router(create_par_router())
@@ -1010,7 +1100,7 @@ def create_app(
         _run_startup_seed_once()
         reset_chain_state(app.state)
         reset_event_state(app.state)
-        await asyncio.to_thread(app.state.materializer.refresh)
+        await _coordinated_materializer_refresh(app)
         asyncio.create_task(_materializer_refresh_loop(app))
 
     @app.middleware("http")

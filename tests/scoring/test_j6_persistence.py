@@ -265,12 +265,12 @@ def test_scorer_persists_v2_evidence_fingerprint_and_checkpoint(mock_preset):
         assert checkpoint["domain"] == "mock"
         assert checkpoint["metadata"]["decision_id"] == result.decision_id
 
-        fingerprint = scorer.fingerprint()
+        fingerprint = scorer.fingerprint(persist=True)
         assert fingerprint.decisions_analyzed == 1
         assert len(store._fingerprints) == 1
         assert all(snapshot["domain"] == "mock" for snapshot in store._fingerprints.values())
         assert any(snapshot["window"] == 1 for snapshot in store._fingerprints.values())
-        scorer.fingerprint()
+        scorer.fingerprint(persist=True)
         assert len(store._fingerprints) == 1
     finally:
         store.close()

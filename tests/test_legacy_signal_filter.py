@@ -256,8 +256,46 @@ def test_category_and_visible_offset_page_boundaries(tmp_path: Path, backend: st
             _write(store, legacy=False, category="other")
             identifiers.append(_write(store, legacy=False, category="selected"))
         result = store.get_decisions("trading", category="selected", limit=limit, offset=offset)
-        assert [row["decision_id"] for row in result] == identifiers[offset:offset + limit]
+        expected = [
+            row["decision_id"]
+            for row in store.graph_primary.get_decisions(
+                "trading", category="selected", limit=100, chronological=True,
+            )
+            if not is_legacy_signal_decision(row)
+        ]
+        assert [row["decision_id"] for row in result] == expected[offset:offset + limit]
         assert store.get_decisions("purchasing", limit=3) == []
+    finally:
+        store.close()
+
+
+def test_visible_offsets_span_multiple_source_pages() -> None:
+    raw = InMemoryGraphStore(domain="trading")
+    store = LegacySignalFilteringGraphStore(raw, domain="trading")
+    try:
+        for index in range(180):
+            _write(raw, legacy=index % 6 == 0)
+        expected = [
+            row for row in raw.get_decisions("trading", limit=1_000, chronological=True)
+            if not is_legacy_signal_decision(row)
+        ]
+
+        first = store.get_decisions("trading", offset=0, limit=10)
+        middle = store.get_decisions("trading", offset=100, limit=10)
+        all_visible = store.get_decisions("trading", offset=0, limit=150)
+        beyond_visible = store.get_decisions("trading", offset=10_000, limit=10)
+
+        assert [row["decision_id"] for row in first] == [
+            row["decision_id"] for row in expected[:10]
+        ]
+        assert [row["decision_id"] for row in middle] == [
+            row["decision_id"] for row in expected[100:110]
+        ]
+        assert [row["decision_id"] for row in all_visible] == [
+            row["decision_id"] for row in expected
+        ]
+        assert beyond_visible == []
+        assert all(not is_legacy_signal_decision(row) for row in first + middle + all_visible)
     finally:
         store.close()
 
@@ -290,6 +328,7 @@ def test_factory_disabled_wrapper_exposes_legacy_decision(backend: str, monkeypa
 
     with monkeypatch.context() as patch:
         patch.setattr(factory, "LegacySignalFilteringGraphStore", lambda store, **_kwargs: store)
+        patch.setattr(factory, "BoundedLegacySignalFilteringGraphStore", lambda store, **_kwargs: store)
         raw = factory.create_graph_store(backend=backend, domain="trading", profile="test", env={})
         try:
             identifier = _write(raw, legacy=True)
@@ -567,6 +606,32 @@ def test_protocol_similarity_reports_underfilled_page(
     raw.close()
 
 
+def test_query_similar_overfetch_deduplicates_repeated_prefix() -> None:
+    raw = InMemoryGraphStore(domain="trading")
+    wrapper = LegacySignalFilteringGraphStore(raw, domain="trading")
+    try:
+        source_id = _write(raw, legacy=False)
+        for _ in range(3):
+            _write(raw, legacy=False)
+        _write(raw, legacy=True)
+        _write(raw, legacy=True)
+        expected = [
+            str(row["decision_id"])
+            for row in raw.query_similar(source_id, 100, domain="trading")
+            if not is_legacy_signal_decision(row)
+        ]
+
+        result = wrapper.query_similar(source_id, 3, domain="trading")
+        result_ids = [str(row["decision_id"]) for row in result]
+
+        assert result_ids == expected
+        assert len(result_ids) == 3
+        assert len(result_ids) == len(set(result_ids))
+        assert all(not is_legacy_signal_decision(row) for row in result)
+    finally:
+        wrapper.close()
+
+
 def test_protocol_movement_filters_legacy_rows(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -634,7 +699,7 @@ def test_wrapper_public_signatures_unchanged() -> None:
     import inspect
     from copilot_sdk.graph.protocol import GraphTraversalStore, ProtocolV2GraphStore
 
-    protocol_methods = {
+    protocol_methods: dict[str, Any] = {
         "query_context": GraphTraversalStore.query_context,
         "decision_movement": ProtocolV2GraphStore.decision_movement,
         "contextual_judgment": ProtocolV2GraphStore.contextual_judgment,

@@ -98,22 +98,25 @@ export default function PerformanceScreen() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([
-      retryAbort(getAnalytics),
-      retryAbort(getTrajectory),
-      retryAbort(getConservationStatus),
-    ])
-      .then(([nextAnalytics, nextTrajectory, nextConservation]) => {
+    setError(null);
+    const loads = [
+      retryAbort(getAnalytics).then((nextAnalytics) => {
+        if (!cancelled) setAnalytics(nextAnalytics);
+      }),
+      retryAbort(getTrajectory).then((nextTrajectory) => {
+        if (!cancelled) setTrajectory(nextTrajectory);
+      }),
+      retryAbort(getConservationStatus).then((nextConservation) => {
+        if (!cancelled) setConservation(nextConservation);
+      }),
+    ];
+    Promise.allSettled(loads)
+      .then((results) => {
         if (cancelled) return;
-        setAnalytics(nextAnalytics);
-        setTrajectory(nextTrajectory);
-        setConservation(nextConservation);
-        setError(null);
-      })
-      .catch((loadError) => {
-        console.debug("performance data unavailable", loadError);
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Performance unavailable");
+        const failures = results.filter((result) => result.status === "rejected");
+        if (failures.length > 0) {
+          console.debug("performance data partially unavailable", failures);
+          setError(`${failures.length} performance data source${failures.length === 1 ? " is" : "s are"} unavailable`);
         }
       })
       .finally(() => {
@@ -124,21 +127,14 @@ export default function PerformanceScreen() {
     };
   }, []);
 
-  if (loading) {
-    return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading performance...</div>;
-  }
-
-  if (error) {
-    return (
-      <section data-screen-ready="true" className="copilot-card p-6">
-        <h2 className="text-xl font-semibold">Performance unavailable</h2>
-        <p className="mt-2 text-sm trading-muted">{error}</p>
-      </section>
-    );
-  }
-
   return (
     <div data-screen-ready="true" className="flex flex-col gap-4">
+      {loading ? (
+        <div className="copilot-card p-3 text-sm trading-muted">Loading performance data…</div>
+      ) : null}
+      {error ? (
+        <div className="copilot-card p-3 text-sm trading-muted">{error}; showing available performance data.</div>
+      ) : null}
       <section className="copilot-card p-4">
         <h2 className="text-base font-semibold">Performance Summary</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-4">

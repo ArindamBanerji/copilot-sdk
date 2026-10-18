@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from integrity import architecture_scan
+from scripts import scan_integrity
 
 
 def test_scanner_prunes_before_entering_excluded_directories(tmp_path, monkeypatch):
@@ -169,3 +170,85 @@ def test_compatibility_audits_remain_available() -> None:
     assert architecture_scan.check_raw_sqlite().code == "AGE-02"
     assert architecture_scan.check_purchasing_kitchen_language().code == "LANG-01"
     assert architecture_scan.check_learning_names().code == "F-25"
+
+
+def test_route_double_prefix_check_only_matches_repeated_path_segments() -> None:
+    assert scan_integrity._has_doubled_path_segment("/api/conservation/conservation/status")
+    assert scan_integrity._has_doubled_path_segment("/api/api/status")
+    assert not scan_integrity._has_doubled_path_segment(
+        "conservation_provider=conservation_provider"
+    )
+    assert not scan_integrity._has_doubled_path_segment(
+        'if path.startswith(("/api/dataops", "/api/context"))'
+    )
+
+
+def test_frontend_paths_normalize_templates_queries_and_concatenation(tmp_path: Path) -> None:
+    api = tmp_path / "api.ts"
+    api.write_text(
+        "\n".join(
+            [
+                "return get(`/api/context/ticker/${ticker}`);",
+                "return get(`/api/history?${params.toString()}`);",
+                'return get("/api/self/" + "cen" + "troid-history");',
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    paths = [scan_integrity._normalize_api_path(value) for _, value in scan_integrity._frontend_api_paths(api)]
+
+    assert paths == [
+        "/api/context/ticker/{param}",
+        "/api/history",
+        "/api/self/centroid-history",
+    ]
+
+
+def test_parity_composes_module_factory_and_mount_prefixes(tmp_path: Path) -> None:
+    app_root = tmp_path / "apps" / "trading"
+    backend = app_root / "backend" / "app"
+    frontend = app_root / "frontend" / "src"
+    sdk_backend = tmp_path / "copilot_sdk" / "backend"
+    backend.mkdir(parents=True)
+    frontend.mkdir(parents=True)
+    sdk_backend.mkdir(parents=True)
+    (backend / "context_router.py").write_text(
+        "from fastapi import APIRouter\n"
+        "router = APIRouter(prefix='/context')\n"
+        "@router.get('/ticker/{ticker}')\n"
+        "def ticker(): pass\n",
+        encoding="utf-8",
+    )
+    (sdk_backend / "scoring_router.py").write_text(
+        "from fastapi import APIRouter\n"
+        "def create_scoring_router():\n"
+        "    router = APIRouter()\n"
+        "    @router.post('/score')\n"
+        "    def score(): pass\n"
+        "    return router\n",
+        encoding="utf-8",
+    )
+    (backend / "main.py").write_text(
+        "from fastapi import FastAPI\n"
+        "from .context_router import router as context_router\n"
+        "from copilot_sdk.backend.scoring_router import create_scoring_router\n"
+        "def create_app():\n"
+        "    app = FastAPI()\n"
+        "    app.include_router(context_router, prefix='/api')\n"
+        "    app.include_router(create_scoring_router(), prefix='/api')\n"
+        "    return app\n",
+        encoding="utf-8",
+    )
+    (frontend / "api.ts").write_text(
+        "get(`/api/context/ticker/${ticker}`);\npost('/api/score');\nget('/api/missing');\n",
+        encoding="utf-8",
+    )
+
+    result = scan_integrity.ScanResult()
+    scan_integrity.check_parity(tmp_path, result)
+    mismatches = [finding for finding in result.findings if finding.check == "api-path-mismatch"]
+
+    assert [(finding.line, finding.message.rsplit(": ", 1)[1]) for finding in mismatches] == [
+        (3, "/api/missing")
+    ]

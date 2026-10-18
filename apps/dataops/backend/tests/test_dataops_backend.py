@@ -1125,20 +1125,23 @@ def test_cross_graph_insight_has_combined_impact(client: TestClient) -> None:
     assert payload["process_signal"]["slowdown_factor"] == 10.0
     assert payload["combined_impact"]["sources"] == ["celonis", "graph", "sap"]
     assert payload["combined_impact"]["amount"] == 0.0
+    assert payload["impact_score"] is None
 
 
-def test_cross_graph_insight_unknown_alert_returns_404(client: TestClient) -> None:
+def test_cross_graph_insight_unknown_alert_returns_default(client: TestClient) -> None:
     response = client.get("/api/context/cross-graph-insight/ALERT-DOES-NOT-EXIST")
 
-    assert response.status_code == 404
-    assert "not found" in response.json()["detail"]
+    assert response.status_code == 200
+    assert response.json()["insights"] == []
+    assert response.json()["connections"] == []
 
 
-def test_cross_graph_insight_alert_without_refs_returns_404(client: TestClient) -> None:
+def test_cross_graph_insight_alert_without_refs_returns_default(client: TestClient) -> None:
     response = client.get("/api/context/cross-graph-insight/ALERT-TIRE-002")
 
-    assert response.status_code == 404
-    assert response.json()["detail"] == "No cross-graph data for this alert"
+    assert response.status_code == 200
+    assert response.json()["insights"] == []
+    assert response.json()["impact_score"] == 0.0
 
 
 def test_cross_graph_insight_values_come_from_fixture(client: TestClient) -> None:

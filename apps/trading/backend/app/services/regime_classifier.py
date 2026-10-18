@@ -64,13 +64,17 @@ class RegimeClassifier:
 
 
 class RegimePerformanceMapper:
-    """Map verified trading outcomes to per-category regime accuracy."""
+    """Map one request's verified outcomes to per-category regime accuracy.
+
+    Create a new mapper for each request so bucket reuse never crosses requests.
+    """
 
     def __init__(self, graph_store: Any, preset: Any, *, domain: str = "trading"):
         self._graph_store = graph_store
         self._preset = preset
         self._domain = domain
         self._categories = set(getattr(getattr(preset, "shape", None), "category_names", []) or [])
+        self._cached_buckets: dict[str, dict[str, list[bool]]] | None = None
 
     def per_regime_accuracy(self) -> dict[str, dict[str, dict[str, float | int]]]:
         """Return {category: {regime: {accuracy, n_decisions}}} for sampled buckets."""
@@ -132,6 +136,8 @@ class RegimePerformanceMapper:
         return " ".join(parts)
 
     def _buckets(self) -> dict[str, dict[str, list[bool]]]:
+        if self._cached_buckets is not None:
+            return self._cached_buckets
         decisions = self._verified_decisions()
         buckets: dict[str, dict[str, list[bool]]] = {}
         for decision in decisions:
@@ -142,6 +148,7 @@ class RegimePerformanceMapper:
             if regime is None:
                 continue
             buckets.setdefault(category, {}).setdefault(regime, []).append(bool(decision.get("is_correct")))
+        self._cached_buckets = buckets
         return buckets
 
     def _verified_decisions(self) -> list[dict[str, Any]]:

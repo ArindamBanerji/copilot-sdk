@@ -396,7 +396,7 @@ def test_evidence_reads_scored_graph_decision(client):
 
     assert response.status_code == 200
     assert response.json()["trade_id"] == decision_id
-    assert response.json()["factors"]["signal_alignment"] == 0.9
+    assert response.json()["factor_scores"]["signal_alignment"] == 0.9
 
 
 def test_evidence_merges_saved_trade_metadata_for_scored_decision(client):
@@ -427,11 +427,12 @@ def test_evidence_merges_saved_trade_metadata_for_scored_decision(client):
     assert "quick re-entry after loss" in response.json()["evidence_text"]
 
 
-def test_evidence_not_found_404(client):
+def test_evidence_unknown_returns_default(client):
     response = client.get("/api/trading/evidence/missing")
 
-    assert response.status_code == 404
-    assert response.json() == {"error": "Trade not found"}
+    assert response.status_code == 200
+    assert response.json()["trade_id"] == "missing"
+    assert response.json()["similar_trades"] == []
 
 
 def test_evidence_includes_all_factor_keys_or_defaults(client):
@@ -440,7 +441,7 @@ def test_evidence_includes_all_factor_keys_or_defaults(client):
     response = client.get("/api/trading/evidence/e-1")
 
     assert response.status_code == 200
-    assert set(response.json()["factors"]) == set(ALL_FACTOR_NAMES)
+    assert set(response.json()["factor_scores"]) == set(ALL_FACTOR_NAMES)
 
 
 def test_evidence_uses_decision_context_label_not_emotional(client):

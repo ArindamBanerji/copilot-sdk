@@ -23,15 +23,18 @@ test("transfer status endpoint returns object", async ({ page }) => {
   expect(typeof await res.json()).toBe("object");
 });
 
-test("transfer execute reports unknown conservation without applying", async ({ page }) => {
+test("transfer execute requires governed source artifacts", async ({ page }) => {
   const res = await page.request.post("http://127.0.0.1:8010/api/transfer/execute", {
-    data: { source_domain: "dataops", target_domain: "trading", dry_run: true },
+    data: {
+      source_domain: "dataops",
+      target_domain: "trading",
+      source_artifact_ids: ["artifact:dataops:e2e-missing"],
+      dry_run: true,
+    },
   });
-  expect(res.status()).toBe(200);
+  expect(res.status()).toBe(422);
   const data = await res.json();
-  expect(data.executed).toBe(false);
-  expect(data.dry_run).toBe(true);
-  expect(JSON.stringify(data).toLowerCase()).toContain("conservation");
+  expect(String(data.detail)).toMatch(/governed transfer patterns|source artifact/i);
 });
 
 test("transfer panel renders on Performance tab", async ({ page }) => {
@@ -62,6 +65,6 @@ test("transfer flow: view opportunities, dry-run, verify result display", async 
     return;
   }
   await execute.click();
-  await expectAnyText(page, [/failed with 503/i, /conservation/i, /dry-run/i]);
+  await expectAnyText(page, [/failed with 422|failed with 503/i, /source artifact/i, /conservation/i, /dry-run/i]);
 });
 

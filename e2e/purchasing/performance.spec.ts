@@ -12,7 +12,7 @@ async function gotoPerformance(page: import("@playwright/test").Page) {
 test("trajectory chart renders", async ({ page }) => {
   await gotoPerformance(page);
 
-  await expectAnyText(page, [/Trajectory/i, /Performance unavailable/i]);
+  await expectAnyText(page, [/20 orders to learn what takes 11 years of gut instinct/i, /Performance unavailable/i]);
   const mainText = await page.locator("main").innerText();
   if (!/Performance unavailable/i.test(mainText)) {
     await expectAnyText(page, [/Current IKS/i, /Win Rate/i, /Decisions/i]);
@@ -34,7 +34,7 @@ test("cost impact visible", async ({ page }) => {
 test("trajectory shows switching cost narrative", async ({ page }) => {
   await gotoPerformance(page);
 
-  await expect(page.getByText("Trajectory")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "20 orders to learn what takes 11 years of gut instinct." })).toBeVisible();
   await expectAnyText(page, [/orders to learn/i, /years of gut instinct/i, /Switching cost/i]);
 });
 

@@ -55,6 +55,7 @@ def dataops_data_dir(
         "celonis_kpis.json",
         "celonis_process_data.json",
         "process_timeline.json",
+        "rsi_trajectory.json",
         "transfer_status.json",
     ):
         shutil.copyfile(source / name, target / name)

@@ -84,6 +84,102 @@ def test_router_predict():
     assert response.json()["adjusted_par"] > 40
 
 
+def test_predict_empty_graph():
+    app = create_app(db_path=":memory:", demo_bundle_path=False)
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/purchasing/par/predict?item=salmon&category=protein&date=2026-06-26"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["base_par"] == 40.0
+    assert response.json()["par_available"] is False
+    assert response.json()["confidence"] == "blocked"
+
+
+def test_predict_week_empty_graph():
+    app = create_app(db_path=":memory:", demo_bundle_path=False)
+    client = TestClient(app)
+
+    response = client.get("/api/purchasing/par/predict-week")
+
+    assert response.status_code == 200
+    assert response.json()["items"] == []
+
+
+def test_predict_week_response_includes_par_available():
+    app = create_app(db_path=":memory:", demo_bundle_path=False)
+    app.state.graph_store.write_decision(
+        domain="purchasing",
+        category="dairy",
+        action="review",
+        confidence=0.8,
+        factors={"expected_demand": 0.5},
+        metadata={"item": "milk"},
+    )
+    client = TestClient(app)
+
+    response = client.get("/api/purchasing/par/predict-week")
+
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert items
+    assert all("par_available" in item for item in items)
+    assert all(item["par_available"] is False for item in items)
+
+
+def test_predict_nonempty_graph_missing_history():
+    app = create_app(db_path=":memory:", demo_bundle_path=False)
+    app.state.graph_store.write_decision(
+        domain="purchasing",
+        category="dairy",
+        action="review",
+        confidence=0.8,
+        factors={"expected_demand": 0.5},
+        metadata={"item": "milk"},
+    )
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/purchasing/par/predict"
+        "?item=nonexistent_xyz_item&category=protein&date=2026-06-26"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["par_available"] is False
+    assert response.json()["base_par"] == 40.0
+
+
+def test_predict_week_nonempty_graph_missing_history():
+    app = create_app(db_path=":memory:", demo_bundle_path=False)
+    app.state.graph_store.write_decision(
+        domain="purchasing",
+        category="dairy",
+        action="review",
+        confidence=0.8,
+        factors={"expected_demand": 0.5},
+        metadata={"item": "milk"},
+    )
+    client = TestClient(app)
+
+    response = client.get("/api/purchasing/par/predict-week")
+
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert items
+    assert all(item["par_available"] is False for item in items)
+    assert all(item["base_par"] == 40.0 for item in items)
+
+
+def test_missing_item_history_uses_unavailable_fallback():
+    decisions = [{"decision_id": "PUR-OTHER", "category": "protein"}]
+
+    assert PredictivePar().base_from_optimizer(
+        "salmon", "protein", decisions
+    ) == (40.0, False)
+
+
 def test_router_predict_blocks_malformed_conservation_override():
     app = create_app(db_path=":memory:", demo_bundle_path=False)
     app.state.purchasing_conservation_status = {}

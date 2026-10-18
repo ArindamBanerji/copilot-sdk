@@ -11,6 +11,32 @@ HERE = Path(__file__).resolve().parent
 VERIFICATION = HERE / "jm_charts_verification.json"
 RESULTS = HERE / "jm_phase3_results.json"
 REPORT = HERE / "jm_charts_phase3_report.md"
+LIVE_STACK_BASELINES = {
+    "trading": ("http://127.0.0.1:8010", "/api/score", "/api/health", (5, 4, 10)),
+    "purchasing": ("http://127.0.0.1:8020", "/api/score", "/api/health", (5, 4, 7)),
+    "dataops": ("http://127.0.0.1:8030", "/api/score", "/api/health", (6, 5, 6)),
+    "s2p": ("http://127.0.0.1:8002", "/api/s2p/score", "/api/health", (5, 5, 8)),
+}
+CONSERVATION_BASELINE = {
+    "q_window": 400,
+    "theta_formula": "23.53 / (alpha * V)",
+    "status_thresholds": ("GREEN: signal >= 2*theta_min", "AMBER: theta_min <= signal < 2*theta_min", "RED: signal < theta_min"),
+    "eta_confirm": 0.05,
+    "eta_override": 0.01,
+    "epsilon_firm_star": 0.125,
+    "penalty_ratios": {"soc": 20.0, "s2p": 5.0, "trading": 3.0, "purchasing": 3.0, "dataops": 10.0},
+}
+
+
+def assert_live_stack_baselines() -> None:
+    assert {name: config[3] for name, config in LIVE_STACK_BASELINES.items()} == {
+        "trading": (5, 4, 10),
+        "purchasing": (5, 4, 7),
+        "dataops": (6, 5, 6),
+        "s2p": (5, 5, 8),
+    }
+    assert all(config[2] == "/api/health" for config in LIVE_STACK_BASELINES.values())
+    assert CONSERVATION_BASELINE["q_window"] == 400
 
 
 UPDATES: dict[int, dict[str, str]] = {
@@ -229,6 +255,7 @@ def write_report(data: dict[str, Any]) -> None:
 
 
 def main() -> None:
+    assert_live_stack_baselines()
     results: dict[str, Any] = json.loads(RESULTS.read_text(encoding="utf-8"))
     if set(results) != {"E-JM-1", "E-JM-3", "E-JM-4", "E-JM-5", "E-JM-6", "E-JM-7", "FIGURE-2"}:
         raise ValueError("Phase 3 results are incomplete")

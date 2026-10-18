@@ -8,6 +8,13 @@ export const PORTS = {
   s2p: { frontend: "http://127.0.0.1:5177", backend: "http://127.0.0.1:8002" },
 } as const;
 
+export const SDK_PORTS = {
+  trading: PORTS.trading,
+  purchasing: PORTS.purchasing,
+  dataops: PORTS.dataops,
+  s2p: PORTS.s2p,
+} as const;
+
 export type CopilotName = keyof typeof PORTS;
 export type JsonRecord = Record<string, unknown>;
 
@@ -51,6 +58,13 @@ async function isDemoReady(): Promise<boolean> {
   return preseeded.every(Boolean);
 }
 
+async function isSDKReady(): Promise<boolean> {
+  const health = await Promise.all(Object.values(SDK_PORTS).map(({ backend }) => checkHealth(backend)));
+  if (health.some((healthy) => !healthy)) return false;
+  const preseeded = await Promise.all(Object.values(SDK_PORTS).map(({ backend }) => hasPreseedData(backend)));
+  return preseeded.every(Boolean);
+}
+
 export async function gotoCopilot(page: Page, copilot: CopilotName): Promise<void> {
   await page.goto(PORTS[copilot].frontend, { waitUntil: "domcontentloaded" });
   await page.locator("main").waitFor({ state: "attached", timeout: 25_000 });
@@ -72,7 +86,7 @@ export async function gotoTab(page: Page, copilot: CopilotName, tabName: string)
 }
 
 export async function apiGet(backend: string, path: string): Promise<JsonRecord> {
-  return getJson(`${backend}${path}`, 10_000);
+  return getJson(`${backend}${path}`, 30_000);
 }
 
 export async function apiPost(
@@ -84,7 +98,7 @@ export async function apiPost(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(30_000),
   });
   if (!response.ok) {
     throw new Error(`${path} returned ${response.status}`);
@@ -92,10 +106,16 @@ export async function apiPost(
   return (await response.json()) as JsonRecord;
 }
 
-export const test = base.extend<{}, { demoReady: boolean }>({
+export const test = base.extend<{}, { demoReady: boolean; sdkReady: boolean }>({
   demoReady: [
     async ({}, use) => {
       await use(await isDemoReady());
+    },
+    { scope: "worker" },
+  ],
+  sdkReady: [
+    async ({}, use) => {
+      await use(await isSDKReady());
     },
     { scope: "worker" },
   ],

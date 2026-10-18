@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -78,7 +78,10 @@ from copilot_sdk.backend.transfer_router import (  # noqa: E402
     create_self_transfer_router,
     create_transfer_router,
 )
-from copilot_sdk.backend.archetype_router import create_archetype_router  # noqa: E402
+from copilot_sdk.backend.archetype_router import (  # noqa: E402
+    _archetype_detail,
+    create_archetype_router,
+)
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
     create_evolution_router,
@@ -94,11 +97,13 @@ from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.counterfactual_router import create_counterfactual_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
+from copilot_sdk.backend.reconvergence_router import create_reconvergence_router  # noqa: E402
 from copilot_sdk.backend.cross_signal_router import create_cross_signal_router  # noqa: E402
 from copilot_sdk.backend.concepts_router import create_concepts_router  # noqa: E402
 from copilot_sdk.evolution import ScorerBackedProvider  # noqa: E402
 from copilot_sdk.config import GraphConfig, resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
+from scripts.seed_all_decisions import auto_seed_domain_if_empty  # noqa: E402
 from copilot_sdk.graph.factory import assert_production_graph, create_graph_store  # noqa: E402
 from copilot_sdk.graph.memory_store import InMemoryGraphStore  # noqa: E402
 from copilot_sdk.scoring.fingerprint import compute_fingerprint  # noqa: E402
@@ -467,7 +472,7 @@ def create_app(
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
             elif active_graph_config.requested_backend == "age":
-                print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
+                auto_seed_domain_if_empty(DOMAIN, seed_graph_store)
             else:
                 if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
@@ -520,6 +525,30 @@ def create_app(
     )
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(create_self_transfer_router(scorer_proxy))
+
+    @app.get("/api/archetypes/{name}")
+    def trading_archetype_detail(name: str, request: Request) -> dict[str, Any]:
+        if name == "current":
+            current = getattr(request.app.state, "current_archetype", "default")
+            return {"current": str(current or "default")}
+        try:
+            return cast(dict[str, Any], _archetype_detail(name))
+        except HTTPException:
+            return {
+                "name": name,
+                "domain": DOMAIN,
+                "description": f"No configured archetype named {name}.",
+                "expected_initial_accuracy": 0.0,
+                "categories": [],
+                "actions": [],
+                "factors": [],
+                "shape": [],
+                "centroids": [],
+                "penalty_ratio": 1.0,
+                "calibration_note": "No calibration data is available.",
+                "calibration_notes": [],
+            }
+
     app.include_router(create_archetype_router())
     app.include_router(
         create_evolution_router(
@@ -554,6 +583,9 @@ def create_app(
     app.include_router(
         create_platform_router(scorer_proxy, current_domain=DOMAIN),
         prefix="/api",
+    )
+    app.include_router(
+        create_reconvergence_router(lambda: scorer_proxy, domain=DOMAIN)
     )
     app.include_router(
         create_cross_signal_router(app.state.graph_store), prefix="/api"

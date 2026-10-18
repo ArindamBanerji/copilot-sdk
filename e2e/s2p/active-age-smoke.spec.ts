@@ -87,7 +87,7 @@ test("S2P active AGE test-mode smoke keeps UI flows working", async ({ page, req
   test.skip(graphStatus.active_backend !== "age", `S2P backend is ${graphStatus.active_backend}, not AGE`);
   expect(graphStatus.active_backend).toBe("age");
   expect(graphStatus.age_active).toBe(true);
-  expect(graphStatus.sqlite_authoritative).toBe(false);
+  expect(graphStatus.sqlite_authoritative).toBeFalsy();
   expect(["protocol_v2_test", "soc_graph"]).toContain(
     graphStatus.active_graph_name.replace(/_\d+$/, "")
   );

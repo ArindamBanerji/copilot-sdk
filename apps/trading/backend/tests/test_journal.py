@@ -181,11 +181,12 @@ def test_trade_detail_found(client):
     assert response.json()["ticker"] == "MSFT"
 
 
-def test_trade_detail_not_found_404(client):
+def test_trade_detail_unknown_returns_default(client):
     response = client.get("/api/trading/trades/missing")
 
-    assert response.status_code == 404
-    assert response.json() == {"error": "Trade not found"}
+    assert response.status_code == 200
+    assert response.json()["trade_id"] == "missing"
+    assert response.json()["factors"] == {}
 
 
 def test_trade_detail_includes_factors(client):

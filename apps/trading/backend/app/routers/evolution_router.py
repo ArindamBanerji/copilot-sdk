@@ -22,6 +22,7 @@ from app.services.trading_evolver import (
 )
 
 GraphStoreFactory = Callable[[], Any]
+MAX_REJECTION_SCAN = 200
 
 
 class ShadowTestRequest(BaseModel):
@@ -84,8 +85,14 @@ def create_trading_evolution_router(
 
     @router.get("/rejection-summary")
     def rejection_summary(request: Request) -> dict[str, Any]:
-        persisted = (graph_store_factory().get_evolution(domain, "preseed_rejection_summary")
-                     if use_persisted_rejections and graph_store_factory is not None else None)
+        persisted = None
+        if use_persisted_rejections and graph_store_factory is not None:
+            try:
+                persisted = graph_store_factory().get_evolution(
+                    domain, "preseed_rejection_summary"
+                )
+            except Exception:
+                persisted = None
         persisted_entries = [
             {**entry, "provenance": entry.get("provenance") or persisted.get("provenance") or "learned"}
             for entry in persisted.get("rejected_variants", []) if isinstance(entry, dict)
@@ -271,15 +278,21 @@ def _demo_decisions() -> list[dict[str, Any]]:
 
 
 def _trading_rejection_entries(service: TradingAgentEvolver) -> list[dict[str, Any]]:
+    conservation_state = service._conservation_safety()
     rejected: list[dict[str, Any]] = []
-    for entry in service.evolution_log():
+    for scanned, entry in enumerate(service.evolution_log()):
+        if scanned >= MAX_REJECTION_SCAN:
+            break
         variant_id = str(entry.get("variant_id") or "")
         if not variant_id or str(entry.get("status", "")).lower() == "promoted":
             continue
         batches = int(entry.get("batches") or 0)
         if batches < MIN_SHADOW_BATCHES:
             continue
-        check = service.check_promotion(variant_id)
+        check = service.check_promotion(
+            variant_id,
+            conservation_state=conservation_state,
+        )
         if check.get("promotable"):
             continue
         reason = _canonical_rejection_reason(str(check.get("reason") or ""))

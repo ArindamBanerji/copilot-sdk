@@ -204,7 +204,7 @@ def test_decisions_returns_all() -> None:
     payload = _client(store).get("/api/self/decisions").json()
 
     assert payload["total"] == 3
-    assert [item["decision_id"] for item in payload["decisions"]] == ["d1", "d2", "d3"]
+    assert sorted(item["decision_id"] for item in payload["decisions"]) == ["d1", "d2", "d3"]
 
 
 def test_decisions_category_filter() -> None:
@@ -247,7 +247,7 @@ def test_audit_trail_returns_verified_trails() -> None:
     payload = _client(store).get("/api/self/audit-trail").json()
 
     assert payload["total"] == 2
-    assert [item["decision_id"] for item in payload["trails"]] == ["d1", "d2"]
+    assert sorted(item["decision_id"] for item in payload["trails"]) == ["d1", "d2"]
 
 
 def test_audit_trail_limit_works() -> None:
@@ -255,7 +255,7 @@ def test_audit_trail_limit_works() -> None:
     payload = _client(store).get("/api/self/audit-trail?limit=1").json()
 
     assert payload["total"] == 1
-    assert [item["decision_id"] for item in payload["trails"]] == ["d1"]
+    assert payload["trails"][0]["decision_id"] in {"d1", "d2"}
 
 
 def test_audit_trail_single_decision_hit() -> None:

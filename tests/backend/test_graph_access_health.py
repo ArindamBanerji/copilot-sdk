@@ -102,6 +102,34 @@ def test_health_follows_wrapper_primary() -> None:
     assert payload["graph_connected"] is True
 
 
+def test_health_surfaces_pool_mode_and_saturation() -> None:
+    class Client:
+        def connection_diagnostics(self):
+            return {
+                "connection_mode": "pooled",
+                "pool_size": 8,
+                "pool_available_connections": 2,
+                "pool_requests_waiting": 1,
+            }
+
+    class Store:
+        production_ready = True
+        _client = Client()
+
+        def count_decisions(self, domain: str) -> int:
+            return 3
+
+    payload = build_graph_health(
+        cast(GraphStore, Store()), SimpleNamespace(graph="soc_graph"), "trading"
+    )
+    assert payload["graph_connection"] == {
+        "connection_mode": "pooled",
+        "pool_size": 8,
+        "pool_available_connections": 2,
+        "pool_requests_waiting": 1,
+    }
+
+
 @pytest.mark.parametrize("failure", [ValueError("bug"), TypeError("bug"), ProgrammingError("bad SQL")])
 def test_guards_do_not_hide_programming_errors(failure: Exception) -> None:
     store = InMemoryGraphStore(domain="dataops")

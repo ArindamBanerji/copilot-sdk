@@ -10,9 +10,21 @@ from typing import Any, Mapping, cast
 
 from copilot_sdk.config import GraphConfig, GraphConfigError
 from copilot_sdk.config.graph_config import resolve_profile
-from copilot_sdk.graph.protocol import GraphStore, ProductionReadyStore, ProtocolV2GraphStore
-from copilot_sdk.graph.legacy_signal_filter import LegacySignalFilteringGraphStore
-from copilot_sdk.graph.tenant_store import TenantScopedGraphStore
+from copilot_sdk.graph.capabilities import has_bounded_projection
+from copilot_sdk.graph.legacy_signal_filter import (
+    BoundedLegacySignalFilteringGraphStore,
+    LegacySignalFilteringGraphStore,
+)
+from copilot_sdk.graph.protocol import (
+    BoundedProjectionStore,
+    GraphStore,
+    ProductionReadyStore,
+    ProtocolV2GraphStore,
+)
+from copilot_sdk.graph.tenant_store import (
+    BoundedTenantScopedGraphStore,
+    TenantScopedGraphStore,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +48,28 @@ def assert_production_graph(store: GraphStore, profile: str | None) -> None:
 
 
 def _tenant_store(store: GraphStore, env: Mapping[str, str], domain: str) -> GraphStore:
-    store = cast(GraphStore, LegacySignalFilteringGraphStore(store, domain=domain))
+    if has_bounded_projection(store):
+        wrapped = cast(
+            GraphStore,
+            BoundedLegacySignalFilteringGraphStore(
+                cast(BoundedProjectionStore, store), domain=domain,
+            ),
+        )
+    else:
+        wrapped = cast(
+            GraphStore, LegacySignalFilteringGraphStore(store, domain=domain),
+        )
     enabled = str(env.get("TENANT_ISOLATION_ENABLED", "false")).strip().lower() == "true"
-    return TenantScopedGraphStore(store) if enabled else store
+    if not enabled:
+        return wrapped
+    if has_bounded_projection(wrapped):
+        return cast(
+            GraphStore,
+            BoundedTenantScopedGraphStore(
+                cast(BoundedProjectionStore, wrapped),
+            ),
+        )
+    return TenantScopedGraphStore(wrapped)
 
 
 def _env_value(env: Mapping[str, str], key: str) -> str | None:
@@ -85,6 +116,51 @@ def _load_age_adapter():
             "AGE graph backend requires ci_platform.graph.age_sdk_adapter."
             "AGEGraphStoreAdapter"
         ) from exc
+
+
+def _load_bounded_age_adapter(legacy_adapter: Any) -> Any | None:
+    """Load P2b's opt-in adapter when ci-platform provides it."""
+    try:
+        module = importlib.import_module("ci_platform.graph.age_sdk_adapter")
+    except ImportError as exc:
+        logger.warning(
+            "bounded AGE adapter unavailable; falling back to legacy AGE: %s",
+            exc,
+        )
+        return None
+    # Preserve callers/tests that replace the established legacy loader: a
+    # bounded companion is valid only when both classes came from one module.
+    if getattr(module, "AGEGraphStoreAdapter", None) is not legacy_adapter:
+        return None
+    return getattr(module, "BoundedAGEGraphStoreAdapter", None)
+
+
+def _load_activation_errors() -> tuple[type[Exception], type[Exception]] | None:
+    """Load bounded readiness classifications without a static SDK dependency."""
+    try:
+        module = importlib.import_module(
+            "ci_platform.graph.bounded_projection_migration"
+        )
+    except ImportError as exc:
+        logger.warning(
+            "bounded AGE activation support unavailable; falling back to legacy AGE: %s",
+            exc,
+        )
+        return None
+    absent = getattr(module, "ActivationAbsentError", None)
+    corrupt = getattr(module, "ActivationCorruptError", None)
+    if not (
+        isinstance(absent, type)
+        and issubclass(absent, Exception)
+        and isinstance(corrupt, type)
+        and issubclass(corrupt, Exception)
+    ):
+        logger.warning(
+            "bounded AGE activation classifications unavailable; "
+            "falling back to legacy AGE"
+        )
+        return None
+    return absent, corrupt
 
 
 def _validate_age_graph_name(
@@ -209,7 +285,29 @@ def create_graph_store(
         selected_graph,
         read_only_soc_projection,
     )
-    adapter = adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph)
+    adapter_kwargs: dict[str, Any] = {
+        "dsn": str(selected_dsn),
+        "graph_name": selected_graph,
+    }
+    if config.profile == "production":
+        adapter_kwargs["use_pool"] = True
+    bounded_adapter_cls = _load_bounded_age_adapter(adapter_cls)
+    if bounded_adapter_cls is None:
+        adapter = adapter_cls(**adapter_kwargs)
+    else:
+        activation_errors = _load_activation_errors()
+        if activation_errors is None:
+            adapter = adapter_cls(**adapter_kwargs)
+        else:
+            activation_absent_error, activation_corrupt_error = activation_errors
+            try:
+                adapter = bounded_adapter_cls(
+                    **adapter_kwargs, domain=selected_domain,
+                )
+            except activation_corrupt_error:
+                raise
+            except activation_absent_error:
+                adapter = adapter_cls(**adapter_kwargs)
     setattr(adapter, "domain", selected_domain)
     setattr(adapter, "graph_config", config)
     store = _tenant_store(cast(GraphStore, adapter), env_map, selected_domain)

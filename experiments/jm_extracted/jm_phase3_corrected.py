@@ -22,6 +22,43 @@ BLUE = "#2563eb"
 ORANGE = "#f97316"
 GREEN = "#16a34a"
 RED = "#dc2626"
+AMBER = "#d97706"
+CONSERVATION_WINDOW = 400
+THETA_CONSTANT = 23.53
+ETA_CONFIRM = 0.05
+ETA_OVERRIDE = 0.01
+EPSILON_FIRM_STAR = 0.125
+
+# Live-stack baselines from the current domain presets and launcher.
+LIVE_COPILOTS = {
+    "trading": {"url": "http://127.0.0.1:8010", "score": "/api/score", "health": "/api/health", "shape": (5, 4, 10), "factors": ("signal_alignment", "market_regime", "position_sizing", "timing_quality", "risk_reward_actual", "emotional_indicator", "signal_confidence", "options_delta_exposure", "options_iv_percentile", "options_gamma_risk")},
+    "purchasing": {"url": "http://127.0.0.1:8020", "score": "/api/score", "health": "/api/health", "shape": (5, 4, 7), "factors": ("expected_demand", "day_of_week", "weather_forecast", "event_flag", "historical_waste", "supplier_lead_time", "price_memory_index")},
+    "dataops": {"url": "http://127.0.0.1:8030", "score": "/api/score", "health": "/api/health", "shape": (6, 5, 6), "factors": ("impact_scope", "source_reliability", "recurrence_frequency", "downstream_urgency", "data_freshness", "business_criticality")},
+    "s2p": {"url": "http://127.0.0.1:8002", "score": "/api/s2p/score", "health": "/api/health", "shape": (5, 5, 8), "factors": ("match_status", "amount_variance_ratio", "duplicate_score", "supplier_exception_history", "payment_terms_impact", "commodity_index_correlation", "tax_regulatory_compliance", "environmental_risk")},
+}
+GRAPH_STORE_PROTOCOL_READS = ("get_verified_decisions", "count_verified", "count_correct", "count_categories_with_n")
+
+
+def conservation_status(q: float, alpha: float, volume: float) -> tuple[str, float, float]:
+    """Return the current GAE status for alpha*q*V and theta_min."""
+    if alpha <= 0.0 or volume <= 0.0:
+        return "RED", float("inf"), 0.0
+    theta_min = THETA_CONSTANT / (alpha * volume)
+    signal = alpha * q * volume
+    if signal >= 2.0 * theta_min:
+        return "GREEN", theta_min, signal
+    if signal >= theta_min:
+        return "AMBER", theta_min, signal
+    return "RED", theta_min, signal
+
+
+def assert_live_stack_baselines() -> None:
+    for config in LIVE_COPILOTS.values():
+        shape = cast(tuple[int, int, int], config["shape"])
+        factors = cast(tuple[str, ...], config["factors"])
+        assert shape[2] == len(factors)
+        assert config["health"] == "/api/health"
+    assert GRAPH_STORE_PROTOCOL_READS == ("get_verified_decisions", "count_verified", "count_correct", "count_categories_with_n")
 GRAY = "#6b7280"
 
 
@@ -261,10 +298,11 @@ def quality_probability(kind: str, step: int, rng: np.random.Generator) -> float
 
 
 def e_jm_4() -> dict[str, Any]:
-    """Use the SDK recent-window conservation rule and clean-control calibration."""
+    """Use the rolling-400 GAE conservation rule and clean-control calibration."""
     kinds = ("No degradation", "Personnel change", "Data corruption (30%)", "Gradual drift", "Adversarial (10%)")
-    trials, healthy, degraded, window = 100, 500, 300, 100
-    threshold, human_quality = 0.75, 0.92
+    trials, healthy, degraded, window = 100, 500, 300, CONSERVATION_WINDOW
+    human_quality = 0.92
+    tensor_volume = float(np.prod(LIVE_COPILOTS["purchasing"]["shape"]))
     unconstrained = np.zeros((len(kinds), trials, healthy + degraded), dtype=float)
     conserved = np.zeros_like(unconstrained)
     detected = np.zeros((len(kinds), trials), dtype=bool)
@@ -283,7 +321,8 @@ def e_jm_4() -> dict[str, Any]:
                 conserved[kind_index, trial, decision] = human_rng.random() < human_quality if paused else base_outcome
                 if decision + 1 >= window and not paused:
                     recent = conserved[kind_index, trial, decision - window + 1 : decision + 1]
-                    if float(np.mean(recent)) < threshold:
+                    conservation_state, _theta_min, _signal = conservation_status(float(np.mean(recent)), 1.0, tensor_volume)
+                    if conservation_state in {"AMBER", "RED"}:
                         paused = True
                         detected[kind_index, trial] = True
                         detect_at[kind_index, trial] = decision
@@ -301,17 +340,17 @@ def e_jm_4() -> dict[str, Any]:
         axis.set_title(kinds[kind_index])
         axis.set_ylim(0.35, 1.0)
     axes[0, 0].legend(fontsize=8)
-    fig.suptitle("E-JM-4: Calibrated Conservation Intervention\nSDK recent-window rule; paused cases route to human review", fontsize=14)
+    fig.suptitle("E-JM-4: Calibrated Conservation Intervention\nRolling-400 alpha*q*V gate; AMBER/RED cases route to human review", fontsize=14)
     fig.supxlabel("Decision")
     fig.supylabel("Rolling downstream accuracy")
     save(fig, "e_jm_4_trajectories.png")
 
     fig, axes = plt.subplots(1, 4, figsize=(14, 4), sharey=True, constrained_layout=True)
     for axis, kind_index in zip(axes, degradation_indices):
-        status = np.mean(np.arange(healthy + degraded)[None, :] >= detect_at[kind_index, :, None], axis=0) * 100
-        status = np.nan_to_num(status)
-        axis.fill_between(x, 0, 100 - status, color="#86efac", alpha=0.9, label="GREEN")
-        axis.fill_between(x, 100 - status, 100, color="#fca5a5", alpha=0.9, label="PAUSED")
+        detection_pct = np.mean(np.arange(healthy + degraded)[None, :] >= detect_at[kind_index, :, None], axis=0) * 100
+        detection_pct = np.nan_to_num(detection_pct)
+        axis.fill_between(x, 0, 100 - detection_pct, color="#86efac", alpha=0.9, label="GREEN")
+        axis.fill_between(x, 100 - detection_pct, 100, color="#fca5a5", alpha=0.9, label="PAUSED")
         axis.axvline(healthy, color="black", linestyle="--", linewidth=0.8)
         axis.set_title(kinds[kind_index], fontsize=9)
         axis.set_ylim(0, 100)
@@ -349,7 +388,7 @@ def e_jm_4() -> dict[str, Any]:
     save(fig, "e_jm_4_detection_rates.png")
     return {
         "diagnosis": "design_flaw",
-        "fix": "Replaced the toy cumulative gate with the SDK's 100-decision recent-quality threshold (0.75), retained a clean control, and measured downstream quality after fail-safe human routing.",
+        "fix": "Replaced the toy cumulative gate with rolling-400 verified accuracy and theta_min=23.53/(alpha*V), retained a clean control, and routed AMBER/RED cases to human review.",
         "detection_rates_pct": {kind: float(rate) for kind, rate in zip(kinds, detection_rates)},
         "advantage_pp": {kind: float(value) for kind, value in zip(kinds[1:], advantage_mean)},
         "advantage_ci95": {kind: float(value) for kind, value in zip(kinds[1:], advantage_ci)},
@@ -692,6 +731,7 @@ def figure_2() -> dict[str, Any]:
 
 
 def main() -> None:
+    assert_live_stack_baselines()
     OUT.mkdir(parents=True, exist_ok=True)
     style()
     results = {

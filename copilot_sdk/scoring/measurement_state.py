@@ -41,11 +41,17 @@ def compute_measurement_state(
     scorer: Any,
     *,
     k_min: int | None = None,
+    verified_decisions: list[dict[str, Any]] | None = None,
+    current_iks: float | None = None,
 ) -> MeasurementStatus:
     """Compute measurement readiness from the scorer's verified decisions."""
 
     threshold = _resolve_k_min(scorer, k_min)
-    decisions = _verified_decisions(scorer)
+    decisions = (
+        [dict(row) for row in verified_decisions]
+        if verified_decisions is not None
+        else _verified_decisions(scorer)
+    )
     verified = len(decisions)
     arms_total = _arms_total(scorer)
     arm_counts = _arm_counts(scorer, decisions)
@@ -85,7 +91,11 @@ def compute_measurement_state(
         )
 
     accuracy = _accuracy(decisions)
-    iks, iks_failed = _read_current_iks(scorer)
+    iks, iks_failed = (
+        (float(current_iks), False)
+        if current_iks is not None
+        else _read_current_iks(scorer)
+    )
     if iks_failed:
         return MeasurementStatus(
             state=MeasurementState.DEGRADED,

@@ -13,7 +13,7 @@ async function gotoDashboard(page: Page) {
 test.describe("Provenance Badge - spot checks", () => {
   test("Dashboard shows provenance badge", async ({ page }) => {
     await gotoDashboard(page);
-    await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Market/i).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Accuracy Alerts|Market/i).first()).toBeVisible({ timeout: 10000 });
   });
 
   test("Badge shows valid source state", async ({ page }) => {
@@ -28,7 +28,7 @@ test.describe("Market Data - flow tests", () => {
     await gotoDashboard(page);
     await page.waitForLoadState("networkidle");
 
-    await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Market/i).first()).toBeVisible();
+    await expect(page.getByText(/Accuracy Alerts|Market/i).first()).toBeVisible();
   });
 
   test("Ticker lookup shows enriched data with provenance", async ({ page }) => {
@@ -69,7 +69,7 @@ test.describe("Market Data - flow tests", () => {
         await page.waitForTimeout(1000);
       }
 
-      await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Dashboard/i).first()).toBeVisible();
+      await expect(page.getByText(/Accuracy Alerts|Dashboard/i).first()).toBeVisible();
     }
   });
 

@@ -36,7 +36,8 @@ test("Trust insights API returns list", async ({ request }) => {
   const response = await request.get(`${API_BASE}/api/purchasing/trust-weights/insights`);
   expect(response.status()).toBe(200);
   const data = await response.json();
-  expect(Array.isArray(data)).toBe(true);
+  expect(Array.isArray(data.insights)).toBe(true);
+  expect(typeof data.trust_available).toBe("boolean");
 });
 
 test("Trust weights have 7 factors per category", async ({ request }) => {
@@ -62,7 +63,8 @@ test("Trust radar chart visible or learning state shown", async ({ page }) => {
 
 test("Trust insight cards visible when insights exist", async ({ page, request }) => {
   const response = await request.get(`${API_BASE}/api/purchasing/trust-weights/insights`);
-  const insights = await response.json();
+  const data = await response.json();
+  const insights = data.insights;
   await gotoAnalysis(page);
   if (insights.length > 0) {
     await expect(page.getByTestId("trust-insight-card").first()).toBeVisible({ timeout: 20_000 });

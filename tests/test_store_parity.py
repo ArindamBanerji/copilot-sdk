@@ -32,7 +32,7 @@ def _stores(tmp_path: Path) -> list[Any]:
         ci_platform = Path(__file__).resolve().parents[2] / "ci-platform"
         sys.path.insert(0, str(ci_platform))
         psycopg = importlib.import_module("psycopg")
-        conn: Any = psycopg.connect(dsn, autocommit=True)
+        conn: Any = psycopg.connect(dsn, connect_timeout=3, autocommit=True)
         try:
             conn.execute("LOAD 'age'")
             conn.execute("SET search_path = ag_catalog, '$user', public")

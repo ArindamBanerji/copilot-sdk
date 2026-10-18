@@ -33,6 +33,27 @@ def test_status_returns_domain_status_and_engine_without_state():
     assert payload["verified_count"] == 0
 
 
+def test_status_reads_materialized_generation_before_state_provider():
+    calls = {"state": 0}
+
+    def state_provider():
+        calls["state"] += 1
+        raise AssertionError("live state provider should not run on a cache hit")
+
+    client = build_client(state_provider=state_provider)
+
+    class Materializer:
+        def get_or_refresh(self, key: str) -> dict[str, object]:
+            assert key == "conservation"
+            return {"domain": "dataops", "status": "GREEN", "verified_count": 40}
+
+    client.app.state.materializer = Materializer()
+    payload = client.get("/conservation/status").json()
+
+    assert payload == {"domain": "dataops", "status": "GREEN", "verified_count": 40}
+    assert calls["state"] == 0
+
+
 def test_status_uses_state_provider_verified_count_as_conservation_v():
     client = build_client(
         state_provider=lambda: {

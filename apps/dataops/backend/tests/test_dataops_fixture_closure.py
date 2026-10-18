@@ -224,7 +224,7 @@ def test_startup_no_seed_in_production_age(tmp_path: Path) -> None:
 def test_startup_demo_seeds_with_provenance(tmp_path: Path) -> None:
     result = _run_startup_probe(tmp_path / "demo.db", demo=True)
 
-    assert result["store_type"] == "LegacySignalFilteringGraphStore"
+    assert result["store_type"] == "BoundedLegacySignalFilteringGraphStore"
     assert isinstance(result["count"], int)
     assert result["count"] > 0
     assert result["domain"] == "dataops"

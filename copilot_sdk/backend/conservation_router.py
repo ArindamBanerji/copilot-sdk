@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from typing import Any, Callable
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from copilot_sdk.backend.conservation_utils import (
@@ -22,6 +23,9 @@ from copilot_sdk.scoring.composite_gate import CompositeGate, outcomes_from_stat
 
 
 from gae.calibration import check_conservation, compute_theta_min
+
+
+log = logging.getLogger(__name__)
 
 
 class ConservationWhatIfRequest(BaseModel):
@@ -41,7 +45,36 @@ def create_conservation_router(
     router = APIRouter()
 
     @router.get("/conservation/status", response_model=None)
-    def status() -> dict[str, Any]:
+    def status(request: Request) -> dict[str, Any]:
+        materializer = getattr(request.app.state, "materializer", None)
+        if materializer is not None:
+            try:
+                payload = materializer.get_or_refresh("conservation")
+                if isinstance(payload, dict):
+                    return dict(payload)
+                record_fallback = getattr(materializer, "record_fallback", None)
+                if callable(record_fallback):
+                    record_fallback()
+                log.warning(
+                    "Conservation materializer returned no payload for %s; "
+                    "using live state provider",
+                    domain,
+                )
+            except Exception as exc:
+                record_fallback = getattr(materializer, "record_fallback", None)
+                if callable(record_fallback):
+                    record_fallback()
+                log.warning(
+                    "Conservation materializer failed for %s; using live state "
+                    "provider: %s",
+                    domain,
+                    exc,
+                )
+        else:
+            log.warning(
+                "Conservation materializer unavailable for %s; using live state provider",
+                domain,
+            )
         try:
             state = _resolve_state(state_provider)
         except Exception as exc:

@@ -180,7 +180,7 @@ def _create_migration_source(
 def _create_disposable_migration_graph(dsn: str) -> tuple[psycopg.Connection, str]:
     """Create a graph isolated from the configured Protocol v2 test graph."""
     graph_name = f"protocol_v2_test_migration_{uuid.uuid4().hex[:8]}"
-    conn = psycopg.connect(dsn, autocommit=True)
+    conn = psycopg.connect(dsn, connect_timeout=3, autocommit=True)
     conn.execute("LOAD 'age'")
     conn.execute("SET search_path = ag_catalog, '$user', public")
     conn.execute(f"SELECT create_graph('{graph_name}')")

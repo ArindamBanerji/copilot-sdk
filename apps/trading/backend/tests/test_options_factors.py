@@ -279,7 +279,7 @@ def test_evidence_endpoint_returns_options_separately_for_income(client):
 
     payload = client.get("/api/trading/evidence/opt-1").json()
 
-    assert set(payload["factors"]) == set(ALL_FACTOR_NAMES)
+    assert set(payload["factor_scores"]) == set(ALL_FACTOR_NAMES)
     assert payload["options_analytics_only"] is True
     assert payload["options_factors"]["iv_rv_ratio"] == 0.82
 

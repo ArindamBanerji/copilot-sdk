@@ -1,0 +1,53 @@
+
+Running 98 tests using 1 worker
+(node:33416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:33416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+°··°··°°°······F°(node:62872) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:62872) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+···°·········°·°··°·°·····°°·°°·°·°°°·°°°·°·TRD-01: claim-gate fields (fdr / held_out) not found in fingerprint response
+·°·················
+···············(node:26648) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:26648) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·°·
+
+  1) enterprise-cut.spec.ts:94:3 › Enterprise Cut — SDK (E3-E7) › E6: S2P Preview shows exception queue, conservation, and supplier profile 
+
+    TimeoutError: The operation was aborted due to timeout
+
+       at demo-fixture.ts:25
+
+      23 |
+      24 | async function getJson(url: string, timeoutMs: number): Promise<JsonRecord> {
+    > 25 |   const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+         |                    ^
+      26 |   if (!response.ok) {
+      27 |     throw new Error(`${url} returned ${response.status}`);
+      28 |   }
+        at getJson (C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo-cuts\demo-fixture.ts:25:20)
+        at C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\e2e\demo-cuts\enterprise-cut.spec.ts:98:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\enterprise-cut-Enterprise--e10b9-vation-and-supplier-profile\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\enterprise-cut-Enterprise--e10b9-vation-and-supplier-profile\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\enterprise-cut-Enterprise--e10b9-vation-and-supplier-profile\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\enterprise-cut-Enterprise--e10b9-vation-and-supplier-profile\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    enterprise-cut.spec.ts:94:3 › Enterprise Cut — SDK (E3-E7) › E6: S2P Preview shows exception queue, conservation, and supplier profile 
+  24 skipped
+  1 did not run
+  72 passed (3.3m)

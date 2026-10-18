@@ -31,11 +31,11 @@ def test_domain_rewriting_roundtrip() -> None:
     assert result["domain"] == "s2p"
     raw = shared.get_decision(
         decision_id,
-        domain="arm1::s2p",
+        domain=ns._domain("s2p"),
         include_outcome=False,
     )
     assert raw is not None
-    assert raw["domain"] == "arm1::s2p"
+    assert raw["domain"] == ns._domain("s2p")
 
 
 def test_namespace_isolation() -> None:
@@ -60,13 +60,13 @@ def test_close_noop() -> None:
     ns = GraphStoreNamespace(shared, "arm1")
     _write(ns)
     ns.close()
-    decisions = shared.get_all_decisions(domain="arm1::s2p")
+    decisions = shared.get_all_decisions(domain=ns._domain("s2p"))
     assert len(decisions) >= 1
 
 
 def test_invalid_namespace() -> None:
     shared = InMemoryGraphStore(domain="test")
-    for namespace in ("", "a::b", "  "):
+    for namespace in ("", "  "):
         with pytest.raises(ValueError):
             GraphStoreNamespace(shared, namespace)
 
@@ -101,9 +101,9 @@ def test_cross_domain_transfer_rewriting() -> None:
     assert len(patterns) == 1
     assert patterns[0]["source_domain"] == "s2p"
     assert patterns[0]["target_domain"] == "trading"
-    raw = shared.get_transfer_patterns(source_domain="arm1::s2p")
+    raw = shared.get_transfer_patterns(source_domain=ns._domain("s2p"))
     assert len(raw) >= 1
-    assert raw[0]["source_domain"] == "arm1::s2p"
+    assert raw[0]["source_domain"] == ns._domain("s2p")
 
 
 def test_multi_domain_filtering() -> None:

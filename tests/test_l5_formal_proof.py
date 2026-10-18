@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "verify_l5_completion.py"
@@ -70,6 +73,10 @@ def test_formal_proof_json_round_trip(tmp_path: Path) -> None:
     assert loaded["artifact_sha256"] == l5.proof_sha256(loaded)
 
 
+@pytest.mark.skipif(
+    not os.environ.get("GRAPH_DSN"),
+    reason="Requires PostgreSQL (GRAPH_DSN not set)",
+)
 def test_cli_writes_formal_proof_file(tmp_path: Path) -> None:
     output = tmp_path / "l5_proof.json"
     completed = subprocess.run(

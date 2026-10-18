@@ -181,12 +181,14 @@ export async function getPreviewSuppliers(): Promise<PreviewSuppliersResponse> {
   }));
 }
 
-export async function getFingerprint(): Promise<unknown | null> {
-  return apiGet<unknown>("/api/fingerprint").catch(() => null);
+export async function getFingerprint(invoiceId: string): Promise<FingerprintResponse | null> {
+  return apiGet<FingerprintResponse>(
+    `/api/s2p/insight/fingerprint?invoice_id=${encodeURIComponent(invoiceId)}`
+  ).catch(() => null);
 }
 
-export async function getTrajectory(): Promise<unknown | null> {
-  return apiGet<unknown>("/api/trajectory").catch(() => null);
+export async function getTrajectory(): Promise<PerformanceTrajectoryResponse | null> {
+  return apiGet<PerformanceTrajectoryResponse>("/api/s2p/performance/trajectory").catch(() => null);
 }
 
 export async function getConservationStatus(): Promise<ConservationStatus | null> {
@@ -217,7 +219,7 @@ export async function scoreInvoice(payload: ScoreInvoiceRequest): Promise<ScoreI
 
 export async function learnDecision(payload: LearnDecisionRequest): Promise<LearnDecisionResponse | null> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15_000);
+  const timeout = setTimeout(() => controller.abort(), 90_000);
   try {
     return await apiPostWithSignal<LearnDecisionResponse>("/api/learn", payload, controller.signal);
   } catch {

@@ -242,7 +242,7 @@ test.describe("Trust Radar - flow tests", () => {
 
   test("Dashboard market badge + Analysis trust - coherent data story", async ({ page }) => {
     await gotoDashboard(page);
-    await expect(page.getByText(/Centroid Timeline|Accuracy Alerts|Dashboard/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Accuracy Alerts|Dashboard/i).first()).toBeVisible({ timeout: 10_000 });
 
     await clickTab(page, "Analysis");
     await waitForAppShell(page);

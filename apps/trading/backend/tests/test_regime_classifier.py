@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from unittest.mock import Mock, patch
+
+import pytest
 
 from copilot_sdk.evidence.provenance import Provenanced
 from copilot_sdk.graph import InMemoryGraphStore
@@ -9,7 +12,9 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.routers.regime_router import create_regime_router
+from app.routers.regime_router import (
+    _conservation_status, _conservation_status_from_store, create_regime_router,
+)
 from app.services.regime_classifier import RegimeClassifier, RegimePerformanceMapper
 from app.services.regime_history import RegimeHistory
 
@@ -254,6 +259,85 @@ def test_extreme_vix() -> None:
 
     assert result["regime"] == "volatile"
     assert result["confidence"] == 1.0
+
+
+@pytest.mark.parametrize("seeded", [False, True])
+def test_mapper_reuses_verified_snapshot_for_all_calculations(seeded: bool) -> None:
+    store = _seed_store() if seeded else InMemoryGraphStore(domain="trading")
+    mapper = RegimePerformanceMapper(store, TradingPreset())
+    with (
+        patch.object(mapper, "_verified_decisions", wraps=mapper._verified_decisions) as snapshot,
+        patch.object(store, "get_verified_decisions", wraps=store.get_verified_decisions) as reads,
+    ):
+        accuracy = mapper.per_regime_accuracy()
+        edges = mapper.regime_edge("trending")
+        observation = mapper.regime_recommendation("trending", {})
+        snapshot.assert_called_once_with()
+        reads.assert_called_once_with("trading")
+    assert bool(accuracy) is seeded
+    assert bool(edges) is seeded
+    assert observation
+
+
+@pytest.mark.parametrize("endpoint", ["performance", "recommendation"])
+def test_regime_endpoint_uses_one_store_and_one_mapper_scan(endpoint: str) -> None:
+    store = _seed_store()
+    factory = Mock(return_value=store)
+    app = FastAPI()
+    app.include_router(create_regime_router(factory, provider_factory=_Provider, history=RegimeHistory()))
+    with (
+        patch.object(store, "get_verified_decisions", wraps=store.get_verified_decisions) as reads,
+        patch("app.routers.regime_router._conservation_status_from_store", wraps=_conservation_status_from_store) as conservation,
+    ):
+        response = TestClient(app).get(f"/api/trading/regime/{endpoint}")
+        assert response.status_code == 200
+        factory.assert_called_once_with()
+        conservation.assert_called_once_with(store, "trading")
+        reads.assert_called_once_with("trading")
+    assert response.json() == _client(store).get(f"/api/trading/regime/{endpoint}").json()
+
+
+@pytest.mark.parametrize("endpoint", ["performance", "recommendation"])
+def test_regime_endpoint_reads_fresh_history_next_request(endpoint: str) -> None:
+    store = InMemoryGraphStore(domain="trading")
+    factory = Mock(return_value=store)
+    app = FastAPI()
+    app.include_router(create_regime_router(factory, provider_factory=_Provider, history=RegimeHistory()))
+    client = TestClient(app)
+    key = "per_regime_accuracy" if endpoint == "performance" else "shifts"
+    assert not client.get(f"/api/trading/regime/{endpoint}").json()[key]
+    _seed_decisions(store, "trend_following", "trending", correct=10, incorrect=0)
+    with patch.object(store, "get_verified_decisions", wraps=store.get_verified_decisions) as reads:
+        response = client.get(f"/api/trading/regime/{endpoint}")
+        reads.assert_called_once_with("trading")
+    assert response.status_code == 200
+    assert response.json()[key]
+    assert factory.call_count == 2
+
+
+@pytest.mark.parametrize("endpoint", ["performance", "recommendation"])
+def test_regime_endpoint_no_store_does_not_read_conservation(endpoint: str) -> None:
+    factory = Mock(return_value=None)
+    app = FastAPI()
+    app.include_router(create_regime_router(factory, provider_factory=_Provider, history=RegimeHistory()))
+    with patch("app.routers.regime_router._conservation_status_from_store") as conservation:
+        response = TestClient(app).get(f"/api/trading/regime/{endpoint}")
+        assert response.status_code == 200
+        factory.assert_called_once_with()
+        conservation.assert_not_called()
+    key = "per_regime_accuracy" if endpoint == "performance" else "shifts"
+    assert not response.json()[key]
+
+
+def test_conservation_factory_helper_preserves_result_and_failure_behavior() -> None:
+    store = _seed_store()
+    factory = Mock(return_value=store)
+    expected = _conservation_status_from_store(store, "trading")
+    assert expected is not None
+    assert _conservation_status(factory, "trading") == expected
+    factory.assert_called_once_with()
+    assert _conservation_status(None, "trading") is None
+    assert _conservation_status(Mock(side_effect=RuntimeError("unavailable")), "trading") is None
 
 
 def _client(store: InMemoryGraphStore | None = None) -> TestClient:

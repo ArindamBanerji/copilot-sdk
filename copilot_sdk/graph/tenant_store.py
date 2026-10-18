@@ -3,11 +3,22 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 from typing import Any, cast
 
 from copilot_sdk.config.tenant import current_tenant_id, validate_tenant_id
-from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.graph.protocol import BoundedProjectionStore, GraphStore
 from copilot_sdk.graph.production import GraphStoreWrapper
+from copilot_sdk.graph.query import (
+    DecisionAggregate,
+    DecisionChangePage,
+    DecisionFilter,
+    DecisionGroup,
+    DecisionMetric,
+    DecisionPageRequest,
+    DecisionPageResult,
+    DecisionProjection,
+)
 
 
 class TenantScopedGraphStore(GraphStoreWrapper):
@@ -18,6 +29,10 @@ class TenantScopedGraphStore(GraphStoreWrapper):
     reads are filtered before they reach callers. This keeps the frozen
     GraphStore method signatures compatible with existing copilot services.
     """
+
+    _BOUNDED_ONLY_READS = frozenset({
+        "query_decisions", "aggregate_decisions", "get_decision_changes",
+    })
 
     def __init__(self, store: GraphStore, tenant_id: str | None = None) -> None:
         self._store = store
@@ -65,8 +80,15 @@ class TenantScopedGraphStore(GraphStoreWrapper):
         )
         return row if self._belongs(row) else None
 
-    def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]:
-        return self._filter(self._store.get_decisions(domain, category, limit))
+    def get_decisions(self, domain: str, category: str | None = None, limit: int = 400, *, offset: int = 0, chronological: bool = False) -> list[dict[str, Any]]:
+        return self._filtered_page(
+            lambda page_offset, page_limit: self._store.get_decisions(
+                domain, category, page_limit, offset=page_offset,
+                chronological=chronological,
+            ),
+            offset=offset,
+            limit=limit,
+        )
 
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
         return self._filter(self._store.get_all_decisions(domain))
@@ -74,8 +96,47 @@ class TenantScopedGraphStore(GraphStoreWrapper):
     def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]:
         return self._filter(self._store.get_archived_decisions(domain))
 
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
-        return self._filter(self._store.get_verified_decisions(domain))
+    def get_verified_decisions(self, domain: str, *, offset: int = 0, limit: int | None = None, chronological: bool = False, verified_after: tuple[float, str] | None = None) -> list[dict[str, Any]]:
+        if limit is None:
+            return self._filter(self._store.get_verified_decisions(
+                domain, chronological=chronological, verified_after=verified_after,
+            ))[
+                max(int(offset), 0):
+            ]
+        return self._filtered_page(
+            lambda page_offset, page_limit: self._store.get_verified_decisions(
+                domain, offset=page_offset, limit=page_limit,
+                chronological=chronological,
+                verified_after=verified_after,
+            ),
+            offset=offset,
+            limit=limit,
+        )
+
+    def _filtered_page(
+        self,
+        reader: Any,
+        *,
+        offset: int,
+        limit: int,
+    ) -> list[dict[str, Any]]:
+        """Page tenant-visible rows without materializing an unbounded read."""
+        wanted_offset = max(int(offset), 0)
+        wanted_limit = max(int(limit), 0)
+        if wanted_limit == 0:
+            return []
+        page_size = max(100, wanted_limit)
+        source_offset = 0
+        visible: list[dict[str, Any]] = []
+        while len(visible) < wanted_offset + wanted_limit:
+            page = list(reader(source_offset, page_size))
+            if not page:
+                break
+            visible.extend(self._filter(page))
+            source_offset += len(page)
+            if len(page) < page_size:
+                break
+        return visible[wanted_offset:wanted_offset + wanted_limit]
 
     def count_verified(self, domain: str) -> int:
         return len(self.get_verified_decisions(domain))
@@ -194,4 +255,141 @@ class TenantScopedGraphStore(GraphStoreWrapper):
     def __getattr__(self, name: str) -> Any:
         # Preserve non-state traversal helpers while the explicit methods above
         # enforce tenant filtering for all decision/control-plane state.
+        if name in self._BOUNDED_ONLY_READS:
+            raise AttributeError(
+                f"{type(self).__name__} does not support bounded projection "
+                f"method {name!r}; use BoundedTenantScopedGraphStore"
+            )
         return getattr(self._store, name)
+
+
+class BoundedTenantScopedGraphStore(TenantScopedGraphStore):
+    """Tenant policy wrapper for a bounded projection primary."""
+
+    _bounded_store: BoundedProjectionStore
+
+    def __init__(
+        self, store: BoundedProjectionStore, tenant_id: str | None = None,
+    ) -> None:
+        if not isinstance(store, BoundedProjectionStore):
+            raise TypeError(
+                "BoundedTenantScopedGraphStore requires a "
+                "BoundedProjectionStore primary"
+            )
+        super().__init__(store, tenant_id=tenant_id)
+        self._bounded_store = store
+
+    def _inject_tenant_filter(
+        self, filters: DecisionFilter | None,
+    ) -> DecisionFilter:
+        tenant_id = self.tenant_id
+        if filters is None:
+            return DecisionFilter(tenant_id=tenant_id)
+        if filters.tenant_id is not None and filters.tenant_id != tenant_id:
+            raise ValueError(
+                f"tenant conflict: filter has {filters.tenant_id!r} "
+                f"but authenticated tenant is {tenant_id!r}"
+            )
+        if filters.tenant_id == tenant_id:
+            return filters
+        return replace(filters, tenant_id=tenant_id)
+
+    def query_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        projection: DecisionProjection = "summary",
+        page: DecisionPageRequest | None = None,
+        as_of_generation: int | None = None,
+    ) -> DecisionPageResult:
+        result: DecisionPageResult = self._bounded_store.query_decisions(
+            domain,
+            filters=self._inject_tenant_filter(filters),
+            projection=projection,
+            page=page,
+            as_of_generation=as_of_generation,
+        )
+        return result
+
+    def count_decisions(
+        self, domain: str, *, filters: DecisionFilter | None = None,
+    ) -> int:
+        result: int = self._bounded_store.count_decisions(
+            domain, filters=self._inject_tenant_filter(filters),
+        )
+        return result
+
+    def aggregate_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        group_by: tuple[DecisionGroup, ...] = (),
+        metrics: tuple[DecisionMetric, ...] = ("count",),
+    ) -> tuple[DecisionAggregate, ...]:
+        result: tuple[DecisionAggregate, ...] = self._bounded_store.aggregate_decisions(
+            domain,
+            filters=self._inject_tenant_filter(filters),
+            group_by=group_by,
+            metrics=metrics,
+        )
+        return result
+
+    def get_decision_changes(
+        self,
+        domain: str,
+        *,
+        after_generation: int,
+        limit: int = 1_000,
+        projection: DecisionProjection = "full",
+        filters: DecisionFilter | None = None,
+    ) -> DecisionChangePage:
+        result: DecisionChangePage = self._bounded_store.get_decision_changes(
+            domain,
+            after_generation=after_generation,
+            limit=limit,
+            projection=projection,
+            filters=self._inject_tenant_filter(filters),
+        )
+        return result
+
+    def write_governed_decision(
+        self,
+        decision_id: str,
+        domain: str,
+        category: str,
+        category_index: int,
+        recommended_action: str,
+        recommended_index: int,
+        confidence: float,
+        probabilities: list[float],
+        factor_vector: list[float],
+        factor_names: list[str],
+        source: str = "score",
+        scorer_version: str = "",
+        preset_version: str = "",
+        factor_schema_version: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        tenant_id = self.tenant_id
+        stamped = deepcopy(metadata or {})
+        stamped["tenant_id"] = tenant_id
+        bounded = cast(Any, self._store)
+        bounded.write_governed_decision(
+            decision_id,
+            domain,
+            category,
+            category_index,
+            recommended_action,
+            recommended_index,
+            confidence,
+            probabilities,
+            factor_vector,
+            factor_names,
+            source,
+            scorer_version,
+            preset_version,
+            factor_schema_version,
+            stamped,
+        )

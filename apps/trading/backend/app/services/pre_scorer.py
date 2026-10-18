@@ -57,10 +57,12 @@ class PreScorer:
         result = score_read_only(clean_factors, category)
         probabilities = self._probabilities(getattr(result, "probabilities", []))
         factor_vector = [clean_factors[name] for name in self._factor_names]
-        current_regime, _overall_regime_accuracy = self._regime_context()
-        category_accuracy = self._category_accuracy(category)
+        all_decisions = self._all_decisions()
+        verified_decisions = self._verified_decisions()
+        current_regime, _overall_regime_accuracy = self._regime_context(verified_decisions)
+        category_accuracy = self._category_accuracy(category, verified_decisions)
         regime_accuracy = (
-            self._regime_accuracy(category, current_regime)
+            self._regime_accuracy(category, current_regime, verified_decisions)
             if current_regime is not None
             else None
         )
@@ -71,7 +73,10 @@ class PreScorer:
             probabilities=probabilities,
             category=category,
             factor_values=dict(clean_factors),
-            similar_trades=self._find_similar(category, factor_vector),
+            similar_trades=self._find_similar(
+                category, factor_vector,
+                all_decisions=all_decisions, verified_decisions=verified_decisions,
+            ),
             category_accuracy=category_accuracy,
             current_regime=current_regime,
             regime_accuracy=regime_accuracy,
@@ -83,13 +88,21 @@ class PreScorer:
         category: str,
         factor_vector: list[float],
         limit: int = 5,
+        *,
+        all_decisions: list[dict[str, Any]] | None = None,
+        verified_decisions: list[dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         """Find same-category historical decisions by cosine similarity."""
 
         if _is_zero_vector(factor_vector):
             return []
-        decisions = self._all_decisions()
-        correctness = self._correctness_by_decision()
+        decisions = self._all_decisions() if all_decisions is None else all_decisions
+        verified = self._verified_decisions() if verified_decisions is None else verified_decisions
+        correctness = {
+            str(decision["decision_id"]): bool(decision.get("is_correct"))
+            for decision in verified
+            if decision.get("decision_id") is not None
+        }
         rows: list[dict[str, Any]] = []
         for decision in decisions:
             if str(decision.get("category") or "") != category:
@@ -109,27 +122,33 @@ class PreScorer:
             )
         return sorted(rows, key=lambda row: row["similarity"], reverse=True)[:limit]
 
-    def _category_accuracy(self, category: str) -> float:
+    def _category_accuracy(
+        self, category: str, verified_decisions: list[dict[str, Any]] | None = None,
+    ) -> float:
         """Return correct / verified total for a category."""
 
+        verified = self._verified_decisions() if verified_decisions is None else verified_decisions
         outcomes = [
             bool(decision.get("is_correct"))
-            for decision in self._verified_decisions()
+            for decision in verified
             if str(decision.get("category") or "") == category
         ]
         if not outcomes:
             return 0.0
         return round(sum(1 for value in outcomes if value) / len(outcomes), 4)
 
-    def _regime_context(self) -> tuple[str | None, float | None]:
+    def _regime_context(
+        self, verified_decisions: list[dict[str, Any]] | None = None,
+    ) -> tuple[str | None, float | None]:
         """Return current regime and overall accuracy in that regime."""
 
         regime = self._current_regime()
         if regime is None:
             return None, None
+        verified = self._verified_decisions() if verified_decisions is None else verified_decisions
         outcomes = [
             bool(decision.get("is_correct"))
-            for decision in self._verified_decisions()
+            for decision in verified
             if _decision_regime(decision) == regime
         ]
         if not outcomes:
@@ -154,12 +173,16 @@ class PreScorer:
             return f"Your accuracy in {category}: {_percent(accuracy)}. Consider reducing size."
         return None
 
-    def _regime_accuracy(self, category: str, regime: str | None) -> float | None:
+    def _regime_accuracy(
+        self, category: str, regime: str | None,
+        verified_decisions: list[dict[str, Any]] | None = None,
+    ) -> float | None:
         if regime is None:
             return None
+        verified = self._verified_decisions() if verified_decisions is None else verified_decisions
         outcomes = [
             bool(decision.get("is_correct"))
-            for decision in self._verified_decisions()
+            for decision in verified
             if str(decision.get("category") or "") == category
             and _decision_regime(decision) == regime
         ]

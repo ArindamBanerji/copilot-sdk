@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, is_dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime, timezone
 import logging
 import math
@@ -21,6 +21,13 @@ from copilot_sdk.regime import (
 from copilot_sdk.state import invalidate_cache_event
 
 log = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class _PreparedRegimeScore:
+    prepared: Any
+    regime_context: dict[str, Any]
+    regime_parameters: dict[str, Any]
 
 
 class TradingRegimeScorerProxy:
@@ -76,20 +83,20 @@ class TradingRegimeScorerProxy:
         category: str,
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        return self.persist_prepared_score(
+            self.prepare_score(factors, category, metadata=metadata)
+        )
+
+    def prepare_score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> _PreparedRegimeScore:
+        """Prepare a regime-tagged prediction without mutating monitor state."""
         regime_context = build_regime_context(factors, metadata)
         regime = str(regime_context["regime"])
         parameters = self.conditioned_parameters(regime)
-        scorer = self._scorer()
-        scorer._trading_active_regime = regime
-        scorer._trading_regime_parameters = parameters.to_dict()
-        event = self._monitor.record(str(regime_context["regime"]))
-        if event == "regime_break":
-            log.warning(
-                "Regime break detected: %s -> %s",
-                self._monitor.previous_regime,
-                self._monitor.current_regime,
-            )
-            invalidate_cache_event("trading", "regime_break")
         tagged_metadata = dict(metadata or {})
         # Keep the canonical headline regime flat for graph consumers while
         # retaining the richer regime_metadata payload for analytics.
@@ -99,10 +106,33 @@ class TradingRegimeScorerProxy:
             "tagged_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         }
         _tag_analytics_metadata(tagged_metadata)
-        result = self._scorer_proxy.score(factors, category, metadata=tagged_metadata)
+        prepared = self._scorer_proxy.prepare_score(
+            factors, category, metadata=tagged_metadata
+        )
+        return _PreparedRegimeScore(
+            prepared=prepared,
+            regime_context=dict(regime_context),
+            regime_parameters=parameters.to_dict(),
+        )
+
+    def persist_prepared_score(self, prepared: _PreparedRegimeScore) -> dict[str, Any]:
+        """Commit monitor state and persist one prepared Decision."""
+        regime = str(prepared.regime_context["regime"])
+        scorer = self._scorer()
+        scorer._trading_active_regime = regime
+        scorer._trading_regime_parameters = dict(prepared.regime_parameters)
+        event = self._monitor.record(regime)
+        if event == "regime_break":
+            log.warning(
+                "Regime break detected: %s -> %s",
+                self._monitor.previous_regime,
+                self._monitor.current_regime,
+            )
+            invalidate_cache_event("trading", "regime_break")
+        result = self._scorer_proxy.persist_prepared_score(prepared.prepared)
         payload = asdict(result) if is_dataclass(result) else dict(result)
-        payload["regime_context"] = dict(regime_context)
-        payload["regime_parameters"] = parameters.to_dict()
+        payload["regime_context"] = dict(prepared.regime_context)
+        payload["regime_parameters"] = dict(prepared.regime_parameters)
         return payload
 
     def learn(

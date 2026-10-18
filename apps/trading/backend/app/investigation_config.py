@@ -6,7 +6,7 @@ remain Tier 5D work. Demo prose uses legacy indices: canonical names win here.
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from .evidence_providers import PROVIDER_REGISTRY, POLICY_VERSION, TradingEvidenceProvider
@@ -63,7 +63,8 @@ def create_evidence_provider(data_source: Any, decision_id: str, *,
         decision = {**decision, "decision_id": str(decision_id)}
     attachment = decision_attachment(decision)
     return TradingEvidenceProvider(data_source, decision_id, attachment=attachment,
-        fixture_data=fixture_data, provider_registry=INVESTIGATION_CONFIG["provider_registry"])
+        fixture_data=fixture_data,
+        provider_registry=cast(dict[Any, Any], INVESTIGATION_CONFIG["provider_registry"]))
 
 
 def build_trace_links(attachment: dict[str, Any], episode_id: str, steps: list[dict],

@@ -6,6 +6,7 @@ const BACKEND_PORTS = {
   trading: 8010,
   purchasing: 8020,
   dataops: 8030,
+  capture: 8030,
 } as const;
 
 type CopilotProject = keyof typeof BACKEND_PORTS;
@@ -109,7 +110,7 @@ function applyDefaultRequestTimeouts(request: APIRequestContext, timeout = 30_00
   }) as APIRequestContext["post"];
 }
 
-async function retryHealthCheck(
+export async function retryHealthCheck(
   request: APIRequestContext,
   url: string,
   maxRetries = 5,

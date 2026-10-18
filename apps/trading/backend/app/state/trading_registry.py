@@ -301,7 +301,10 @@ def create_trading_tab_state_cache(
     cache.register_dynamic("ticker/{ticker}")
     cache.register_dynamic("archetypes/{name}")
     cache.register_dynamic("counterfactual-custom")
-    register_tab_state_cache(cache)
+    register_tab_state_cache(
+        cache,
+        materializer_provider=materializer_provider,
+    )
     return cache
 
 

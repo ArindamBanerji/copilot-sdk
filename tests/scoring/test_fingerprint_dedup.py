@@ -58,6 +58,23 @@ def test_explicit_fingerprint_persist_true_still_works(mock_preset) -> None:
     assert len(store._fingerprints) == 1
 
 
+def test_prepare_score_is_read_only_until_persist(mock_preset) -> None:
+    scorer, store = _make_scorer(mock_preset)
+    category = mock_preset.shape.category_names[0]
+    before_count = scorer._scorer.decision_count
+    before_centroids = scorer._scorer.centroids.copy()
+
+    prepared = scorer.prepare_score(
+        {name: 0.5 for name in mock_preset.shape.factor_names}, category
+    )
+
+    assert scorer._scorer.decision_count == before_count
+    assert (scorer._scorer.centroids == before_centroids).all()
+    assert store.get_all_decisions("test") == []
+    scorer.persist_prepared_score(prepared)
+    assert len(store.get_all_decisions("test")) == 1
+
+
 def test_fingerprint_reads_external_outcome_on_next_call(mock_preset) -> None:
     scorer, store = _make_scorer(mock_preset)
     category = mock_preset.shape.category_names[0]

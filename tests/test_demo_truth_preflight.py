@@ -82,7 +82,7 @@ def test_s2p_seed_has_confirm_and_override_schedule(monkeypatch: pytest.MonkeyPa
     result = preseed.seed_s2p_domain(Namespace(force=False, dry_run=False))
     assert result.successes == len(sent) == preseed.S2P_PRESEED_DECISIONS
     outcomes = [payload["outcome"] for payload in sent]
-    assert outcomes.count("confirmed") > outcomes.count("overridden") > 0
+    assert outcomes.count("confirmed") > outcomes.count("override") > 0
     for payload in sent:
         assert (payload["actual_action"] == scores[payload["decision_id"]]) == (payload["outcome"] == "confirmed")
 

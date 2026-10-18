@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 from typing import Any, cast
 
-from app.services.par_optimizer import ParLevelOptimizer
+from app.services.par_optimizer import ParHistoryUnavailableError, ParLevelOptimizer
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
+
+
+logger = logging.getLogger(__name__)
 
 
 DAY_MULTIPLIERS = {
@@ -145,7 +149,14 @@ class PredictivePar:
             return 40.0, False
         try:
             rec = self.optimizer.recommend(item, category, orders, current_par=40, unit_cost=8)
-        except (ConnectionError, TimeoutError, OSError, RuntimeError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            OSError,
+            RuntimeError,
+            ParHistoryUnavailableError,
+        ) as exc:
+            logger.warning("Predictive par unavailable for item=%s category=%s: %s", item, category, exc)
             return 40.0, False
         value = getattr(rec, "recommended_par", None)
         if not isinstance(value, (int, float)):

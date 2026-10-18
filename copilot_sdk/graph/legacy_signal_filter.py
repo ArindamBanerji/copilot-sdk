@@ -10,12 +10,26 @@ from __future__ import annotations
 import json
 import logging
 import re
+from dataclasses import replace
 from typing import Any
 
-from copilot_sdk.timestamps import normalize_timestamp
-
 from copilot_sdk.graph.production import GraphStoreWrapper
-from copilot_sdk.graph.protocol import GraphStore, GraphTraversalStore, ProtocolV2GraphStore
+from copilot_sdk.graph.protocol import (
+    BoundedProjectionStore,
+    GraphStore,
+    GraphTraversalStore,
+    ProtocolV2GraphStore,
+)
+from copilot_sdk.graph.query import (
+    DecisionAggregate,
+    DecisionChangePage,
+    DecisionFilter,
+    DecisionGroup,
+    DecisionMetric,
+    DecisionPageRequest,
+    DecisionPageResult,
+    DecisionProjection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +45,17 @@ def is_legacy_signal_decision(decision: Any) -> bool:
 
 
 class LegacySignalFilteringGraphStore(GraphStoreWrapper):
-    """Filter decision views while delegating writes and verified statistics."""
+    """Filter decision views while delegating writes and verified statistics.
+
+    TODO(DESIGN-GAP-R5): Wrapper permanence is undecided. No deprecation
+    plan exists. If legacy signal decisions will be purged, this wrapper
+    becomes dead code. If they persist indefinitely, the pagination
+    limitation in ``query_similar`` needs addressing before production use.
+    """
+
+    _BOUNDED_ONLY_READS = frozenset({
+        "query_decisions", "aggregate_decisions", "get_decision_changes",
+    })
 
     def __init__(self, store: GraphStore, *, domain: str = "") -> None:
         self._store = store
@@ -45,16 +69,27 @@ class LegacySignalFilteringGraphStore(GraphStoreWrapper):
 
     def get_decisions(
         self, domain: str, category: str | None = None, limit: int = 400,
-        *, offset: int = 0,
+        *, offset: int = 0, chronological: bool = True,
     ) -> list[dict[str, Any]]:
-        rows = [
-            row for row in self._store.get_all_decisions(domain)
-            if (category is None or row.get("category") == category)
-            and not is_legacy_signal_decision(row)
-        ]
-        rows.sort(key=lambda row: (normalize_timestamp(row.get("created_at") or 0.0), str(row.get("decision_id") or "")))
-        start = max(int(offset), 0)
-        return rows[start:start + max(int(limit), 0)]
+        wanted_offset = max(int(offset), 0)
+        wanted_limit = max(int(limit), 0)
+        if wanted_limit == 0:
+            return []
+        page_size = max(100, wanted_limit)
+        source_offset = 0
+        visible: list[dict[str, Any]] = []
+        while len(visible) < wanted_offset + wanted_limit:
+            page = self._store.get_decisions(
+                domain, category, page_size, offset=source_offset,
+                chronological=chronological,
+            )
+            if not page:
+                break
+            visible.extend(row for row in page if not is_legacy_signal_decision(row))
+            source_offset += len(page)
+            if len(page) < page_size:
+                break
+        return visible[wanted_offset:wanted_offset + wanted_limit]
 
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
         return [
@@ -146,6 +181,13 @@ class LegacySignalFilteringGraphStore(GraphStoreWrapper):
         return [row for row in rows if not self._contains_legacy_decision(row)]
 
     def query_similar(self, entity_id: str, limit: int, *, domain: str) -> list[dict[str, Any]]:
+        """Return similar decisions after filtering legacy signal records.
+
+        The traversal protocol has no cursor, so progressively larger prefixes
+        are fetched and decision IDs are deduplicated across reads. Snapshot
+        isolation would still be required to guarantee a stable result during
+        concurrent deletions or reordering.
+        """
         if limit <= 0:
             return []
         # An explicitly hidden decision cannot serve as a source for similarity.
@@ -155,14 +197,31 @@ class LegacySignalFilteringGraphStore(GraphStoreWrapper):
         if not isinstance(self._store, GraphTraversalStore):
             logger.warning("Similarity traversal unavailable: store lacks GraphTraversalStore")
             return []
-        rows = self._store.query_similar(entity_id, limit, domain=domain)
-        visible = [row for row in rows if not is_legacy_signal_decision(row)]
-        if len(rows) >= limit and len(visible) < limit:
+        fetch_limit = limit
+        seen_ids: set[str] = set()
+        visible: list[dict[str, Any]] = []
+        while len(visible) < limit:
+            rows = self._store.query_similar(entity_id, fetch_limit, domain=domain)
+            added = 0
+            for row in rows:
+                decision_id = str(row.get("decision_id") or "")
+                if not decision_id or decision_id in seen_ids:
+                    continue
+                seen_ids.add(decision_id)
+                added += 1
+                if not is_legacy_signal_decision(row):
+                    visible.append(row)
+                    if len(visible) >= limit:
+                        break
+            if len(rows) < fetch_limit or added == 0:
+                break
+            fetch_limit *= 2
+        if len(visible) < limit:
             logger.warning(
                 "Similarity results underfilled after legacy filtering; "
                 "GraphTraversalStore does not expose offset paging"
             )
-        return visible
+        return visible[:limit]
 
     def get_checkpoint_lineage(self, domain: str, checkpoint_id: str) -> dict[str, Any] | None:
         decision = self._store.get_checkpoint_lineage(domain, checkpoint_id)
@@ -194,4 +253,89 @@ class LegacySignalFilteringGraphStore(GraphStoreWrapper):
     def __getattr__(self, name: str) -> Any:
         # Methods returning decisions must have explicit filtered overrides;
         # this keeps non-decision GraphStore capabilities delegated unchanged.
+        if name in self._BOUNDED_ONLY_READS:
+            raise AttributeError(
+                f"{type(self).__name__} does not support bounded projection "
+                f"method {name!r}; use BoundedLegacySignalFilteringGraphStore"
+            )
         return getattr(self._store, name)
+
+class BoundedLegacySignalFilteringGraphStore(LegacySignalFilteringGraphStore):
+    """Legacy-signal policy wrapper for a bounded projection primary."""
+
+    _bounded_store: BoundedProjectionStore
+
+    def __init__(self, store: BoundedProjectionStore, *, domain: str = "") -> None:
+        if not isinstance(store, BoundedProjectionStore):
+            raise TypeError(
+                "BoundedLegacySignalFilteringGraphStore requires a "
+                "BoundedProjectionStore primary"
+            )
+        super().__init__(store, domain=domain)
+        self._bounded_store = store
+
+    @staticmethod
+    def _inject_legacy_filter(filters: DecisionFilter | None) -> DecisionFilter:
+        if filters is None:
+            return DecisionFilter(exclude_legacy_signals=True)
+        return replace(filters, exclude_legacy_signals=True)
+
+    def query_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        projection: DecisionProjection = "summary",
+        page: DecisionPageRequest | None = None,
+        as_of_generation: int | None = None,
+    ) -> DecisionPageResult:
+        result: DecisionPageResult = self._bounded_store.query_decisions(
+            domain,
+            filters=self._inject_legacy_filter(filters),
+            projection=projection,
+            page=page,
+            as_of_generation=as_of_generation,
+        )
+        return result
+
+    def count_decisions(
+        self, domain: str, *, filters: DecisionFilter | None = None,
+    ) -> int:
+        result: int = self._bounded_store.count_decisions(
+            domain, filters=self._inject_legacy_filter(filters),
+        )
+        return result
+
+    def aggregate_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        group_by: tuple[DecisionGroup, ...] = (),
+        metrics: tuple[DecisionMetric, ...] = ("count",),
+    ) -> tuple[DecisionAggregate, ...]:
+        result: tuple[DecisionAggregate, ...] = self._bounded_store.aggregate_decisions(
+            domain,
+            filters=self._inject_legacy_filter(filters),
+            group_by=group_by,
+            metrics=metrics,
+        )
+        return result
+
+    def get_decision_changes(
+        self,
+        domain: str,
+        *,
+        after_generation: int,
+        limit: int = 1_000,
+        projection: DecisionProjection = "full",
+        filters: DecisionFilter | None = None,
+    ) -> DecisionChangePage:
+        result: DecisionChangePage = self._bounded_store.get_decision_changes(
+            domain,
+            after_generation=after_generation,
+            limit=limit,
+            projection=projection,
+            filters=self._inject_legacy_filter(filters),
+        )
+        return result

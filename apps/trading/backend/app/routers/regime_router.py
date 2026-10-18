@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, Request
 
@@ -58,12 +58,11 @@ def create_regime_router(
 
     @router.get("/history")
     def regime_history_endpoint(request: Request, days: int = 90) -> list[dict[str, Any]]:
-        return regime_history.history(days)
+        return cast(list[dict[str, Any]], regime_history.history(days))
 
     @router.get("/performance")
     def regime_performance(request: Request) -> dict[str, Any]:
         current = _current_market(provider_factory(), regime_classifier)
-        conservation = _conservation_status(graph_store_factory, domain) or {}
         store = graph_store_factory() if graph_store_factory is not None else None
         if store is None:
             return {
@@ -72,6 +71,7 @@ def create_regime_router(
                 "edge_categories": [],
                 "observation": "Observation: verified regime-specific history is insufficient for a sizing comparison.",
             }
+        conservation = _conservation_status_from_store(store, domain) or {}
         mapper = RegimePerformanceMapper(store, TradingPreset(), domain=domain)
         per_regime = mapper.per_regime_accuracy()
         edges = mapper.regime_edge(str(current["regime"]))
@@ -85,14 +85,14 @@ def create_regime_router(
     @router.get("/recommendation")
     def regime_recommendation() -> dict[str, Any]:
         current = _current_market(provider_factory(), regime_classifier)
-        conservation = _conservation_status(graph_store_factory, domain) or {}
         store = graph_store_factory() if graph_store_factory is not None else None
+        conservation = _conservation_status_from_store(store, domain) if store is not None else None
         if store is None:
             edges: list[dict[str, Any]] = []
         else:
             mapper = RegimePerformanceMapper(store, TradingPreset(), domain=domain)
             edges = mapper.regime_edge(str(current["regime"]))
-        return {"current_regime": current["regime"], "shifts": _shifts(str(current["regime"]), edges, conservation)}
+        return {"current_regime": current["regime"], "shifts": _shifts(str(current["regime"]), edges, conservation or {})}
 
     return router
 
@@ -106,7 +106,7 @@ def _current_market(provider: Any, classifier: RegimeClassifier) -> dict[str, An
         rows = ohlcv_result.value if ohlcv_result is not None else None
         market_rows = rows if isinstance(rows, list) else None
         adx = _adx_from_rows(market_rows)
-        payload = classifier.classify_with_confidence(float(vix), adx)
+        payload: dict[str, Any] = classifier.classify_with_confidence(float(vix), adx)
         payload.update(_quant_regime_fields(float(vix), adx, market_rows))
         payload["timestamp"] = getattr(vix_result, "as_of", None) or now
         payload["source"] = getattr(vix_result, "source", "provider")
@@ -121,7 +121,7 @@ def _current_market(provider: Any, classifier: RegimeClassifier) -> dict[str, An
 
 def _adx_from_rows(rows: list[dict[str, Any]] | None) -> float:
     if not rows:
-        return DEFAULT_ADX
+        return cast(float, DEFAULT_ADX)
     highs = [row["high"] for row in rows if isinstance(row, dict) and "high" in row]
     lows = [row["low"] for row in rows if isinstance(row, dict) and "low" in row]
     closes = [row["close"] for row in rows if isinstance(row, dict) and "close" in row]
@@ -154,9 +154,19 @@ def _conservation_status(
 ) -> dict[str, Any] | None:
     if graph_store_factory is None:
         return None
-    store = None
     try:
         store = graph_store_factory()
+    except Exception:
+        return None
+    return _conservation_status_from_store(store, domain)
+
+
+def _conservation_status_from_store(
+    store: Any,
+    domain: str,
+) -> dict[str, Any] | None:
+    """Read conservation inputs from the request's existing store."""
+    try:
         counts = _state_counts(store)
         from gae.calibration import conservation_status
 

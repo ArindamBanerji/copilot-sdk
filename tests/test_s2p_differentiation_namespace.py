@@ -45,7 +45,7 @@ def test_make_scorer_wraps_shared_store_with_namespace() -> None:
     try:
         assert isinstance(scorer.graph_store, GraphStoreNamespace)
         _write(scorer.graph_store, "auto_approve")
-        assert shared.count_decisions("s2p:run:ci::s2p") == 1
+        assert shared.count_decisions(scorer.graph_store._domain("s2p")) == 1
     finally:
         scorer.close()
         shared.close()
@@ -64,7 +64,7 @@ def test_namespaced_scorer_uses_governed_write_and_logical_domain() -> None:
         scorer.learn(score.decision_id, score.action, context={"benchmark": True})
         assert scorer.domain == "s2p"
         assert scorer.graph_store.count_decisions("s2p") == 1
-        assert shared.count_decisions("s2p:run:ci::s2p") == 1
+        assert shared.count_decisions(scorer.graph_store._domain("s2p")) == 1
     finally:
         scorer.close()
         shared.close()
@@ -116,8 +116,8 @@ def test_arms_share_logical_domain_without_collision() -> None:
     _write(hand, "hold_for_review")
     assert ci.count_decisions("s2p") == 1
     assert hand.count_decisions("s2p") == 1
-    assert shared.count_decisions("s2p:run:ci::s2p") == 1
-    assert shared.count_decisions("s2p:run:hand::s2p") == 1
+    assert shared.count_decisions(ci._domain("s2p")) == 1
+    assert shared.count_decisions(hand._domain("s2p")) == 1
 
 
 def test_run_three_arms_uses_one_store_and_three_namespaces(

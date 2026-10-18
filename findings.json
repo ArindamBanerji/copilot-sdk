@@ -1,0 +1,1939 @@
+{
+  "scanned_files": 3243,
+  "scan_time_ms": 134608,
+  "findings_count": 241,
+  "p1": 23,
+  "p2": 218,
+  "p3": 0,
+  "findings": [
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\design_fix_plan_v2.md",
+      "line": 269,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\design_fix_plan_v2.md",
+      "line": 733,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\execution_plan_v2.md",
+      "line": 40,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\fix_sdk_graph_audit.md",
+      "line": 90,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\mock_sweep_classification.md",
+      "line": 175,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\session_state.md",
+      "line": 4104,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\session_state.md",
+      "line": 7527,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\session_state.md",
+      "line": 7547,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\session_state.md",
+      "line": 7584,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\session_state.md",
+      "line": 7608,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": "docs\\session_state.md",
+      "line": 7653,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\astra_sweep_collection.txt",
+      "line": 1569,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\astra_sweep_collection.txt",
+      "line": 1570,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\astra_sweep_collection.txt",
+      "line": 1571,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\fix_sdk_extended_scan.txt",
+      "line": 86,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\p3\\final_collection.txt",
+      "line": 1726,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\p3\\final_collection.txt",
+      "line": 1727,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\p3\\final_collection.txt",
+      "line": 1728,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\p3\\post_collection.txt",
+      "line": 1726,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\p3\\post_collection.txt",
+      "line": 1727,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\p3\\post_collection.txt",
+      "line": 1728,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1880,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1881,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1882,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1883,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1884,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1885,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1886,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1887,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1888,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1889,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\sdk_step6\\collected.txt",
+      "line": 1890,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\verify_collect.txt",
+      "line": 1569,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\verify_collect.txt",
+      "line": 1570,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "paths",
+      "severity": "P2",
+      "file": ".codex_tmp\\verify_collect.txt",
+      "line": 1571,
+      "message": "Stale path reference: test_conservation_utils\\.py(?!\\s*$)",
+      "check": "stale-path"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/trading/backend/app/main.py",
+      "line": 436,
+      "message": "Possible double-prefix in route: conservation_provider=conservation_provider,",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 101,
+      "message": "Possible double-prefix in route: from copilot_sdk.backend.conservation_router import build_conservation_status  # noqa: E402",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 580,
+      "message": "Possible double-prefix in route: conservation_state_provider=conservation_provider,",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 661,
+      "message": "Possible double-prefix in route: \"conservation\": lambda s: build_conservation_status(",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 765,
+      "message": "Possible double-prefix in route: conservation_status=_conservation_status(category),",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 781,
+      "message": "Possible double-prefix in route: with_base[\"conservation_status\"] = _conservation_status(category)",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 953,
+      "message": "Possible double-prefix in route: conservation_provider=_alert_conservation_status,",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/dataops/backend/app/main.py",
+      "line": 78,
+      "message": "Possible double-prefix in route: from copilot_sdk.backend.conservation_router import build_conservation_status  # noqa: E402",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/dataops/backend/app/main.py",
+      "line": 771,
+      "message": "Possible double-prefix in route: conservation_state_provider=conservation_provider,",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/dataops/backend/app/main.py",
+      "line": 838,
+      "message": "Possible double-prefix in route: \"conservation\": lambda s: build_conservation_status(DOMAIN, scorer_proxy),",
+      "check": "double-prefix"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/dataops/backend/app/main.py",
+      "line": 1083,
+      "message": "Possible double-prefix in route: if path.startswith((\"/api/dataops\", \"/api/context\", \"/api/ae\", \"/api/di\", \"/api/score\")):",
+      "check": "double-prefix"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 113,
+      "message": "Frontend API path may not match any backend route: /api/context/analytics",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 169,
+      "message": "Frontend API path may not match any backend route: /api/trading/regime",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 173,
+      "message": "Frontend API path may not match any backend route: /api/trading/regime/detail",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 228,
+      "message": "Frontend API path may not match any backend route: /api/trading/regime/current",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 236,
+      "message": "Frontend API path may not match any backend route: /api/trading/regime/performance",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 240,
+      "message": "Frontend API path may not match any backend route: /api/trading/regime/recommendation",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 244,
+      "message": "Frontend API path may not match any backend route: /api/trading/regime-status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 279,
+      "message": "Frontend API path may not match any backend route: /api/trading/cohort-status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 283,
+      "message": "Frontend API path may not match any backend route: /api/trading/promotion",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 343,
+      "message": "Frontend API path may not match any backend route: /api/trading/promotion/dashboard",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 365,
+      "message": "Frontend API path may not match any backend route: /api/trading/analytics/vol-sharpe",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 374,
+      "message": "Frontend API path may not match any backend route: /api/trading/volatility/vrp",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 383,
+      "message": "Frontend API path may not match any backend route: /api/trading/volatility/dispersion",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 387,
+      "message": "Frontend API path may not match any backend route: /api/trading/volatility/tail-bets",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 391,
+      "message": "Frontend API path may not match any backend route: /api/trading/analytics/vrp-attribution",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 395,
+      "message": "Frontend API path may not match any backend route: /api/trading/analytics/regime-vrp",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 399,
+      "message": "Frontend API path may not match any backend route: /api/trading/situation/regime",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 403,
+      "message": "Frontend API path may not match any backend route: /api/trading/situation",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 407,
+      "message": "Frontend API path may not match any backend route: /api/trading/situation/conditioned-stats",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 411,
+      "message": "Frontend API path may not match any backend route: /api/trading/situation/sharpe-adjustment",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 415,
+      "message": "Frontend API path may not match any backend route: /api/trading/situation/abstention",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 419,
+      "message": "Frontend API path may not match any backend route: /api/trading/situation/regime-rejections",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 455,
+      "message": "Frontend API path may not match any backend route: /api/trading/claim-gate",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 459,
+      "message": "Frontend API path may not match any backend route: /api/trading/analytics/dispersion-follow",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 463,
+      "message": "Frontend API path may not match any backend route: /api/trading/vix-timing",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 490,
+      "message": "Frontend API path may not match any backend route: /api/trading/execution/summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 494,
+      "message": "Frontend API path may not match any backend route: /api/trading/execution/analysis",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 525,
+      "message": "Frontend API path may not match any backend route: /api/trading/webhook/history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 559,
+      "message": "Frontend API path may not match any backend route: /api/trading/prescore",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 598,
+      "message": "Frontend API path may not match any backend route: /api/trading/pre-score",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 602,
+      "message": "Frontend API path may not match any backend route: /api/history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 717,
+      "message": "Frontend API path may not match any backend route: /api/evolution/variants",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 723,
+      "message": "Frontend API path may not match any backend route: /api/evolution/history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 727,
+      "message": "Frontend API path may not match any backend route: /api/evolution/promoted",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 732,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/log?kind=variant",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 736,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/active",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 750,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/proposals",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 754,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/active",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 762,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/log?kind=parameter",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 767,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/apply",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 773,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/rollback",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 815,
+      "message": "Frontend API path may not match any backend route: /api/trading/evolution/rejection-summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 819,
+      "message": "Frontend API path may not match any backend route: /api/self/evolution/summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 900,
+      "message": "Frontend API path may not match any backend route: /api/transfer/opportunities",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 904,
+      "message": "Frontend API path may not match any backend route: /api/transfer/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 912,
+      "message": "Frontend API path may not match any backend route: /api/transfer/execute",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 960,
+      "message": "Frontend API path may not match any backend route: /api/archetypes/current",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 968,
+      "message": "Frontend API path may not match any backend route: /api/context/trade-metadata",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 972,
+      "message": "Frontend API path may not match any backend route: /api/context/market-snapshot",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 980,
+      "message": "Frontend API path may not match any backend route: /api/trajectory",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 984,
+      "message": "Frontend API path may not match any backend route: /api/conservation/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 988,
+      "message": "Frontend API path may not match any backend route: /api/context/conservation-breakdown",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 1026,
+      "message": "Frontend API path may not match any backend route: /api/fingerprint",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 1030,
+      "message": "Frontend API path may not match any backend route: /api/context/trust-analysis",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 1034,
+      "message": "Frontend API path may not match any backend route: /api/context/patterns",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 1038,
+      "message": "Frontend API path may not match any backend route: /api/score",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 1049,
+      "message": "Frontend API path may not match any backend route: /api/learn",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/trading/frontend/src/api.ts",
+      "line": 1059,
+      "message": "Frontend API path may not match any backend route: /api/context/trade-metadata",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 163,
+      "message": "Frontend API path may not match any backend route: /api/context/analytics",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 167,
+      "message": "Frontend API path may not match any backend route: /api/context/items",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 171,
+      "message": "Frontend API path may not match any backend route: /api/inventory/summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 175,
+      "message": "Frontend API path may not match any backend route: /api/context/today-summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 179,
+      "message": "Frontend API path may not match any backend route: /api/context/weather",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 321,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/menu/analysis",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 325,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/menu/alerts",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 329,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/menu/summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 346,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/events/plan",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 350,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/events/history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 358,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/events/record",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 370,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/chain/validate",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 378,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/chain/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 398,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/delivery/today",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 402,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/delivery/week",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 406,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/delivery/consolidation",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 414,
+      "message": "Frontend API path may not match any backend route: /api/context/order-metadata",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 419,
+      "message": "Frontend API path may not match any backend route: /api/dashboard/orders",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 425,
+      "message": "Frontend API path may not match any backend route: /api/context/order-metadata",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 429,
+      "message": "Frontend API path may not match any backend route: /api/evolution/variants",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 450,
+      "message": "Frontend API path may not match any backend route: /api/evolution/history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 454,
+      "message": "Frontend API path may not match any backend route: /api/evolution/promoted",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 459,
+      "message": "Frontend API path may not match any backend route: /api/history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 464,
+      "message": "Frontend API path may not match any backend route: /api/fingerprint",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 468,
+      "message": "Frontend API path may not match any backend route: /api/trajectory",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 472,
+      "message": "Frontend API path may not match any backend route: /api/conservation/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 476,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/qbo/vendors",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 480,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/qbo/bills",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 484,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/qbo/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 498,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/spend/summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 502,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/spend/by-category",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 506,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/spend/alerts",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 510,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/spend/by-supplier",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 514,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/spend/cost-per-cover",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 518,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/commodity/indices",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 526,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/commodity/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 540,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/par/recommendations",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 545,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/par/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 580,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/cohort-status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 584,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/iks/summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 589,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/suppliers/scorecards",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 600,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/trust-weights",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 604,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/trust-weights/expected",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 608,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/trust-weights/insights",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 612,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/auto-order/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 616,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/auto-order/enable",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 620,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/auto-order/disable",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 624,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/auto-order/audit",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 634,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/auto-order/evaluate",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 638,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/match/queue",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 642,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/queue",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 650,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/match",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 657,
+      "message": "Frontend API path may not match any backend route: /api/self/",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 665,
+      "message": "Frontend API path may not match any backend route: /api/self/accuracy-by-category",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 674,
+      "message": "Frontend API path may not match any backend route: /api/self/decisions",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 678,
+      "message": "Frontend API path may not match any backend route: /api/self/audit-trail",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 690,
+      "message": "Frontend API path may not match any backend route: /api/context/similar",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 704,
+      "message": "Frontend API path may not match any backend route: /api/score",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 713,
+      "message": "Frontend API path may not match any backend route: /api/learn",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 717,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/verify/reason-codes",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 726,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/verify",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 764,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/discovery/insights",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 768,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/discovery/digest",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 780,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/alerts",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 784,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/alerts",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 804,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/economic/model",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 808,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/economic/roi-summary",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 830,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/competence/ramp",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 845,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/multi-unit/dashboard",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 850,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/multi-unit/compare",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/purchasing/frontend/src/api.ts",
+      "line": 856,
+      "message": "Frontend API path may not match any backend route: /api/purchasing/multi-unit/transfer-opportunities",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 121,
+      "message": "Frontend API path may not match any backend route: /api/dataops/claims?context=demo",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 125,
+      "message": "Frontend API path may not match any backend route: /api/dataops/holdout/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 129,
+      "message": "Frontend API path may not match any backend route: /api/dataops/abstention-check?source_id=unknown",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 133,
+      "message": "Frontend API path may not match any backend route: /api/dataops/promotion",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 178,
+      "message": "Frontend API path may not match any backend route: /api/dataops/frozen-twin/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 182,
+      "message": "Frontend API path may not match any backend route: /api/dataops/frozen-twin/freeze",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 186,
+      "message": "Frontend API path may not match any backend route: /api/dataops/holdout/register",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 190,
+      "message": "Frontend API path may not match any backend route: /api/dataops/holdout/verify",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 317,
+      "message": "Frontend API path may not match any backend route: /api/dataops/intelligence/source-trust",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 380,
+      "message": "Frontend API path may not match any backend route: /api/di/products",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 384,
+      "message": "Frontend API path may not match any backend route: /api/di/acquisition-advice",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 388,
+      "message": "Frontend API path may not match any backend route: /api/di/sources",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 392,
+      "message": "Frontend API path may not match any backend route: /api/dataops/trust",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 398,
+      "message": "Frontend API path may not match any backend route: /api/di/trust/verify",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 418,
+      "message": "Frontend API path may not match any backend route: /api/di/query",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 438,
+      "message": "Frontend API path may not match any backend route: /api/context/pipelines",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 443,
+      "message": "Frontend API path may not match any backend route: /api/context/alerts",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 448,
+      "message": "Frontend API path may not match any backend route: /api/context/alert-groups",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 452,
+      "message": "Frontend API path may not match any backend route: /api/ae/impact",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 456,
+      "message": "Frontend API path may not match any backend route: /api/ae/conservation-history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 460,
+      "message": "Frontend API path may not match any backend route: /api/ae/transfer-status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 494,
+      "message": "Frontend API path may not match any backend route: /api/dataops/trust",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 498,
+      "message": "Frontend API path may not match any backend route: /api/self/diagnostics",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 502,
+      "message": "Frontend API path may not match any backend route: /api/di/perturb/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 511,
+      "message": "Frontend API path may not match any backend route: /api/di/perturb",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 515,
+      "message": "Frontend API path may not match any backend route: /api/di/perturb/revert",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 541,
+      "message": "Frontend API path may not match any backend route: /api/discovery/cross-system",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 576,
+      "message": "Frontend API path may not match any backend route: /api/dataops/cohort-status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 586,
+      "message": "Frontend API path may not match any backend route: /api/conservation/status",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 597,
+      "message": "Frontend API path may not match any backend route: /api/conservation/what-if",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 606,
+      "message": "Frontend API path may not match any backend route: /api/trajectory",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 610,
+      "message": "Frontend API path may not match any backend route: /api/context/accuracy-by-category",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 771,
+      "message": "Frontend API path may not match any backend route: /api/context/enterprise-health",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 779,
+      "message": "Frontend API path may not match any backend route: /api/context/celonis/process-data",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 864,
+      "message": "Frontend API path may not match any backend route: /api/ae/pattern-origin",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 868,
+      "message": "Frontend API path may not match any backend route: /api/ae/incident",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 872,
+      "message": "Frontend API path may not match any backend route: /api/fingerprint",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 876,
+      "message": "Frontend API path may not match any backend route: /api/evolution/variants",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 928,
+      "message": "Frontend API path may not match any backend route: /api/evolution/history",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 932,
+      "message": "Frontend API path may not match any backend route: /api/evolution/promoted",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 953,
+      "message": "Frontend API path may not match any backend route: /api/ae/operational-rules",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 957,
+      "message": "Frontend API path may not match any backend route: /api/score",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 962,
+      "message": "Frontend API path may not match any backend route: /api/learn",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 966,
+      "message": "Frontend API path may not match any backend route: /api/context/alert-metadata",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "parity",
+      "severity": "P2",
+      "file": "apps/dataops/frontend/src/api.ts",
+      "line": 970,
+      "message": "Frontend API path may not match any backend route: /api/context/apply-fix",
+      "check": "api-path-mismatch"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "trading:/api/conservation/status",
+      "line": 0,
+      "message": "Unknown conservation status value: AMBER",
+      "check": "conservation-unknown-status"
+    },
+    {
+      "category": "live",
+      "severity": "P1",
+      "file": "trading:health-vs-conservation",
+      "line": 0,
+      "message": "Alpha mismatch: /health=0.8388, /conservation/status=1.0",
+      "check": "alpha-parity"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "purchasing:/api/conservation/status",
+      "line": 0,
+      "message": "Unknown conservation status value: AMBER",
+      "check": "conservation-unknown-status"
+    },
+    {
+      "category": "live",
+      "severity": "P1",
+      "file": "purchasing:health-vs-conservation",
+      "line": 0,
+      "message": "Alpha mismatch: /health=0.8187, /conservation/status=1.0",
+      "check": "alpha-parity"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "dataops:/api/health",
+      "line": 0,
+      "message": "Missing field 'phase' in /api/health response",
+      "check": "missing-response-field"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/trading/backend/app/main.py",
+      "line": 0,
+      "message": "main.py not found for trading",
+      "check": "missing-main"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 0,
+      "message": "main.py not found for purchasing",
+      "check": "missing-main"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/dataops/backend/app/main.py",
+      "line": 0,
+      "message": "main.py not found for dataops",
+      "check": "missing-main"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "trading:/api/conservation/status",
+      "line": 0,
+      "message": "Unknown conservation status value: AMBER",
+      "check": "conservation-unknown-status"
+    },
+    {
+      "category": "live",
+      "severity": "P1",
+      "file": "trading:health-vs-conservation",
+      "line": 0,
+      "message": "Alpha mismatch: /health=0.8388, /conservation/status=1.0",
+      "check": "alpha-parity"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "purchasing:/api/conservation/status",
+      "line": 0,
+      "message": "Unknown conservation status value: AMBER",
+      "check": "conservation-unknown-status"
+    },
+    {
+      "category": "live",
+      "severity": "P1",
+      "file": "purchasing:health-vs-conservation",
+      "line": 0,
+      "message": "Alpha mismatch: /health=0.8187, /conservation/status=1.0",
+      "check": "alpha-parity"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "dataops:/api/health",
+      "line": 0,
+      "message": "Missing field 'phase' in /api/health response",
+      "check": "missing-response-field"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/trading/backend/app/main.py",
+      "line": 0,
+      "message": "main.py not found for trading",
+      "check": "missing-main"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/purchasing/backend/app/main.py",
+      "line": 0,
+      "message": "main.py not found for purchasing",
+      "check": "missing-main"
+    },
+    {
+      "category": "routers",
+      "severity": "P1",
+      "file": "apps/dataops/backend/app/main.py",
+      "line": 0,
+      "message": "main.py not found for dataops",
+      "check": "missing-main"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "trading:/api/conservation/status",
+      "line": 0,
+      "message": "Unknown conservation status value: AMBER",
+      "check": "conservation-unknown-status"
+    },
+    {
+      "category": "live",
+      "severity": "P1",
+      "file": "trading:health-vs-conservation",
+      "line": 0,
+      "message": "Alpha mismatch: /health=0.8388, /conservation/status=1.0",
+      "check": "alpha-parity"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "purchasing:/api/conservation/status",
+      "line": 0,
+      "message": "Unknown conservation status value: AMBER",
+      "check": "conservation-unknown-status"
+    },
+    {
+      "category": "live",
+      "severity": "P1",
+      "file": "purchasing:health-vs-conservation",
+      "line": 0,
+      "message": "Alpha mismatch: /health=0.8187, /conservation/status=1.0",
+      "check": "alpha-parity"
+    },
+    {
+      "category": "live",
+      "severity": "P2",
+      "file": "dataops:/api/health",
+      "line": 0,
+      "message": "Missing field 'phase' in /api/health response",
+      "check": "missing-response-field"
+    }
+  ],
+  "verdict": "FAIL"
+}

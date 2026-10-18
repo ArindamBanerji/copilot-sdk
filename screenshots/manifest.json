@@ -1,0 +1,101 @@
+{
+  "generated_at": "2026-10-13T10:19:59.131Z",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "screenshots": [
+    {
+      "file": "soc/runtime-evolution-20261013T102001876Z.png",
+      "copilot": "soc",
+      "tab": "runtime-evolution",
+      "timestamp": "2026-10-13T10:20:01.876Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "soc/runtime-evolution-this-decision-20261013T102004465Z.png",
+      "copilot": "soc",
+      "tab": "runtime-evolution-this-decision",
+      "timestamp": "2026-10-13T10:20:04.465Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "soc/runtime-evolution-situational-20261013T102006049Z.png",
+      "copilot": "soc",
+      "tab": "runtime-evolution-situational",
+      "timestamp": "2026-10-13T10:20:06.049Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "soc/runtime-evolution-adaptation-20261013T102007866Z.png",
+      "copilot": "soc",
+      "tab": "runtime-evolution-adaptation",
+      "timestamp": "2026-10-13T10:20:07.866Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "soc/runtime-evolution-system-health-20261013T102008983Z.png",
+      "copilot": "soc",
+      "tab": "runtime-evolution-system-health",
+      "timestamp": "2026-10-13T10:20:08.983Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "soc/soc-analytics-20261013T102009785Z.png",
+      "copilot": "soc",
+      "tab": "soc-analytics",
+      "timestamp": "2026-10-13T10:20:09.785Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "s2p/dashboard-20261013T102011254Z.png",
+      "copilot": "s2p",
+      "tab": "dashboard",
+      "timestamp": "2026-10-13T10:20:11.254Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "s2p/rl-decision-loop-20261013T102012543Z.png",
+      "copilot": "s2p",
+      "tab": "rl-decision-loop",
+      "timestamp": "2026-10-13T10:20:12.543Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "s2p/centroid-explorer-20261013T102012759Z.png",
+      "copilot": "s2p",
+      "tab": "centroid-explorer",
+      "timestamp": "2026-10-13T10:20:12.759Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "s2p/learning-trajectory-20261013T102013079Z.png",
+      "copilot": "s2p",
+      "tab": "learning-trajectory",
+      "timestamp": "2026-10-13T10:20:13.079Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "trading/dashboard-20261013T102019824Z.png",
+      "copilot": "trading",
+      "tab": "dashboard",
+      "timestamp": "2026-10-13T10:20:19.824Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "purchasing/dashboard-20261013T102024030Z.png",
+      "copilot": "purchasing",
+      "tab": "dashboard",
+      "timestamp": "2026-10-13T10:20:24.030Z",
+      "provenance": "illustrative_preseed"
+    },
+    {
+      "file": "dataops/dashboard-20261013T102027986Z.png",
+      "copilot": "dataops",
+      "tab": "dashboard",
+      "timestamp": "2026-10-13T10:20:27.986Z",
+      "provenance": "illustrative_preseed"
+    }
+  ],
+  "skipped": []
+}

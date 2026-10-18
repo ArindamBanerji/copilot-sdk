@@ -33,7 +33,9 @@ test("shows portfolio summary", async ({ page }) => {
   await waitForScreenReady(page);
   await waitForAppShell(page);
 
-  await expect(page.getByText("Centroid Timeline")).toBeVisible();
+  await expect(
+    page.getByTestId("centroid-timeline-panel").getByRole("heading", { name: "Centroid Timeline", exact: true }),
+  ).toBeVisible();
   await expect(page.getByText(/open positions/i).first()).toBeVisible();
   await expect(page.getByText("Win Rate", { exact: true }).first()).toBeVisible();
   await expectAnyText(page, [/\$\d[\d,]*/, /\d+(\.\d+)?%/, /-/]);

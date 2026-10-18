@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import Field, RootModel
+from pydantic import ConfigDict, Field, RootModel
 
 from ..key_manifest import TradingKey
 from copilot_sdk.state.schemas.shared import (
@@ -18,6 +18,8 @@ from copilot_sdk.state.schemas.shared import (
 
 
 class HistorySummaryResponse(FlexibleModel):
+    model_config = ConfigDict(extra="ignore")
+
     decisions: list[dict[str, Any]] = Field(default_factory=list)
     total: int | None = None
     bounded: bool | None = None

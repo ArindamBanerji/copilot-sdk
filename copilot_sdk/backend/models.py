@@ -138,6 +138,9 @@ class ScoringHealthResponse(BaseModel):
 class ScoringHistoryResponse(BaseModel):
     engine: dict[str, str]
     decisions: list[dict[str, Any]]
+    total: int
+    limit: int
+    offset: int
 
 
 class MeasurementStateResponse(BaseModel):

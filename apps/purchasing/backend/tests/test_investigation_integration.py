@@ -77,7 +77,7 @@ def test_investigate_uses_providers(client, monkeypatch):
 def test_investigation_read_only(isolated, monkeypatch):
     client, scorer, graph = isolated
     before_geometry = scorer.gae_scorer.centroids.copy()
-    before_state = deepcopy(graph.__dict__)
+    before_state = deepcopy({key: value for key, value in graph.__dict__.items() if key != "_lock"})
     k_store = client.app.state.test_k_store
     before_k = k_store.persistence.get_k_utilities(graph.domain)
     def forbidden(*args, **kwargs):
@@ -87,7 +87,8 @@ def test_investigation_read_only(isolated, monkeypatch):
     response = client.post("/api/investigation/investigate", json={**request_payload(), "use_K": True})
     assert response.status_code == 200, response.text
     np.testing.assert_array_equal(before_geometry, scorer.gae_scorer.centroids)
-    assert repr(graph.__dict__) == repr(before_state)
+    current_state = {key: value for key, value in graph.__dict__.items() if key != "_lock"}
+    assert repr(current_state) == repr(before_state)
     assert k_store.persistence.get_k_utilities(graph.domain) == before_k
     assert response.json()["snapshot"]["k_weights"][0] == 0.9
 

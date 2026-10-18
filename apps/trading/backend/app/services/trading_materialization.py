@@ -15,9 +15,27 @@ from app.services.regime_monitor import RegimeMonitor
 from app.services.regime_recommender import RegimeRecommender
 from copilot_sdk.backend.conservation_router import build_conservation_status
 from copilot_sdk.backend.response_materializer import ResponseMaterializer
+from copilot_sdk.scoring.fingerprint import compute_fingerprint
 from copilot_sdk.scoring.measurement_state import compute_measurement_state
+from copilot_sdk.scoring.presets.trading import TradingPreset
+from copilot_sdk.scoring.trajectory import compute_trajectory
 
 DOMAIN = "trading"
+PRESET = TradingPreset()
+
+
+def _conservation_from_shared(verified: list[dict[str, Any]]) -> dict[str, Any]:
+    return cast(dict[str, Any], build_conservation_status(DOMAIN, {
+        "verified_decisions": verified,
+        "verified_outcomes": verified,
+        "verified_count": len(verified),
+        "correct_count": sum(row.get("is_correct") is True for row in verified),
+        "total_decisions": len(verified),
+        "total_categories": PRESET.shape.n_categories,
+        "penalty_ratio": PRESET.penalty_ratio,
+        "w_short": PRESET.w_short,
+        "m_rate": PRESET.m_rate,
+    }))
 
 
 class _StaticDecisionRows:
@@ -69,7 +87,10 @@ def create_trading_materializer(
         trades = _journal_records(lambda: _StaticDecisionRows(decisions), DOMAIN)
         current = service.get_current_regime()
         accuracy = service.get_regime_accuracy(trades)
-        conservation = build_conservation_status(DOMAIN, scorer_proxy)
+        conservation = _conservation_from_shared(cast(list[dict[str, Any]], shared["verified"]))
+        adjust = getattr(scorer_proxy, "conservation_status_adjuster", None)
+        if callable(adjust):
+            conservation = adjust(conservation)
         payload = RegimeRecommender().recommend(
             str(current.get("regime") or "ranging"),
             accuracy,
@@ -92,18 +113,29 @@ def create_trading_materializer(
                 }
         return cast(dict[str, Any], payload)
 
-    def _trading_fingerprint_payload(_: dict[str, Any]) -> dict[str, Any]:
-        payload = jsonable_encoder(scorer_proxy.fingerprint())
+    def _trading_fingerprint_payload(shared: dict[str, Any]) -> dict[str, Any]:
+        payload = jsonable_encoder(compute_fingerprint(
+            cast(list[dict[str, Any]], shared["verified"]),
+            list(PRESET.shape.factor_names),
+        ))
         payload["engine"] = _engine_payload()
         return cast(dict[str, Any], payload)
 
-    def _trading_trajectory_payload(_: dict[str, Any]) -> dict[str, Any]:
-        payload = jsonable_encoder(scorer_proxy.trajectory())
+    def _trading_trajectory_payload(shared: dict[str, Any]) -> dict[str, Any]:
+        payload = jsonable_encoder(compute_trajectory(
+            [], cast(list[dict[str, Any]], shared["verified"]), PRESET.shape,
+        ))
         payload["engine"] = _engine_payload()
         return cast(dict[str, Any], payload)
 
-    def _trading_measurement_payload(_: dict[str, Any]) -> dict[str, Any]:
-        payload = compute_measurement_state(scorer_proxy).to_dict()
+    def _trading_measurement_payload(shared: dict[str, Any]) -> dict[str, Any]:
+        verified = cast(list[dict[str, Any]], shared["verified"])
+        trajectory = compute_trajectory([], verified, PRESET.shape)
+        payload = compute_measurement_state(
+            scorer_proxy,
+            verified_decisions=verified,
+            current_iks=trajectory.current_iks,
+        ).to_dict()
         payload["engine"] = _engine_payload()
         return cast(dict[str, Any], payload)
 
@@ -111,8 +143,12 @@ def create_trading_materializer(
         domain=DOMAIN,
         store_provider=store_provider,
         computations={
-            "analytics": lambda s: _analytics_from_decisions(cast(list[dict[str, Any]], s["decisions"])),
-            "conservation": lambda s: build_conservation_status(DOMAIN, scorer_proxy),
+            "analytics": lambda s: _analytics_from_decisions(
+                cast(list[dict[str, Any]], s["decisions"]),
+                cast(list[dict[str, Any]], s["verified"]),
+                regime_monitor=regime_monitor,
+            ),
+            "conservation": lambda s: _conservation_from_shared(cast(list[dict[str, Any]], s["verified"])),
             "accuracy_by_category": lambda s: _accuracy_by_category_payload(cast(list[dict[str, Any]], s["verified"])),
             "fingerprint": _trading_fingerprint_payload,
             "trajectory": _trading_trajectory_payload,

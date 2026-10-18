@@ -5,57 +5,125 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
+import re
 from typing import Any, cast
 
 from copilot_sdk.graph.enrichment import (
     EnrichmentSourceSet, EntityEnrichmentReceipt, EntityEnrichmentRecord,
     ProvenancedValue,
 )
-from copilot_sdk.graph.protocol import ProtocolV2GraphStore
+from copilot_sdk.graph.protocol import BoundedProjectionStore, ProtocolV2GraphStore
+from copilot_sdk.graph.query import (
+    DecisionAggregate,
+    DecisionChangePage,
+    DecisionFilter,
+    DecisionGroup,
+    DecisionMetric,
+    DecisionPageRequest,
+    DecisionPageResult,
+    DecisionProjection,
+)
 
 _DOMAIN_FIELDS = frozenset({"domain", "source_domain", "target_domain"})
-_PAYLOAD_FIELDS = frozenset({
-    "metadata", "outcome_metadata", "context", "factors", "factor_stats",
-    "fingerprint", "factor_mapping", "canonical_payload", "payload", "state",
-    "metrics", "computed_from", "centroids",
+_ROUTING_CONTAINERS = frozenset({
+    "children", "decision", "decisions", "evolution_event",
+    "properties", "source_decision", "target_decision", "transfer_pattern",
 })
+_PHYSICAL_DOMAIN_PREFIX = "jmns__"
+_SAFE_DOMAIN_RE = re.compile(r"^[a-zA-Z0-9_-]{1,200}$")
+
+
+class _InternalNamespace(str):
+    """Tagged string accepted by stores as an internally encoded domain."""
+
+    __slots__ = ()
+
+
+# Private compatibility alias for the name used by the first reservation fix.
+_NamespacedPhysicalDomain = _InternalNamespace
+
+
+def is_internal_namespace(domain: str) -> bool:
+    """Return whether *domain* is the exact trusted namespace string type.
+
+    Exact identity deliberately rejects arbitrary ``str`` subclasses, including
+    subclasses that copy attributes from the internal implementation.
+    """
+    return type(domain) is _InternalNamespace
 
 
 class GraphStoreNamespace(ProtocolV2GraphStore):
     """Stateless domain-namespace view over one shared governed graph.
 
-    Rewrites every domain argument as ``f"{namespace}::{domain}"`` on writes
-    and strips the prefix on reads. The adapter does not own the store lifecycle.
+    Encodes every domain argument into a reserved, AGE-safe physical namespace
+    on writes and restores the logical domain on reads. The adapter does not own
+    the store lifecycle.
     """
+
+    _BOUNDED_ONLY_READS = frozenset({
+        "query_decisions", "aggregate_decisions", "get_decision_changes",
+    })
 
     def __init__(self, store: ProtocolV2GraphStore, namespace: str) -> None:
         normalized = namespace.strip()
-        if not normalized or "::" in normalized:
-            raise ValueError("namespace must be a non-empty single segment")
+        if not normalized:
+            raise ValueError("namespace must be non-empty")
         if not isinstance(store, ProtocolV2GraphStore):
             raise RuntimeError("GraphStoreNamespace requires ProtocolV2GraphStore")
         self._store = store
-        self._prefix = f"{normalized}::"
+        self._namespace = normalized
+        encoded = normalized.encode("utf-8").hex()
+        self._prefix = f"{_PHYSICAL_DOMAIN_PREFIX}{encoded}__"
+
+    @staticmethod
+    def _parse_physical_domain(domain: str) -> tuple[str, str]:
+        marker = _PHYSICAL_DOMAIN_PREFIX
+        if not isinstance(domain, str) or not domain.startswith(marker):
+            raise ValueError("domain is not a namespaced physical domain")
+        encoded, separator, logical = domain[len(marker):].partition("__")
+        if not separator or not encoded or not _SAFE_DOMAIN_RE.fullmatch(logical):
+            raise ValueError("invalid namespaced physical domain")
+        try:
+            namespace = bytes.fromhex(encoded).decode("utf-8")
+        except (UnicodeDecodeError, ValueError) as exc:
+            raise ValueError("invalid namespace encoding") from exc
+        if not namespace.strip():
+            raise ValueError("invalid empty namespace encoding")
+        return namespace, logical
 
     def _domain(self, domain: str) -> str:
-        if not domain.strip():
-            raise ValueError("domain must be non-empty")
-        if domain.startswith(":"):
-            raise ValueError("domain must not begin with a colon")
-        return f"{self._prefix}{domain}"
+        if not isinstance(domain, str) or not _SAFE_DOMAIN_RE.fullmatch(domain):
+            raise ValueError("domain must contain only letters, digits, '_' or '-'")
+        physical = f"{self._prefix}{domain}"
+        if len(physical) > 200:
+            raise ValueError("namespaced physical domain exceeds 200 characters")
+        return _InternalNamespace(physical)
 
     def _logical_domain(self, domain: str) -> str:
-        if not self._owns_domain(domain):
+        try:
+            namespace, logical = self._parse_physical_domain(domain)
+        except ValueError as exc:
+            raise ValueError("graph result escaped its namespace") from exc
+        if namespace != self._namespace:
             raise ValueError("graph result escaped its namespace")
-        return domain[len(self._prefix):]
+        return logical
 
     def _owns_domain(self, domain: object) -> bool:
-        return (
-            isinstance(domain, str)
-            and domain.startswith(self._prefix)
-            and bool(domain[len(self._prefix):].strip())
-            and not domain[len(self._prefix):].startswith(":")
-        )
+        if not isinstance(domain, str):
+            return False
+        try:
+            namespace, _ = self._parse_physical_domain(domain)
+        except ValueError:
+            return False
+        return namespace == self._namespace
+
+    def __getattr__(self, name: str) -> Any:
+        if name in self._BOUNDED_ONLY_READS:
+            raise AttributeError(
+                f"{type(self).__name__} does not support bounded projection "
+                f"method {name!r}; use BoundedGraphStoreNamespace"
+            )
+        raise AttributeError(f"{type(self).__name__!s} has no attribute {name!r}")
 
     @staticmethod
     def _transfer_row(value: Mapping[str, Any]) -> bool:
@@ -64,17 +132,21 @@ class GraphStoreNamespace(ProtocolV2GraphStore):
         )
 
     def _domain_values(self, value: object) -> list[object]:
-        domains: list[object] = []
-        if isinstance(value, Mapping):
-            for key, item in value.items():
-                if key == "domain" and self._transfer_row(value):
-                    continue
-                if key in _DOMAIN_FIELDS:
-                    domains.append(item)
-                elif key not in _PAYLOAD_FIELDS:
-                    domains.extend(self._domain_values(item))
-        elif isinstance(value, list):
-            for item in value:
+        if not isinstance(value, Mapping):
+            return []
+        domains = [
+            item
+            for key, item in value.items()
+            if key in _DOMAIN_FIELDS
+            and not (key == "domain" and self._transfer_row(value))
+        ]
+        for key, item in value.items():
+            if key not in _ROUTING_CONTAINERS:
+                continue
+            if isinstance(item, list):
+                for nested in item:
+                    domains.extend(self._domain_values(nested))
+            else:
                 domains.extend(self._domain_values(item))
         return domains
 
@@ -86,14 +158,14 @@ class GraphStoreNamespace(ProtocolV2GraphStore):
                     if key == "domain" and self._transfer_row(value)
                     else self._logical_domain(item)
                     if key in _DOMAIN_FIELDS
-                    else deepcopy(item)
-                    if key in _PAYLOAD_FIELDS
+                    else [self._rewrite(nested) for nested in item]
+                    if key in _ROUTING_CONTAINERS and isinstance(item, list)
                     else self._rewrite(item)
+                    if key in _ROUTING_CONTAINERS
+                    else deepcopy(item)
                 )
                 for key, item in value.items()
             }
-        if isinstance(value, list):
-            return [self._rewrite(item) for item in value]
         return deepcopy(value)
 
     def _row(self, row: Mapping[str, Any]) -> dict[str, Any]:
@@ -145,11 +217,13 @@ class GraphStoreNamespace(ProtocolV2GraphStore):
         )
         return self._row(result) if result is not None else None
 
-    def get_decisions(self, domain: str, category: str | None=None, limit: int=400) -> list[dict[str, Any]]:
+    def get_decisions(self, domain: str, category: str | None=None, limit: int=400, *, offset: int=0, chronological: bool=False) -> list[dict[str, Any]]:
         result = self._store.get_decisions(
             domain=self._domain(domain),
             category=category,
             limit=limit,
+            offset=offset,
+            chronological=chronological,
         )
         return self._rows(result)
 
@@ -165,9 +239,13 @@ class GraphStoreNamespace(ProtocolV2GraphStore):
         )
         return self._rows(result)
 
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
+    def get_verified_decisions(self, domain: str, *, offset: int=0, limit: int | None=None, chronological: bool=False, verified_after: tuple[float, str] | None=None) -> list[dict[str, Any]]:
         result = self._store.get_verified_decisions(
             domain=self._domain(domain),
+            offset=offset,
+            limit=limit,
+            chronological=chronological,
+            verified_after=verified_after,
         )
         return self._rows(result)
 
@@ -432,7 +510,7 @@ class GraphStoreNamespace(ProtocolV2GraphStore):
         return [
             replace(record, domain=self._logical_domain(record.domain))
             for record in records
-            if record.domain.startswith(self._prefix)
+            if self._owns_domain(record.domain)
         ]
 
     def generate_decision_id(self, domain: str) -> str:
@@ -584,9 +662,9 @@ class GraphStoreNamespace(ProtocolV2GraphStore):
             result = [
                 row for row in result
                 if isinstance(row.get("source_domain"), str)
-                and row["source_domain"].startswith(self._prefix)
+                and self._owns_domain(row["source_domain"])
                 and isinstance(row.get("target_domain"), str)
-                and row["target_domain"].startswith(self._prefix)
+                and self._owns_domain(row["target_domain"])
             ]
         return self._rows(result)
 
@@ -667,4 +745,92 @@ class GraphStoreNamespace(ProtocolV2GraphStore):
         self._store.domain_scoped_reset(self._domain(domain))
 
 
-__all__ = ["GraphStoreNamespace"]
+class BoundedGraphStoreNamespace(GraphStoreNamespace):
+    """Namespace view over a V2 store with bounded projections."""
+
+    _bounded_store: BoundedProjectionStore
+
+    def __init__(self, store: ProtocolV2GraphStore, namespace: str) -> None:
+        if not isinstance(store, BoundedProjectionStore):
+            raise TypeError(
+                "BoundedGraphStoreNamespace requires a "
+                "BoundedProjectionStore primary"
+            )
+        super().__init__(store, namespace)
+        self._bounded_store = cast(BoundedProjectionStore, store)
+
+    def query_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        projection: DecisionProjection = "summary",
+        page: DecisionPageRequest | None = None,
+        as_of_generation: int | None = None,
+    ) -> DecisionPageResult:
+        result: DecisionPageResult = self._bounded_store.query_decisions(
+            self._domain(domain),
+            filters=filters,
+            projection=projection,
+            page=page,
+            as_of_generation=as_of_generation,
+        )
+        return replace(
+            result,
+            items=tuple(self._row(dict(item)) for item in result.items),
+        )
+
+    def count_decisions(
+        self, domain: str, *, filters: DecisionFilter | None = None,
+    ) -> int:
+        result: int = self._bounded_store.count_decisions(
+            self._domain(domain), filters=filters,
+        )
+        return result
+
+    def aggregate_decisions(
+        self,
+        domain: str,
+        *,
+        filters: DecisionFilter | None = None,
+        group_by: tuple[DecisionGroup, ...] = (),
+        metrics: tuple[DecisionMetric, ...] = ("count",),
+    ) -> tuple[DecisionAggregate, ...]:
+        result: tuple[DecisionAggregate, ...] = self._bounded_store.aggregate_decisions(
+            self._domain(domain),
+            filters=filters,
+            group_by=group_by,
+            metrics=metrics,
+        )
+        return result
+
+    def _logical_change_event(self, event: dict[str, Any]) -> dict[str, Any]:
+        logical = self._row(dict(event))
+        payload = event.get("payload")
+        if isinstance(payload, dict):
+            logical["payload"] = self._row(dict(payload))
+        return logical
+
+    def get_decision_changes(
+        self,
+        domain: str,
+        *,
+        after_generation: int,
+        limit: int = 1_000,
+        projection: DecisionProjection = "full",
+        filters: DecisionFilter | None = None,
+    ) -> DecisionChangePage:
+        result: DecisionChangePage = self._bounded_store.get_decision_changes(
+            self._domain(domain),
+            after_generation=after_generation,
+            limit=limit,
+            projection=projection,
+            filters=filters,
+        )
+        return replace(
+            result,
+            events=tuple(self._logical_change_event(dict(event)) for event in result.events),
+        )
+
+
+__all__ = ["BoundedGraphStoreNamespace", "GraphStoreNamespace"]

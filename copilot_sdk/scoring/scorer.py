@@ -36,6 +36,7 @@ from copilot_sdk.config.graph_config import GraphConfig, GraphConfigError, resol
 from copilot_sdk.graph.production import validate_production_store
 from copilot_sdk.scoring.persistence_outbox import PersistenceOutbox
 from copilot_sdk.stats.bootstrap import block_bootstrap_mean_se
+from copilot_sdk.timestamps import normalize_timestamp
 
 
 def _ensure_gae_path() -> Path:
@@ -107,6 +108,172 @@ def _factor_names_hash(factor_names: list[str]) -> str:
     ).hexdigest()
 
 
+# Graph bootstrap replay contract:
+# - GraphStore.get_verified_decisions(domain) returns decision dictionaries with
+#   ``category``, ``recommended_action``/``recommended_index``, ``confidence``,
+#   ``factor_vector`` (or named ``factors``), and merged outcome fields
+#   ``actual_action``, ``is_correct``, and ``verified_at``.
+# - Replaying requires the original factor vector, category, predicted action,
+#   correctness, and actual action for an override.  Rows are replayed oldest
+#   first because ProfileScorer learning rates and phase transitions are stateful.
+# - Replay is idempotent per scorer construction: from_preset creates a fresh
+#   ProfileScorer before applying this read-only sequence, so a second bootstrap
+#   over the same graph produces the same state without graph writes.
+# - The update rehydrates ProfileScorer centroids, per-category/action counts,
+#   total decision_count, and two-phase category state; it intentionally does
+#   not run conservation, scoring, artifact persistence, or reward updates.
+def _replay_verified_decisions(
+    scorer: ProfileScorer,
+    preset: DomainPreset,
+    rows: Sequence[Mapping[str, Any]],
+) -> int:
+    """Apply verified GraphStore rows through the same pure update math as learn()."""
+    replayed = 0
+    for row in sorted(
+        cast(Sequence[dict[str, Any]], rows),
+        key=lambda item: (
+            normalize_timestamp(cast(
+                float | int | str,
+                _decision_field(item, "verified_at", _decision_field(item, "created_at", 0.0)),
+            )),
+            str(_decision_field(item, "decision_id", "")),
+        ),
+    ):
+        category = str(_decision_field(row, "category", ""))
+        if category not in preset.shape.category_names:
+            logger.warning("Skipping replay row with unknown category: %s", category)
+            continue
+        category_index = preset.shape.category_names.index(category)
+
+        recommended_action = str(
+            _decision_field(row, "recommended_action", _decision_field(row, "action", ""))
+        )
+        if recommended_action not in preset.shape.action_names:
+            logger.warning("Skipping replay row with unknown recommended action: %s", recommended_action)
+            continue
+        action_index = preset.shape.action_names.index(recommended_action)
+
+        actual_action = str(_decision_field(row, "actual_action", ""))
+        if actual_action not in preset.shape.action_names:
+            logger.warning("Skipping replay row with unknown actual action: %s", actual_action)
+            continue
+        is_correct = bool(_decision_field(row, "is_correct", False))
+        factor_vector_value = _decision_field(row, "factor_vector")
+        if factor_vector_value is None:
+            factors = _decision_field(row, "factors", {})
+            if not isinstance(factors, Mapping):
+                logger.warning("Skipping replay row without factor values")
+                continue
+            factor_vector_value = [factors.get(name) for name in preset.shape.factor_names]
+        try:
+            factor_vector = np.asarray(factor_vector_value, dtype=np.float64)
+        except (TypeError, ValueError):
+            logger.warning("Skipping replay row with invalid factor vector")
+            continue
+        if factor_vector.shape != (preset.shape.n_factors,) or not np.all(np.isfinite(factor_vector)):
+            logger.warning("Skipping replay row with incompatible factor vector shape: %s", factor_vector.shape)
+            continue
+
+        confidence = float(_decision_field(row, "confidence", 0.0))
+        if not math.isfinite(confidence):
+            logger.warning("Skipping replay row with invalid confidence")
+            continue
+
+        old_eta = scorer.eta
+        old_eta_override = scorer.eta_override
+        try:
+            scorer.eta = float(preset.eta_confirm)
+            scorer.eta_override = (
+                None
+                if is_correct
+                else float(preset.eta_override) * float(preset.penalty_ratio)
+            )
+            scorer.update(
+                f=factor_vector,
+                category_index=category_index,
+                action_index=action_index,
+                correct=is_correct,
+                gt_action_index=None if is_correct else preset.shape.action_names.index(actual_action),
+                confidence=confidence,
+            )
+        finally:
+            scorer.eta = old_eta
+            scorer.eta_override = old_eta_override
+        replayed += 1
+    return replayed
+
+
+_CHECKPOINT_REPLAY_BATCH_SIZE = 1_000
+
+
+def _checkpoint_replay_state(scorer: ProfileScorer) -> dict[str, Any]:
+    """Serialize the non-geometric learning state represented by a checkpoint."""
+    states = getattr(scorer, "_category_states", None)
+    category_states = None
+    if states is not None:
+        category_states = [
+            {
+                "phase": str(state.phase),
+                "n_decisions": int(state.n_decisions),
+                "freeze_point": state.freeze_point,
+            }
+            for state in states
+        ]
+    buffer = getattr(scorer, "_decision_buffer", None)
+    decision_buffer = None
+    if buffer is not None:
+        decision_buffer = [
+            [np.asarray(vector, dtype=np.float64).tolist(), int(category), int(action), bool(correct)]
+            for vector, category, action, correct in buffer
+        ]
+    return {
+        "counts": np.asarray(scorer.counts, dtype=np.float64).tolist(),
+        "decision_count": int(scorer.decision_count),
+        "category_states": category_states,
+        "decision_buffer": decision_buffer,
+        "gated_count": int(getattr(scorer, "_gated_count", 0)),
+        "applied_count": int(getattr(scorer, "_applied_count", 0)),
+    }
+
+
+def _restore_checkpoint_replay_state(
+    scorer: ProfileScorer,
+    metadata: Mapping[str, Any] | None,
+) -> bool:
+    """Restore checkpoint learning counters without replaying its decision prefix."""
+    if not isinstance(metadata, Mapping):
+        return False
+    state = metadata.get("replay_state")
+    if not isinstance(state, Mapping):
+        return False
+    try:
+        counts = np.asarray(state["counts"], dtype=np.float64)
+        if counts.shape != scorer.counts.shape or not np.all(np.isfinite(counts)):
+            return False
+        scorer.counts = counts.copy()
+        scorer.decision_count = int(state["decision_count"])
+        scorer._gated_count = int(state.get("gated_count", 0))
+        scorer._applied_count = int(state.get("applied_count", 0))
+        stored_states = state.get("category_states")
+        if stored_states is not None:
+            if scorer._category_states is None or len(stored_states) != len(scorer._category_states):
+                return False
+            for target, stored in zip(scorer._category_states, stored_states):
+                target.phase = str(stored["phase"])
+                target.n_decisions = int(stored["n_decisions"])
+                raw_freeze = stored.get("freeze_point")
+                target.freeze_point = None if raw_freeze is None else int(raw_freeze)
+        stored_buffer = state.get("decision_buffer")
+        if stored_buffer is not None:
+            scorer._decision_buffer = [
+                (np.asarray(item[0], dtype=np.float64), int(item[1]), int(item[2]), bool(item[3]))
+                for item in stored_buffer
+            ]
+    except (KeyError, TypeError, ValueError, IndexError):
+        return False
+    return True
+
+
 def _resolve_governed_writes(governed_writes: bool | None) -> bool:
     """Resolve the construction-time governed-write feature gate.
 
@@ -128,6 +295,15 @@ class ScoreResult:
     probabilities: list[float]
     category: str
     factors: dict[str, float]
+
+
+@dataclass(frozen=True)
+class PreparedScore:
+    """Read-only prediction plus the exact durable Decision payload."""
+
+    result: ScoreResult
+    payload: dict[str, Any]
+    governed: bool
 
 
 @dataclass(frozen=True)
@@ -227,7 +403,9 @@ class CompoundingScorer:
         self._last_checkpoint_category: str | None = None
         self._last_checkpoint_action: str | None = None
         self._last_checkpoint_iks: float | None = None
+        self._last_checkpoint_verified_at: float | None = None
         self._last_persisted_fingerprint_signature: str | None = None
+        self._cold_start = False
         self._verified_snapshot_active: ContextVar[bool] = ContextVar(
             f"verified_snapshot_active_{id(self)}", default=False
         )
@@ -380,7 +558,10 @@ class CompoundingScorer:
             limit=1,
         )
         if latest_checkpoints:
+            checkpoint_metadata = latest_checkpoints[-1].get("metadata")
             stored_hash = latest_checkpoints[-1].get("factor_names_hash")
+            if stored_hash is None and isinstance(checkpoint_metadata, Mapping):
+                stored_hash = checkpoint_metadata.get("factor_names_hash")
             current_hash = _factor_names_hash(list(preset.shape.factor_names))
             if stored_hash and stored_hash != current_hash:
                 logger.warning(
@@ -391,8 +572,28 @@ class CompoundingScorer:
                     current_hash[:8],
                 )
                 centroids = None
+        restored_centroids = centroids is not None
         if centroids is None:
             centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
+        replay_cursor: tuple[float, str] | None = None
+        if restored_centroids and latest_checkpoints:
+            latest_checkpoint = latest_checkpoints[-1]
+            checkpoint_metadata = latest_checkpoint.get("metadata")
+            if isinstance(checkpoint_metadata, Mapping):
+                raw_verified_at = checkpoint_metadata.get("replay_cursor_verified_at")
+                raw_verified_id = checkpoint_metadata.get("replay_cursor_decision_id")
+                if raw_verified_at is not None and raw_verified_id:
+                    try:
+                        replay_cursor = (
+                            normalize_timestamp(cast(float | int | str, raw_verified_at)),
+                            str(raw_verified_id),
+                        )
+                    except (TypeError, ValueError):
+                        logger.warning(
+                            "Checkpoint for %s has an invalid replay cursor; "
+                            "rebuilding from verified history.",
+                            checkpoint_domain,
+                        )
 
         learning_strategy = LearningStrategy(
             phase_policy=DecisionCountPolicy(n=200),
@@ -407,6 +608,85 @@ class CompoundingScorer:
             auto_pause_on_amber=True,
             learning_strategy=learning_strategy,
         )
+        restore_started = time.monotonic()
+        replayed_count = 0
+        verified_rows: list[dict[str, Any]] = []
+        checkpoint_metadata = (
+            latest_checkpoints[-1].get("metadata")
+            if restored_centroids and latest_checkpoints
+            else None
+        )
+        state_restored = (
+            replay_cursor is not None
+            and _restore_checkpoint_replay_state(
+                scorer,
+                checkpoint_metadata if isinstance(checkpoint_metadata, Mapping) else None,
+            )
+        )
+        if replay_cursor is not None and state_restored:
+            page_offset = 0
+            while True:
+                page = graph_store.get_verified_decisions(
+                    checkpoint_domain,
+                    offset=page_offset,
+                    limit=_CHECKPOINT_REPLAY_BATCH_SIZE,
+                    chronological=True,
+                    verified_after=replay_cursor,
+                )
+                if not page:
+                    break
+                replayed_count += _replay_verified_decisions(scorer, preset, page)
+                page_offset += len(page)
+                if len(page) < _CHECKPOINT_REPLAY_BATCH_SIZE:
+                    break
+            logger.info(
+                "[CHECKPOINT] Restored at watermark=%s decision_id=%s. "
+                "Replaying %d decisions after watermark.",
+                replay_cursor[0],
+                replay_cursor[1],
+                replayed_count,
+            )
+        else:
+            verified_rows = graph_store.get_verified_decisions(checkpoint_domain)
+            ordered_verified_rows = _sort_decisions_chronological(verified_rows)
+            if restored_centroids and ordered_verified_rows:
+                logger.warning(
+                    "Checkpoint for %s lacks a usable replay cursor/state; "
+                    "rebuilding from full verified history for backward compatibility.",
+                    checkpoint_domain,
+                )
+                scorer = ProfileScorer(
+                    mu=np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True),
+                    actions=list(preset.shape.action_names),
+                    categories=list(preset.shape.category_names),
+                    eta_override=0.01,
+                    auto_pause_on_amber=True,
+                    learning_strategy=LearningStrategy(
+                        phase_policy=DecisionCountPolicy(n=200),
+                        dk_estimator=CoordinateDescentEstimator(),
+                        shrinkage_schedule=FixedAlpha(0.5),
+                    ),
+                )
+            replayed_count = _replay_verified_decisions(
+                scorer, preset, ordered_verified_rows,
+            )
+        elapsed_ms = (time.monotonic() - restore_started) * 1000.0
+        if replay_cursor is not None:
+            logger.info(
+                "[CHECKPOINT] Restore completed in %.1fms. %d decisions replayed "
+                "after watermark (%s, %s).",
+                elapsed_ms,
+                replayed_count,
+                replay_cursor[0],
+                replay_cursor[1],
+            )
+        cold_start = not restored_centroids and not verified_rows and replayed_count == 0
+        if replayed_count:
+            logger.info("Replayed %d verified decisions for %s", replayed_count, checkpoint_domain)
+        elif restored_centroids:
+            logger.info("Restored centroids for %s — no verified decisions to replay", checkpoint_domain)
+        else:
+            logger.info("Cold start for %s — using preset bootstrap centroids", checkpoint_domain)
         if enable_rl and (
             reward_function is None
             or credit_assigner is None
@@ -426,7 +706,7 @@ class CompoundingScorer:
                         credit_assigner = components.get("credit_assigner")
                     if exploration_policy is None:
                         exploration_policy = components.get("exploration_policy")
-        return cls(
+        instance = cls(
             preset=preset,
             scorer=scorer,
             graph_store=graph_store,
@@ -439,6 +719,8 @@ class CompoundingScorer:
             profile=profile,
             **({"storage_domain": storage_domain} if storage_domain is not None else {}),
         )
+        instance._cold_start = cold_start
+        return instance
 
     def score(
         self,
@@ -446,6 +728,18 @@ class CompoundingScorer:
         category: str,
         metadata: dict[str, Any] | None = None,
     ) -> ScoreResult:
+        """Predict and durably record one Decision."""
+        return self.persist_prepared_score(
+            self.prepare_score(factors, category, metadata=metadata)
+        )
+
+    def prepare_score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> PreparedScore:
+        """Create a read-only prediction and persistence intent."""
         (
             category_index,
             factor_values,
@@ -491,13 +785,6 @@ class CompoundingScorer:
                 "metadata": decision_metadata,
                 "_governed": True,
             }
-            try:
-                governed_store.write_governed_decision(
-                    **{key: value for key, value in decision_payload.items() if key != "_governed"}
-                )
-            except Exception as exc:
-                self._record_persistence_failure(decision_id, "decision", decision_payload, exc)
-                raise
         else:
             decision_payload = {
                 "decision_id": decision_id,
@@ -508,21 +795,7 @@ class CompoundingScorer:
                 "factors": factor_values,
                 "metadata": decision_metadata,
             }
-            try:
-                stored_id = self._graph_store.write_decision(
-                    **{
-                        key: value
-                        for key, value in decision_payload.items()
-                        if key != "decision_id"
-                    }
-                )
-            except Exception as exc:
-                self._record_persistence_failure(decision_id, "decision", decision_payload, exc)
-                raise
-            else:
-                decision_id = stored_id
-
-        return ScoreResult(
+        result = ScoreResult(
             decision_id=decision_id,
             action=action,
             action_index=action_index,
@@ -531,6 +804,44 @@ class CompoundingScorer:
             category=category,
             factors=factor_values,
         )
+        return PreparedScore(
+            result=result,
+            payload=decision_payload,
+            governed=self._governed_writes,
+        )
+
+    def persist_prepared_score(self, prepared: PreparedScore) -> ScoreResult:
+        """Persist a prepared Decision without re-running prediction."""
+        decision_id = prepared.result.decision_id
+        try:
+            if prepared.governed:
+                governed_store = cast(ProtocolV2GraphStore, self._graph_store)
+                governed_store.write_governed_decision(
+                    **{
+                        key: value
+                        for key, value in prepared.payload.items()
+                        if key != "_governed"
+                    }
+                )
+            else:
+                decision_id = self._graph_store.write_decision(
+                    **{
+                        key: value
+                        for key, value in prepared.payload.items()
+                        if key != "decision_id"
+                    }
+                )
+        except Exception as exc:
+            self._record_persistence_failure(
+                prepared.result.decision_id,
+                "decision",
+                prepared.payload,
+                exc,
+            )
+            raise
+        if decision_id == prepared.result.decision_id:
+            return prepared.result
+        return replace(prepared.result, decision_id=decision_id)
 
     def score_read_only(
         self,
@@ -1296,6 +1607,7 @@ class CompoundingScorer:
         self._last_checkpoint_category = category
         self._last_checkpoint_action = actual_action
         self._last_checkpoint_iks = iks_after
+        self._last_checkpoint_verified_at = float(outcome_metadata["verified_at"])
         decision_timestamp = self._extract_decision_timestamp(decision)
         self._update_batch_decision_time_range(decision_timestamp)
         checkpoint_already_persisted = False
@@ -1314,6 +1626,7 @@ class CompoundingScorer:
                         consolidation=True,
                         decision_time_start=self._batch_decision_time_start,
                         decision_time_end=self._batch_decision_time_end,
+                        replay_verified_at=float(outcome_metadata["verified_at"]),
                         regime_tag=regime_tag,
                     )
                     checkpoint_already_persisted = checkpoint_saved
@@ -1335,6 +1648,7 @@ class CompoundingScorer:
                     iks=iks_after,
                     decision_time_start=decision_timestamp,
                     decision_time_end=decision_timestamp,
+                    replay_verified_at=float(outcome_metadata["verified_at"]),
                     regime_tag=regime_tag,
                 )
                 checkpoint_already_persisted = checkpoint_saved
@@ -1406,7 +1720,7 @@ class CompoundingScorer:
     def fingerprint(
         self,
         *,
-        persist: bool = True,
+        persist: bool = False,
         decision_id: str | None = None,
     ) -> FingerprintResult:
         result = compute_fingerprint(
@@ -1525,6 +1839,7 @@ class CompoundingScorer:
         outcome: str | None = None,
         category: str | None = None,
         metadata: dict[str, Any] | None = None,
+        replay_verified_at: float | int | str | None = None,
         evidence_already_persisted: bool = False,
         checkpoint_already_persisted: bool = False,
         skip_history_scan: bool = False,
@@ -1634,6 +1949,17 @@ class CompoundingScorer:
                     decision_time_end=self._extract_decision_timestamp(row),
                     regime_tag=_decision_regime_tag(row),
                     write_legacy=False,
+                    replay_verified_at=(
+                        normalize_timestamp(replay_verified_at)
+                        if replay_verified_at is not None
+                        else (
+                            normalize_timestamp(
+                                cast(float | int | str, _decision_field(row, "verified_at"))
+                            )
+                            if _decision_field(row, "verified_at") is not None
+                            else None
+                        )
+                    ),
                     transaction=transaction,
                     raise_on_error=raise_on_error,
                 )
@@ -1962,6 +2288,7 @@ class CompoundingScorer:
             consolidation=True,
             decision_time_start=self._batch_decision_time_start,
             decision_time_end=self._batch_decision_time_end,
+            replay_verified_at=self._last_checkpoint_verified_at,
             regime_tag=_decision_regime_tag(
                 self._graph_store.get_decision(
                     self._last_checkpoint_decision_id,
@@ -2656,6 +2983,7 @@ class CompoundingScorer:
         consolidation: bool = False,
         decision_time_start: str | None = None,
         decision_time_end: str | None = None,
+        replay_verified_at: float | None = None,
         write_legacy: bool = False,
         checkpoint_id: str | None = None,
         capture_reason: str | None = None,
@@ -2678,6 +3006,22 @@ class CompoundingScorer:
             ),
             "regime_tag": regime_tag,
         }
+        verified_count = (
+            int(transaction.count_verified(self._domain))
+            if transaction is not None
+            else self.get_verified_count()
+        )
+        metadata["replay_watermark_verified_count"] = verified_count
+        metadata["replay_watermark_decision_id"] = decision_id
+        if replay_verified_at is not None:
+            metadata["replay_cursor_verified_at"] = float(replay_verified_at)
+            metadata["replay_cursor_decision_id"] = decision_id
+        metadata["replay_state"] = _checkpoint_replay_state(self._scorer)
+        logger.info(
+            "[CHECKPOINT] Saved at verified_count=%d, decision_id=%s.",
+            verified_count,
+            decision_id,
+        )
         if consolidation:
             metadata.update({
                 "boundary": boundary,
@@ -2725,7 +3069,7 @@ class CompoundingScorer:
                 "action": action,
                 "centroids": self._scorer.centroids,
                 "decisions_count": int(decisions_in_batch or 1),
-                "verified_count": self.get_verified_count(),
+                "verified_count": verified_count,
                 "iks": checkpoint_iks,
                 "shape": [int(value) for value in self._scorer.centroids.shape],
                 "factor_names_hash": factor_names_hash,
@@ -2738,6 +3082,11 @@ class CompoundingScorer:
                 else self._graph_store.write_centroid_checkpoint
             )
             checkpoint_writer(**checkpoint_payload)
+            logger.info(
+                "[CHECKPOINT] Saved at verified_count=%d, decision_id=%s.",
+                verified_count,
+                decision_id,
+            )
             return True
         except Exception as exc:
             if raise_on_error:

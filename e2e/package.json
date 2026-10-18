@@ -4,15 +4,18 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "test": "npx playwright test",
-    "test:trading": "npx playwright test --project=trading",
-    "test:purchasing": "npx playwright test --project=purchasing",
-    "test:dataops": "npx playwright test --project=dataops",
-    "report": "npx playwright show-report",
+    "test": "playwright test",
+    "test:trading": "playwright test --project=trading",
+    "test:purchasing": "playwright test --project=purchasing",
+    "test:dataops": "playwright test --project=dataops",
+    "test:demo-cuts": "playwright test --project=demo-cuts",
+    "capture:screenshots": "playwright test --config capture/playwright.config.ts",
+    "capture:screenshots:only": "playwright test --config capture/playwright.config.ts",
+    "report": "playwright show-report",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.1",
+    "@playwright/test": "1.59.1",
     "@types/node": "^22.10.5",
     "tsx": "^4.21.0",
     "typescript": "^5.7.2"

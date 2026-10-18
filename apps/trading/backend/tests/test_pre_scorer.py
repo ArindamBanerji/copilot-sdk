@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import fields
-from typing import Any
+from typing import Any, cast
+from unittest.mock import patch
 
 import pytest
 from fastapi import FastAPI
@@ -14,8 +15,8 @@ from copilot_sdk.scoring.scorer import CompoundingScorer
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
-FACTOR_NAMES = tuple(TradingPreset().shape.factor_names)
-ACTION_NAMES = tuple(TradingPreset().shape.action_names)
+FACTOR_NAMES: tuple[str, ...] = tuple(TradingPreset().shape.factor_names)
+ACTION_NAMES: tuple[str, ...] = tuple(TradingPreset().shape.action_names)
 
 
 class _RegimeContext:
@@ -297,6 +298,80 @@ def test_endpoint_response_shape() -> None:
     assert payload["message"] == "preview - no decision recorded"
 
 
+@pytest.mark.parametrize("regime", [None, "trending"])
+@pytest.mark.parametrize("seeded", [False, True])
+def test_pre_score_reads_each_snapshot_once(regime: str | None, seeded: bool) -> None:
+    scorer, store = _scorer_store()
+    if seeded:
+        _seed_many(scorer, "trend_following", correct=3, incorrect=1, regime="trending")
+    preview = PreScorer(scorer, store, _RegimeContext(regime) if regime else None)
+    with (
+        patch.object(store, "get_all_decisions", wraps=store.get_all_decisions) as all_reads,
+        patch.object(store, "get_verified_decisions", wraps=store.get_verified_decisions) as verified_reads,
+        patch.object(preview, "_all_decisions", wraps=preview._all_decisions) as all_snapshot,
+        patch.object(preview, "_verified_decisions", wraps=preview._verified_decisions) as verified_snapshot,
+    ):
+        result = preview.pre_score("trend_following", _factors())
+        all_snapshot.assert_called_once_with()
+        verified_snapshot.assert_called_once_with()
+        all_reads.assert_called_once_with(domain="trading")
+        verified_reads.assert_called_once_with(domain="trading")
+    assert result.category_accuracy == (0.75 if seeded else 0.0)
+    assert result.current_regime == regime
+    assert result.regime_accuracy == (0.75 if seeded and regime else None)
+
+
+def test_pre_score_refreshes_snapshots_between_calls() -> None:
+    scorer, store = _scorer_store()
+    preview = PreScorer(scorer, store, _RegimeContext("trending"))
+    assert preview.pre_score("trend_following", _factors()).category_accuracy == 0.0
+    _seed_many(scorer, "trend_following", correct=1, incorrect=0, regime="trending")
+    with (
+        patch.object(preview, "_all_decisions", wraps=preview._all_decisions) as all_reads,
+        patch.object(preview, "_verified_decisions", wraps=preview._verified_decisions) as verified_reads,
+    ):
+        result = preview.pre_score("trend_following", _factors())
+        all_reads.assert_called_once_with()
+        verified_reads.assert_called_once_with()
+    assert result.category_accuracy == result.regime_accuracy == 1.0
+    assert len(result.similar_trades) == 1
+
+
+def test_pre_score_zero_vector_still_fetches_each_snapshot_once() -> None:
+    scorer, store = _scorer_store()
+    preview = PreScorer(scorer, store, _RegimeContext())
+    with (
+        patch.object(preview, "_all_decisions", wraps=preview._all_decisions) as all_reads,
+        patch.object(preview, "_verified_decisions", wraps=preview._verified_decisions) as verified_reads,
+    ):
+        result = preview.pre_score("trend_following", _zero_factors())
+        all_reads.assert_called_once_with()
+        verified_reads.assert_called_once_with()
+    assert result.similar_trades == []
+
+
+def test_pre_score_helpers_preserve_legacy_calls_and_explicit_empty_snapshots() -> None:
+    scorer, store = _scorer_store()
+    _seed_many(scorer, "trend_following", correct=2, incorrect=0, regime="trending")
+    preview = PreScorer(scorer, store, _RegimeContext())
+    vector = [0.5] * len(FACTOR_NAMES)
+    assert len(preview._find_similar("trend_following", vector, 1)) == 1
+    assert preview._category_accuracy("trend_following") == 1.0
+    assert preview._regime_context() == ("trending", 1.0)
+    assert preview._regime_accuracy("trend_following", "trending") == 1.0
+    assert len(preview._correctness_by_decision()) == 2
+    with (
+        patch.object(preview, "_all_decisions", wraps=preview._all_decisions) as all_reads,
+        patch.object(preview, "_verified_decisions", wraps=preview._verified_decisions) as verified_reads,
+    ):
+        assert preview._find_similar("trend_following", vector, all_decisions=[], verified_decisions=[]) == []
+        assert preview._category_accuracy("trend_following", []) == 0.0
+        assert preview._regime_context([]) == ("trending", None)
+        assert preview._regime_accuracy("trend_following", "trending", []) is None
+        all_reads.assert_not_called()
+        verified_reads.assert_not_called()
+
+
 def _client() -> TestClient:
     scorer, store = _scorer_store()
     app = FastAPI()
@@ -367,7 +442,7 @@ def _seed_verified(
             metadata={"context": {"current_regime": regime}},
             domain="trading",
         )
-    return result.decision_id
+    return cast(str, result.decision_id)
 
 
 def _different_action(action: str) -> str:

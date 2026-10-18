@@ -42,6 +42,32 @@ GREEN = "#16a34a"
 ORANGE = "#f97316"
 GRAY = "#6b7280"
 RED = "#dc2626"
+LIVE_STACK_BASELINES = {
+    "trading": {"url": "http://127.0.0.1:8010", "score": "/api/score", "health": "/api/health", "shape": (5, 4, 10)},
+    "purchasing": {"url": "http://127.0.0.1:8020", "score": "/api/score", "health": "/api/health", "shape": (5, 4, 7)},
+    "dataops": {"url": "http://127.0.0.1:8030", "score": "/api/score", "health": "/api/health", "shape": (6, 5, 6)},
+    "s2p": {"url": "http://127.0.0.1:8002", "score": "/api/s2p/score", "health": "/api/health", "shape": (5, 5, 8)},
+}
+CONSERVATION_BASELINE = {
+    "q_window": 400,
+    "theta_formula": "23.53 / (alpha * V)",
+    "eta_confirm": 0.05,
+    "eta_override": 0.01,
+    "epsilon_firm_star": 0.125,
+    "penalty_ratios": {"soc": 20.0, "s2p": 5.0, "trading": 3.0, "purchasing": 3.0, "dataops": 10.0},
+}
+
+
+def assert_live_stack_baselines() -> None:
+    export = kcurve.load_export()
+    for domain, config in LIVE_STACK_BASELINES.items():
+        shape = cast(tuple[int, int, int], config["shape"])
+        assert config["health"] == "/api/health"
+        categories = export[domain].get("category_names") or export[domain]["all_category_mu"]
+        assert len(categories) == shape[0]
+        assert len(export[domain]["action_names"]) == shape[1]
+        assert len(export[domain]["factor_names"]) == shape[2]
+    assert CONSERVATION_BASELINE["q_window"] == 400
 
 
 def publication_style() -> None:
@@ -466,6 +492,7 @@ def write_summary(path: Path, results: dict[str, Any]) -> None:
 
 
 def main() -> None:
+    assert_live_stack_baselines()
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()

@@ -67,7 +67,8 @@ def create_promotion_engine_router(
 
     @router.get("/{category}")
     def category_evaluation(category: str) -> dict[str, Any]:
-        _ensure_category(category, categories)
+        if category not in categories:
+            return _default_category_evaluation(category)
         return cast(dict[str, Any], _engine().evaluate(category))
 
     @router.post("/{category}/promote")
@@ -112,6 +113,37 @@ def create_promotion_engine_router(
     return router
 
 
+def _default_category_evaluation(category: str) -> dict[str, Any]:
+    return {
+        "category": category,
+        "current_stage": "paper",
+        "current_stage_label": "Paper",
+        "next_stage": "small_live",
+        "next_stage_label": "Small Live",
+        "ready": False,
+        "evidence": {
+            "decisions_in_stage": 0,
+            "accuracy_in_stage": 0.0,
+            "min_decisions": 50,
+            "min_accuracy": 0.55,
+            "conservation_status": "UNKNOWN",
+            "max_sizing_pct": 0.0,
+        },
+        "recommendation": "Collect more verified trading evidence.",
+        "blockers": ["insufficient_verified_evidence"],
+        "max_sizing_pct": 0.0,
+        "state": {
+            "category": category,
+            "current_stage": "paper",
+            "decisions_in_stage": 0,
+            "accuracy_in_stage": 0.0,
+            "promoted_at": None,
+            "demoted_at": None,
+            "promotion_history": [],
+        },
+    }
+
+
 def _ensure_category(category: str, categories: set[str]) -> None:
     if category not in categories:
         raise HTTPException(status_code=404, detail=f"unknown category: {category}")
@@ -124,7 +156,7 @@ def _conservation_status(
     try:
         store = graph_store_factory()
         counts = _state_counts(store)
-        from gae.calibration import conservation_status
+        from gae.calibration import conservation_status  # type: ignore[import]
 
         check = conservation_status(
             verified_count=counts["verified_count"],

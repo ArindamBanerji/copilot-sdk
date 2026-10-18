@@ -36,6 +36,33 @@ def _backend(store: GraphStore | None) -> str:
     return "memory"
 
 
+def _connection_diagnostics(store: GraphStore | None) -> dict[str, Any]:
+    """Find the AGE client through reviewed adapter layers."""
+    pending: list[Any] = [store]
+    seen: set[int] = set()
+    while pending:
+        candidate = pending.pop(0)
+        if candidate is None or id(candidate) in seen:
+            continue
+        seen.add(id(candidate))
+        client = getattr(candidate, "_client", None)
+        diagnostics = getattr(client, "connection_diagnostics", None)
+        if callable(diagnostics):
+            return cast(dict[str, Any], diagnostics())
+        for name in ("_store", "store", "_graph_store"):
+            inner = getattr(candidate, name, None)
+            if inner is not None:
+                pending.append(inner)
+    return {
+        "connection_mode": "memory" if store is not None else "unavailable",
+        "pool_requested": False,
+        "pool_available": False,
+        "pool_size": 0,
+        "pool_available_connections": 0,
+        "pool_requests_waiting": 0,
+    }
+
+
 def build_graph_health(
     graph_store: GraphStore | GraphStoreWrapper | None,
     graph_config: Any,
@@ -127,6 +154,7 @@ def build_graph_health(
         "graph_name": graph_name,
         "graph_source": "graph" if connected else "unavailable",
         "graph_store_status": "available" if connected else "unavailable",
+        "graph_connection": _connection_diagnostics(store),
         "cutover_ready": cutover_ready,
         "product_claim_allowed": product_claim_allowed,
         "cutover_evidence": evidence,

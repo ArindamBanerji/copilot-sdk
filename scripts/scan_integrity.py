@@ -3,7 +3,9 @@
 scan_integrity.py — Static + Live integrity scanner for copilot-sdk ecosystem.
 
 Catches mismatches, stale references, standing-rule violations, and live
-copilot health issues WITHOUT running pytest. ~10s static, ~5s live.
+Catches mismatches, stale references, standing-rule violations, live
+copilot health issues, and frontend<>backend endpoint alignment
+WITHOUT running pytest. ~10s static, ~5s live, ~3s alignment.
 
 Usage:
     python scan_integrity.py --repo sdk --scope all --check all
@@ -84,7 +86,8 @@ def find_files(root: Path, pattern: str, exclude_dirs: set[str] | None = None) -
     """Glob for files, excluding common junk directories."""
     if exclude_dirs is None:
         exclude_dirs = {"node_modules", ".git", "__pycache__", ".venv", "venv",
-                        ".mypy_cache", ".pytest_cache", "dist", "build", ".next"}
+                        ".mypy_cache", ".pytest_cache", "dist", "build", ".next",
+                        ".codex_tmp"}
     results = []
     for p in root.rglob(pattern):
         if any(ex in p.parts for ex in exclude_dirs):
@@ -121,15 +124,432 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         return False
 
 
-def http_get_json(url: str, timeout: float = 3.0) -> dict[str, Any] | None:
-    """GET JSON from a local endpoint. Returns None on any error."""
-    try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
-            return cast(dict[str, Any], payload) if isinstance(payload, dict) else None
-    except Exception:
+def http_get_json(url: str, timeout: float = 3.0, retries: int = 3) -> dict[str, Any] | list[Any] | None:
+    """GET JSON with retry. Returns parsed JSON (dict or list) or None."""
+    import time as _time
+    last_err: Exception | None = None
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+                if isinstance(payload, (dict, list)):
+                    return payload
+                return None
+        except Exception as exc:
+            last_err = exc
+            if attempt < retries - 1:
+                _time.sleep(0.5 * (attempt + 1))
+    return None
+
+
+HTTP_ROUTE_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+
+
+@dataclass
+class PythonModuleRoutes:
+    path: Path
+    tree: ast.Module
+    constants: dict[str, str]
+    imports: dict[str, tuple[Path, str | None]]
+    functions: dict[str, ast.FunctionDef | ast.AsyncFunctionDef]
+
+
+def _join_url_paths(prefix: str, path: str) -> str:
+    """Compose FastAPI mount/router prefixes without changing root semantics."""
+    if not prefix:
+        return path or "/"
+    if not path or path == "/":
+        return prefix.rstrip("/") or "/"
+    return f"{prefix.rstrip('/')}/{path.lstrip('/')}"
+
+
+def _static_string(node: ast.AST | None, names: dict[str, str]) -> str | None:
+    """Resolve strings used in route declarations; retain unknown f-string slots."""
+    if node is None:
         return None
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.Name):
+        return names.get(node.id)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left = _static_string(node.left, names)
+        right = _static_string(node.right, names)
+        return None if left is None or right is None else left + right
+    if isinstance(node, ast.JoinedStr):
+        parts: list[str] = []
+        for value in node.values:
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                parts.append(value.value)
+            elif isinstance(value, ast.FormattedValue):
+                resolved = _static_string(value.value, names)
+                parts.append(resolved if resolved is not None else "{param}")
+            else:
+                return None
+        return "".join(parts)
+    return None
+
+
+def _module_name_to_path(root: Path, current: Path, module: str | None, level: int) -> Path:
+    if level:
+        base = current.parent
+        for _ in range(level - 1):
+            base = base.parent
+        target = base.joinpath(*(module or "").split("."))
+    else:
+        target = root.joinpath(*(module or "").split("."))
+    py_target = target.with_suffix(".py")
+    return py_target if py_target.exists() else target / "__init__.py"
+
+
+def _parse_python_module(root: Path, path: Path) -> PythonModuleRoutes | None:
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, SyntaxError):
+        return None
+
+    constants: dict[str, str] = {}
+    functions: dict[str, ast.FunctionDef | ast.AsyncFunctionDef] = {}
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            functions[node.name] = node
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            value_node = node.value
+            value = _static_string(value_node, constants)
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if value is not None:
+                for assignment_target in targets:
+                    if isinstance(assignment_target, ast.Name):
+                        constants[assignment_target.id] = value
+
+    imports: dict[str, tuple[Path, str | None]] = {}
+    for node in tree.body:
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        import_target = _module_name_to_path(root, path, node.module, node.level)
+        for alias in node.names:
+            local_name = alias.asname or alias.name
+            if node.module is None:
+                imports[local_name] = (
+                    _module_name_to_path(root, path, alias.name, node.level),
+                    None,
+                )
+            else:
+                imports[local_name] = (import_target, alias.name)
+
+    return PythonModuleRoutes(path, tree, constants, imports, functions)
+
+
+def _function_defaults(
+    function: ast.FunctionDef | ast.AsyncFunctionDef,
+    base_names: dict[str, str],
+) -> dict[str, str]:
+    names = dict(base_names)
+    positional = list(function.args.posonlyargs) + list(function.args.args)
+    if function.args.defaults:
+        for argument, default in zip(positional[-len(function.args.defaults):], function.args.defaults):
+            value = _static_string(default, names)
+            if value is not None:
+                names[argument.arg] = value
+    for argument, kw_default in zip(function.args.kwonlyargs, function.args.kw_defaults):
+        value = _static_string(kw_default, names) if kw_default is not None else None
+        if value is not None:
+            names[argument.arg] = value
+    return names
+
+
+def _call_bindings(
+    function: ast.FunctionDef | ast.AsyncFunctionDef,
+    call: ast.Call,
+    caller_names: dict[str, str],
+) -> dict[str, str]:
+    bindings: dict[str, str] = {}
+    positional = list(function.args.posonlyargs) + list(function.args.args)
+    for argument, value_node in zip(positional, call.args):
+        value = _static_string(value_node, caller_names)
+        if value is not None:
+            bindings[argument.arg] = value
+    for keyword in call.keywords:
+        if keyword.arg:
+            value = _static_string(keyword.value, caller_names)
+            if value is not None:
+                bindings[keyword.arg] = value
+    return bindings
+
+
+def _router_prefixes(node: ast.AST, names: dict[str, str]) -> dict[str, str]:
+    prefixes: dict[str, str] = {}
+    for child in ast.walk(node):
+        if not isinstance(child, (ast.Assign, ast.AnnAssign)):
+            continue
+        value_node = child.value
+        if not isinstance(value_node, ast.Call):
+            continue
+        func_name = ""
+        if isinstance(value_node.func, ast.Name):
+            func_name = value_node.func.id
+        elif isinstance(value_node.func, ast.Attribute):
+            func_name = value_node.func.attr
+        if func_name != "APIRouter":
+            continue
+        prefix = ""
+        for keyword in value_node.keywords:
+            if keyword.arg == "prefix":
+                prefix = _static_string(keyword.value, names) or ""
+        targets = child.targets if isinstance(child, ast.Assign) else [child.target]
+        for target in targets:
+            if isinstance(target, ast.Name):
+                prefixes[target.id] = prefix
+    return prefixes
+
+
+def _decorated_routes(node: ast.AST, names: dict[str, str]) -> list[tuple[str, str, int]]:
+    prefixes = _router_prefixes(node, names)
+    routes: list[tuple[str, str, int]] = []
+    for child in ast.walk(node):
+        if not isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for decorator in child.decorator_list:
+            if not (
+                isinstance(decorator, ast.Call)
+                and isinstance(decorator.func, ast.Attribute)
+                and decorator.func.attr in HTTP_ROUTE_METHODS
+                and decorator.args
+            ):
+                continue
+            path = _static_string(decorator.args[0], names)
+            if path is None:
+                continue
+            receiver = decorator.func.value.id if isinstance(decorator.func.value, ast.Name) else ""
+            routes.append((receiver, _join_url_paths(prefixes.get(receiver, ""), path), decorator.lineno))
+    return routes
+
+
+def _resolve_imported_provider(
+    module: PythonModuleRoutes,
+    expression: ast.AST,
+) -> tuple[Path | None, str | None]:
+    if isinstance(expression, ast.Name):
+        imported = module.imports.get(expression.id)
+        if imported:
+            return imported
+        if expression.id in module.functions:
+            return module.path, expression.id
+        return None, expression.id
+    if isinstance(expression, ast.Attribute) and isinstance(expression.value, ast.Name):
+        imported = module.imports.get(expression.value.id)
+        if imported:
+            return imported[0], expression.attr
+    return None, None
+
+
+def _collect_effective_backend_paths(
+    root: Path,
+    app_name: str,
+    result: ScanResult,
+    *,
+    max_depth: int = 3,
+    composed_routes: list[tuple[str, int | None, Path, int]] | None = None,
+) -> set[str]:
+    app_backend = root / "apps" / app_name / "backend" / "app"
+    source_files = find_files(app_backend, "*.py") + find_files(root / "copilot_sdk" / "backend", "*.py")
+    modules: dict[Path, PythonModuleRoutes] = {}
+    function_index: dict[str, list[tuple[PythonModuleRoutes, ast.FunctionDef | ast.AsyncFunctionDef]]] = {}
+    for source_path in source_files:
+        parsed = _parse_python_module(root, source_path)
+        if parsed is None:
+            continue
+        modules[source_path.resolve()] = parsed
+        for name, function in parsed.functions.items():
+            function_index.setdefault(name, []).append((parsed, function))
+
+    main_path = (app_backend / "main.py").resolve()
+    main_module = modules.get(main_path)
+    if main_module is None:
+        return set()
+
+    endpoints: set[str] = set()
+    result.scanned_files += len(find_files(app_backend, "*.py"))
+
+    # Routes declared directly on the FastAPI app live inside create_app.
+    for function in main_module.functions.values():
+        names = _function_defaults(function, main_module.constants)
+        for receiver, route_path, lineno in _decorated_routes(function, names):
+            if receiver == "app":
+                endpoints.add(route_path)
+                if composed_routes is not None:
+                    composed_routes.append((route_path, None, main_module.path, lineno))
+
+    def mounted_paths(
+        mount_prefix: str,
+        route_paths: list[str],
+        source_path: Path,
+        lineno: int,
+    ) -> list[str]:
+        prefix = mount_prefix.rstrip("/")
+        paths: list[str] = []
+        for route_path in route_paths:
+            effective_path = _join_url_paths(prefix, route_path)
+            paths.append(effective_path)
+            if composed_routes is not None:
+                boundary_pos = len(prefix) if prefix else None
+                composed_routes.append((effective_path, boundary_pos, source_path, lineno))
+        return paths
+
+    def provider_routes(
+        caller_module: PythonModuleRoutes,
+        expression: ast.AST,
+        caller_names: dict[str, str],
+        depth: int,
+        ancestors: frozenset[tuple[Path, str | None]],
+    ) -> list[str]:
+        if depth > max_depth:
+            return []
+        call = expression if isinstance(expression, ast.Call) else None
+        provider_expr = call.func if call is not None else expression
+        target_path, symbol = _resolve_imported_provider(caller_module, provider_expr)
+        candidates: list[
+            tuple[
+                PythonModuleRoutes,
+                ast.AST,
+                dict[str, str],
+                str | None,
+            ]
+        ] = []
+        if target_path is not None:
+            target_module = modules.get(target_path.resolve())
+            if target_module is not None and symbol in target_module.functions:
+                function = target_module.functions[cast(str, symbol)]
+                names = _function_defaults(function, target_module.constants)
+                if call is not None:
+                    names.update(_call_bindings(function, call, caller_names))
+                candidates.append((target_module, function, names, None))
+            elif target_module is not None and symbol in ("router", None):
+                candidates.append((target_module, target_module.tree, target_module.constants, "router"))
+        if not candidates and symbol:
+            for provider_module, function in function_index.get(symbol, []):
+                names = _function_defaults(function, provider_module.constants)
+                if call is not None:
+                    names.update(_call_bindings(function, call, caller_names))
+                candidates.append((provider_module, function, names, None))
+
+        paths: list[str] = []
+        for provider_module, scope, names, receiver_filter in candidates:
+            candidate_key = (provider_module.path.resolve(), symbol)
+            if candidate_key in ancestors:
+                continue
+            next_ancestors = ancestors | {candidate_key}
+            router_prefixes = _router_prefixes(scope, names)
+            paths.extend(
+                path
+                for receiver, path, _ in _decorated_routes(scope, names)
+                if receiver_filter is None or receiver == receiver_filter
+            )
+            if depth >= max_depth:
+                continue
+            for child in ast.walk(scope):
+                if not (
+                    isinstance(child, ast.Call)
+                    and isinstance(child.func, ast.Attribute)
+                    and child.func.attr == "include_router"
+                    and child.args
+                ):
+                    continue
+                child_prefix = ""
+                for keyword in child.keywords:
+                    if keyword.arg == "prefix":
+                        child_prefix = _static_string(keyword.value, names) or ""
+                owner = child.func.value.id if isinstance(child.func.value, ast.Name) else ""
+                child_prefix = _join_url_paths(router_prefixes.get(owner, ""), child_prefix)
+                child_paths = provider_routes(
+                    provider_module,
+                    child.args[0],
+                    names,
+                    depth + 1,
+                    next_ancestors,
+                )
+                paths.extend(
+                    mounted_paths(child_prefix, child_paths, provider_module.path, child.lineno)
+                )
+        return paths
+
+    for node in ast.walk(main_module.tree):
+        if not isinstance(node, ast.Call):
+            continue
+        if isinstance(node.func, ast.Attribute) and node.func.attr == "include_router" and node.args:
+            mount_prefix = ""
+            for keyword in node.keywords:
+                if keyword.arg == "prefix":
+                    mount_prefix = _static_string(keyword.value, main_module.constants) or ""
+            route_paths = provider_routes(
+                main_module,
+                node.args[0],
+                main_module.constants,
+                0,
+                frozenset(),
+            )
+            endpoints.update(mounted_paths(mount_prefix, route_paths, main_module.path, node.lineno))
+        func_name = node.func.id if isinstance(node.func, ast.Name) else ""
+        if func_name == "mount_self_computation_router":
+            for provider_module, function in function_index.get("create_self_computation_router", []):
+                names = _function_defaults(function, provider_module.constants)
+                for _, route_path, _ in _decorated_routes(function, names):
+                    endpoints.add(route_path)
+
+    return endpoints
+
+
+def _frontend_api_paths(path: Path) -> list[tuple[int, str]]:
+    """Extract complete API expressions, including templates and literal concatenation."""
+    paths: list[tuple[int, str]] = []
+    quote_pattern = re.compile(r'([`"\'])([^`"\']*/api/.*?)\1')
+    for lineno, line in enumerate(read_lines(path), 1):
+        if "/api/" not in line:
+            continue
+        match = quote_pattern.search(line)
+        if not match:
+            continue
+        value = match.group(2)
+        api_index = value.find("/api/")
+        prefix_text = value[:api_index]
+        if prefix_text and not re.fullmatch(r"\$\{[^}]+\}", prefix_text):
+            continue
+        value = value[api_index:]
+        remainder = line[match.end():]
+        if match.group(1) in ('"', "'") and re.match(r"\s*\+", remainder):
+            pieces = [value]
+            for piece in re.findall(r'["\']([^"\']*)["\']', remainder):
+                pieces.append(piece)
+            value = "".join(pieces)
+        paths.append((lineno, value))
+    return paths
+
+
+def _normalize_api_path(path: str) -> str:
+    path = path.split("?", 1)[0].split("#", 1)[0]
+    # Interpolations following a slash are path parameters. Appended
+    # interpolations are optional query-string fragments and add no segment.
+    path = re.sub(
+        r"\$\{[^}]+\}",
+        lambda match: "{param}" if match.start() > 0 and path[match.start() - 1] == "/" else "",
+        path,
+    )
+    path = re.sub(r"\$\{.*$", "", path)
+    path = re.sub(r"\{[^}]+\}", "{param}", path)
+    path = re.sub(r"/{2,}", "/", path)
+    return path.rstrip("/") or "/"
+
+
+def _has_doubled_path_segment(path: str, boundary_pos: int | None = None) -> bool:
+    search_pos = 0
+    while match := re.search(r"/(api|[A-Za-z0-9_-]+)/\1(?:/|$)", path[search_pos:]):
+        match_start = search_pos + match.start()
+        match_end = search_pos + match.end()
+        repeated_segments_end = match_end - 1 if path[match_end - 1:match_end] == "/" else match_end
+        if boundary_pos is None or not (match_start < boundary_pos < repeated_segments_end):
+            return True
+        search_pos = match_start + 1
+    return False
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -146,7 +566,13 @@ def check_paths(root: Path, result: ScanResult) -> None:
     }
 
     # Scan docs/ and tests/ for stale path references
+    noisy_dirs = {"docs", ".codex_tmp", "node_modules", "__pycache__"}
     doc_files = find_files(root, "*.md") + find_files(root, "*.txt") + find_files(root, "*.toml")
+    doc_files = [
+        file_path
+        for file_path in doc_files
+        if not any(part in noisy_dirs for part in file_path.parts)
+    ]
     for doc in doc_files:
         result.scanned_files += 1
         for pattern, correct_path in stale_patterns.items():
@@ -291,16 +717,32 @@ def check_routers(root: Path, result: ScanResult) -> None:
                     check="router-not-mounted"
                 ))
 
-    # Check for double-prefix bug pattern (conservation/conservation)
+    # Check effective mounted paths while excluding repetition created only by
+    # the boundary between an include_router prefix and its child route.
     for app_name in required_routers:
-        main_py = root / "apps" / app_name / "backend" / "app" / "main.py"
-        if main_py.exists():
-            hits = grep_in_file(main_py, r"conservation.*conservation|/api/.*api/")
-            for lineno, line_text in hits:
+        composed_routes: list[tuple[str, int | None, Path, int]] = []
+        _collect_effective_backend_paths(
+            root,
+            app_name,
+            result,
+            max_depth=3,
+            composed_routes=composed_routes,
+        )
+        seen: set[tuple[str, int | None, Path, int]] = set()
+        for route_path, boundary_pos, source_path, lineno in composed_routes:
+            finding_key = (route_path, boundary_pos, source_path, lineno)
+            if finding_key in seen:
+                continue
+            seen.add(finding_key)
+            if _has_doubled_path_segment(route_path, boundary_pos):
+                try:
+                    finding_file = source_path.resolve().relative_to(root.resolve()).as_posix()
+                except ValueError:
+                    finding_file = source_path.as_posix()
                 result.findings.append(Finding(
                     category="routers", severity="P1",
-                    file=f"apps/{app_name}/backend/app/main.py",
-                    line=lineno, message=f"Possible double-prefix in route: {line_text}",
+                    file=finding_file,
+                    line=lineno, message=f"Possible double-prefix in route: {route_path}",
                     check="double-prefix"
                 ))
 
@@ -408,30 +850,15 @@ def check_standing_rules(root: Path, result: ScanResult) -> None:
 def check_parity(root: Path, result: ScanResult) -> None:
     """Check that frontend API calls match backend route definitions."""
 
-    # Collect backend endpoint paths from router files
-    backend_endpoints: dict[str, set[str]] = {}  # app_name -> set of paths
-
+    backend_endpoints: dict[str, set[str]] = {}
     for app_name in ("trading", "purchasing", "dataops"):
-        endpoints: set[str] = set()
         app_backend = root / "apps" / app_name / "backend" / "app"
         if not app_backend.exists():
             continue
-
-        for py_file in find_files(app_backend, "*.py"):
-            result.scanned_files += 1
-            for lineno, line_text in grep_in_file(py_file, r'@\w+\.(get|post|put|delete|patch)\s*\(\s*["\']'):
-                m = re.search(r'["\']([^"\']+)["\']', line_text)
-                if m:
-                    endpoints.add(m.group(1))
-
-        # Also check SDK routers
-        for router_file in find_files(root / "copilot_sdk" / "backend", "*.py"):
-            for lineno, line_text in grep_in_file(router_file, r'@\w+\.(get|post|put|delete|patch)\s*\(\s*["\']'):
-                m = re.search(r'["\']([^"\']+)["\']', line_text)
-                if m:
-                    endpoints.add(m.group(1))
-
-        backend_endpoints[app_name] = endpoints
+        backend_endpoints[app_name] = {
+            _normalize_api_path(path)
+            for path in _collect_effective_backend_paths(root, app_name, result)
+        }
 
     # Collect frontend API calls from api.ts files
     for app_name in ("trading", "purchasing", "dataops"):
@@ -440,35 +867,16 @@ def check_parity(root: Path, result: ScanResult) -> None:
             continue
 
         result.scanned_files += 1
-        lines = read_lines(api_ts)
         known_endpoints = backend_endpoints.get(app_name, set())
-
-        for i, line in enumerate(lines, 1):
-            # Look for fetch/axios calls with endpoint paths
-            m = re.search(r'[`"\'](/api/[^`"\'$]+)[`"\']', line)
-            if m:
-                path = m.group(1)
-                # Strip template literal expressions
-                path = re.sub(r'\$\{[^}]+\}', '{param}', path)
-                # Normalize path parameters
-                path_pattern = re.sub(r'\{[^}]+\}', '{param}', path)
-
-                # Check if any backend endpoint matches
-                matched = False
-                for ep in known_endpoints:
-                    ep_pattern = re.sub(r'\{[^}]+\}', '{param}', ep)
-                    if ep_pattern == path_pattern or path_pattern.startswith(ep_pattern):
-                        matched = True
-                        break
-
-                if not matched and known_endpoints:
-                    result.findings.append(Finding(
-                        category="parity", severity="P2",
-                        file=f"apps/{app_name}/frontend/src/api.ts",
-                        line=i,
-                        message=f"Frontend API path may not match any backend route: {path}",
-                        check="api-path-mismatch"
-                    ))
+        for lineno, path in _frontend_api_paths(api_ts):
+            if _normalize_api_path(path) not in known_endpoints and known_endpoints:
+                result.findings.append(Finding(
+                    category="parity", severity="P2",
+                    file=f"apps/{app_name}/frontend/src/api.ts",
+                    line=lineno,
+                    message=f"Frontend API path may not match any backend route: {path}",
+                    check="api-path-mismatch"
+                ))
 
     # Check port consistency between demo.py and frontend configs
     demo_py = root / "demo.py"
@@ -570,6 +978,119 @@ def check_e2e(root: Path, result: ScanResult) -> None:
                 ))
 
 
+
+# ─────────────────────────────────────────────────────────────────
+# Category 7b: Live Frontend<>Backend Endpoint Alignment
+# ─────────────────────────────────────────────────────────────────
+
+def _probe_url_status(url: str, timeout: float = 3.0) -> int | None:
+    """Return HTTP status code, or None on connection failure."""
+    try:
+        req = urllib.request.Request(url, method="GET",
+                                    headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.status
+    except urllib.error.HTTPError as exc:
+        return exc.code
+    except Exception:
+        return None
+
+
+# POST-only paths excluded from GET probing (405 expected, not a finding).
+POST_ONLY_PATHS: dict[str, set[str]] = {
+    "trading":    {"/api/score", "/api/learn"},
+    "purchasing": {"/api/score", "/api/learn"},
+    "dataops":    {"/api/score", "/api/learn"},
+    "s2p":        {"/api/s2p/score", "/api/s2p/learn"},
+}
+
+
+def check_endpoint_alignment(
+    root: Path,
+    result: ScanResult,
+    ports: list[str] | None = None,
+) -> None:
+    """Probe every frontend api.ts URL against the live backend.
+
+    For each running copilot:
+      1. Extract all /api/... paths from apps/{name}/frontend/src/api.ts
+      2. Normalize (strip query params, replace interpolations)
+      3. GET each path against localhost:{backend_port}
+      4. Report 404s as P2 findings (endpoint missing on backend)
+
+    A 405 (Method Not Allowed) means the route EXISTS but rejects GET.
+    That is expected for POST-only endpoints and is NOT a finding.
+    """
+    copilots_to_check = COPILOT_PORTS
+    if ports:
+        port_set = {int(p) for p in ports}
+        copilots_to_check = {
+            name: p for name, p in COPILOT_PORTS.items()
+            if p["backend"] in port_set
+        }
+
+    for name, port_info in copilots_to_check.items():
+        backend_port = port_info["backend"]
+
+        # Skip if backend not running -- check_live already reports this
+        if not is_port_open("localhost", backend_port):
+            continue
+
+        # Locate api.ts
+        api_ts = root / "apps" / name / "frontend" / "src" / "api.ts"
+        if not api_ts.exists():
+            continue
+
+        result.scanned_files += 1
+        base_url = f"http://localhost:{backend_port}"
+        post_only = POST_ONLY_PATHS.get(name, set())
+
+        # Extract and deduplicate frontend paths
+        raw_paths = _frontend_api_paths(api_ts)
+        seen_normalized: dict[str, tuple[int, str]] = {}
+        for lineno, raw_path in raw_paths:
+            norm = _normalize_api_path(raw_path)
+            if norm not in seen_normalized:
+                seen_normalized[norm] = (lineno, raw_path)
+
+        for norm_path, (lineno, raw_path) in seen_normalized.items():
+            # Skip known POST-only endpoints
+            if norm_path in post_only:
+                continue
+
+            # Replace {param} placeholders with a safe probe value
+            probe_path = norm_path.replace("{param}", "__test__")
+            url = f"{base_url}{probe_path}"
+
+            status = _probe_url_status(url)
+
+            if status == 404:
+                result.findings.append(Finding(
+                    category="live-alignment",
+                    severity="P2",
+                    file=f"apps/{name}/frontend/src/api.ts",
+                    line=lineno,
+                    message=(
+                        f"{name} frontend calls {raw_path} but backend "
+                        f"returns 404 on port {backend_port}"
+                    ),
+                    check="frontend-backend-404",
+                ))
+            elif status is None:
+                result.findings.append(Finding(
+                    category="live-alignment",
+                    severity="P3",
+                    file=f"apps/{name}/frontend/src/api.ts",
+                    line=lineno,
+                    message=(
+                        f"{name} endpoint probe failed (connection error): "
+                        f"{raw_path} on port {backend_port}"
+                    ),
+                    check="endpoint-probe-error",
+                ))
+            # 200, 405, 422, 401, 500 = route exists, no finding
+
+
 # ─────────────────────────────────────────────────────────────────────
 # Category 7: Live Copilot Probing
 # ─────────────────────────────────────────────────────────────────────
@@ -640,28 +1161,36 @@ def check_live(root: Path, result: ScanResult, ports: list[str] | None = None) -
 
             if data is None:
                 result.findings.append(Finding(
-                    category="live", severity="P1",
+                    category="live", severity="P2",
                     file=f"{name}:{endpoint}",
                     line=0,
-                    message=f"{name} endpoint failed: GET {endpoint} returned no data",
+                    message=(
+                        f"{name} {endpoint} unreachable after 3 retries — "
+                        f"verify server is running on port {backend_port}"
+                    ),
                     check="endpoint-failed"
                 ))
                 continue
 
-            for field_name in required_fields:
-                if field_name not in data:
+            if isinstance(data, dict):
+                for field_name in required_fields:
+                    if field_name in data:
+                        continue
                     result.findings.append(Finding(
-                        category="live", severity=severity,
+                        category="live", severity="P1",
                         file=f"{name}:{endpoint}",
                         line=0,
-                        message=f"Missing field '{field_name}' in {endpoint} response",
+                        message=(
+                            f"{endpoint} responded but missing required key '{field_name}' — "
+                            "check router mount"
+                        ),
                         check="missing-response-field"
                     ))
 
         # --- Conservation-specific deep checks ---
         conservation_url = f"{base_url}/api/conservation/status"
         conservation_data = http_get_json(conservation_url)
-        if conservation_data:
+        if isinstance(conservation_data, dict):
             # Check q is present and not None (rolling-400 must be computed)
             q = conservation_data.get("q")
             if q is None and conservation_data.get("verified_count", 0) > 0:
@@ -697,8 +1226,10 @@ def check_live(root: Path, result: ScanResult, ports: list[str] | None = None) -
 
             # Check status is a known value
             status = conservation_data.get("status")
-            if status and status.upper() not in ("GREEN", "YELLOW", "RED", "BOOTSTRAP",
-                                                   "UNAVAILABLE"):
+            if status and status.upper() not in (
+                "GREEN", "AMBER", "YELLOW", "RED", "BOOTSTRAP", "COLD_START",
+                "UNAVAILABLE",
+            ):
                 result.findings.append(Finding(
                     category="live", severity="P2",
                     file=f"{name}:/api/conservation/status",
@@ -720,20 +1251,41 @@ def check_live(root: Path, result: ScanResult, ports: list[str] | None = None) -
                         check="conservation-law-violation"
                     ))
 
-        # --- Cross-endpoint parity: health vs conservation ---
+        # Health alpha = learning coefficient; conservation alpha = category coverage.
+        # Verify each independently.
         health_data = http_get_json(f"{base_url}/api/health")
-        if health_data and conservation_data:
-            # Both should report consistent phase/alpha
+        if isinstance(health_data, dict):
             h_alpha = health_data.get("alpha")
-            c_alpha = conservation_data.get("alpha") or conservation_data.get("category_coverage")
-            if h_alpha is not None and c_alpha is not None:
-                if abs(h_alpha - c_alpha) > 0.001:
+            if h_alpha is not None and not (0.0 <= h_alpha <= 1.0):
+                result.findings.append(Finding(
+                    category="live", severity="P1",
+                    file=f"{name}:/api/health",
+                    line=0,
+                    message=f"Health alpha out of range [0,1]: {h_alpha}",
+                    check="health-alpha-range"
+                ))
+
+        if isinstance(conservation_data, dict):
+            c_alpha = conservation_data.get("alpha")
+            categories_with_data = conservation_data.get("categories_with_data")
+            categories_total = conservation_data.get("categories_total")
+            if (
+                c_alpha is not None
+                and categories_with_data is not None
+                and categories_total is not None
+                and categories_total > 0
+            ):
+                expected_alpha = categories_with_data / categories_total
+                if abs(c_alpha - expected_alpha) > 0.001:
                     result.findings.append(Finding(
                         category="live", severity="P1",
-                        file=f"{name}:health-vs-conservation",
+                        file=f"{name}:/api/conservation/status",
                         line=0,
-                        message=f"Alpha mismatch: /health={h_alpha}, /conservation/status={c_alpha}",
-                        check="alpha-parity"
+                        message=(
+                            f"Conservation alpha mismatch: alpha={c_alpha}, "
+                            f"categories_with_data/categories_total={expected_alpha}"
+                        ),
+                        check="conservation-alpha-consistency"
                     ))
 
 
@@ -769,6 +1321,9 @@ def run_scan(
 
     if "live" in checks or "all" in checks:
         check_live(root, result, ports)
+
+    if "live" in checks or "alignment" in checks or "all" in checks:
+        check_endpoint_alignment(root, result, ports)
 
     result.scan_time_ms = int((time.monotonic() - start) * 1000)
     return result
@@ -897,7 +1452,7 @@ def main() -> int:
     # --scope reserved for future use (backend/frontend/e2e filtering)
     parser.add_argument("--check", default="all",
                         help="Comma-separated checks: paths,imports,routers,"
-                             "standing-rules,parity,e2e,live,all (default: all)")
+                             "standing-rules,parity,e2e,live,alignment,all (default: all)")
     parser.add_argument("--ports", default=None,
                         help="Comma-separated backend ports for live checks "
                              "(default: all known ports)")

@@ -18,8 +18,11 @@ async function resetPurchasingDemo(page: Page) {
 
 async function scoreOrder(page: Page) {
   await expect(page.getByText("Seven scorer inputs")).toBeVisible();
+  const itemSelect = page.getByTestId("order-item-select");
+  await expect.poll(() => itemSelect.locator("option").count(), { timeout: 20_000 }).toBeGreaterThan(0);
+  await itemSelect.selectOption({ index: 0 });
   const scoreButton = page.getByRole("button", { name: "Score This Order" });
-  await expect(scoreButton).toBeEnabled();
+  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
   const scoreResponse = page.waitForResponse(
     (response) => response.url().includes("/api/score") && response.request().method() === "POST",
     { timeout: 30_000 },

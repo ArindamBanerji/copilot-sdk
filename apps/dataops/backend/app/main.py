@@ -77,7 +77,13 @@ from copilot_sdk.backend.investigation_router import create_investigation_router
 from copilot_sdk.backend.health_builder import build_graph_health, health_status_code  # noqa: E402
 from copilot_sdk.backend.conservation_router import build_conservation_status  # noqa: E402
 from copilot_sdk.backend.graph_access import GRAPH_CONNECTION_ERRORS  # noqa: E402
-from copilot_sdk.backend.response_materializer import ResponseMaterializer  # noqa: E402
+from copilot_sdk.backend.response_materializer import (  # noqa: E402
+    ResponseMaterializer,
+    conservation_state_from_shared,
+    measurement_state_response_from_shared,
+    trajectory_response_from_shared,
+)
+from copilot_sdk.scoring.presets.dataops import DataOpsPreset  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.backend.platform_router import create_platform_router  # noqa: E402
@@ -88,6 +94,7 @@ from .evolution.evolver_config import DATAOPS_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.config.graph_config import resolve_profile  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
+from scripts.seed_all_decisions import auto_seed_domain_if_empty  # noqa: E402
 from copilot_sdk.di import (  # noqa: E402
     AcquisitionAdvisor,
     BaseSourceProfiler,
@@ -814,6 +821,8 @@ def create_app(
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
+            elif graph_config.backend == "age":
+                auto_seed_domain_if_empty(DOMAIN, seed_graph_store)
             elif graph_config.backend == "memory" and _is_demo_or_test_mode():
                 if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
@@ -835,10 +844,18 @@ def create_app(
         domain=DOMAIN,
         store_provider=lambda: selected_graph_store,
         computations={
-            "conservation": lambda s: build_conservation_status(DOMAIN, scorer_proxy),
+            "conservation": lambda s: build_conservation_status(
+                DOMAIN, conservation_state_from_shared(s, DataOpsPreset())
+            ),
             "accuracy_by_category": lambda s: _accuracy_by_category_payload(cast(list[dict[str, Any]], s["verified"])),
             "context_accuracy_by_category": lambda s: _context_accuracy_by_category(cast(list[dict[str, Any]], s["decisions"])),
             "pipelines": lambda s: _pipelines_from_decisions(cast(list[dict[str, Any]], s["decisions"])),
+            "trajectory": lambda s: trajectory_response_from_shared(
+                s, DataOpsPreset()
+            ),
+            "measurement_state": lambda s: measurement_state_response_from_shared(
+                s, scorer_proxy, DataOpsPreset()
+            ),
         },
         ttl=5.0,
     )
@@ -916,9 +933,17 @@ def create_app(
     def dataops_profiles_response() -> dict[str, Any]:
         return _dataops_profile_summaries(dataops_profiler_registry, dataops_profiles)
 
+    @app.get("/api/di/sources")
+    def dataops_sources_response() -> dict[str, Any]:
+        return _dataops_profile_summaries(dataops_profiler_registry, dataops_profiles)
+
     @app.get("/api/dataops/di/profiles")
     def dataops_prefixed_profiles_response() -> dict[str, Any]:
         return cast(dict[str, Any], dataops_profiles_response())
+
+    @app.get("/api/dataops/di/sources")
+    def dataops_prefixed_sources_response() -> dict[str, Any]:
+        return cast(dict[str, Any], dataops_sources_response())
 
     @app.get("/api/dataops/di/acquisitions")
     def dataops_acquisitions_response() -> dict[str, Any]:
@@ -947,6 +972,7 @@ def create_app(
     )
     _remove_route(app, "/api/di/profiles", "GET", "profiles")
     _remove_route(app, "/api/di/intelligence-map", "GET", "intelligence_map")
+    _remove_route(app, "/api/di/sources", "GET", "sources")
     app.include_router(
         create_di_router(
             dataops_profiler_registry,
@@ -962,6 +988,7 @@ def create_app(
     )
     _remove_route(app, "/api/dataops/di/profiles", "GET", "profiles")
     _remove_route(app, "/api/dataops/di/intelligence-map", "GET", "intelligence_map")
+    _remove_route(app, "/api/dataops/di/sources", "GET", "sources")
     _remove_route(
         app,
         "/api/dataops/di/acquisition-advice",

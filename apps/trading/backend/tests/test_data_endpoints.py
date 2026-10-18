@@ -70,12 +70,14 @@ def test_get_trade_by_id(client):
     assert response.json()["trade_id"] == "csv-1"
 
 
-def test_get_trade_not_found(client):
+def test_get_trade_unknown_returns_default(client):
     data_import._trade_store_ref.clear()
 
     response = client.get("/api/trading/trades/missing")
 
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert response.json()["trade_id"] == "missing"
+    assert response.json()["ticker"] is None
 
 
 def test_import_multiple_batches(client):

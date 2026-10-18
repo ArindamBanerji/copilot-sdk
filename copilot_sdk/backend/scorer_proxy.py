@@ -7,10 +7,23 @@ serializes access through a reentrant lock.
 from __future__ import annotations
 
 from pathlib import Path
+from dataclasses import dataclass
+import inspect
 import threading
 from typing import Any, Callable
 
 from copilot_sdk.scoring import CompoundingScorer
+from copilot_sdk.scoring.scorer import PreparedScore
+
+
+class StalePreparedScoreError(RuntimeError):
+    """Prediction snapshot changed before its durable commit."""
+
+
+@dataclass(frozen=True)
+class _PreparedProxyScore:
+    prepared: PreparedScore
+    epoch: int
 
 
 class FreshScorerProxy:
@@ -26,6 +39,7 @@ class FreshScorerProxy:
         self._profile = profile
         self._lock = threading.RLock()
         self._scorer_instance: CompoundingScorer | None = None
+        self._mutation_epoch = 0
 
     def _scorer(self) -> CompoundingScorer:
         with self._lock:
@@ -45,12 +59,36 @@ class FreshScorerProxy:
         category: str,
         metadata: dict[str, Any] | None = None,
     ):
+        scorer = self._scorer()
+        if not callable(getattr(scorer, "prepare_score", None)):
+            with self._lock:
+                return scorer.score(factors, category, metadata=metadata)
+        return self.persist_prepared_score(self.prepare_score(factors, category, metadata=metadata))
+
+    def prepare_score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> _PreparedProxyScore:
+        """Predict under the scorer lock without performing durable I/O."""
         with self._lock:
             scorer = self._scorer()
-            try:
-                return scorer.score(factors, category, metadata=metadata)
-            finally:
-                self._close_scorer_store(scorer)
+            return _PreparedProxyScore(
+                prepared=scorer.prepare_score(factors, category, metadata=metadata),
+                epoch=self._mutation_epoch,
+            )
+
+    def persist_prepared_score(self, prepared: _PreparedProxyScore):
+        """Persist a prepared prediction after releasing the scorer lock."""
+        with self._lock:
+            if prepared.epoch != self._mutation_epoch:
+                raise StalePreparedScoreError("scorer changed after prediction")
+            scorer = self._scorer()
+        try:
+            return scorer.persist_prepared_score(prepared.prepared)
+        finally:
+            self._close_scorer_store(scorer)
 
     def learn(
         self,
@@ -64,13 +102,15 @@ class FreshScorerProxy:
         with self._lock:
             scorer = self._scorer()
             try:
-                return scorer.learn(
+                result = scorer.learn(
                     decision_id,
                     actual_action,
                     outcome,
                     consolidate=consolidate,
                     context=context,
                 )
+                self._mutation_epoch += 1
+                return result
             finally:
                 self._close_scorer_store(scorer)
 
@@ -82,11 +122,14 @@ class FreshScorerProxy:
             finally:
                 self._close_scorer_store(scorer)
 
-    def fingerprint(self):
+    def fingerprint(self, *, persist: bool = False):
         with self._lock:
             scorer = self._scorer()
             try:
-                return scorer.fingerprint()
+                fingerprint = scorer.fingerprint
+                if "persist" in inspect.signature(fingerprint).parameters:
+                    return fingerprint(persist=persist)
+                return fingerprint()
             finally:
                 self._close_scorer_store(scorer)
 

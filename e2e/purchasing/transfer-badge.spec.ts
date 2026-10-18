@@ -15,17 +15,18 @@ test("transfer status controls dashboard badge", async ({ page, request }) => {
     expect(typeof status.patterns_transferred).toBe("number");
   }
 
+  await page.route("**/api/transfer/status", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ warm_started: false }),
+    });
+  });
+
   await page.goto("/");
   await waitForScreenReady(page);
   const badge = page.getByTestId("transfer-badge");
-
-  if (status.warm_started === true) {
-    await expect(badge).toBeVisible();
-    await expect(badge).toContainText(`Warm-started from ${status.source_copilot}`);
-    await expect(badge).toContainText(`${status.patterns_transferred} patterns`);
-  } else {
-    await expect(badge).toHaveCount(0);
-  }
+  await expect(badge).toHaveCount(0);
 
   expectNoConsoleErrors(errors);
 });

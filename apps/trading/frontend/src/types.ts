@@ -144,6 +144,26 @@ export interface TradesResponse {
 
 export type TradeDetailResponse = TradeJournalEntry;
 
+export interface TradeEvidenceFactor {
+  name: string;
+  score: number;
+  weight: number;
+}
+
+export interface SimilarEvidenceTrade {
+  tradeId: string;
+  category: string;
+  action: string;
+  score: number;
+  outcome: "verified" | "pending" | "overridden";
+}
+
+export interface TradeCounterfactual {
+  alternateAction: string;
+  projectedScore: number;
+  delta: number;
+}
+
 export interface AnalyticsGroup extends JournalAggregate {
   key: string;
   count?: number;
@@ -159,7 +179,10 @@ export interface EvidenceResponse {
   tradeId?: string;
   evidenceText?: string;
   factorBreakdown?: string[];
-  factors?: Record<string, number>;
+  factors?: TradeEvidenceFactor[];
+  factorScores?: Record<string, number>;
+  similarTrades?: SimilarEvidenceTrade[];
+  counterfactual?: TradeCounterfactual;
   optionsFactors?: OptionsFactors;
   optionsAnalyticsOnly?: boolean;
   action?: string;

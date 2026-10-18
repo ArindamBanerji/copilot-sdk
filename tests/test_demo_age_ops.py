@@ -31,6 +31,24 @@ def _record(calls: list[tuple], event: tuple, result: bool) -> bool:
 
 class _FakeProcess:
     pid = 4242
+    returncode = 0
+    stdout = b""
+    stderr = b""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        pass
+
+    def communicate(self, input=None, timeout=None):
+        return (self.stdout, self.stderr)
+
+    def kill(self):
+        pass
+
+    def wait(self, timeout=None):
+        return self.returncode
 
 
 @pytest.fixture(autouse=True)
@@ -278,6 +296,7 @@ def test_cmd_start_starts_backend_and_frontend_with_mocked_processes(
 ) -> None:
     calls: list[tuple] = []
     _patch_safe_start(monkeypatch, calls)
+    monkeypatch.setattr(demo, "ensure_age_available", lambda dsn: True)
     selected = [_selected_copilot(tmp_path, name="Trading")]
 
     demo.cmd_start(selected, _args())

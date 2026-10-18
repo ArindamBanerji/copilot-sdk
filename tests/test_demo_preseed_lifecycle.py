@@ -40,7 +40,12 @@ def test_preseed_runs_all_jobs_and_restarts_without_privileges(
 
     def run(command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
         script = command[-1] if command[-1].endswith(".py") else command[2]
-        label = "SOC" if "preseed_demo_scenarios" in script else "S2P" if "preseed_s2p_demo" in script else "SDK"
+        label = (
+            "SOC" if "preseed_demo_scenarios" in script
+            else "S2P" if "preseed_s2p_demo" in script
+            else "SDK-FIXTURES" if "preseed_demo_fixtures" in script
+            else "SDK"
+        )
         events.append(label)
         assert kwargs["env"]["COPILOT_PRESEED_MODE"] == "true"
         assert kwargs["timeout"] == 1800
@@ -56,4 +61,4 @@ def test_preseed_runs_all_jobs_and_restarts_without_privileges(
     else:
         demo.cmd_preseed(args)
         assert "READY — all copilots" in capsys.readouterr().out
-    assert events == ["kill", "seed", "SDK", "SOC", "S2P", "kill", "normal"]
+    assert events == ["kill", "seed", "SDK", "SDK-FIXTURES", "SOC", "S2P", "kill", "normal"]

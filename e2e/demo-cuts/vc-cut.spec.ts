@@ -6,13 +6,15 @@ function hasField(value: JsonRecord, field: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, field);
 }
 
-test.describe.serial("VC Cut — Measurement Spine (V1-V7)", () => {
-  test.beforeEach(async ({ demoReady }) => {
-    test.skip(!demoReady, "Demo cut skipped: backends must be healthy and preseeded (IKS > 0)");
+test.describe("VC Cut — Measurement Spine (V1-V7)", () => {
+  test.describe.configure({ mode: "serial" });
+  test.beforeEach(async ({ sdkReady }) => {
+    test.skip(!sdkReady, "VC cut skipped: SDK backends must be healthy and preseeded (IKS > 0)");
   });
 
   for (const copilot of SDK_COPILOTS) {
-    test.describe.serial(copilot, () => {
+    test.describe(copilot, () => {
+      test.describe.configure({ mode: "serial" });
       const backend = PORTS[copilot].backend;
 
       test(`V1: ${copilot} diagnostics returns convergence and IKS`, async () => {

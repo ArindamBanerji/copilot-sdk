@@ -26,7 +26,13 @@ def test_history_outage_and_unchanged_recovery(domain: str) -> None:
     with client_for(scorer, domain) as client:
         before = client.get("/history")
         assert before.status_code == 200
-        assert before.json() == {"engine": ENGINE, "decisions": store.get_decisions(domain, limit=10**12)}
+        assert before.json() == {
+            "engine": ENGINE,
+            "decisions": store.get_decisions(domain, limit=50),
+            "total": 1,
+            "limit": 50,
+            "offset": 0,
+        }
         with patch.object(store, "get_decisions", side_effect=OperationalError("lost connection")):
             response = client.get("/history")
             assert response.status_code == 503

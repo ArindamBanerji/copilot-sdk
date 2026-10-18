@@ -141,6 +141,20 @@ def test_memory_get_decisions_all_category_and_limit():
     assert [d["entity_id"] for d in store.get_decisions("mock")] == ["entity-3", "entity-2", "entity-1"]
     assert [d["entity_id"] for d in store.get_decisions("mock", category="alpha")] == ["entity-3", "entity-1"]
     assert [d["entity_id"] for d in store.get_decisions("mock", limit=2)] == ["entity-3", "entity-2"]
+    assert [d["entity_id"] for d in store.get_decisions("mock", limit=1, offset=1)] == ["entity-2"]
+
+
+def test_memory_verified_decisions_support_bounded_pagination():
+    store = InMemoryGraphStore()
+    identifiers = [_write(store, "mock", index) for index in range(1, 6)]
+    for identifier in identifiers:
+        store.write_outcome(identifier, "approve", True, domain="mock")
+
+    page = store.get_verified_decisions(
+        "mock", offset=2, limit=2, chronological=True,
+    )
+
+    assert [row["decision_id"] for row in page] == identifiers[2:4]
 
 
 def test_memory_domain_isolation():

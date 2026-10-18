@@ -382,7 +382,7 @@ test("Process-Tech Fusion: enterprise health to bottleneck to cross-graph round 
   expect(timelineText).toMatch(/Process Timeline|timeline|pipeline|activity|event|graph|source/i);
   const crossGraph = dataopsPanel(page, "Cross-Graph Insight");
   await expect(crossGraph).toBeVisible();
-  await expect(crossGraph.getByText(/Aster 3\.1x slower|SAP.*Celonis.*Graph|Signal unavailable|Could not load cross-graph insight/i).first()).toBeVisible();
+  await expect(crossGraph.getByText(/SAP, Celonis, and graph evidence aligned|Correlating process, ERP, and graph signals|Signal unavailable|Could not load cross-graph insight/i).first()).toBeVisible();
 
   await clickTab(page, "Evidence");
   const schema = dataopsPanel(page, "Schema Impact");

@@ -7,6 +7,7 @@ import inspect
 import pytest
 
 from copilot_sdk.backend.counterfactual_router import create_counterfactual_router
+from copilot_sdk.backend.response_materializer import ResponseMaterializer
 from copilot_sdk.scoring.mutation_lock import get_mutation_lock, serialize_mutation
 from copilot_sdk.state.invalidation import invalidate_cache_event, register_tab_state_cache
 from copilot_sdk.state.tab_state_cache import TabStateCache
@@ -55,6 +56,11 @@ def test_concurrent_score_calls_serialized() -> None:
         ["start-a", "end-a", "start-b", "end-b"],
         ["start-b", "end-b", "start-a", "end-a"],
     )
+
+
+def _increment(values: dict[str, int], key: str) -> dict[str, int]:
+    values[key] += 1
+    return {"value": values[key]}
 
 
 def test_concurrent_score_and_get_not_blocked() -> None:
@@ -120,7 +126,7 @@ def test_invalidation_inside_decorator_lock() -> None:
     register(
         cache,
         "critical",
-        lambda: {"value": values.__setitem__("critical", values["critical"] + 1) or values["critical"]},
+        lambda: _increment(values, "critical"),
         invalidated_by=["score"],
         critical=True,
         tier="CRITICAL",
@@ -128,7 +134,7 @@ def test_invalidation_inside_decorator_lock() -> None:
     register(
         cache,
         "standard",
-        lambda: {"value": values.__setitem__("standard", values["standard"] + 1) or values["standard"]},
+        lambda: _increment(values, "standard"),
         invalidated_by=["score"],
         tier="STANDARD",
     )
@@ -175,7 +181,7 @@ def test_invalidate_cache_event_acquires_lock() -> None:
     register(
         cache,
         "critical",
-        lambda: {"value": values.__setitem__("critical", values["critical"] + 1) or values["critical"]},
+        lambda: _increment(values, "critical"),
         invalidated_by=["regime_break"],
         critical=True,
         tier="CRITICAL",
@@ -190,6 +196,106 @@ def test_invalidate_cache_event_acquires_lock() -> None:
 
     assert cache.get_entry("critical").data == {"value": 2}
     assert cache.get_entry("standard") is None
+
+
+def test_out_of_band_invalidation_also_invalidates_materializer() -> None:
+    cache = TabStateCache("lock-test-materializer")
+    register(
+        cache,
+        "critical",
+        lambda: {"value": 1},
+        invalidated_by=["score"],
+        critical=True,
+        tier="CRITICAL",
+    )
+
+    class Materializer:
+        def __init__(self) -> None:
+            self.invalidations = 0
+
+        def invalidate_mutation(self) -> None:
+            self.invalidations += 1
+
+    materializer = Materializer()
+    register_tab_state_cache(
+        cache,
+        materializer_provider=lambda: materializer,
+    )
+
+    invalidate_cache_event("lock-test-materializer", "score")
+
+    assert materializer.invalidations == 1
+
+
+def test_mutation_invalidation_prevents_tabcache_recache() -> None:
+    class Store:
+        value = 1
+
+        def get_all_decisions(self, domain: str):
+            return [{"value": self.value}]
+
+        def get_verified_decisions(self, domain: str):
+            return []
+
+    store = Store()
+    entered = threading.Event()
+    release = threading.Event()
+    block_refresh = False
+
+    def compute_materialized(shared):
+        if block_refresh:
+            entered.set()
+            assert release.wait(2.0)
+        return shared["decisions"][0]
+
+    materializer = ResponseMaterializer(
+        "lock-test-tabcache-integration",
+        lambda: store,
+        {"summary": compute_materialized},
+    )
+    materializer.refresh()
+    cache = TabStateCache("lock-test-tabcache-integration")
+    register(
+        cache,
+        "summary",
+        lambda: materializer.get_or_refresh("summary"),
+        invalidated_by=["score"],
+        critical=True,
+        tier="CRITICAL",
+    )
+    register_tab_state_cache(
+        cache,
+        materializer_provider=lambda: materializer,
+    )
+    import asyncio
+
+    asyncio.run(cache.warm_up())
+    assert cache.get_entry("summary").data == {"value": 1}
+
+    store.value = 2
+    materializer.invalidate()
+    block_refresh = True
+    refresh_thread = threading.Thread(target=materializer.refresh)
+    refresh_thread.start()
+    assert entered.wait(1.0)
+
+    store.value = 3
+    invalidation_thread = threading.Thread(
+        target=invalidate_cache_event,
+        args=("lock-test-tabcache-integration", "score"),
+    )
+    invalidation_thread.start()
+    assert materializer.get("summary") is None
+    release.set()
+    refresh_thread.join(2.0)
+    invalidation_thread.join(2.0)
+
+    assert not refresh_thread.is_alive()
+    assert not invalidation_thread.is_alive()
+    assert materializer.get("summary") == {"value": 3}
+    assert cache.get_entry("summary").data == {"value": 3}
+    cached = asyncio.run(cache.get("summary"))
+    assert cached["summary"]["data"] == {"value": 3}
 
 
 def test_readonly_post_not_locked() -> None:
