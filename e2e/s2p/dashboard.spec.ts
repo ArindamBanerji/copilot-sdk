@@ -1,16 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { panel } from "./helpers";
 
 function main(page: Page) {
   return page.locator("main");
-}
-
-function panel(page: Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
 }
 
 function pageHeading(page: Page, text: string | RegExp) {

@@ -1,16 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { panel } from "./helpers";
 
 function main(page: import("@playwright/test").Page) {
   return page.locator("main");
-}
-
-function panel(page: import("@playwright/test").Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
 }
 
 test("dashboard shows financial impact", async ({ page }) => {
@@ -37,7 +30,7 @@ test("insight shows leakage detection", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Insight" })).toBeVisible();
   const leakage = panel(page, "Leakage detection");
   await expect(leakage).toContainText(/PVG at-risk invoices/i);
-  await expect(leakage).toContainText(/Total at risk|No invoices currently meet|Leakage data is unavailable|S2P-INV|STRESS-CONC-S2P|INV-|Loading leakage signals/i);
+  await expect(leakage).toContainText(/Total at risk|No invoices currently meet|Leakage data is unavailable|S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p|Loading leakage signals/i);
 });
 
 test("performance shows cycle-time signal or unavailable state", async ({ page }) => {

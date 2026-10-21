@@ -1,6 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { clickTab, waitForAppShell } from "../helpers/ui";
-import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+import {
+  assertLearnSuccess,
+  clickScoreAndValidate,
+  expectLearningResultOrStableControls,
+  panel,
+  recommendationControls,
+  scoreResultPanel,
+  waitForS2PLearnResponse,
+  waitForTriageQueue,
+} from "./helpers";
 
 test.setTimeout(150_000);
 
@@ -17,75 +26,17 @@ function main(page: import("@playwright/test").Page) {
   return page.locator("main");
 }
 
-function panel(page: import("@playwright/test").Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
-}
-
-function scoreResultPanel(page: import("@playwright/test").Page) {
-  return page.locator("article", { hasText: "Action index" });
-}
-
-function recommendationControls(page: import("@playwright/test").Page) {
-  return page.locator("article", { has: page.getByRole("button", { name: /Confirm recommendation/i }) });
-}
-
-function waitForScoreResponse(page: import("@playwright/test").Page) {
-  return page.waitForResponse(
-    (response) =>
-      response.url().includes("/score") &&
-      response.request().method() === "POST" &&
-      response.status() === 200,
-    { timeout: 90_000 },
-  );
-}
-
-function waitForLearnResponse(page: import("@playwright/test").Page) {
-  return page.waitForResponse((response) =>
-    (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
-    response.request().method() === "POST" &&
-    response.ok(),
-    { timeout: 90_000 },
-  );
-}
-
-async function expectLearningResultOrStableControls(page: import("@playwright/test").Page, expected: RegExp) {
-  const learning = panel(page, "Learning Result");
-  try {
-    await expect(learning).toContainText(expected, { timeout: 15_000 });
-  } catch {
-    await expect(recommendationControls(page)).toBeVisible();
-    await expect(main(page)).not.toContainText(/Traceback|Unhandled|500 Internal/i);
-  }
-}
-
 async function clickScore(page: import("@playwright/test").Page) {
   await waitForTriageQueue(page);
-  const selected = panel(page, "Selected Invoice");
-  const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
-  if (selectedHasInvoice === 0) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
-    const invoiceCount = await invoiceButtons.count();
-    if (invoiceCount > 0) {
-      await invoiceButtons.first().click();
-    } else {
-      test.skip(true, "No queued invoice available for scoring");
-    }
-  }
-  await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
-  const scoreButton = selected.getByRole("button", { name: /^Score$/i });
-  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await clickAndWaitForS2PScore(page, scoreButton);
+  await clickScoreAndValidate(page);
 }
 
 async function confirmRecommendation(page: import("@playwright/test").Page) {
-  await Promise.all([
-    waitForLearnResponse(page),
+  const [response] = await Promise.all([
+    waitForS2PLearnResponse(page),
     recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
   ]);
+  await assertLearnSuccess(response);
 }
 
 test("all 6 tabs load without blank screens", async ({ page }) => {
@@ -151,7 +102,7 @@ test("triage select score confirm reward round trip", async ({ page }) => {
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
 
-  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|Loading invoice queue|No invoice exceptions/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p|queued|Loading invoice queue|No invoice exceptions/i);
   await clickScore(page);
   await expect(scoreResultPanel(page)).toContainText(/Confidence/i);
   await confirmRecommendation(page);
@@ -176,7 +127,7 @@ test("triage to dashboard navigation keeps dashboard preview visible", async ({ 
   await waitForAppShell(page);
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
-  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|Loading invoice queue|No invoice exceptions/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p|queued|Loading invoice queue|No invoice exceptions/i);
   await expect(panel(page, "Selected Invoice").getByRole("button", { name: /^Score$/i })).toBeVisible();
 
   await clickTab(page, "Dashboard");
@@ -281,11 +232,11 @@ test("savings estimate is visible", async ({ page }) => {
 test("dashboard to triage drill-down path remains available", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expect(main(page)).toContainText(/Recent Decisions|S2P-INV|STRESS-CONC-S2P|INV-|Process context/i);
+  await expect(main(page)).toContainText(/Recent Decisions|S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p|Process context/i);
 
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
-  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|Loading invoice queue|No invoice exceptions/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p|queued|Loading invoice queue|No invoice exceptions/i);
   await expect(panel(page, "Selected Invoice").getByRole("button", { name: /^Score$/i })).toBeVisible();
 });
 

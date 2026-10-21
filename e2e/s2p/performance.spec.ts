@@ -1,18 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { panel } from "./helpers";
 
 async function openPerformance(page: Page) {
   await page.goto("/");
   await clickTab(page, "Performance");
   await expect(page.getByRole("heading", { name: "Performance" })).toBeVisible();
-}
-
-function panel(page: Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
 }
 
 test("trajectory chart or empty learning curve renders", async ({ page }) => {

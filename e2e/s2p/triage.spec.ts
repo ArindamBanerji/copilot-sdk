@@ -1,6 +1,15 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
-import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+import {
+  assertLearnSuccess,
+  expectLearningResultOrStableControls,
+  openTriageAndScore,
+  panel,
+  recommendationControls,
+  scoreResultPanel,
+  waitForS2PLearnResponse,
+  waitForTriageQueue,
+} from "./helpers";
 
 test.setTimeout(150_000);
 
@@ -11,71 +20,8 @@ async function openTriage(page: Page) {
   await waitForTriageQueue(page);
 }
 
-function panel(page: Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
-}
-
-function waitForScoreResponse(page: Page) {
-  return page.waitForResponse((response) =>
-    response.url().includes("/score") &&
-    response.request().method() === "POST" &&
-    response.status() === 200,
-    { timeout: 90_000 },
-  );
-}
-
-function waitForLearnResponse(page: Page) {
-  return page.waitForResponse((response) =>
-    (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
-    response.request().method() === "POST" &&
-    response.ok(),
-    { timeout: 90_000 },
-  );
-}
-
-async function clickScore(page: Page) {
-  const selected = panel(page, "Selected Invoice");
-  const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
-  if (selectedHasInvoice === 0) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
-    const invoiceCount = await invoiceButtons.count();
-    if (invoiceCount > 0) {
-      await invoiceButtons.first().click();
-    } else {
-      test.skip(true, "No queued invoice available for scoring");
-    }
-  }
-  await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
-  const scoreButton = selected.getByRole("button", { name: /^Score$/i });
-  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await clickAndWaitForS2PScore(page, scoreButton);
-}
-
-function scoreResultPanel(page: Page) {
-  return page.locator("article", { hasText: "Action index" });
-}
-
-function recommendationControls(page: Page) {
-  return page.locator("article", { has: page.getByRole("button", { name: /Confirm recommendation/i }) });
-}
-
-async function expectLearningResultOrStableControls(page: Page, expected: RegExp) {
-  const learning = panel(page, "Learning Result");
-  try {
-    await expect(learning).toContainText(expected, { timeout: 15_000 });
-  } catch {
-    await expect(recommendationControls(page)).toBeVisible();
-    await expect(page.locator("main")).not.toContainText(/Traceback|Unhandled|500 Internal/i);
-  }
-}
-
 async function scoreFirstInvoice(page: Page) {
-  await openTriage(page);
-  await clickScore(page);
+  await openTriageAndScore(page);
   await expect(scoreResultPanel(page)).toContainText(/Recommendation|Confidence/i);
 }
 
@@ -84,7 +30,7 @@ test("invoice list loads from queue", async ({ page }) => {
   const queue = panel(page, "Invoice Selector");
 
   await expect(queue).toContainText(/invoice queue|queued/i);
-  await expect(queue).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|Aster|Exception|Loading invoice queue|0 queued/i);
+  await expect(queue).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p|Aster|Exception|Loading invoice queue|0 queued/i);
 });
 
 test("score button exists and scoring shows recommendation with confidence", async ({ page }) => {
@@ -114,10 +60,11 @@ test("process context shows bottleneck when available", async ({ page }) => {
 test("confirm button records reward or confirmed result", async ({ page }) => {
   await scoreFirstInvoice(page);
 
-  await Promise.all([
-    waitForLearnResponse(page),
+  const [response] = await Promise.all([
+    waitForS2PLearnResponse(page),
     recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
   ]);
+  await assertLearnSuccess(response);
   await expectLearningResultOrStableControls(page, /Outcome|Reward|recorded|confirm/i);
 });
 
@@ -128,19 +75,21 @@ test("override path records reward and learned text", async ({ page }) => {
   await result.getByRole("button", { name: /^Override$/i }).click();
   await page.getByLabel(/Override action/i).selectOption("hold_for_review");
   await page.getByLabel(/Reason code/i).selectOption("wrong_action");
-  await Promise.all([
-    waitForLearnResponse(page),
+  const [response] = await Promise.all([
+    waitForS2PLearnResponse(page),
     result.getByRole("button", { name: /Override and learn/i }).click(),
   ]);
+  await assertLearnSuccess(response);
   await expectLearningResultOrStableControls(page, /Reward|override|Learned/i);
 });
 
 test("conservation status visible after learn", async ({ page }) => {
   await scoreFirstInvoice(page);
-  await Promise.all([
-    waitForLearnResponse(page),
+  const [response] = await Promise.all([
+    waitForS2PLearnResponse(page),
     recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
   ]);
+  await assertLearnSuccess(response);
 
   const projection = panel(page, "Conservation Projection");
   await expect(projection).toContainText(/conservation/i);

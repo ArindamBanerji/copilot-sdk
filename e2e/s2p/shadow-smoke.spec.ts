@@ -1,6 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 import { clickTab, collectConsoleErrors, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
-import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+import {
+  assertLearnSuccess,
+  clickScoreAndValidate,
+  expectLearningResultOrStableControls,
+  panel,
+  recommendationControls,
+  scoreResultPanel,
+  waitForS2PLearnResponse,
+  waitForTriageQueue,
+} from "./helpers";
 
 test.setTimeout(180_000);
 
@@ -8,71 +17,12 @@ function main(page: Page) {
   return page.locator("main");
 }
 
-function panel(page: Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
-}
-
-function scoreResultPanel(page: Page) {
-  return page.locator("article", { hasText: "Action index" });
-}
-
-function recommendationControls(page: Page) {
-  return page.locator("article", { has: page.getByRole("button", { name: /Confirm recommendation/i }) });
-}
-
-function waitForScoreResponse(page: Page) {
-  return page.waitForResponse((response) =>
-    response.url().includes("/score") &&
-    response.request().method() === "POST" &&
-    response.status() === 200,
-    { timeout: 90_000 },
-  );
-}
-
-function waitForLearnResponse(page: Page) {
-  return page.waitForResponse((response) =>
-    (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
-    response.request().method() === "POST" &&
-    response.ok(),
-    { timeout: 90_000 },
-  );
-}
-
-async function ensureSelectedInvoice(page: Page) {
-  const selected = panel(page, "Selected Invoice");
-  if (!(await selected.getByText(/Supplier|Amount|Category/i).count())) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
-    if ((await invoiceButtons.count()) > 0) {
-      await invoiceButtons.first().click();
-    }
-  }
-  await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
-}
-
-async function expectLearningResultOrStableControls(page: Page) {
-  const learning = panel(page, "Learning Result");
-  try {
-    await expect(learning).toContainText(/Reward|confirm|recorded/i, { timeout: 15_000 });
-  } catch {
-    await expect(recommendationControls(page)).toBeVisible();
-    await expect(main(page)).not.toContainText(/Traceback|Unhandled|500 Internal/i);
-  }
-}
-
 async function scoreFirstInvoice(page: Page) {
   await clickTab(page, "Exception Triage");
   await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
   await waitForTriageQueue(page);
-  await ensureSelectedInvoice(page);
-  const selected = panel(page, "Selected Invoice");
-  const scoreButton = selected.getByRole("button", { name: /^Score$/i });
-  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await clickAndWaitForS2PScore(page, scoreButton);
+  await clickScoreAndValidate(page);
   await expect(scoreResultPanel(page)).toContainText(/Recommendation|Confidence/i);
 }
 
@@ -109,11 +59,12 @@ test("S2P AGE shadow smoke keeps UI flows working", async ({ page, request }) =>
 
   await scoreFirstInvoice(page);
   await expect(scoreResultPanel(page)).toContainText(/auto approve|hold for review|escalate to buyer|flag leakage|refer to specialist/i);
-  await Promise.all([
-    waitForLearnResponse(page),
+  const [learnResponse] = await Promise.all([
+    waitForS2PLearnResponse(page),
     recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
   ]);
-  await expectLearningResultOrStableControls(page);
+  await assertLearnSuccess(learnResponse);
+  await expectLearningResultOrStableControls(page, /Reward|confirm|recorded/i);
 
   await clickTab(page, "Dashboard");
   await waitForAppShell(page);

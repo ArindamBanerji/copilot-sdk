@@ -1,6 +1,13 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
-import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+import {
+  clickScoreAndValidate,
+  openTriageAndScore,
+  panel,
+  recommendationControls,
+  scoreResultPanel,
+  waitForTriageQueue,
+} from "./helpers";
 
 test.setTimeout(150_000);
 
@@ -19,67 +26,26 @@ function main(page: Page) {
   return page.locator("main");
 }
 
-function panel(page: Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
-}
-
-function scoreResultPanel(page: Page) {
-  return page.locator("article", { hasText: "Action index" });
-}
-
-function recommendationControls(page: Page) {
-  return page.locator("article", { has: page.getByRole("button", { name: /Confirm recommendation/i }) });
-}
-
-function waitForScoreResponse(page: Page) {
-  return page.waitForResponse(
-    (response) =>
-      response.url().includes("/score") &&
-      response.request().method() === "POST" &&
-      response.status() === 200,
-    { timeout: 90_000 },
-  );
-}
-
 async function clickScore(page: Page) {
-  const selected = panel(page, "Selected Invoice");
-  const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
-  if (selectedHasInvoice === 0) {
-    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
-    const invoiceCount = await invoiceButtons.count();
-    if (invoiceCount > 0) {
-      await invoiceButtons.first().click();
-    } else {
-      test.skip(true, "No queued invoice available for scoring");
-    }
-  }
-  await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
-  const scoreButton = selected.getByRole("button", { name: /^Score$/i });
-  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await clickAndWaitForS2PScore(page, scoreButton);
+  await clickScoreAndValidate(page);
 }
 
 async function scoreFirstInvoice(page: Page) {
-  await openTriage(page);
-  await clickScore(page);
+  await openTriageAndScore(page);
   await expect(scoreResultPanel(page)).toContainText(/Confidence/i);
 }
 
 test("test_s2p_triage_renders_invoice_queue", async ({ page }) => {
   await openTriage(page);
 
-  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|queued|No invoice exceptions/i);
+  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p|queued|No invoice exceptions/i);
   await expect(panel(page, "Selected Invoice")).toContainText(/Supplier|Amount|Category|Choose an invoice to begin triage/i);
 });
 
 test("test_s2p_triage_select_invoice_shows_factors", async ({ page }) => {
   await openTriage(page);
 
-  const invoiceButtons = page.getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-/i });
+  const invoiceButtons = page.getByRole("button").filter({ hasText: /S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p/i });
   if ((await invoiceButtons.count()) > 1) {
     await invoiceButtons.nth(1).click();
   }

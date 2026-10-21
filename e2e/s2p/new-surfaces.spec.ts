@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
-import { clickAndWaitForS2PScore, waitForTriageQueue } from "./helpers";
+import { clickScoreAndValidate, waitForTriageQueue } from "./helpers";
 
 test.setTimeout(150_000);
 
@@ -17,9 +17,7 @@ async function openScoredTriage(page: Page) {
   await clickTab(page, "Exception Triage");
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
   await waitForTriageQueue(page);
-  const selected = page.locator("article").filter({ hasText: /Selected Invoice/i });
-  await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
-  await clickAndWaitForS2PScore(page, selected.getByRole("button", { name: /^Score$/i }));
+  await clickScoreAndValidate(page);
   await expect(page.getByTestId("rule-vs-reasoning-panel")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("rule-vs-reasoning-panel").getByText(/Confidence:|Situation reasoning/i).first()).toBeVisible({ timeout: 30_000 });
 }

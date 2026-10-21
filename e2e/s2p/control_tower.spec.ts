@@ -1,16 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { panel } from "./helpers";
 
 function main(page: import("@playwright/test").Page) {
   return page.locator("main");
-}
-
-function panel(page: import("@playwright/test").Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
 }
 
 test("dashboard shows Control Tower intent queue", async ({ page }) => {
@@ -25,7 +18,7 @@ test("dashboard shows Control Tower intent queue", async ({ page }) => {
 test("Control Tower exposes queue or empty state", async ({ page }) => {
   await page.goto("/");
 
-  await expect(panel(page, "Control Tower")).toContainText(/Top priority invoices|No prioritized invoices available|S2P-INV|STRESS-CONC-S2P|INV-/i);
+  await expect(panel(page, "Control Tower")).toContainText(/Top priority invoices|No prioritized invoices available|S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p/i);
 });
 
 test("Control Tower dashboard copy has no SOC vocabulary", async ({ page }) => {

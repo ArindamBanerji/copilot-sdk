@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab, waitForAppShell } from "../helpers/ui";
+import { panel } from "./helpers";
 
 async function mockComplianceApis(page: Page) {
   await page.route("**/api/s2p/governance/compliance-screening", async (route) => {
@@ -112,14 +113,6 @@ async function openSuppliers(page: Page) {
   await clickTab(page, "Suppliers");
   await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Suppliers" })).toBeVisible();
-}
-
-function panel(page: Page, heading: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: heading,
-    }),
-  });
 }
 
 test("Evidence shows Compliance Screening panel", async ({ page }) => {

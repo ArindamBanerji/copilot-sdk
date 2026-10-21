@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { assertScoreSuccess, waitForS2PScoreResponse } from "./helpers";
 
 async function mockTriageApis(page: Page, withSignal: boolean) {
   await page.route("**/api/s2p/preview/queue", async (route) => {
@@ -7,8 +8,8 @@ async function mockTriageApis(page: Page, withSignal: boolean) {
       json: {
         exceptions: [
           {
-            invoice_id: "S2P-INV-SIGNAL-1",
-            event_id: "S2P-INV-SIGNAL-1",
+            invoice_id: "demo-s2p-signal-1",
+            event_id: "demo-s2p-signal-1",
             supplier_id: "Sysco",
             supplier_name: "Sysco",
             amount: 1200,
@@ -48,7 +49,7 @@ async function mockTriageApis(page: Page, withSignal: boolean) {
   await page.route("**/api/s2p/score", async (route) => {
     await route.fulfill({
       json: {
-        event_id: "S2P-INV-SIGNAL-1",
+        event_id: "demo-s2p-signal-1",
         category: "price_variance",
         action: "hold_for_review",
         action_index: 1,
@@ -88,21 +89,13 @@ async function openTriage(page: Page) {
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
 }
 
-function waitForScoreResponse(page: Page) {
-  return page.waitForResponse((response) =>
-    response.url().includes("/score") &&
-    response.request().method() === "POST" &&
-    response.status() === 200,
-    { timeout: 30_000 },
-  );
-}
-
 async function score(page: Page) {
   await openTriage(page);
-  await Promise.all([
-    waitForScoreResponse(page),
+  const [response] = await Promise.all([
+    waitForS2PScoreResponse(page, 30_000),
     page.getByRole("button", { name: /^Score$/i }).click(),
   ]);
+  await assertScoreSuccess(response);
 }
 
 test("Signal banner visible when cross_copilot_signal is in context", async ({ page }) => {

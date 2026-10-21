@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { clickTab, waitForAppShell } from "../helpers/ui";
-import { waitForTriageQueue } from "./helpers";
+import { clickScoreAndValidate, waitForTriageQueue } from "./helpers";
 
 const API = "http://127.0.0.1:8002";
 
@@ -14,9 +14,7 @@ async function openTab(page: import("@playwright/test").Page, name: string) {
 async function openScoredTriage(page: import("@playwright/test").Page) {
   await openTab(page, "Exception Triage");
   await waitForTriageQueue(page);
-  const selected = page.locator("article").filter({ hasText: /Selected Invoice/i });
-  await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
-  await selected.getByRole("button", { name: /^Score$/i }).click();
+  await clickScoreAndValidate(page);
   await expect(page.getByTestId("rule-vs-reasoning-panel")).toBeVisible({ timeout: 20_000 });
 }
 

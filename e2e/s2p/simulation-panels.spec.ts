@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { panel } from "./helpers";
 
 async function mockSimulationApis(page: Page) {
   await page.route("**/api/s2p/simulation/scenarios", async (route) => {
@@ -103,14 +104,6 @@ async function openInsight(page: Page) {
   await page.goto("/");
   await clickTab(page, "Insight");
   await expect(page.getByRole("heading", { name: "Insight" })).toBeVisible();
-}
-
-function panel(page: Page, heading: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: heading,
-    }),
-  });
 }
 
 test("Dashboard shows Disruption Simulation panel", async ({ page }) => {

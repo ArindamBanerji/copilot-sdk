@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { panel } from "./helpers";
 
 type ReceiptMode = "empty" | "with-receipts";
 
@@ -9,7 +10,7 @@ async function mockEvidenceChainApis(page: Page, mode: ReceiptMode = "empty") {
       ? [
           {
             receipt_id: "receipt-001",
-            invoice_id: "S2P-INV-1001",
+            invoice_id: "demo-s2p-1001",
             timestamp: "2026-05-21T12:00:00Z",
             scored_action: "hold_for_review",
             confidence: 0.82,
@@ -91,14 +92,6 @@ async function openEvidence(page: Page, mode: ReceiptMode = "empty") {
   await expect(page.locator("main h1", { hasText: "Evidence" })).toBeVisible();
 }
 
-function panel(page: Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
-}
-
 test("Evidence shows Outcome Receipt Chain panel", async ({ page }) => {
   await openEvidence(page);
   const receipts = panel(page, "Outcome Receipt Chain");
@@ -114,7 +107,7 @@ test("Receipt Chain shows statistics or empty receipt-chain state", async ({ pag
   await expect(receipts).toContainText(/Total receipts/i);
   await expect(receipts).toContainText(/Confirms/i);
   await expect(receipts).toContainText(/Overrides/i);
-  await expect(receipts).toContainText(/No outcome receipts have been recorded yet|S2P-INV|STRESS-CONC-S2P|INV-/i);
+  await expect(receipts).toContainText(/No outcome receipts have been recorded yet|S2P-INV|STRESS-CONC-S2P|INV-|demo-s2p/i);
 });
 
 test("Receipt Chain shows chain validity", async ({ page }) => {
@@ -154,7 +147,7 @@ test("Receipt Chain shows hash values if receipts exist", async ({ page }) => {
   await openEvidence(page, "with-receipts");
   const receipts = panel(page, "Outcome Receipt Chain");
 
-  await expect(receipts).toContainText(/S2P-INV-1001/i);
+  await expect(receipts).toContainText(/S2P-INV|demo-s2p/i);
   await expect(receipts).toContainText(/abc123def4567890/i);
 });
 

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { panel } from "./helpers";
 
 async function mockDiscoveryApis(page: Page) {
   await page.route("**/api/s2p/discovery/alerts", async (route) => {
@@ -98,14 +99,6 @@ async function openEvidence(page: Page) {
   await page.goto("/");
   await clickTab(page, "Evidence");
   await expect(page.locator("main h1", { hasText: "Evidence" })).toBeVisible();
-}
-
-function panel(page: Page, text: string | RegExp) {
-  return page.locator("article").filter({
-    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
-      hasText: text,
-    }),
-  });
 }
 
 function discoveryPanel(page: Page) {
