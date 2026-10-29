@@ -13,6 +13,7 @@ import PromotionPanel from "../components/PromotionPanel";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
 import RuleGenealogyPanel from "../components/RuleGenealogyPanel";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
+import RejectionMomentPanel from "../components/RejectionMomentPanel";
 import SchemaImpactPanel from "../components/SchemaImpactPanel";
 import TransferStatusPanel from "../components/TransferStatusPanel";
 import DataOpsGovernancePanel from "../components/DataOpsGovernancePanel";
@@ -84,6 +85,7 @@ export default function EvidenceScreen() {
       <PatternOriginCard origin={origin} />
       <TransferStatusPanel />
       <AuditTrailPanel />
+      <RejectionMomentPanel />
     </div>
   );
 }

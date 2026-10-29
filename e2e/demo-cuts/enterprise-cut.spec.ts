@@ -11,7 +11,7 @@ test.describe.serial("Enterprise Cut — SOC (E1, E2, E8)", () => {
     // The SOC queue is mutable from prior demo activity; reset is idempotent and
     // restores the preseeded pending-alert narrative for this cut.
     await page.getByRole("button", { name: /Reset Alerts/i }).click();
-    const alert = page.locator("button").filter({ hasText: /^(SIM-|ALERT-)/ }).first();
+    const alert = page.locator("button").filter({ hasText: /^(SIM-|ALERT-|PL-SOC-)/ }).first();
     await expect(alert).toBeVisible();
     await alert.click();
     await expect(page.locator("main")).toContainText(/factor|confidence|privileged|asset criticality/i);
@@ -110,11 +110,13 @@ test.describe.serial("Enterprise Cut — SDK (E3-E7)", () => {
 
     const scoreButton = selected.getByRole("button", { name: /^Score$/i });
     await expect(scoreButton).toBeEnabled();
-    const response = page.waitForResponse(
-      (item) => item.url().includes("/score") && item.request().method() === "POST" && item.ok(),
-    );
-    await scoreButton.click();
-    await response;
+    const [scoreResponse] = await Promise.all([
+      page.waitForResponse(
+        (item) => item.url().includes("/score") && item.request().method() === "POST" && item.ok(),
+        { timeout: 30_000 },
+      ),
+      scoreButton.click(),
+    ]);
 
     await expect(page.getByTestId("situation-panel")).toBeVisible();
     await expect(page.getByTestId("rule-vs-reasoning-panel")).toContainText(/Rule-Based|Situation-Aware/i);

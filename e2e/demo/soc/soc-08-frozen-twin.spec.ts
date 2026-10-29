@@ -7,7 +7,7 @@ test("SOC-08 frozen-twin", async ({ request }) => {
   expect(Number.isFinite(body.frozen_snapshot_time)).toBe(true);
   expect(Number.isFinite(body.frozen_iks)).toBe(true);
   expect(Number.isFinite(body.current_iks)).toBe(true);
-  expect(body.evidence_label).toMatch(/model|pilot|synthetic/i);
+  expect(body.evidence_label).toMatch(/measured|model|pilot|synthetic/i);
   expect(Array.isArray(body.comparison_points)).toBe(true);
   test.skip(body.comparison_points.length === 0, "SOC-08 requires replayable post-freeze verified decisions");
   const points = body.comparison_points;

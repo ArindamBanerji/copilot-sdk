@@ -33,7 +33,8 @@ test("purchasing real section visible", async ({ page }) => {
 });
 
 test("purchasing cohort-status endpoint returns valid shape", async ({ request }) => {
-  const response = await request.get(`${BACKEND}/api/purchasing/cohort-status`);
+  // The graph-backed cohort aggregation can exceed the default 10s API timeout in CI.
+  const response = await request.get(`${BACKEND}/api/purchasing/cohort-status`, { timeout: 30_000 });
   expect(response.status()).toBe(200);
   const body = await response.json();
   expect(body).toHaveProperty("state");

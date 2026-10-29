@@ -258,8 +258,9 @@ async function main() {
     if (args[i] === "--tab" && args[i + 1]) filterTab = args[i + 1];
   }
 
-  const copilots = filterCopilot
-    ? COPILOTS.filter((c) => c.name === filterCopilot.toLowerCase())
+  const normalizedCopilot = filterCopilot?.toLowerCase();
+  const copilots = normalizedCopilot
+    ? COPILOTS.filter((c) => c.name === normalizedCopilot)
     : COPILOTS;
 
   if (copilots.length === 0) {

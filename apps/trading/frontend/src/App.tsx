@@ -80,7 +80,7 @@ export default function App() {
           onBack={() => setActiveTab("dashboard")}
         />
       ) : null}
-      <SelfComputationPanels baseUrl={`${API_BASE}/api/self`} />
+      {activeTab === "performance" ? <SelfComputationPanels baseUrl={`${API_BASE}/api/self`} /> : null}
     </CopilotShell>
   );
 }

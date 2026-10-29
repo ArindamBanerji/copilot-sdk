@@ -49,6 +49,7 @@ import type {
 
 const HOST = import.meta.env.VITE_COPILOT_HOST || "127.0.0.1";
 export const API_BASE = import.meta.env.VITE_API_URL ?? `http://${HOST}:8010`;
+const DEFAULT_API_TIMEOUT_MS = 5000;
 
 type JsonObject = Record<string, unknown>;
 
@@ -70,10 +71,10 @@ export function normalizeKeys<T = unknown>(value: unknown): T {
   return value as T;
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const payload = await coalesceRead(JSON.stringify([API_BASE, path, 5_000]), async () => {
+export async function apiGet<T>(path: string, timeoutMs = DEFAULT_API_TIMEOUT_MS): Promise<T> {
+  const payload = await coalesceRead(JSON.stringify([API_BASE, path, timeoutMs]), async () => {
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 5_000);
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(`${API_BASE}${path}`, { signal: controller.signal });
       if (!response.ok) {
@@ -87,9 +88,14 @@ export async function apiGet<T>(path: string): Promise<T> {
   return normalizeKeys<T>(payload);
 }
 
-export async function safeApiGet<T>(path: string): Promise<T | null> {
+interface SafeApiGetOptions {
+  /** @default 5000 - override for slow endpoints like evidence */
+  timeout?: number;
+}
+
+export async function safeApiGet<T>(path: string, options?: SafeApiGetOptions): Promise<T | null> {
   try {
-    return await apiGet<T>(path);
+    return await apiGet<T>(path, options?.timeout ?? DEFAULT_API_TIMEOUT_MS);
   } catch {
     return null;
   }
@@ -162,7 +168,12 @@ export function fetchSubcategoryAnalytics(params: TradeJournalFilters = {}): Pro
 }
 
 export function fetchEvidence(tradeId: string): Promise<EvidenceResponse | null> {
-  return safeApiGet<EvidenceResponse>(`/api/trading/evidence/${encodeURIComponent(tradeId)}`);
+  // Evidence endpoint: 15s timeout (graph reads exceed default 5s under fca9497 regression)
+  // Revert to default after ResponseMaterializer restoration — see design_drift_trading_v1.md
+  return safeApiGet<EvidenceResponse>(
+    `/api/trading/evidence/${encodeURIComponent(tradeId)}`,
+    { timeout: 15000 },
+  );
 }
 
 export function fetchRegime(): Promise<RegimeResponse | null> {

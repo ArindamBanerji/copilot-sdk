@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 
@@ -130,6 +131,18 @@ class DemoPreseedResult:
 class DemoPreseed:
     """Deterministic demo state generator. Two runs = identical output."""
 
+    _DATAOPS_SYSTEMS: ClassVar[list[str]] = [
+        "sap_mm",
+        "sap_fi",
+        "celonis_p2p",
+        "qms_pirelli",
+        "logistics_dhl",
+        "mes_production",
+        "supplier_portal",
+        "warehouse_wms",
+        "bi_analytics",
+    ]
+
     _TARGET_COUNTS = {
         "trading": 200,
         "purchasing": 200,
@@ -213,7 +226,66 @@ class DemoPreseed:
         return result
 
     def preseed_dataops(self) -> CopilotPreseedResult:
-        return self._preseed_domain("dataops")
+        result = self._preseed_domain(
+            "dataops",
+            extra_metadata_fn=lambda index: {
+                "pipeline_system_id": self._DATAOPS_SYSTEMS[
+                    index % len(self._DATAOPS_SYSTEMS)
+                ],
+            },
+        )
+        result.rejected_variants = [
+            {
+                "variant_id": "DATAOPS_REJECT_AUTO_APPROVE_01",
+                "family": "auto_approve_threshold",
+                "reason": "conservation",
+                "detail": "Conservation gate blocked a lower auto-approval confidence threshold",
+                "tested_at": "2026-07-11T01:01:00Z",
+                "provenance": "synthetic",
+            },
+            {
+                "variant_id": "DATAOPS_REJECT_AUTO_APPROVE_02",
+                "family": "auto_approve_threshold",
+                "reason": "correctness_floor",
+                "detail": "Auto-approval accuracy remained below the DataOps correctness floor",
+                "tested_at": "2026-07-11T01:02:00Z",
+                "provenance": "synthetic",
+            },
+            {
+                "variant_id": "DATAOPS_REJECT_SCHEDULING_01",
+                "family": "scheduling_criteria",
+                "reason": "conservation",
+                "detail": "Conservation gate blocked the proposed resource scheduling window",
+                "tested_at": "2026-07-11T01:03:00Z",
+                "provenance": "synthetic",
+            },
+            {
+                "variant_id": "DATAOPS_REJECT_SCHEDULING_02",
+                "family": "scheduling_criteria",
+                "reason": "variance_stability",
+                "detail": "Pipeline latency variance exceeded the scheduling stability threshold",
+                "tested_at": "2026-07-11T01:04:00Z",
+                "provenance": "synthetic",
+            },
+            {
+                "variant_id": "DATAOPS_REJECT_CROSS_FAMILY_01",
+                "family": "cross_family",
+                "reason": "correctness_floor",
+                "detail": "Combined threshold and scheduling policy did not improve incident correctness",
+                "tested_at": "2026-07-11T01:05:00Z",
+                "provenance": "synthetic",
+            },
+            {
+                "variant_id": "DATAOPS_REJECT_CROSS_FAMILY_02",
+                "family": "cross_family",
+                "reason": "conservation",
+                "detail": "Combined threshold and scheduling proposal failed the conservation gate",
+                "tested_at": "2026-07-11T01:06:00Z",
+                "provenance": "synthetic",
+            },
+        ]
+        self._persist_dataops_rejections(result)
+        return result
 
     def preseed_s2p(self) -> CopilotPreseedResult:
         return self._preseed_domain("s2p")
@@ -257,7 +329,11 @@ class DemoPreseed:
         if not result.cross_copilot_signal.get("active"):
             raise ValueError("S2P cross-copilot signal missing")
 
-    def _preseed_domain(self, domain: str) -> CopilotPreseedResult:
+    def _preseed_domain(
+        self,
+        domain: str,
+        extra_metadata_fn: Callable[[int], dict[str, Any]] | None = None,
+    ) -> CopilotPreseedResult:
         scorer = self._scorers[domain]
         shape = scorer._preset.shape
         total = (
@@ -284,17 +360,16 @@ class DemoPreseed:
                         },
                     }
                 )
-            score = scorer.score(
-                factors,
-                category,
-                metadata={
-                    "entity_id": f"{domain}-preseed-{index:03d}",
-                    "provenance": "sample",
-                    "preseed_seed": self.seed,
-                    "preseed_index": index,
-                    "created_at": float(index),
-                },
-            )
+            base_metadata = {
+                "entity_id": f"{domain}-preseed-{index:03d}",
+                "provenance": "sample",
+                "preseed_seed": self.seed,
+                "preseed_index": index,
+                "created_at": float(index),
+            }
+            if extra_metadata_fn is not None:
+                base_metadata.update(extra_metadata_fn(index))
+            score = scorer.score(factors, category, metadata=base_metadata)
             if self._should_confirm(domain, index, correct_count, learned_count):
                 actual_action = score.action
                 outcome = "confirmed"
@@ -393,4 +468,28 @@ class DemoPreseed:
         }
         self._scorers["trading"].graph_store.save_evolution(
             "trading", "preseed_rejection_summary", payload
+        )
+
+    def _persist_dataops_rejections(self, result: CopilotPreseedResult) -> None:
+        """Persist DataOps rejection evidence using the Trading summary contract."""
+
+        breakdown = {
+            "correctness_floor": 0,
+            "conservation": 0,
+            "variance_stability": 0,
+        }
+        for variant in result.rejected_variants:
+            reason = str(variant.get("reason") or "")
+            if reason in breakdown:
+                breakdown[reason] += 1
+        payload = {
+            "total_tested": len(result.rejected_variants),
+            "total_promoted": 0,
+            "total_rejected": len(result.rejected_variants),
+            "rejection_breakdown": breakdown,
+            "rejected_variants": result.rejected_variants,
+            "provenance": "synthetic",
+        }
+        self._scorers["dataops"].graph_store.save_evolution(
+            "dataops", "preseed_rejection_summary", payload
         )

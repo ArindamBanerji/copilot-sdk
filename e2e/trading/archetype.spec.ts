@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
 async function openDashboard(page: Page) {
   await page.goto("/");
@@ -35,12 +35,14 @@ test("archetype apply returns preset config", async ({ page }) => {
 
 test("archetype selector renders on Dashboard", async ({ page }) => {
   await openDashboard(page);
-  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
+  await waitForScreenReady(page, 30_000);
+  await expect(page.getByRole("heading", { name: "Industry Archetype", exact: true })).toBeVisible({ timeout: 30_000 });
 });
 
 test("archetype dropdown shows domain-filtered options", async ({ page }) => {
   await openDashboard(page);
-  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
+  await waitForScreenReady(page, 30_000);
+  await expect(page.getByRole("heading", { name: "Industry Archetype", exact: true })).toBeVisible({ timeout: 30_000 });
   const res = await page.request.get("http://127.0.0.1:8010/api/archetypes");
   expect(res.ok()).toBeTruthy();
   const data = await res.json();
@@ -49,13 +51,13 @@ test("archetype dropdown shows domain-filtered options", async ({ page }) => {
 
 test("archetype selection shows description and calibration notes", async ({ page }) => {
   await openDashboard(page);
-  await expectAnyText(page, [/Centroid Timeline/i, /Accuracy Alerts/i, /Decision Explorer/i]);
+  await expectAnyText(page, [/Industry Archetype/i, /Archetype Advantage/i]);
 });
 
 test("archetype flow: open selector, pick archetype, see description, confirm shows warning", async ({ page }) => {
   await openDashboard(page);
-  await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible();
-  await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Industry Archetype", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Archetype Advantage", exact: true })).toBeVisible();
   const current = await page.request.get("http://127.0.0.1:8010/api/archetypes/current");
   expect(current.ok()).toBeTruthy();
   expect((await current.json()).current).toBeTruthy();

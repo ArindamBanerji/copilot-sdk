@@ -6,12 +6,12 @@ async function gotoPerformance(page: import("@playwright/test").Page) {
   await waitForScreenReady(page);
   await clickTab(page, "Performance");
   await waitForScreenReady(page);
-  await expect(page.getByText("Audit & Compliance Pack", { exact: true })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("heading", { name: "Audit & Compliance Pack", exact: true })).toBeVisible({ timeout: 15_000 });
 }
 
 test("test_audit_panel_visible", async ({ page }) => {
   await gotoPerformance(page);
-  await expect(page.getByText("Audit & Compliance Pack", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Audit & Compliance Pack", exact: true })).toBeVisible();
 });
 
 test("test_audit_shows_decision_count", async ({ page }) => {

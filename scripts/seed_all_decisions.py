@@ -34,7 +34,8 @@ DEFAULT_OVERRIDE_COUNT = 50
 DOMAIN_NAMES = ("trading", "purchasing", "dataops", "s2p")
 _BASE_TIMESTAMP = 1_767_225_600.0  # 2026-01-01T00:00:00Z
 _SEED_COMPLETION_KEY = "demo_preseed:v1"
-_SEED_MARKER_VERSION = 1
+_SEED_MARKER_VERSION = 2
+_RECEIPT_CONTRACT = "receipts:v1"
 _AUTO_SEED_LOCKS = {domain: threading.RLock() for domain in DOMAIN_NAMES}
 
 _SEED_PATHS = {
@@ -158,7 +159,101 @@ def _seed_marker_complete(domain: str, graph_store: GraphStore) -> bool:
         and marker.get("marker_version") == _SEED_MARKER_VERSION
         and marker.get("decision_count") == DEFAULT_DECISION_COUNT
         and marker.get("domain") == domain
+        and marker.get("receipt_contract") == _RECEIPT_CONTRACT
     )
+
+
+def _is_seed_decision(
+    decision: Mapping[str, Any], domain: str, decision_id: str, sequence: int,
+) -> bool:
+    metadata = decision.get("metadata")
+    source = decision.get("source")
+    return bool(
+        decision.get("decision_id") == decision_id
+        and isinstance(metadata, Mapping)
+        and metadata.get("planted") is True
+        and metadata.get("seed_domain") == domain
+        and metadata.get("seed_index") == sequence
+        and (source == "demo_preseed" or metadata.get("source") == "demo_preseed")
+    )
+
+
+def _receipt_factors(decision: Mapping[str, Any]) -> dict[str, float]:
+    factors = decision.get("factors")
+    if isinstance(factors, Mapping):
+        return {
+            str(name): float(value)
+            for name, value in sorted(factors.items(), key=lambda item: str(item[0]))
+        }
+    names = decision.get("factor_names")
+    vector = decision.get("factor_vector")
+    if (
+        isinstance(names, Sequence)
+        and not isinstance(names, (str, bytes))
+        and isinstance(vector, Sequence)
+        and not isinstance(vector, (str, bytes))
+        and len(names) == len(vector)
+    ):
+        return {
+            str(name): float(value)
+            for name, value in sorted(zip(names, vector), key=lambda item: str(item[0]))
+        }
+    raise ValueError(
+        f"Seed decision {decision.get('decision_id')!r} has no deterministic factors"
+    )
+
+
+def _append_seed_receipt(
+    graph_store: GraphStore,
+    domain: str,
+    decision: Mapping[str, Any],
+) -> None:
+    append_receipt = getattr(graph_store, "append_evidence_receipt", None)
+    if not callable(append_receipt):
+        raise TypeError(
+            "GraphStore does not support required append_evidence_receipt "
+            "artifact persistence"
+        )
+    decision_id = str(decision["decision_id"])
+    actual_action = str(decision["actual_action"])
+    recommended_action = str(decision["recommended_action"])
+    is_correct = decision.get("is_correct")
+    if not isinstance(is_correct, bool):
+        raise ValueError(
+            f"Seed outcome is not verified for evidence receipt: {decision_id}"
+        )
+    canonical_payload = {
+        "receipt_type": "demo_preseed_outcome_ingestion",
+        "receipt_version": "v1",
+        "domain": domain,
+        "decision_id": decision_id,
+        "category": str(decision["category"]),
+        "factors": _receipt_factors(decision),
+        "recommended_action": recommended_action,
+        "actual_action": actual_action,
+        "is_correct": is_correct,
+        "outcome": "confirmed" if is_correct else "overridden",
+        "provenance": {"source": "demo_preseed", "sample_type": "T-sim"},
+    }
+    receipt_intent_id = f"demo_preseed:v1:{domain}:{decision_id}:outcome"
+    try:
+        append_receipt(
+            receipt_intent_id=receipt_intent_id,
+            domain=domain,
+            decision_id=decision_id,
+            canonical_payload=canonical_payload,
+            actor="demo_preseed",
+            source_route="scripts.seed_all_decisions",
+            metadata={
+                "source": "demo_preseed",
+                "sample_type": "T-sim",
+                "receipt_contract": _RECEIPT_CONTRACT,
+            },
+        )
+    except ValueError as exc:
+        raise ValueError(
+            f"Conflicting seed evidence receipt for {domain}/{decision_id}: {exc}"
+        ) from exc
 
 
 def _seed_population_matches(
@@ -198,8 +293,12 @@ def _seed_population_matches(
     return True
 
 
-def _write_seed_completion_marker(domain: str, graph_store: GraphStore) -> None:
+def _write_seed_completion_marker(
+    domain: str, graph_store: GraphStore, *, receipts_complete: bool,
+) -> None:
     """Publish completion only after the full deterministic population exists."""
+    if not receipts_complete:
+        return
     existing_count = int(graph_store.count_decisions(domain))
     if existing_count != DEFAULT_DECISION_COUNT:
         return
@@ -215,6 +314,7 @@ def _write_seed_completion_marker(domain: str, graph_store: GraphStore) -> None:
             "marker_version": _SEED_MARKER_VERSION,
             "domain": domain,
             "decision_count": DEFAULT_DECISION_COUNT,
+            "receipt_contract": _RECEIPT_CONTRACT,
             "completed_at_epoch": time.time(),
         },
     )
@@ -242,6 +342,11 @@ def seed_domain(
         return SeedResult(normalized, len(rows), 0, 0, 0, dry_run=True)
     if graph_store is None:
         raise ValueError("graph_store is required unless dry_run=True")
+    if not callable(getattr(graph_store, "append_evidence_receipt", None)):
+        raise TypeError(
+            "GraphStore does not support required append_evidence_receipt "
+            "artifact persistence"
+        )
     governed_store = (
         graph_store if isinstance(graph_store, ProtocolV2GraphStore) else None
     )
@@ -249,6 +354,7 @@ def seed_domain(
     decisions_seeded = 0
     outcomes_seeded = 0
     decisions_skipped = 0
+    receipts_complete = True
     for sequence, row in enumerate(rows, start=1):
         decision_id = _seed_identity(normalized, sequence)
         factors = _factors(normalized, row, factor_names)
@@ -280,6 +386,8 @@ def seed_domain(
             "planted": True,
             "provenance": "sample",
             "evidence_tier": "T-sim",
+            "source": "demo_preseed",
+            "sample_type": "T-sim",
             "seed_domain": normalized,
             "seed_index": sequence,
             "source_seed_index": ((sequence - 1) % max(source_count, 1)) + 1,
@@ -321,10 +429,22 @@ def seed_domain(
                 )
             decisions_seeded += 1
         else:
+            if not _is_seed_decision(existing, normalized, decision_id, sequence):
+                raise ValueError(
+                    f"Refusing to repair non-seed decision collision: {decision_id}"
+                )
             decisions_skipped += 1
 
         current = graph_store.get_decision(decision_id, normalized, include_outcome=True)
         if current is not None and current.get("actual_action") is not None:
+            if not _is_seed_decision(current, normalized, decision_id, sequence):
+                raise ValueError(
+                    f"Refusing to attest non-seed decision: {decision_id}"
+                )
+            if not isinstance(current.get("is_correct"), bool):
+                receipts_complete = False
+                continue
+            _append_seed_receipt(graph_store, normalized, current)
             continue
         is_override = _is_override(sequence, override_count=override_count)
         actual = _alternate_action(actions, recommended) if is_override else recommended
@@ -354,6 +474,13 @@ def seed_domain(
             was_override=is_override,
         )
         outcomes_seeded += 1
+        persisted = graph_store.get_decision(
+            decision_id, normalized, include_outcome=True
+        )
+        if persisted is None or not isinstance(persisted.get("is_correct"), bool):
+            receipts_complete = False
+            continue
+        _append_seed_receipt(graph_store, normalized, persisted)
 
     result = SeedResult(
         normalized,
@@ -363,7 +490,9 @@ def seed_domain(
         decisions_skipped,
     )
     if count == DEFAULT_DECISION_COUNT:
-        _write_seed_completion_marker(normalized, graph_store)
+        _write_seed_completion_marker(
+            normalized, graph_store, receipts_complete=receipts_complete
+        )
     return result
 
 

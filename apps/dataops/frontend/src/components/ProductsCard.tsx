@@ -74,15 +74,35 @@ function ProductCard({ product }: { product: DIProduct }) {
 export default function ProductsCard() {
   const [products, setProducts] = useState<DIProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    fetchDIProducts().then((payload) => {
-      if (!cancelled) {
-        setProducts(payload?.products || []);
-        setLoading(false);
+
+    async function loadProducts() {
+      setError(null);
+      try {
+        const firstResult = await fetchDIProducts();
+        const payload = firstResult ?? await fetchDIProducts();
+        if (cancelled) return;
+
+        if (payload) {
+          setProducts(payload.products ?? []);
+        } else {
+          setProducts([]);
+          setError("Data products are unavailable.");
+        }
+      } catch {
+        if (!cancelled) {
+          setProducts([]);
+          setError("Data products are unavailable.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    });
+    }
+
+    void loadProducts();
     return () => {
       cancelled = true;
     };
@@ -103,7 +123,9 @@ export default function ProductsCard() {
           {loading ? "Loading products..." : `${products.length} data products. Average IKS: ${averageIks}.`}
         </p>
       </div>
-      {!loading && products.length === 0 ? (
+      {!loading && error ? (
+        <p className="mt-4 text-sm text-red-300" role="alert">{error}</p>
+      ) : !loading && products.length === 0 ? (
         <p className="mt-4 text-sm dataops-muted">No data products available.</p>
       ) : (
         <div className="mt-4 grid gap-3 md:grid-cols-3">

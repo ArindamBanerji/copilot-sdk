@@ -1,11 +1,11 @@
 {
-  "d52464de36f9": {
-    "actionTaken": "poor_execution",
+  "18c6d96305f8": {
+    "actionTaken": "strong_execution",
     "category": "trend_following",
-    "createdAt": "2026-10-17T23:32:27.611Z",
+    "createdAt": "2026-10-24T01:39:42.881Z",
     "currentRegime": "ranging",
-    "decisionId": "d52464de36f9",
-    "decision_id": "d52464de36f9",
+    "decisionId": "18c6d96305f8",
+    "decision_id": "18c6d96305f8",
     "direction": "strong_execution",
     "entryPrice": 420,
     "exitPrice": null,
@@ -30,7 +30,7 @@
     "signal_alignment": 0.6,
     "stopLoss": 400,
     "target": 455,
-    "technicalSignal": 0.9213125,
+    "technicalSignal": 0.8919375,
     "thesisType": "momentum",
     "ticker": "MSFT",
     "timeHorizon": 0.4,

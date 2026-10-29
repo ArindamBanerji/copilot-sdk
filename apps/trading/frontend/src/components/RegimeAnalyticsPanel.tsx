@@ -70,11 +70,18 @@ export default function RegimeAnalyticsPanel() {
 
   useEffect(() => {
     let cancelled = false;
-    apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics")
+    apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000)
+      .catch(async (loadError: unknown) => {
+        if (!(loadError instanceof Error && loadError.name === "AbortError") || cancelled) throw loadError;
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
+        if (cancelled) throw loadError;
+        return apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000);
+      })
       .then((data) => {
         if (!cancelled) setPayload(data);
       })
       .catch((loadError) => {
+        if (cancelled) return;
         console.debug("regime analytics unavailable", loadError);
         if (!cancelled) setError("Regime analytics unavailable.");
       })

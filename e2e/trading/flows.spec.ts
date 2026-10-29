@@ -183,8 +183,8 @@ test("dashboard shows decision history entries", async ({ page }) => {
   await waitForAppShell(page);
   await page.locator('main > [data-screen-ready="true"]').waitFor({ state: "attached", timeout: 15_000 });
 
-  await expectAnyText(page, [/Decision Explorer/i, /Audit Trail/i], { timeout: 20_000 });
-  await expectAnyText(page, [/matching decisions/i, /entries/i, /decision/i]);
+  await expect(page.getByRole("heading", { name: "Decision History", exact: true })).toBeVisible({ timeout: 20_000 });
+  await expectAnyText(page, [/No trading decisions yet/i, /Decision History/i]);
 });
 
 test("analysis contrast card reflects pre-seeded alignment", async ({ page }) => {
@@ -236,7 +236,7 @@ test("Dashboard to Log Trade to Analysis to Performance content at each stop", a
   test.setTimeout(60_000);
   await page.goto("/");
   await waitForAppShell(page);
-  await expectAnyText(page, [/Centroid Timeline/i, /Decision Explorer/i, /Audit Trail/i], { timeout: 20_000 });
+  await expectAnyText(page, [/Portfolio Summary/i, /Decision History/i, /Dashboard/i], { timeout: 20_000 });
 
   await clickTab(page, "Log Trade");
   await waitForAppShell(page);
@@ -304,7 +304,7 @@ test("SC round trip: accuracy to decisions to audit trail", async ({ page }) => 
 test("api self features render populated or empty states", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expectAnyText(page, [/Accuracy Alerts/i, /No verified decisions yet/i, /threshold/i]);
+  await expectAnyText(page, [/Accuracy by Category/i, /No category accuracy yet/i], { timeout: 20_000 });
 
   await clickTab(page, "Analysis");
   await waitForAppShell(page);

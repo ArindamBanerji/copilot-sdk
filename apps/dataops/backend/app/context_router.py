@@ -457,6 +457,14 @@ def _normalize_live_decision(entry: dict[str, Any]) -> dict[str, Any]:
         or entry.get("system")
         or entry.get("systemName")
     )
+    if not system:
+        md = entry.get("metadata") if isinstance(entry.get("metadata"), dict) else {}
+        md = cast(dict[str, Any], md)
+        system = (
+            md.get("pipeline_system_id")
+            or md.get("system_name")
+            or md.get("system")
+        )
     if not system and dataset:
         system = _infer_system_from_dataset(str(dataset))
     pipeline_system_id = _normalize_system_key(str(system or "")) or None

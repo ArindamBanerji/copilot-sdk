@@ -112,14 +112,18 @@ def seed_purchasing() -> dict[str, Any]:
             # twin contract instead of pretending a snapshot was created.
             twin = {"available": False, "error": str(exc)}
             print(json.dumps({"scenario": "purchasing-twin", **twin}), flush=True)
-    for index in range(20):
-        status = api_get(url, "/api/conservation/status")
-        if status.get("status") != "GREEN" and status.get("passed") is False:
-            return {"twin": twin, "conservation": status}
+    learn_results = [
         score_outcome("purchasing", 30 + index, index % 2 == 0)
+        for index in range(20)
+    ]
+    conservation_results = [
+        result for result in learn_results if "conservation_status" in result
+    ]
+    if not conservation_results:
+        raise KeyError("Purchasing learn responses missing required 'conservation_status' field")
+    if not any(result["conservation_status"] == "RED" for result in conservation_results):
+        raise RuntimeError(f"Purchasing per-decision conservation degradation not observed: {conservation_results}")
     status = api_get(url, "/api/conservation/status")
-    if status.get("status") == "GREEN" or status.get("passed") is not False:
-        raise RuntimeError(f"Purchasing degradation not observed: {status}")
     return {"twin": twin, "conservation": status}
 
 

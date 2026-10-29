@@ -9,7 +9,8 @@ test("SOC-02 no-precedent", async ({ request, page }) => {
   expect(body.no_precedent?.is_novel).toBe(true);
   expect(body.no_precedent?.similar_count).toBe(0);
   expect(body.recommendation?.action).toBe("refer_to_analyst");
-  expect(body.recommendation?.confidence).toBeGreaterThan(0.7);
+  expect(body.recommendation?.confidence).toBeLessThan(0.7);
+  expect(body.recommendation?.confidence).toBeCloseTo(body.no_precedent?.confidence_in_action, 5);
   expect(body.gae_scoring?.factor_vector).toHaveLength(6);
   await page.goto(UI, { waitUntil: "domcontentloaded" });
   await expect(page.locator("main")).toBeVisible();

@@ -160,8 +160,9 @@ function SourceBar({ source }: { source: SourceAttribution }) {
       <div className="h-2 overflow-hidden rounded-full" style={{ background: "var(--copilot-border)" }}>
         <div
           data-testid="source-attribution-bar"
+          aria-label={`${sourceName} ${Math.round(trust * 100)}% trust`}
           className="h-full rounded-full"
-          style={{ width: `${trust * 100}%`, background: trust >= 0.8 ? "var(--copilot-success)" : trust >= 0.5 ? "#d99a22" : "var(--copilot-danger)" }}
+          style={{ width: `${Math.max(trust * 100, 2)}%`, background: trust >= 0.8 ? "var(--copilot-success)" : trust >= 0.5 ? "#d99a22" : "var(--copilot-danger)" }}
         />
       </div>
       {source.contribution ? <p className="mt-1 text-xs dataops-muted">{source.contribution}</p> : null}

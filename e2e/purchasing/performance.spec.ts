@@ -4,7 +4,13 @@ import { clickTab, expectAnyText, expectTrajectoryOrEmpty, waitForScreenReady } 
 async function gotoPerformance(page: import("@playwright/test").Page) {
   await page.goto("/");
   await waitForScreenReady(page);
-  await clickTab(page, "Performance");
+  const performanceResponse = page.waitForResponse(
+    (response) =>
+      response.request().method() === "GET" &&
+      (/\/api\/trajectory(?:\?|$)/.test(response.url()) || /\/api\/analytics(?:\?|$)/.test(response.url())),
+    { timeout: 30_000 },
+  );
+  await Promise.all([performanceResponse, clickTab(page, "Performance")]);
   await waitForScreenReady(page);
   await expectAnyText(page, [/trajectory/i, /performance/i, /IKS/i, /loading/i, /Performance unavailable/i]);
 }

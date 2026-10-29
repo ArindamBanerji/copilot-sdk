@@ -97,8 +97,8 @@ export default function SchemaImpactPanel() {
 
       {!error && changes.length > 0 ? (
         <div className="mt-5 grid gap-3">
-          {changes.map((change) => (
-            <SchemaChangeCard key={`${change.sourceTable || "source"}-${change.column || "column"}`} change={change} />
+          {changes.map((change, index) => (
+            <SchemaChangeCard key={`${change.sourceTable || "source"}-${change.column || "column"}-${index}`} change={change} />
           ))}
         </div>
       ) : null}

@@ -58,6 +58,7 @@ from .routers.trust_router import create_trust_router  # noqa: E402
 from .routers.di_gateway_router import create_di_gateway_router  # noqa: E402
 from .routers.di_demo_beats import create_di_demo_beats_router  # noqa: E402
 from .routers.regime_router import create_regime_router  # noqa: E402
+from .routers.evolution_router import create_dataops_evolution_router  # noqa: E402
 from .dataops_governance import DataOpsGovernance  # noqa: E402
 from .routers.governance_router import create_governance_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import (  # noqa: E402
@@ -584,20 +585,17 @@ def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None)
 
 
 def _seed_demo_evolution_events_if_needed(graph_store: GraphStore) -> dict[str, int | bool]:
-    try:
-        existing = graph_store.get_evolution_events(domain=DOMAIN, rule_name="resource_quality_scheduling_signal", limit=1)
-    except Exception as exc:
-        print(f"[{DOMAIN}] demo evolution seed check failed; existing events are unknown: {exc}")
-        return {"checked": False, "seeded": 0, "failed": 1}
-    if existing:
-        return {"checked": True, "seeded": 0, "failed": 0}
-    try:
-        graph_store.save_evolution_event(
-            domain=DOMAIN,
-            event_type="shadow_started",
-            rule_name="resource_quality_scheduling_signal",
-            variant_id="dataops-off-peak-scheduling-v1",
-            metadata={
+    """Seed demo evolution events for the Evidence tab's Rule Lifecycle panel.
+
+    Each event is checked individually so that new events are added even on
+    existing deployments where earlier events already exist.
+    """
+    events_to_seed: list[dict[str, Any]] = [
+        {
+            "rule_name": "resource_quality_scheduling_signal",
+            "variant_id": "dataops-off-peak-scheduling-v1",
+            "event_type": "shadow_started",
+            "metadata": {
                 "id": "V-DO-SCHED-001",
                 "artifact_type": "scheduling_rule",
                 "description": "Schedule resource-intensive quality checks during off-peak windows.",
@@ -615,11 +613,76 @@ def _seed_demo_evolution_events_if_needed(graph_store: GraphStore) -> dict[str, 
                     "min_downstream_urgency": 0.4,
                 },
             },
-        )
-    except Exception as exc:
-        print(f"[{DOMAIN}] demo evolution seed failed: {exc}")
-        return {"checked": True, "seeded": 0, "failed": 1}
-    return {"checked": True, "seeded": 1, "failed": 0}
+        },
+        {
+            "rule_name": "confidence_boundary_rule",
+            "variant_id": "variant-a1b2c3d4",
+            "event_type": "shadow_started",
+            "metadata": {
+                "id": "variant-a1b2c3d4",
+                "artifact_type": "scoring_rule",
+                "description": "Adjust confidence boundaries based on historical accuracy per category.",
+                "impact": "confidence_boundary",
+                "magnitude": 0.12,
+                "timestamp": "2026-05-09T08:30:00Z",
+                "system": "dataops_scorer",
+                "trigger": "confidence_boundary_rule threshold exceeded",
+            },
+        },
+        {
+            "rule_name": "factor_weight_rule",
+            "variant_id": "variant-e5f6a7b8",
+            "event_type": "proposed",
+            "metadata": {
+                "id": "variant-e5f6a7b8",
+                "artifact_type": "scoring_rule",
+                "description": "Reweight scoring factors when category drift exceeds threshold.",
+                "impact": "factor_weight",
+                "magnitude": 0.12,
+                "timestamp": "2026-05-09T08:30:00Z",
+                "system": "dataops_scorer",
+                "trigger": "factor_weight_rule threshold exceeded",
+            },
+        },
+        {
+            "rule_name": "action_bias_rule",
+            "variant_id": "variant-c9d0e1f2",
+            "event_type": "proposed",
+            "metadata": {
+                "id": "variant-c9d0e1f2",
+                "artifact_type": "scoring_rule",
+                "description": "Correct action selection bias detected in high-frequency categories.",
+                "impact": "action_bias",
+                "magnitude": 0.12,
+                "timestamp": "2026-05-09T08:30:00Z",
+                "system": "dataops_scorer",
+                "trigger": "action_bias_rule threshold exceeded",
+            },
+        },
+    ]
+
+    seeded = 0
+    failed = 0
+    for event_spec in events_to_seed:
+        rule_name = event_spec["rule_name"]
+        try:
+            existing = graph_store.get_evolution_events(
+                domain=DOMAIN, rule_name=rule_name, limit=1
+            )
+            if existing:
+                continue
+            graph_store.save_evolution_event(
+                domain=DOMAIN,
+                event_type=event_spec["event_type"],
+                rule_name=rule_name,
+                variant_id=event_spec["variant_id"],
+                metadata=event_spec["metadata"],
+            )
+            seeded += 1
+        except Exception as exc:
+            print(f"[{DOMAIN}] demo evolution seed failed for {rule_name}: {exc}")
+            failed += 1
+    return {"checked": True, "seeded": seeded, "failed": failed}
 
 
 def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
@@ -823,6 +886,7 @@ def create_app(
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
             elif graph_config.backend == "age":
                 auto_seed_domain_if_empty(DOMAIN, seed_graph_store)
+                _seed_demo_evolution_events_if_needed(seed_graph_store)
             elif graph_config.backend == "memory" and _is_demo_or_test_mode():
                 if isinstance(_bundle_path, Path):
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
@@ -1017,6 +1081,14 @@ def create_app(
             domain=DOMAIN,
             evolver_factory=lambda: app.state.evolver,
             variant_provider=lambda: _dataops_variants_with_config(selected_graph_store),
+        )
+    )
+    app.include_router(
+        create_dataops_evolution_router(
+            evolver=app.state.evolver,
+            graph_store_factory=lambda: selected_graph_store,
+            domain=DOMAIN,
+            include_persisted_rejections=True,
         )
     )
     mount_self_computation_router(

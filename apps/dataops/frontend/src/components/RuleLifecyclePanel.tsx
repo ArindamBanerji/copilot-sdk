@@ -67,11 +67,13 @@ export default function RuleLifecyclePanel() {
 function LifecycleTrack({ rule }: { rule: RuleWithLifecycle }) {
   const current = normalizeStatus(rule.status);
   const eventTypes = new Set((rule.lifecycleEvents || []).map((event) => normalizeStatus(event.type)));
+  const title = rule.name || rule.variantId || rule.id || "Evolution rule";
   return (
     <article className="rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="font-semibold" style={{ color: "var(--copilot-text)" }}>{rule.name || rule.variantId || rule.id || "Evolution rule"}</div>
+          <div className="font-semibold" style={{ color: "var(--copilot-text)" }}>{title}</div>
+          {rule.variantId && rule.variantId !== title ? <p className="mt-1 text-xs dataops-muted">{rule.variantId}</p> : null}
           <p className="mt-1 text-sm dataops-muted">{rule.description || rule.sourceRule || "No description available."}</p>
         </div>
         <span data-testid="rule-status" className="rounded-full px-2 py-1 text-xs font-semibold" style={{ background: statusColors(current).background, color: statusColors(current).color }}>

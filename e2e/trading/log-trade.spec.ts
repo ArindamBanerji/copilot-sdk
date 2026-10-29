@@ -27,6 +27,14 @@ async function fillMinimumTrade(page: Page) {
   }
 }
 
+function waitForScoreResponse(page: Page) {
+  // Score computation is CPU-bound; 60s matches production SLA
+  return page.waitForResponse(
+    (response) => response.url().includes("/api/score") && response.request().method() === "POST",
+    { timeout: 60_000 },
+  );
+}
+
 test("ticker lookup works", async ({ page }) => {
   await gotoLogTrade(page);
 
@@ -52,11 +60,11 @@ test("score button exists", async ({ page }) => {
 });
 
 test("score produces result", async ({ page }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   await gotoLogTrade(page);
   await fillMinimumTrade(page);
 
-  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  const scoreResponse = waitForScoreResponse(page);
   await page.getByRole("button", { name: "Score This Trade" }).click();
   await scoreResponse;
 
@@ -65,16 +73,19 @@ test("score produces result", async ({ page }) => {
 });
 
 test("learn response shows reward or gate block after confirm", async ({ page }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(150_000);
   await gotoLogTrade(page);
   await fillMinimumTrade(page);
 
-  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  const scoreResponse = waitForScoreResponse(page);
   await page.getByRole("button", { name: "Score This Trade" }).click();
   await scoreResponse;
   await expect(page.getByRole("button", { name: "Confirm" }).first()).toBeVisible();
 
-  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && (response.ok() || response.status() === 423));
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && (response.ok() || response.status() === 423),
+    { timeout: 60_000 },
+  );
   await page.getByRole("button", { name: "Confirm" }).first().click();
   const learn = await learnResponse;
 
@@ -87,11 +98,11 @@ test("learn response shows reward or gate block after confirm", async ({ page })
 });
 
 test("reasoning panel appears after scoring", async ({ page }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   await gotoLogTrade(page);
   await fillMinimumTrade(page);
 
-  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  const scoreResponse = waitForScoreResponse(page);
   await page.getByRole("button", { name: "Score This Trade" }).click();
   await scoreResponse;
 

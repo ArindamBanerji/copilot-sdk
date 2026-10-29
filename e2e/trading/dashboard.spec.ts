@@ -33,9 +33,7 @@ test("shows portfolio summary", async ({ page }) => {
   await waitForScreenReady(page);
   await waitForAppShell(page);
 
-  await expect(
-    page.getByTestId("centroid-timeline-panel").getByRole("heading", { name: "Centroid Timeline", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Portfolio Summary", exact: true })).toBeVisible();
   await expect(page.getByText(/open positions/i).first()).toBeVisible();
   await expect(page.getByText("Win Rate", { exact: true }).first()).toBeVisible();
   await expectAnyText(page, [/\$\d[\d,]*/, /\d+(\.\d+)?%/, /-/]);
@@ -50,19 +48,21 @@ test("IKS is visible with numeric value", async ({ page }) => {
   await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
 });
 
-test("shows graph-backed decision context", async ({ page }) => {
+test("shows graph-backed decision context on Performance", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
   await waitForAppShell(page);
+  await clickTab(page, "Performance");
 
   await expect(page.getByTestId("decision-explorer-panel")).toBeVisible();
   await expect(page.getByTestId("rule-lifecycle-panel")).toBeVisible();
 });
 
-test("shows graph-backed dashboard panels", async ({ page }) => {
+test("shows graph-backed panels on Performance", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
   await waitForAppShell(page);
+  await clickTab(page, "Performance");
 
   await expect(page.getByTestId("centroid-timeline-panel")).toBeVisible();
   await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
@@ -81,9 +81,10 @@ test("paper badge is visible", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 });
 
-test("graph-backed trust context is visible on dashboard", async ({ page }) => {
+test("graph-backed trust context is visible on Performance", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
+  await clickTab(page, "Performance");
   await expect(page.getByTestId("decision-explorer-panel")).toBeVisible();
   await expect(page.getByTestId("audit-trail-panel")).toBeVisible();
 });
@@ -103,9 +104,10 @@ test("fingerprint factors include trust weights", async ({ request }) => {
   expect(levels.length).toBeGreaterThan(0);
 });
 
-test("dashboard shows graph-backed factor contrast panels", async ({ page }) => {
+test("Performance shows graph-backed factor contrast panels", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
+  await clickTab(page, "Performance");
   await expect(page.getByTestId("accuracy-alerts-panel")).toBeVisible();
   await expect(page.getByTestId("rule-lifecycle-panel")).toBeVisible();
 });

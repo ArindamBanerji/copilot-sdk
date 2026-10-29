@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from typing import Any, cast
 from unittest.mock import Mock
 
@@ -68,6 +69,28 @@ def _add_rejected_variant(evolver: TradingAgentEvolver):
 def test_rejection_summary_returns_200():
     response = _client(_evolver()).get("/api/trading/evolution/rejection-summary")
     assert response.status_code == 200
+
+
+def test_rejection_summary_returns_degraded_on_timeout(monkeypatch):
+    """rejection-summary returns degraded response when graph work exceeds timeout."""
+    from app.routers import evolution_router
+
+    monkeypatch.setattr(evolution_router, "REJECTION_SUMMARY_TIMEOUT_SECONDS", 0.001)
+    evolver = _evolver()
+    original_evolution_log = evolver.evolution_log
+
+    def slow_evolution_log():
+        time.sleep(0.01)
+        return original_evolution_log()
+
+    monkeypatch.setattr(evolver, "evolution_log", slow_evolution_log)
+
+    response = _client(evolver).get("/api/trading/evolution/rejection-summary")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("degraded") is True
+    assert data["provenance"] == "timeout"
 
 
 def test_rejection_summary_has_breakdown():

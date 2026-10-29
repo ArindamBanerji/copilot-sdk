@@ -1,6 +1,6 @@
 # Frontend Tab Inventory
-**Generated:** 2026-10-14T23:28:45.822834+00:00
-**Mode:** static+api
+**Generated:** 2026-10-20T01:21:29.228501+00:00
+**Mode:** static+api+screenshots
 
 ---
 
@@ -13,7 +13,7 @@
 | File | Lines | Components | API Calls |
 |---|---:|---|---|
 | `AnalysisScreen.tsx` | 191 | ContrastCard, CorrelationPanel, CounterfactualCard, DayOfWeekChart, DecisionExplorer +10 |  |
-| `DashboardScreen.tsx` | 297 | AccuracyByCategory, ArchetypeSelector, CalendarHeatmap, MarketContext, PatternBadge +5 |  |
+| `DashboardScreen.tsx` | 302 | AccuracyByCategory, ArchetypeSelector, CalendarHeatmap, MarketContext, PatternBadge +5 |  |
 | `JournalScreen.tsx` | 376 | EarningsInsightCard, EvidencePanel, JournalQueryBar, OptionsFactorPanel |  |
 | `LogTradeScreen.tsx` | 466 | EngineAssessment, EvidencePanel, OptionsFactorPanel, PreScorePanel, ResearchChecklist +3 |  |
 | `PerformanceScreen.tsx` | 201 | AuditTrail, CategoryPerformance, CentroidTimeline, CohortStatusPanel, EvolutionControlsPanel +10 |  |
@@ -174,6 +174,15 @@
 | `/api/transfer/opportunities` | pass 200 |
 | `/api/transfer/status` | pass 200 |
 
+### Screenshots
+- `docs\screenshots\trading_analysis.png`
+- `docs\screenshots\trading_dashboard.png`
+- `docs\screenshots\trading_initial.png`
+- `docs\screenshots\trading_journal.png`
+- `docs\screenshots\trading_log_trade.png`
+- `docs\screenshots\trading_performance.png`
+- `docs\screenshots\trading_trade_detail.png`
+
 ---
 
 ## PURCHASING (port 5175/8020)
@@ -303,7 +312,7 @@
 - `/api/trajectory`
 
 ### Endpoint Smoke
-**63/77 returned 200**
+**65/77 returned 200**
 
 | Path | Status |
 |---|---|
@@ -356,8 +365,8 @@
 | `/api/purchasing/multi-unit/compare` | pass 200 |
 | `/api/purchasing/multi-unit/dashboard` | pass 200 |
 | `/api/purchasing/multi-unit/transfer-opportunities` | pass 200 |
-| `/api/purchasing/par/predict` | FAIL 500 |
-| `/api/purchasing/par/predict-week` | FAIL 500 |
+| `/api/purchasing/par/predict` | pass 200 |
+| `/api/purchasing/par/predict-week` | pass 200 |
 | `/api/purchasing/par/recommendations` | pass 200 |
 | `/api/purchasing/par/status` | pass 200 |
 | `/api/purchasing/proof-ledger` | pass 200 |
@@ -384,6 +393,14 @@
 | `/api/self/audit-trail` | pass 200 |
 | `/api/self/decisions` | pass 200 |
 | `/api/trajectory` | pass 200 |
+
+### Screenshots
+- `docs\screenshots\purchasing_analysis.png`
+- `docs\screenshots\purchasing_dashboard.png`
+- `docs\screenshots\purchasing_initial.png`
+- `docs\screenshots\purchasing_inventory.png`
+- `docs\screenshots\purchasing_order.png`
+- `docs\screenshots\purchasing_performance.png`
 
 ---
 
@@ -534,6 +551,14 @@
 | `/api/self/diagnostics` | pass 200 |
 | `/api/trajectory` | pass 200 |
 
+### Screenshots
+- `docs\screenshots\dataops_curve.png`
+- `docs\screenshots\dataops_dashboard.png`
+- `docs\screenshots\dataops_evidence.png`
+- `docs\screenshots\dataops_initial.png`
+- `docs\screenshots\dataops_insight.png`
+- `docs\screenshots\dataops_triage.png`
+
 ---
 
 ## S2P (port 5177/8002)
@@ -584,9 +609,8 @@
 - `components\FinancialImpactTrendPanel.tsx`
 - ... +27 more
 
-### API Calls Referenced (58)
+### API Calls Referenced (56)
 - `/api/conservation/status`
-- `/api/fingerprint`
 - `/api/learn`
 - `/api/s2p/auto-approve/expansion-proof{id}`
 - `/api/s2p/auto-approve/stats`
@@ -642,15 +666,13 @@
 - `/api/s2p/suppliers/payment-strategy`
 - `/api/s2p/twin/drift`
 - `/api/s2p/twin/status`
-- `/api/trajectory`
 
 ### Endpoint Smoke
-**41/58 returned 200**
+**44/56 returned 200**
 
 | Path | Status |
 |---|---|
 | `/api/conservation/status` | pass 200 |
-| `/api/fingerprint` | FAIL 404 |
 | `/api/learn` | FAIL 405 |
 | `/api/s2p/auto-approve/expansion-proof{id}` | FAIL 404 |
 | `/api/s2p/auto-approve/stats` | pass 200 |
@@ -663,12 +685,12 @@
 | `/api/s2p/discovery/disruptions` | pass 200 |
 | `/api/s2p/discovery/extended` | pass 200 |
 | `/api/s2p/enterprise/process-fusion` | FAIL 405 |
-| `/api/s2p/evidence/audit-pack` | SKIP ERR: TimeoutError |
+| `/api/s2p/evidence/audit-pack` | pass 200 |
 | `/api/s2p/evidence/chain-integrity` | pass 200 |
 | `/api/s2p/evidence/compliance` | pass 200 |
 | `/api/s2p/evidence/rules` | pass 200 |
 | `/api/s2p/evolution/promoted` | pass 200 |
-| `/api/s2p/evolution/promotion-check` | pass 200 |
+| `/api/s2p/evolution/promotion-check` | SKIP ERR: TimeoutError |
 | `/api/s2p/evolution/reset` | FAIL 405 |
 | `/api/s2p/evolution/rules` | pass 200 |
 | `/api/s2p/evolution/shadow-results` | pass 200 |
@@ -679,20 +701,20 @@
 | `/api/s2p/factors/recommendations` | pass 200 |
 | `/api/s2p/financial-impact` | pass 200 |
 | `/api/s2p/financial-impact/trend` | pass 200 |
-| `/api/s2p/governance/compliance-screening` | SKIP ERR: TimeoutError |
+| `/api/s2p/governance/compliance-screening` | pass 200 |
 | `/api/s2p/governance/rationalization` | pass 200 |
 | `/api/s2p/insight/cross-graph` | pass 200 |
 | `/api/s2p/insight/process-signals{id}` | FAIL 404 |
 | `/api/s2p/novelty/status` | pass 200 |
 | `/api/s2p/outcome` | FAIL 405 |
-| `/api/s2p/performance/summary` | SKIP ERR: TimeoutError |
+| `/api/s2p/performance/summary` | pass 200 |
 | `/api/s2p/performance/trajectory` | pass 200 |
 | `/api/s2p/preview/conservation` | pass 200 |
 | `/api/s2p/preview/queue` | pass 200 |
 | `/api/s2p/preview/suppliers` | pass 200 |
 | `/api/s2p/promotion/status` | pass 200 |
 | `/api/s2p/pvg/cycle-time` | pass 200 |
-| `/api/s2p/pvg/leakage` | FAIL 500 |
+| `/api/s2p/pvg/leakage` | pass 200 |
 | `/api/s2p/pvg/variants` | pass 200 |
 | `/api/s2p/score` | FAIL 405 |
 | `/api/s2p/score/counterfactual` | FAIL 405 |
@@ -706,7 +728,15 @@
 | `/api/s2p/suppliers/payment-strategy` | pass 200 |
 | `/api/s2p/twin/drift` | FAIL 409 |
 | `/api/s2p/twin/status` | pass 200 |
-| `/api/trajectory` | FAIL 404 |
+
+### Screenshots
+- `docs\screenshots\s2p_dashboard.png`
+- `docs\screenshots\s2p_evidence.png`
+- `docs\screenshots\s2p_exception_triage.png`
+- `docs\screenshots\s2p_initial.png`
+- `docs\screenshots\s2p_insight.png`
+- `docs\screenshots\s2p_performance.png`
+- `docs\screenshots\s2p_suppliers.png`
 
 ---
 
@@ -794,5 +824,15 @@
 | `/api/soc/compliance` | pass 200 |
 | `/api/soc/evidence-room` | pass 200 |
 | `/api/soc/factor-contribution` | pass 200 |
+
+### Screenshots
+- `docs\screenshots\soc_alert_triage.png`
+- `docs\screenshots\soc_compounding.png`
+- `docs\screenshots\soc_evidence_room.png`
+- `docs\screenshots\soc_executive_narrative.png`
+- `docs\screenshots\soc_initial.png`
+- `docs\screenshots\soc_runtime_evolution.png`
+- `docs\screenshots\soc_s2p_preview.png`
+- `docs\screenshots\soc_soc_analytics.png`
 
 ---

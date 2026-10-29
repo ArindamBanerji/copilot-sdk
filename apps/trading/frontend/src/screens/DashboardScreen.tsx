@@ -160,6 +160,7 @@ export default function DashboardScreen({
   });
   const [loading, setLoading] = useState(true);
   const [tabError, setTabError] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState<string[]>([]);
   const updateTickers = useCallback((tickers: Record<string, TickerData>) => {
     setState({ tickers });
   }, []);
@@ -172,13 +173,16 @@ export default function DashboardScreen({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])
+    Promise.allSettled([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])
       .then(([nextAnalytics, nextHistory, nextMetadata, nextMarket]) => {
         if (cancelled) return;
-        setAnalytics(nextAnalytics);
-        setHistory(nextHistory);
-        setMetadata(nextMetadata);
-        setMarket(nextMarket);
+        setAnalytics(nextAnalytics.status === "fulfilled" ? nextAnalytics.value : undefined);
+        setHistory(nextHistory.status === "fulfilled" ? nextHistory.value : []);
+        setMetadata(nextMetadata.status === "fulfilled" ? nextMetadata.value : {});
+        setMarket(nextMarket.status === "fulfilled" ? nextMarket.value : undefined);
+        setUnavailable([nextAnalytics, nextHistory, nextMetadata, nextMarket].flatMap((result, index) =>
+          result.status === "rejected" ? [["Analytics", "History", "Trade metadata", "Market snapshot"][index]] : [],
+        ));
         setTabError(null);
       })
       .catch((loadError) => {
@@ -225,7 +229,8 @@ export default function DashboardScreen({
 
       <DayZeroPanel copilot="trading" port={8010} />
 
-      {joinedTrades.length === 0 ? (
+      {unavailable.map((source) => <div key={source} className="copilot-card p-4">{source} unavailable.</div>)}
+      {!unavailable.includes("History") && !unavailable.includes("Trade metadata") && joinedTrades.length === 0 ? (
         <div className="copilot-card p-4">
           <h2 className="text-base font-semibold">Get started faster</h2>
           <p className="mt-2 max-w-2xl text-sm trading-muted">
@@ -238,20 +243,20 @@ export default function DashboardScreen({
       ) : null}
 
       <ArchetypeSelector />
-      <MarketContext snapshot={market} />
+      {market ? <MarketContext snapshot={market} /> : null}
       <TickerPanel metadata={metadata} disabled={loading} onTickers={updateTickers} />
       <RegimePanel />
-      <PortfolioSummary summary={analytics?.portfolioSummary} />
+      {analytics ? <PortfolioSummary summary={analytics.portfolioSummary} /> : null}
       <PatternBadge />
       <AccuracyByCategory />
 
-      <div className="trading-grid trading-grid-3">
+      {analytics ? <div className="trading-grid trading-grid-3">
         <PortfolioConcentration
           concentration={analytics?.portfolioConcentration}
           categoryCounts={analytics?.categoryCounts}
         />
         <ThesisBreakdown breakdown={analytics?.thesisBreakdown} />
-        <div className="copilot-card p-4">
+        {!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <div className="copilot-card p-4">
           <h2 className="text-base font-semibold">Dataset</h2>
           <div className="mt-4 grid gap-3">
             <div>
@@ -267,12 +272,12 @@ export default function DashboardScreen({
               <div className="text-sm font-semibold">{analytics?.source || "backend"}</div>
             </div>
           </div>
-        </div>
-      </div>
+        </div> : null}
+      </div> : null}
 
-      <CalendarHeatmap trades={joinedTrades} calendar={analytics?.calendarHeatmap} />
+      {analytics && !unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <CalendarHeatmap trades={joinedTrades} calendar={analytics.calendarHeatmap} /> : null}
 
-      <DecisionHistory
+      {!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <DecisionHistory
         title="Decision History"
         emptyMessage="No trading decisions yet."
         decisions={joinedTrades}
@@ -283,7 +288,7 @@ export default function DashboardScreen({
             onClick={() => onSelectTrade(trade.decisionId)}
           />
         )}
-      />
+      /> : null}
 
       <DataTrustBadge
         apiBase={API_BASE}

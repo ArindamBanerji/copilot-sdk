@@ -16,7 +16,7 @@ test("transfer status controls dashboard badge", async ({ page, request }) => {
   }
 
   await page.goto("/");
-  await expect(page.getByTestId("self-computation-panels")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible();
   const badge = page.getByTestId("transfer-badge");
   if ((await badge.count()) > 0) {
     await expect(badge).toContainText(/Warm-started|patterns/i);

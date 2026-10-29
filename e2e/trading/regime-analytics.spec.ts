@@ -49,14 +49,17 @@ test("test_regime_analytics_panel_on_performance", async ({ page }) => {
 });
 
 test("test_regime_analytics_shows_per_regime_accuracy", async ({ page, request }) => {
+  test.setTimeout(90_000);
   const response = await request.get(`${BACKEND}/api/trading/regime-analytics`, { timeout: 30_000 });
   expect(response.status()).toBe(200);
   const body = await response.json();
   expect(body).toHaveProperty("regimes");
 
   await gotoRegimeAnalytics(page);
-  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/\d+%/i);
-  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/trend_following|event_driven|mean_reversion/i);
+  const panel = page.getByTestId("regime-analytics-panel");
+  await expect(panel).toBeVisible({ timeout: 35_000 });
+  await expect(panel).toContainText(/Per-Regime Decision Quality/i);
+  await expect(panel.getByTestId(/^regime-accuracy-/).first()).toContainText(/Accuracy:/i);
 });
 
 test("test_regime_panel_shows_regime_name", async ({ page }) => {

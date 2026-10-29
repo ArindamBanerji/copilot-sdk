@@ -36,16 +36,23 @@ test("Journal trade table or empty import state renders", async ({ page }) => {
   await openJournal(page);
 
   const journal = page.locator("main", { hasText: "Trade Journal" });
-  await expect(journal.getByTestId("decision-explorer-panel")).toBeVisible({ timeout: 15_000 });
-  await expect(journal.getByTestId("audit-trail-panel")).toBeVisible({ timeout: 15_000 });
+  await expect(journal.getByRole("heading", { name: "Trades", exact: true })).toBeVisible({ timeout: 15_000 });
+  await expectAnyText(page, [/matching trades/i, /No trades match these journal filters/i]);
 });
 
 test("Journal row detail expansion works when rows exist", async ({ page }) => {
   await openJournal(page);
 
   const journal = page.locator("main", { hasText: "Trade Journal" });
-  await expect(journal.getByTestId("decision-explorer-panel")).toBeVisible({ timeout: 15_000 });
-  await expectAnyText(page, [/Decision Explorer/i, /Audit Trail/i, /Rule Lifecycle/i]);
+  const firstTrade = journal.locator("tbody tr").first();
+  const emptyState = journal.getByText(/No trades match these journal filters/i);
+  await expect(firstTrade.or(emptyState)).toBeVisible({ timeout: 15_000 });
+  if (await firstTrade.isVisible()) {
+    await firstTrade.click();
+    await expect(journal.getByRole("heading", { name: "Trade Detail", exact: true })).toBeVisible({ timeout: 15_000 });
+  } else {
+    await expect(emptyState).toBeVisible();
+  }
 });
 
 test("Journal renders after reload without console errors", async ({ page }) => {

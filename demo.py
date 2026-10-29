@@ -937,7 +937,7 @@ def preseed_environment(environment: dict[str, str], *, seeding: bool) -> dict[s
     result["SOC_DEMO_COMPARISON_ENABLED"] = "true"
     if seeding:
         result.update({"COPILOT_PRESEED_MODE": "true", "SOC_DEMO_RESEED_ENABLED": "true",
-                       "S2P_DEMO_MODE": "true", "SOC_PROFILE": "demo"})
+                       "S2P_DEMO_MODE": "true"})
         # S2P/DataOps scorers accept production/test/development, not 'demo'.
     return result
 
@@ -1210,6 +1210,42 @@ def cmd_start(selected: list[dict], args):
 
     if getattr(args, "preseed_phase", None) == "seed":
         return  # Start frontends only after the final normal-mode restart.
+
+    # --- Graph seed validation ---
+    age_copilots = [c for c in selected if c.get("requires_age")]
+    if age_copilots and not getattr(args, "skip_validate", False):
+        validator = SCRIPT_DIR / "scripts" / "validate_graph_seed_v3.py"
+        if validator.exists():
+            dsn = age_copilots[0]["graph_dsn"]
+            print()
+            print("[VALIDATE] Running graph seed validator...")
+            try:
+                vresult = subprocess.run(
+                    [sys.executable, str(validator),
+                     "--dsn", dsn, "--json"],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                if vresult.returncode != 0:
+                    print("[VALIDATE] !! GRAPH SEED VALIDATION FAILED !!")
+                    stdout_tail = vresult.stdout[-2000:] if len(vresult.stdout) > 2000 else vresult.stdout
+                    if stdout_tail.strip():
+                        print(stdout_tail)
+                    if vresult.stderr.strip():
+                        print(vresult.stderr[-500:])
+                    print("[VALIDATE] Fix graph seed data or use --skip-validate to bypass.")
+                    raise SystemExit(1)
+                else:
+                    print("[VALIDATE] Graph seed: ALL PASS")
+            except subprocess.TimeoutExpired:
+                print("[VALIDATE] Validator timed out after 30s — skipping")
+            except SystemExit:
+                raise
+            except Exception as exc:
+                print(f"[VALIDATE] Validator error: {exc} — skipping")
+        else:
+            print(f"[VALIDATE] Validator not found at {validator} — skipping")
 
     # --- Pre-seed ---
     if args.preseed and not args.no_reseed and not getattr(args, "preseed_phase", None):
@@ -1735,6 +1771,8 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--age-use-pool", action="store_true", help="Set AGE_USE_POOL=true for SOC --diag-mode")
     parser.add_argument("--health-timeout", type=int, default=0,
                         help="Override backend health timeout in seconds (0 = use defaults: 30s normal, 60s AGE)")
+    parser.add_argument("--skip-validate", dest="skip_validate", action="store_true",
+                        help="Skip graph seed validation on startup")
     parser.add_argument("--app", type=str, default=None,
                         help="Run a reference app; use --app list to enumerate available apps")
     return parser

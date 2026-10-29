@@ -66,10 +66,8 @@ async function fillTrade(page: Page) {
 test("Act 1 Dashboard: portfolio summary and category accuracy are visible", async ({ page }) => {
   await gotoDashboard(page);
 
-  await expect(panelByHeading(page, "Centroid Timeline")).toBeVisible();
-  const accuracy = panelByHeading(page, "Accuracy Alerts");
-  await expect(accuracy).toBeVisible();
-  await expectAnyText(page, [/Accuracy Alerts/i, /verified/i, /accuracy/i, /\d+%/i]);
+  await expect(panelByHeading(page, "Portfolio Summary")).toBeVisible();
+  await expectAnyText(page, [/Accuracy by Category/i, /No category accuracy yet/i], { timeout: 20_000 });
 });
 
 test("L-CDK flow: dashboard entry to scaffold and open-source developer path", async ({ page }) => {
@@ -149,7 +147,7 @@ test("SC-16 Audit trail renders populated or empty state", async ({ page }) => {
 test("Full Trading 5-act story traverses without console errors", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await gotoDashboard(page);
-  await expect(panelByHeading(page, "Accuracy Alerts")).toBeVisible();
+  await expect(panelByHeading(page, "Portfolio Summary")).toBeVisible();
 
   await clickTab(page, "Log Trade");
   await waitForAppShell(page);

@@ -63,6 +63,20 @@ def test_preseed_deterministic() -> None:
         assert first.copilots[name].decisions == second.copilots[name].decisions
 
 
+def test_preseed_dataops_cycles_sample_system_metadata() -> None:
+    preseed = DemoPreseed(seed=20260711)
+
+    result = preseed.preseed_dataops()
+    decisions = preseed.graph_store.get_all_decisions("dataops")
+    decisions.sort(key=lambda decision: decision["metadata"]["preseed_index"])
+
+    assert len(decisions) == result.decisions == 150
+    assert [
+        decision["metadata"]["pipeline_system_id"] for decision in decisions[:9]
+    ] == DemoPreseed._DATAOPS_SYSTEMS
+    assert all(decision["metadata"]["provenance"] == "sample" for decision in decisions)
+
+
 def test_preseed_nonflat_iks(preseed_result) -> None:
     assert {name: copilot.iks for name, copilot in preseed_result.copilots.items()}
     assert all(copilot.iks > MIN_DEMO_IKS for copilot in preseed_result.copilots.values())

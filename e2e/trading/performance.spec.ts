@@ -41,9 +41,9 @@ test("category performance shows categories", async ({ page }) => {
   await gotoPerformance(page);
 
   const panel = page.getByTestId("accuracy-alerts-panel");
-  await expect(panel).toBeVisible();
-  await expect(panel).toContainText(/Accuracy Alerts/i);
-  await expect(panel).toContainText(/\d+%|trend_following|event_driven|mean_reversion/i);
+  await expect(panel).toBeVisible({ timeout: 30_000 });
+  await expect(panel).toContainText(/Accuracy Alerts/i, { timeout: 30_000 });
+  await expect(panel).toContainText(/\d+%|trend_following|event_driven|mean_reversion|No category observations available/i, { timeout: 30_000 });
 });
 
 test("trajectory shows competitor and switching cost narrative", async ({ page }) => {

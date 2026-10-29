@@ -25,9 +25,9 @@ test.describe("Trading new surfaces", () => {
 
   test("Day-zero panel exposes measurement state and provenance", async ({ page }) => {
     await gotoTradingTab(page, "Dashboard");
-    const panel = page.getByTestId("self-computation-panels");
+    const panel = page.getByTestId("day-zero-panel");
     await expect(panel).toBeVisible({ timeout: 60_000 });
-    await expect(panel).toContainText(/Centroid Timeline|Accuracy Alerts|Audit Trail/i);
+    await expect(panel).toContainText(/verified decisions|instrument|measured|accumulating/i);
   });
 
   test("evolution summary exposes the telemetry contract", async ({ request }) => {
@@ -82,7 +82,7 @@ test.describe("Trading new surfaces", () => {
 
   test("measurement spine flow crosses Dashboard, Analysis, and Performance", async ({ page }) => {
     await gotoTradingTab(page, "Dashboard");
-    await expect(page.getByTestId("self-computation-panels")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("day-zero-panel")).toBeVisible({ timeout: 60_000 });
     await gotoTradingTab(page, "Analysis");
     await expect(page.getByTestId("counterfactual-card")).toBeVisible({ timeout: 60_000 });
     await gotoTradingTab(page, "Performance");

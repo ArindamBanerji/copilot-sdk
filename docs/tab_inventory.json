@@ -1,6 +1,6 @@
 {
-  "generated": "2026-10-14T23:28:45.822834+00:00",
-  "mode": "static+api",
+  "generated": "2026-10-20T01:21:29.228501+00:00",
+  "mode": "static+api+screenshots",
   "copilots": [
     {
       "copilot": "trading",
@@ -32,7 +32,7 @@
         },
         {
           "file": "DashboardScreen.tsx",
-          "lines": 297,
+          "lines": 302,
           "components": [
             "AccuracyByCategory",
             "ArchetypeSelector",
@@ -301,7 +301,16 @@
         "/api/transfer/execute": 405,
         "/api/transfer/opportunities": 200,
         "/api/transfer/status": 200
-      }
+      },
+      "screenshots": [
+        "docs\\screenshots\\trading_analysis.png",
+        "docs\\screenshots\\trading_dashboard.png",
+        "docs\\screenshots\\trading_initial.png",
+        "docs\\screenshots\\trading_journal.png",
+        "docs\\screenshots\\trading_log_trade.png",
+        "docs\\screenshots\\trading_performance.png",
+        "docs\\screenshots\\trading_trade_detail.png"
+      ]
     },
     {
       "copilot": "purchasing",
@@ -603,8 +612,8 @@
         "/api/purchasing/multi-unit/compare": 200,
         "/api/purchasing/multi-unit/dashboard": 200,
         "/api/purchasing/multi-unit/transfer-opportunities": 200,
-        "/api/purchasing/par/predict": 500,
-        "/api/purchasing/par/predict-week": 500,
+        "/api/purchasing/par/predict": 200,
+        "/api/purchasing/par/predict-week": 200,
         "/api/purchasing/par/recommendations": 200,
         "/api/purchasing/par/status": 200,
         "/api/purchasing/proof-ledger": 200,
@@ -631,7 +640,15 @@
         "/api/self/audit-trail": 200,
         "/api/self/decisions": 200,
         "/api/trajectory": 200
-      }
+      },
+      "screenshots": [
+        "docs\\screenshots\\purchasing_analysis.png",
+        "docs\\screenshots\\purchasing_dashboard.png",
+        "docs\\screenshots\\purchasing_initial.png",
+        "docs\\screenshots\\purchasing_inventory.png",
+        "docs\\screenshots\\purchasing_order.png",
+        "docs\\screenshots\\purchasing_performance.png"
+      ]
     },
     {
       "copilot": "dataops",
@@ -911,7 +928,15 @@
         "/api/score": 405,
         "/api/self/diagnostics": 200,
         "/api/trajectory": 200
-      }
+      },
+      "screenshots": [
+        "docs\\screenshots\\dataops_curve.png",
+        "docs\\screenshots\\dataops_dashboard.png",
+        "docs\\screenshots\\dataops_evidence.png",
+        "docs\\screenshots\\dataops_initial.png",
+        "docs\\screenshots\\dataops_insight.png",
+        "docs\\screenshots\\dataops_triage.png"
+      ]
     },
     {
       "copilot": "s2p",
@@ -1077,7 +1102,6 @@
       ],
       "api_calls": [
         "/api/conservation/status",
-        "/api/fingerprint",
         "/api/learn",
         "/api/s2p/auto-approve/expansion-proof{id}",
         "/api/s2p/auto-approve/stats",
@@ -1132,8 +1156,7 @@
         "/api/s2p/suppliers/early-warnings",
         "/api/s2p/suppliers/payment-strategy",
         "/api/s2p/twin/drift",
-        "/api/s2p/twin/status",
-        "/api/trajectory"
+        "/api/s2p/twin/status"
       ],
       "tab_names": [
         "Dashboard",
@@ -1147,7 +1170,6 @@
       "warnings": [],
       "smoke_results": {
         "/api/conservation/status": 200,
-        "/api/fingerprint": 404,
         "/api/learn": 405,
         "/api/s2p/auto-approve/expansion-proof{id}": 404,
         "/api/s2p/auto-approve/stats": 200,
@@ -1160,12 +1182,12 @@
         "/api/s2p/discovery/disruptions": 200,
         "/api/s2p/discovery/extended": 200,
         "/api/s2p/enterprise/process-fusion": 405,
-        "/api/s2p/evidence/audit-pack": "ERR: TimeoutError",
+        "/api/s2p/evidence/audit-pack": 200,
         "/api/s2p/evidence/chain-integrity": 200,
         "/api/s2p/evidence/compliance": 200,
         "/api/s2p/evidence/rules": 200,
         "/api/s2p/evolution/promoted": 200,
-        "/api/s2p/evolution/promotion-check": 200,
+        "/api/s2p/evolution/promotion-check": "ERR: TimeoutError",
         "/api/s2p/evolution/reset": 405,
         "/api/s2p/evolution/rules": 200,
         "/api/s2p/evolution/shadow-results": 200,
@@ -1176,20 +1198,20 @@
         "/api/s2p/factors/recommendations": 200,
         "/api/s2p/financial-impact": 200,
         "/api/s2p/financial-impact/trend": 200,
-        "/api/s2p/governance/compliance-screening": "ERR: TimeoutError",
+        "/api/s2p/governance/compliance-screening": 200,
         "/api/s2p/governance/rationalization": 200,
         "/api/s2p/insight/cross-graph": 200,
         "/api/s2p/insight/process-signals{id}": 404,
         "/api/s2p/novelty/status": 200,
         "/api/s2p/outcome": 405,
-        "/api/s2p/performance/summary": "ERR: TimeoutError",
+        "/api/s2p/performance/summary": 200,
         "/api/s2p/performance/trajectory": 200,
         "/api/s2p/preview/conservation": 200,
         "/api/s2p/preview/queue": 200,
         "/api/s2p/preview/suppliers": 200,
         "/api/s2p/promotion/status": 200,
         "/api/s2p/pvg/cycle-time": 200,
-        "/api/s2p/pvg/leakage": 500,
+        "/api/s2p/pvg/leakage": 200,
         "/api/s2p/pvg/variants": 200,
         "/api/s2p/score": 405,
         "/api/s2p/score/counterfactual": 405,
@@ -1202,9 +1224,17 @@
         "/api/s2p/suppliers/early-warnings": 200,
         "/api/s2p/suppliers/payment-strategy": 200,
         "/api/s2p/twin/drift": 409,
-        "/api/s2p/twin/status": 200,
-        "/api/trajectory": 404
-      }
+        "/api/s2p/twin/status": 200
+      },
+      "screenshots": [
+        "docs\\screenshots\\s2p_dashboard.png",
+        "docs\\screenshots\\s2p_evidence.png",
+        "docs\\screenshots\\s2p_exception_triage.png",
+        "docs\\screenshots\\s2p_initial.png",
+        "docs\\screenshots\\s2p_insight.png",
+        "docs\\screenshots\\s2p_performance.png",
+        "docs\\screenshots\\s2p_suppliers.png"
+      ]
     },
     {
       "copilot": "soc",
@@ -1350,7 +1380,17 @@
         "/api/soc/compliance": 200,
         "/api/soc/evidence-room": 200,
         "/api/soc/factor-contribution": 200
-      }
+      },
+      "screenshots": [
+        "docs\\screenshots\\soc_alert_triage.png",
+        "docs\\screenshots\\soc_compounding.png",
+        "docs\\screenshots\\soc_evidence_room.png",
+        "docs\\screenshots\\soc_executive_narrative.png",
+        "docs\\screenshots\\soc_initial.png",
+        "docs\\screenshots\\soc_runtime_evolution.png",
+        "docs\\screenshots\\soc_s2p_preview.png",
+        "docs\\screenshots\\soc_soc_analytics.png"
+      ]
     }
   ]
 }

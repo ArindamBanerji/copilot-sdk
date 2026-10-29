@@ -27,6 +27,13 @@ async function mockEmptyDIProfiles(page: Page) {
       body: JSON.stringify({ nodes: [], edges: [], gold_lines: [] }),
     });
   });
+  await page.route(/https?:\/\/127\.0\.0\.1:8030\/api\/di\/acquisition-advice$/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ recommendations: [], gold_lines: [], current_sources: [] }),
+    });
+  });
 }
 
 async function gotoInsight(page: Page) {
@@ -94,9 +101,7 @@ test.describe("DataOps Intelligence Map", () => {
 
     await page.reload();
     await waitForAppShell(page);
-    if ((await panelByHeading(page, "Intelligence Map").count()) === 0) {
-      await clickTab(page, "Insight");
-    }
+    await clickTab(page, "Insight");
 
     const map = panelByHeading(page, "Intelligence Map");
     await expect(map).toBeVisible();

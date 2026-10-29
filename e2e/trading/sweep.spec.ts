@@ -39,7 +39,7 @@ test.describe("Trading sweep — point tests", () => {
 
   test("Dashboard mounts Day Zero measurement state", async ({ page }) => {
     await openTab(page, "Dashboard");
-    await expect(page.getByTestId("self-computation-panels")).toBeVisible();
+    await expect(page.getByTestId("day-zero-panel")).toBeVisible();
   });
 
   test("situation endpoints expose the regime diagnostic set", async ({ request }) => {

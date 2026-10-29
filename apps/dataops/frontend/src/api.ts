@@ -877,6 +877,78 @@ export async function getEvolutionVariants(): Promise<EvolutionVariant[]> {
   return (payload.variants || []).map(toEvolutionVariant);
 }
 
+export interface RejectedVariant {
+  variantId?: string;
+  reason?: string;
+  detail?: string;
+  testedAt?: string;
+}
+
+export interface RejectionSummaryResponse {
+  totalTested?: number;
+  totalPromoted?: number;
+  totalRejected?: number;
+  rejectionBreakdown?: Record<string, number>;
+  rejectedVariants?: RejectedVariant[];
+  provenance?: string;
+}
+
+export interface EvolutionEvent {
+  event_type?: string;
+  variant_id?: string;
+  reason?: string | null;
+  timestamp?: string | number | null;
+  metrics?: Record<string, unknown>;
+}
+
+export interface EvolutionSummaryResponse {
+  domain?: string;
+  evolution_enabled?: boolean;
+  variant_stats?: Array<{
+    variant_id?: string;
+    total?: number;
+    successes?: number;
+    success_rate?: number;
+  }>;
+  recent_events?: EvolutionEvent[];
+}
+
+interface DataOpsEvolutionLogEntry {
+  id?: string;
+  variantId?: string;
+  status?: string;
+  reason?: string | null;
+  timestamp?: string | number | null;
+  createdAt?: string | number | null;
+  total?: number;
+  successes?: number;
+  successRate?: number;
+}
+
+export async function fetchEvolutionSummary(): Promise<EvolutionSummaryResponse> {
+  const entries = await apiGet<DataOpsEvolutionLogEntry[]>("/api/dataops/evolution/log");
+  return {
+    domain: "dataops",
+    evolution_enabled: true,
+    variant_stats: entries.map((entry) => ({
+      variant_id: entry.variantId || entry.id,
+      total: entry.total,
+      successes: entry.successes,
+      success_rate: entry.successRate,
+    })),
+    recent_events: entries.map((entry) => ({
+      event_type: entry.status,
+      variant_id: entry.variantId || entry.id,
+      reason: entry.reason,
+      timestamp: entry.timestamp ?? entry.createdAt,
+    })),
+  };
+}
+
+export function fetchRejectionSummary(): Promise<RejectionSummaryResponse> {
+  return apiGet<RejectionSummaryResponse>("/api/dataops/evolution/rejection-summary");
+}
+
 export interface EvolutionHistoryItem {
   timestamp?: string;
   category?: string;

@@ -1457,6 +1457,24 @@ def test_decision_linked_to_pipeline(client: TestClient) -> None:
     assert decision["pipeline_system_id"] == "billing_api"
 
 
+def test_live_decision_normalizes_nested_system_metadata() -> None:
+    from app.context_router import _normalize_live_decision
+
+    normalized = _normalize_live_decision(
+        {
+            "decision_id": "DO-PRESEED-001",
+            "category": "schema_change",
+            "metadata": {
+                "pipeline_system_id": "sap_mm",
+                "provenance": "sample",
+            },
+        }
+    )
+
+    assert normalized["system"] == "sap_mm"
+    assert normalized["pipeline_system_id"] == "sap_mm"
+
+
 def test_pipeline_decisions_query(client: TestClient) -> None:
     client.post(
         "/api/context/alert-metadata",

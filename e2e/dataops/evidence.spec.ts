@@ -244,3 +244,77 @@ test("test_audit_trail_shows_timestamps", async ({ page }) => {
     await expect(panel.getByTestId("audit-recent-summary")).toBeVisible();
   }
 });
+
+test("rejection moment panel is visible on Evidence", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rejection-moment-panel");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Agent Evolution Summary" })).toBeVisible();
+});
+
+test("rejection moment shows tested promoted and rejected counts", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rejection-moment-panel");
+  await expect(panel.getByRole("status")).toHaveCount(0, { timeout: 20_000 });
+  await expect(panel.getByTestId("rejection-stat-tested")).toContainText(/Tested\s*\d+/);
+  await expect(panel.getByTestId("rejection-stat-promoted")).toContainText(/Promoted\s*\d+/);
+  await expect(panel.getByTestId("rejection-stat-rejected")).toContainText(/Rejected\s*\d+/);
+});
+
+test("rejection moment shows rejection breakdown table", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rejection-moment-panel");
+  await expect(panel.getByRole("status")).toHaveCount(0, { timeout: 20_000 });
+  await expect(panel.getByTestId("rejection-breakdown-table")).toBeVisible();
+});
+
+test("rejection moment shows conservation as a rejection reason", async ({ page }) => {
+  await page.route("**/api/dataops/evolution/rejection-summary", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        total_tested: 6,
+        total_promoted: 0,
+        total_rejected: 6,
+        rejection_breakdown: { correctness_floor: 2, conservation: 3, variance_stability: 1 },
+        rejected_variants: [],
+        provenance: "synthetic",
+      }),
+    });
+  });
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rejection-moment-panel");
+  await expect(panel.getByRole("status")).toHaveCount(0, { timeout: 20_000 });
+  const conservation = panel.getByTestId("rejection-breakdown-conservation");
+  await expect(conservation.getByRole("cell", { name: "Conservation gate" })).toBeVisible();
+  await expect(conservation.getByRole("cell", { name: "3" })).toBeVisible();
+});
+
+test("rejection moment shows provenance from the API response", async ({ page }) => {
+  await page.route("**/api/dataops/evolution/rejection-summary", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        total_tested: 6,
+        total_promoted: 0,
+        total_rejected: 6,
+        rejection_breakdown: { correctness_floor: 2, conservation: 3, variance_stability: 1 },
+        rejected_variants: [],
+        provenance: "synthetic",
+      }),
+    });
+  });
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rejection-moment-panel");
+  await expect(panel.getByRole("status")).toHaveCount(0, { timeout: 20_000 });
+  const badge = panel.getByTestId("provenance-badge");
+  await expect(badge).toBeVisible();
+  await expect(badge).toHaveAttribute("title", "Source: synthetic");
+});

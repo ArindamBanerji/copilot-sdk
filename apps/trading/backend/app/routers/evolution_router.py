@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+import concurrent.futures
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -22,7 +23,10 @@ from app.services.trading_evolver import (
 )
 
 GraphStoreFactory = Callable[[], Any]
-MAX_REJECTION_SCAN = 200
+MAX_REJECTION_SCAN = 50
+REJECTION_SUMMARY_TIMEOUT_SECONDS = 8.0
+_REJECTION_CALL_FAILED = object()
+_REJECTION_SUMMARY_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
 
 class ShadowTestRequest(BaseModel):
@@ -85,6 +89,20 @@ def create_trading_evolution_router(
 
     @router.get("/rejection-summary")
     def rejection_summary(request: Request) -> dict[str, Any]:
+        result = _guarded_rejection_summary()
+        if result is _REJECTION_CALL_FAILED:
+            return {
+                "total_tested": 0,
+                "total_promoted": 0,
+                "total_rejected": 0,
+                "rejection_breakdown": {},
+                "rejected_variants": [],
+                "provenance": "timeout",
+                "degraded": True,
+            }
+        return cast(dict[str, Any], result)
+
+    def _rejection_summary_payload() -> dict[str, Any]:
         persisted = None
         if use_persisted_rejections and graph_store_factory is not None:
             try:
@@ -130,6 +148,13 @@ def create_trading_evolution_router(
             "rejected_variants": entries[:10],
             "provenance": provenance,
         }
+
+    def _guarded_rejection_summary() -> dict[str, Any] | object:
+        future = _REJECTION_SUMMARY_EXECUTOR.submit(_rejection_summary_payload)
+        try:
+            return future.result(timeout=REJECTION_SUMMARY_TIMEOUT_SECONDS)
+        except concurrent.futures.TimeoutError:
+            return _REJECTION_CALL_FAILED
 
     @router.get("/active")
     def active_variant() -> dict[str, Any]:

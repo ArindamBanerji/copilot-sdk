@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures/copilot-fixture";
 
 const FRONTEND = process.env.TRADING_FRONTEND ?? "http://127.0.0.1:5174";
 const BACKEND = process.env.TRADING_BACKEND ?? "http://127.0.0.1:8010";

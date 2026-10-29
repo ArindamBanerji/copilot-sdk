@@ -35,7 +35,7 @@ export default defineConfig({
       testMatch: /.*\.spec\.ts/,
       workers: 1,
       use: {
-        baseURL: `http://${HOST}:5174`,
+        baseURL: `http://${HOST}:8001`,
         extraHTTPHeaders: { "X-Graph-Integration": "age" },
       },
     },

@@ -8,7 +8,8 @@ test("PUR-06 demand-limit", async ({ request }) => {
   // Mutation cleanup: investigation is read-only shadow scoring.
   const body = await response.json();
   expect(body.steps.length).toBeGreaterThan(0);
-  expect(body.steps[0].factor_name).toBe("event_flag");
+  expect(body.steps[0].factor_name).toBe("historical_waste");
+  expect(body.steps[1].factor_name).toBe("event_flag");
   expect(body.contrast.action_name).toBe("order_less");
   expect(body.snapshot.factor_names).toContain("historical_waste");
 });

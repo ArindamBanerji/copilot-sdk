@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../fixtures/copilot-fixture";
 import { clickTab } from "../helpers/ui";
 
 const BACKEND = process.env.TRADING_BACKEND || "http://127.0.0.1:8010";

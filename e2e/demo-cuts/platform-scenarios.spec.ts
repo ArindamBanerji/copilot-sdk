@@ -50,7 +50,7 @@ test.describe.serial("Platform Scenarios — Cross-Domain", () => {
     // When populated, each signal should reference a source domain.
     if (Array.isArray(signals) && (signals as JsonRecord[]).length > 0) {
       for (const sig of signals as JsonRecord[]) {
-        const source = sig.source ?? sig.source_domain ?? sig.origin;
+        const source = sig.source_copilot ?? sig.source ?? sig.source_domain ?? sig.origin;
         expect(source, "each signal should have a source domain").toBeTruthy();
       }
     }

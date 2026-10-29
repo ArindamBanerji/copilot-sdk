@@ -1,5 +1,52 @@
 # Session State
 
+## VERDICT-P2-SEED-RECEIPTS (Oct 20, 2026)
+
+VERDICT-P2-SEED-RECEIPTS: Implemented deterministic seed receipts in
+`scripts/seed_all_decisions.py`.
+Receipt count: fresh direct-seed tests produced 200 decisions, 200 outcomes,
+and 200 receipts in each of trading, purchasing, dataops, and s2p. Existing
+verified seed outcomes are repaired; live/non-seed and unverified decisions
+are not attested.
+Idempotency: verified that a second run creates zero receipts and leaves each
+domain's receipt count and hash chain unchanged. Receipt intents and hashed
+payloads use only stable seed decision/outcome data with `source=demo_preseed`
+and `sample_type=T-sim`; no clock, random UUID, or session value is included.
+Completion marker: advanced to marker version 2 with `receipts:v1`, so old
+markers trigger receipt repair before the new marker is written.
+Tests: focused seed suite 22 passed; SDK root suite 4779 passed, 1 skipped,
+1 xfailed; mypy passed for the seed writer and its tests.
+State: all four SDK domains produce R>0 after direct seed or repair. Combined
+with P1 and restart, READY is expected; without P1, SOC C/anchor/F still block.
+
+## FIX-FIXTURES-CONSERVATION (Oct 20, 2026)
+
+FIX-FIXTURES-CONSERVATION: Fixed `seed_purchasing()` in
+`scripts/preseed_demo_fixtures.py`.
+Pre-checks: Traced the learn response schema and confirmed the exact
+per-decision evidence path is the top-level `result["conservation_status"]`.
+Also fixed: no other seed functions affected; `seed_trading()` uses regime
+status, and this file has no `seed_dataops()` function.
+Post-checks: Line-by-line verified, diff reviewed, and missing evidence,
+all-non-RED evidence, and non-200 response behavior confirmed.
+Changed from aggregate conservation endpoint validation to per-decision learn
+response evidence. Updated the tracer's source-contract narrative accordingly.
+Tests: mypy passed for both fixture and tracer scripts; the SDK root suite
+reported 4770 passed, 2 skipped, 1 xfailed, and one transient live FRED-data
+failure that passed on isolated rerun. The 8 relevant fixture-reference tests
+passed. The live tracer and `--scenario purchasing` execution both passed.
+
+## PRESEED-FIXTURES-TRACER (Oct 20, 2026)
+
+PRESEED-FIXTURES-TRACER: Built `scripts/trace_preseed_fixtures.py`.
+Ran probes 1-5 against the live Purchasing backend on localhost:8020.
+Full findings in `docs/preseed_fixtures_trace.md`.
+Key finding: all five learn responses reported per-decision conservation RED
+(`recent_q=0.74 < theta_min=0.75`) while the aggregate conservation endpoint
+remained GREEN (`alpha*q*V=178.0 > theta_min=0.0989`), so
+`seed_purchasing()` checks an aggregate condition that the post-SDK-preseed
+history does not satisfy.
+
 ## PW-SELFDIAG (Sep 18, 2026)
 Rewrote the 28 non-permanent, non-protected demo specs to probe endpoints
 before asserting. Endpoint failures now auto-skip with the actual HTTP status.
@@ -11262,3 +11309,993 @@ mypy: clean (exit 0) on tests/backend/test_self_computation_router.py.
 - Sampling gate: 3/3 PASS (current scorer suite paths used because the requested root paths are absent)
 - EXIT gate: PASS
 - Sol review (Rule #96): PASS; the P3 finding was fixed and the follow-up review found no remaining blockers
+
+## FIX-PW-SDK-E2E (2026-10-17)
+- Files changed: `e2e/dataops/cohort-status.spec.ts`; `e2e/purchasing/audit-export.spec.ts`, `cohort-status.spec.ts`, `performance.spec.ts`; `e2e/s2p/active-age-smoke.spec.ts`, `cohort-status.spec.ts`, `control_tower.spec.ts`, `cross-copilot-signal.spec.ts`, `evidence-chain.spec.ts`, `flows.spec.ts`, `helpers.ts`, `insight.spec.ts`, `phase1.spec.ts`, `pvg.spec.ts`, `rule-vs-reasoning.spec.ts`, `shadow-smoke.spec.ts`, `situation-analyzer.spec.ts`, `triage.spec.ts`; `e2e/trading/demo-narrative.spec.ts`, `evidence.spec.ts`, `journal-query.spec.ts`, `log-trade.spec.ts`.
+- Locators fixed: 26 sites (21 S2P invoice-selection/pattern sites, 2 Trading archetype tests, 1 Trading evidence contract, 2 Purchasing audit heading sites).
+- Timeouts adjusted: 8 explicit response-timeout/wait sites.
+- tsc result: PASS (0 errors).
+- Stale pattern grep: CLEAN.
+- Layer 3 grep gate: PASS.
+
+## FIX-PW-SDK-FRONTEND (2026-10-18)
+- Components fixed: `apps/dataops/frontend/src/components/ProductsCard.tsx`, `apps/dataops/frontend/src/components/NLQueryPanel.tsx`, `apps/s2p/frontend/src/components/DayZeroReadinessPanel.tsx`
+- Root causes: ProductsCard treated a timed-out safe read as a valid empty dataset; zero-trust NL attribution rendered at zero width; readiness requests had no component deadline or visible unavailable state.
+- Shared component impact: NONE
+- Frontend build: ALL 4 PASS
+- E2E tsc: PASS
+- SDK pytest: 4773 passed, 1 xfailed
+- Layer 3 grep gate: PASS
+- Sol review: PASS — no blocking findings
+
+DIAG-TRADING-PW-v1 | 2026-10-18 | 5F+2Fl | C1: archetype detail request is unmocked and the locator stops at the header wrapper; C2: the score decision ID is correct, but evidence graph reads can return 503 or exceed the frontend 5s deadline; C3: the test uses the default response timeout against a synchronous, mutation-locked, graph-heavy learn path; flaky claim-gate graph exceptions surface as 500 and ticker lookup calls yfinance behind a 3s provider timeout.
+
+FIX-TRADING-EVIDENCE-DEADLINE | 2026-10-18 | safeApiGet evidence timeout 5s→15s | PASS
+
+FIX-TRADING-PW-TESTS | 2026-10-18 | C1 mock+locator, C3 timeout, claim-gate 503 | PASS (task delta): mypy 1 file/0 errors; 503 behavior and factory import pass; E2E tsc reports 1 pre-existing error in unchanged e2e/helpers/capture-content.ts; 0 Playwright tests run
+
+REV-TRADING-PW-FIXES | 2026-10-18 | Sol review of PW-TESTS + EVIDENCE fixes | BLOCKED | 1 P1, 2 P2, 0 P3
+
+FIX-TRADING-SOL-FINDINGS | 2026-10-18 | F1 test budget + F2 helper + F3 _number log | PASS (mypy 0 errors; E2E tsc only allowed pre-existing capture-content.ts:262 error; 3/3 findings addressed)
+
+FIX-TRADING-P1-DIAG-DESIGN | 2026-10-18 | P1-A mock fix + P1-B SC panels fix + fixture migration | PASS | Files: e2e/trading/demo-narrative.spec.ts, apps/trading/frontend/src/App.tsx, e2e/trading/reconvergence.spec.ts, e2e/trading/rejection-moment.spec.ts
+
+REV-TRADING-P1-FIXES | 2026-10-18 | BLOCKED | Findings: 2 P1, 0 P2, 2 P3 | Design verified: P1-A mock shape ✓, P1-B Option B conditional ✓ (blast-radius regression), fixture migration ✓
+
+DIAG-SC-PANEL-TESTS | 2026-10-18 | 50 safe / 35 must fix / 0 investigate
+
+FIX-TRADING-SC-PANEL-REFS | 2026-10-18 | 8 files | 35 assertions | tsc: PASS | CHK-1 rows: 35
+
+DIAG-TRADING-RERUN3 | 2026-10-18 | 3 files | 11 tests | F1-F6 hard, FL1-FL5 flaky
+Fix classifications: A=0, B=5, C=6
+Journal root cause: the test checks `tbody` before asynchronous journal loading settles, then asserts the real empty-state text while the loading surface is still rendered.
+
+FIX-TRADING-RERUN3 | 2026-10-18 | 7 files | 11 tests fixed
+B-class: 5 retargeted to Dashboard-native
+C-class: 6 timing/target fixes
+E2E typecheck: PASS
+PW results per file:
+  flows.spec.ts: 18 passed / 1 failed / 2 flaky
+  story-flow.spec.ts: 9 passed / 0 failed / 0 flaky
+  journal.spec.ts: 4 passed / 1 failed / 0 flaky
+  archetype.spec.ts: 4 passed / 1 failed / 2 flaky (one permitted file retry completed)
+  day-zero.spec.ts: 1 passed / 1 failed / 8 flaky / 1 skipped
+  performance.spec.ts: 7 passed / 0 failed / 0 flaky
+  regime-analytics.spec.ts: 4 passed / 1 failed / 0 flaky (one permitted file retry completed)
+Notes: All scoped B-class assertions and the scoped journal/performance changes passed. Remaining failures expose intermittent Dashboard/backend readiness: archetype content absent despite API health, DayZeroPanel absent across the file, and RegimeAnalyticsPanel falling back after its frontend fetch. Unrelated flows/journal tests also failed; they were not changed because the task forbids modifying tests outside F1-F6/FL1-FL5.
+
+## DIAG-DASHBOARD-INSTABILITY — 2026-10-18
+
+Diagnostic only: no application or test code changed. The preceding rerun's per-test output for day-zero, archetype, flows, and journal was not found in the retained artifacts; their exact failed/flaky identities cannot be reconstructed from aggregate counts. The retained regime-analytics traces and snapshots were inspected. Counts below are reported rerun results, not new test runs.
+
+**Q1. Dashboard tree and guards.** App mounts `DashboardScreen` under `activeTab === "dashboard" ? (...) : null`. Within it, `if (loading)` returns only the loading card; `if (tabError)` returns only Dashboard unavailable. After both gates, the following are unconditional: `TransferBadge`, `DayZeroPanel`, `ArchetypeSelector`, `MarketContext`, `TickerPanel`, `RegimePanel`, `PortfolioSummary`, `PatternBadge`, `AccuracyByCategory`, `PortfolioConcentration`, `ThesisBreakdown`, `CalendarHeatmap`, `DecisionHistory` (whose `renderCard` renders `TradeCard` for decisions), and `DataTrustBadge`. The Get started faster card is guarded by `{joinedTrades.length === 0 ? (...) : null}`. `TickerPanel` internally runs its load under `if (!disabled)` and returns `null` under `if (!error)`. Dataset values use optional/default expressions, not component guards.
+
+**Q2. Lazy loading.** No React.lazy, dynamic import, or Suspense occurs in DashboardScreen or App; components are statically imported.
+
+**Q3. App gates.** Initial `activeTab` is `dashboard`; switching tabs unmounts it via the condition in Q1. No top-level auth, loading gate, or error boundary in App. Trajectory fetch updates IKS or falls back to 50 without blocking the screen. `SelfComputationPanels` now mounts only under ``{activeTab === "performance" ? <SelfComputationPanels baseUrl={`${API_BASE}/api/self`} /> : null}``.
+
+**Q4. Dashboard effects.** On mount `Promise.all([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])` calls GET `/api/context/analytics`, `/api/history`, `/api/context/trade-metadata`, `/api/context/market-snapshot`. Each uses `apiGet` and a 5,000 ms default abort deadline. Once mounted, TickerPanel's effect calls `/api/context/ticker/${encodeURIComponent(ticker.toUpperCase())}` for each distinct open ticker when `!disabled`; it depends on metadata, disabled, and onTickers. Descendant panels and App have their own effects, separate from DashboardScreen's four-request gate; App calls `/api/trajectory`.
+
+**Q5. Assertions and identities.** All 11 current day-zero tests call `gotoDashboard`, whose common assertion is `await expect(page.getByTestId("day-zero-panel")).toBeVisible({ timeout: 20_000 });`. Their subsequent assertions are:
+
+- `day zero card visible on dashboard`: `await expect(page.getByTestId("day-zero-card")).toBeVisible({ timeout: 20_000 });` and `await expect(page.getByTestId("day-zero-panel").getByRole("heading")).toBeVisible();`
+- `day zero shows honesty caption` and `DZ-05: shared panel shows the fake ROI honesty caption`: `await expect(page.getByTestId("day-zero-caption")).toContainText(/fake ROI|proof.*calibrating/i);`
+- `instrument state has no fabricated magnitude and uses plain language`: `await expect(panels).toBeVisible();` and `await expect(panels).not.toContainText(/fabricated/i);` where panels is `page.getByTestId("day-zero-panel")`.
+- `accumulating state shows verified decision progress` and `DZ-02: shared panel renders accumulating state`: `await expect(page.getByTestId("day-zero-accumulating-body")).toContainText(/12 decisions verified/i);`
+- `measured state shows accuracy and IKS`: `await expect(page.getByTestId("day-zero-panel")).toBeVisible({ timeout: 20_000 });`, `await expect(page.getByTestId("day-zero-state")).toHaveText("MEASURED", { timeout: 20_000 });`, and `await expect(page.getByTestId("day-zero-measured-body")).toContainText(/\d+%/, { timeout: 20_000 });`.
+- `DZ-01: shared panel renders instrument-validated state`: `await expect(page.getByTestId("day-zero-panel")).toBeVisible();`; `DZ-03: shared panel renders measured state`: `await expect(page.getByTestId("day-zero-measured-body")).toContainText(/\d+%/);`; `DZ-04: shared panel shows evidence tier badge`: `await expect(page.getByTestId("day-zero-evidence-tier")).toBeVisible();`; `DZ-06: Trading Dashboard renders the shared DayZeroPanel`: `await expect(page.getByTestId("day-zero-card")).toBeVisible();` and `await expect(page.getByTestId("day-zero-panel")).toBeVisible();`.
+- Archetype line 38, `archetype selector renders on Dashboard`, and line 44, `archetype dropdown shows domain-filtered options`, each call `await waitForScreenReady(page, 30_000);` then `await expect(page.getByRole("heading", { name: "Industry Archetype", exact: true })).toBeVisible({ timeout: 30_000 });`. The other UI tests assert `await expectAnyText(page, [/Industry Archetype/i, /Archetype Advantage/i]);` or the exact Industry Archetype and Archetype Advantage headings. Aggregate results do not identify which three failed/flaked.
+- Flows 1 failure/2 flaky and Journal 1 failure: identities and actual failing assertion cannot be established from retained aggregate results, so naming them would be speculation. The scoped passing Dashboard flow `dashboard shows decision history entries` asserts `await expect(page.getByRole("heading", { name: "Decision History", exact: true })).toBeVisible({ timeout: 20_000 });`. Journal tests assert Journal-specific headings, filters, table/empty state, or console errors on the Journal tab; they do not all wait for a Dashboard element.
+- Regime: `test_regime_analytics_shows_per_regime_accuracy` failed at `await expect(panel).toBeVisible({ timeout: 20_000 });`, with `const panel = page.getByTestId("regime-analytics-panel");` on Performance. The retained error context confirms this exact assertion in both attempts.
+
+**Q6. Day-zero readiness.** Every test uses the same helper: mock market snapshot, `page.goto("/", { waitUntil: "domcontentloaded" })`, `waitForAppShell`, click Dashboard, `waitForAppShell`, then the 20-second day-zero-panel visibility assertion. State tests install mock health/conservation before navigation. Assertions auto-retry; they are not immediate synchronous checks. Shell readiness is not successful dashboard readiness, and panel visibility doesn't guarantee its own state fetch has completed; state-specific `toHaveText`/`toContainText` also auto-retry.
+
+**Q7. Common element.** No element is shared by all residual tests: day-zero waits for day-zero-panel, archetype for headings, regime for a Performance panel, and Journal targets Journal. Within day-zero the shared locator is day-zero-panel. Dashboard gate is a common plausible cause only for tests requiring its children.
+
+**Q8. Regime fetch.** PerformanceScreen renders RegimeAnalyticsPanel unconditionally; its effect uses `apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics")`, which executes ``fetch(`${API_BASE}${path}`, { signal: controller.signal })`` with a five-second abort and rejects non-2xx or JSON errors.
+
+**Q9. Regime fallback.** `.catch((loadError) => { console.debug("regime analytics unavailable", loadError); if (!cancelled) setError("Regime analytics unavailable."); })`; after loading, `if (error) return <div className="text-sm text-red-500">{error}</div>;` and `if (!payload) return null;`. The reason is logged at debug level but not displayed or retried.
+
+**Q10. URL/CORS.** In both retained traces direct request and browser used `http://127.0.0.1:8010/api/trading/regime-analytics`; direct requests returned 200. `API_BASE` derives from VITE_API_URL or VITE_COPILOT_HOST/8010; Vite's `define` sets VITE_API_URL from COPILOT_HOST to port 8010, so this path is absolute and does not use the `/api` proxy. The test's BACKEND can independently be overridden by TRADING_BACKEND, so other configurations can differ. Default backend CORS includes `http://127.0.0.1:5174`; CORS_ORIGINS can override it. No mismatch or CORS failure is shown in these traces.
+
+**Q11. Day Zero.** The actual shared component is `copilot_sdk/frontend/DayZeroPanel.tsx`. It always returns the card and panel, including while `loading` (which only changes `const title = loading ? "Measurement state" : titleFor(state.state)`). Its catch sets default instrument state and error, with `{error ? <p ...>Live state unavailable; showing the instrument contract.</p> : null}`. No internal empty/loading return; its health and conservation fetches have no explicit timeout.
+
+**Q12. Archetype.** The effect uses `Promise.all([fetchArchetypes("trading"), fetchCurrentArchetype()])`; while loading it returns `Loading industry archetypes...`, without the heading. On failure it sets error and clears loading; then the Industry Archetype heading, error, empty selector and default description still render. An empty list likewise renders the section, with no options and disabled Apply. Detail fetch is separate and errors display. A pending request can delay the heading, but a settled API error does not silently hide the component.
+
+**Q13. Parent conditions.** Both are unconditional in Dashboard's success branch, but neither mounts while loading or after any of the four required requests rejects. Empty successful history gives `joinedTrades.length === 0` and shows the get-started card; it does not hide these panels. An API error yields the screen-level unavailable card, not a child empty state.
+
+**Q14. Health check.** Shared `copilot-fixture.ts` retries `/health` until an OK response; it also waits for fingerprint and conservation requests but ignores their status/results and catches errors. It does not check the four Dashboard endpoints or their data. Day-zero and regime specs use their own `/health` OK check and skip if it fails, rather than the shared fixture. This is backend health, not UI/data readiness.
+
+**Q15.** Yes. Health can pass while Dashboard requests are pending, failing, slow, or returning empty data. `waitForAppShell` checks main attachment/nonempty and a narrow loading-text regex, not data success; `waitForScreenReady` accepts both Dashboard success and error (`data-screen-ready="true"`).
+
+**RC-A — Dashboard mount.** APPLICATION plus backend TIMING/INFRASTRUCTURE: a confirmed all-or-nothing parent gate can suppress all children when any request fails or exceeds 5 seconds; it remains on the error surface without retry. Prior DIAG-SEQ-D documented `/api/history` at 8.5 MB/3.1 s sequential and a concurrent abort leading to Dashboard unavailable, so contention is a supported historical mechanism, but the missing rerun traces prevent identifying which request failed in this rerun. Empty successful data does not suppress children. Waiting longer in Playwright cannot recover a terminal error; pure assertion timing is not established for the missing-panel observations. Option B restricts SelfComputationPanels to Performance and reduces Dashboard traffic; it does not directly guard these children. It may still add load on Performance; causation for this rerun is unproven. Blast radius: up to the 9 reported failed/flaky day-zero cases and 3 archetype cases, plus any Dashboard-dependent flows; exact attribution unavailable. Complexity: moderate (partial loading and bounded reads), potentially needs design for scalable history.
+
+**RC-B — Regime.** APPLICATION/TIMING: both preserved attempts show the browser request to the same URL ending `net::ERR_ABORTED` and console `regime analytics unavailable AbortError: signal is aborted without reason`; this corresponds to the apiGet deadline, not unmount (cleanup only sets cancelled). The direct API request succeeded with a 30-second test timeout; first attempt took 5.309 seconds, retry 1.567 seconds. Browser requests run amid many Performance panel requests and are distinct from direct requests; after the abort the component permanently displays generic error until remount. URL mismatch and CORS are not supported by these traces. Blast radius: the one reported failing regime test, potentially other consumers of slow reads; complexity moderate to address latency/contention and explicit retry/deadline handling.
+
+**RC-C — Multiple issues.** Dashboard gating and the independently mounted Performance regime fetch are distinct failure paths, possibly sharing backend contention. Journal and the three unscoped flows cannot be attributed without their missing per-test logs/traces; they may be independent. Classifications and exact blast radius for those four are undetermined. Total reported residual outcomes: 5 failures and 12 flaky across these five specs; do not equate that total with a confirmed single cause. Complexity for unidentified cases is unknown.
+
+**Recommended fix approach (not implemented).** First retain per-test Playwright traces and record endpoint status, duration and abort cause for the missing flows, Journal, archetype and day-zero outcomes. Decouple Dashboard independent panels from the four-request gate, retain visible per-source errors and truthful empty states, and bound/materialize history rather than silently substituting data. Optimize regime analytics' graph reads and set a justified endpoint-specific deadline/retry with observable errors; test failure/recovery and actual data. Make readiness helpers distinguish successful, loading and unavailable screens, and use deterministic mocks only for component-specific contracts. Initial estimate 4–7 files, roughly 150–300 lines including meaningful tests; backend history/regime optimization may need additional files and design after profiling. Longer assertion waits alone cannot fix a five-second terminal frontend abort.
+
+## FIX-TRADING-DASHBOARD-STABILITY v2 — 2026-10-19
+
+Scope: the user explicitly extended the original 30-line limit after the implementation reached 25 additions and 14 deletions. Application changes are limited to `DashboardScreen.tsx` and `RegimeAnalyticsPanel.tsx`; no test source was edited. `api.ts` was not edited.
+
+### Design and pre-change checks
+
+**DPC-1.** The gate was `Promise.all([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])`. The guards were `if (loading) { return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading trading dashboard...</div>; }` and `if (tabError) { return (` followed by `<h2 className="text-base font-semibold">Dashboard unavailable</h2>` and the error card. Thus no children mounted until all four succeeded.
+
+**DPC-2.** `export async function apiGet<T>(path: string, timeoutMs = DEFAULT_API_TIMEOUT_MS): Promise<T> {`, with `const DEFAULT_API_TIMEOUT_MS = 5000;`, `const controller = new AbortController();`, `const timeout = window.setTimeout(() => controller.abort(), timeoutMs);`, and ``const response = await fetch(`${API_BASE}${path}`, { signal: controller.signal });``. It already accepts an optional positional timeout in milliseconds.
+
+**DPC-3.** Original `apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics")` passed no timeout, so used 5,000 ms. Its catch was `.catch((loadError) => { console.debug("regime analytics unavailable", loadError); if (!cancelled) setError("Regime analytics unavailable."); })`.
+
+**DPC-4.** Dependency map: `analytics`, `history`, `metadata`, `market` are the respective four results. “Independent” means mountable without the result; required props such as callbacks, API base, or arrays must still be supplied.
+
+| Component | Receives result? | Which? | Own fetch? | Can mount independently? |
+|---|---|---|---|---|
+| TransferBadge | No | — | Yes, transfer status | Yes, needs API base |
+| DayZeroPanel | No | — | Yes, health/conservation | Yes |
+| Get started faster card | Yes, condition | history + metadata via joinedTrades | No | Only if the joined data is known to be empty |
+| ArchetypeSelector | No | — | Yes, archetypes/current/detail; comparison child fetches | Yes |
+| MarketContext | Yes | market | No | Optional prop accepted; missing data shown as dashes, now hidden on failure with source warning |
+| TickerPanel | Yes | metadata | Yes, per open ticker | Requires metadata object; default `{}` works |
+| RegimePanel | No | — | Yes | Yes |
+| PortfolioSummary | Yes | analytics | No | Optional prop accepted, but zero defaults can mislead; hidden when analytics fails |
+| PatternBadge | No | — | Yes | Yes |
+| AccuracyByCategory | No | — | Yes | Yes |
+| PortfolioConcentration / ThesisBreakdown | Yes | analytics | No | Optional props accepted; hidden with analytics-dependent grid |
+| Dataset card | Yes | analytics, joinedTrades | No | Fallbacks can imply data; hidden if analytics fails |
+| CalendarHeatmap | Yes | analytics, history, metadata via joinedTrades | No | Requires trades array; hidden when a required source fails |
+| DecisionHistory / TradeCard | Yes | history, metadata, tickers via joinedTrades | No | Requires decisions array/card trade; hidden if history or metadata fails |
+| DataTrustBadge | No | — | Yes, fingerprint | Yes, needs API base |
+
+**DPC-5.** `rg -n 'from .*trading.*api' apps --glob '*.ts' --glob '*.tsx' --glob '!**/node_modules/**'`, excluding `apps/trading/`, returned no matches. Trading's `api.ts` is Trading-specific; no cross-copilot import was found by this check.
+
+**DPC-6.** No `Dashboard unavailable` reference appears in E2E TypeScript. `rg` found only two references in DashboardScreen. No audited spec directly waits for the Dashboard loading text. Readiness and success-content evidence:
+
+| Spec | Readiness and assertions after the gate |
+|---|---|
+| dashboard | `await waitForScreenReady(page);`, `await waitForAppShell(page);`; e.g. `await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();` and Portfolio Summary |
+| day-zero | `waitForAppShell`, `clickTab`, then `await expect(page.getByTestId("day-zero-panel")).toBeVisible({ timeout: 20_000 });` |
+| archetype | `waitForAppShell`, `clickTab`, `expectAnyText`, sometimes `waitForScreenReady`; Industry Archetype heading |
+| flows | `waitForAppShell`, `clickTab`, `expectAnyText`; `main > [data-screen-ready="true"]` and exact Decision History heading in one test. Navigation cycle accepts generic `/Loading/i` as one alternative, not a Dashboard loading requirement |
+| sweep | `waitForAppShell`, `clickTab`; `await expect(page.getByTestId("day-zero-panel")).toBeVisible();` and trust/measurement text |
+| new-surfaces | `page.goto(...domcontentloaded...)`, `clickTab`; `await expect(panel).toBeVisible({ timeout: 60_000 });` for day-zero-panel |
+
+| Fix | File | Current code | New code | Rationale | Source proof |
+|---|---|---|---|---|---|
+| A1 | DashboardScreen | `Promise.all([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])` | `Promise.allSettled(...)` with per-result status checks | Individual failures no longer reject the entire load | `if (tabError) {` returned only the error card |
+| A2 | DashboardScreen | `setHistory(nextHistory);` and error return | Empty/undefined inputs, source warnings, and guards around data-dependent sections | Unrelated panels mount without presenting missing results as empty data | `<DayZeroPanel copilot="trading" port={8010} />` and `<ArchetypeSelector />` followed the gate |
+| B1 | RegimeAnalyticsPanel | `apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics")` | Same call with positional `15000` | Give the observed slow request a reasonable deadline | `if (!cancelled) setError("Regime analytics unavailable.");` |
+| B2 | RegimeAnalyticsPanel | catch sets error on first rejection | Retry one AbortError after 1 second while mounted | Transient abort can recover; other errors retain existing behavior | `if (error) return <div className="text-sm text-red-500">{error}</div>;` |
+
+**DV-1.** Independent panels need no result data. CalendarHeatmap and DecisionHistory require arrays, TradeCard requires a trade, and the dataset and portfolio cards can misrepresent defaults; failed data results become undefined/empty for typed state and affected sections are suppressed while a source-specific unavailable message is displayed. **DV-2.** No audited test asserts the removed normal rejection path. The existing error guard remains only for unexpected promise-handler errors; all four settled rejections produce four source warnings and still mount independent panels, as no audited spec requires a total-failure card. **DV-3.** The retry is inside `useEffect`; the component can unmount during the delay or request. The existing effect-local `cancelled` cleanup flag is checked before and after the delay and before subsequent state updates; it avoids a retry after unmount and ignores results after unmount. The underlying in-flight `apiGet` is not externally cancelled.
+
+### CHK-1 and CHK-2: complete line audit
+
+Line numbers refer to the resulting files; `—` denotes a newly inserted line. Every added/replacement line is analyzed: TypeScript checked by `tsc`; “safe” below means safe for the typed result/state contract, with network rejection deliberately handled by the existing catch. The numbered four-source array is indexed only by `flatMap` over exactly four entries. User extended the original line cap.
+
+| File:line | Before | After | Type / runtime analysis |
+|---|---|---|---|
+| Dashboard:163 | — | `  const [unavailable, setUnavailable] = useState<string[]>([]);` | string array state; safe |
+| Dashboard:176 | `    Promise.all([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])` | `    Promise.allSettled([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])` | inferred tuple of settled results; synchronous invocation may still throw, as before |
+| Dashboard:179 | `        setAnalytics(nextAnalytics);` | `        setAnalytics(nextAnalytics.status === "fulfilled" ? nextAnalytics.value : undefined);` | narrowed Analytics/undefined; safe |
+| Dashboard:180 | `        setHistory(nextHistory);` | `        setHistory(nextHistory.status === "fulfilled" ? nextHistory.value : []);` | narrowed history/empty array; safe |
+| Dashboard:181 | `        setMetadata(nextMetadata);` | `        setMetadata(nextMetadata.status === "fulfilled" ? nextMetadata.value : {});` | narrowed metadata/empty record; safe |
+| Dashboard:182 | `        setMarket(nextMarket);` | `        setMarket(nextMarket.status === "fulfilled" ? nextMarket.value : undefined);` | narrowed market/undefined; safe |
+| Dashboard:183 | — | `        setUnavailable([nextAnalytics, nextHistory, nextMetadata, nextMarket].flatMap((result, index) =>` | settled union and numeric index; safe |
+| Dashboard:184 | — | `          result.status === "rejected" ? [["Analytics", "History", "Trade metadata", "Market snapshot"][index]] : [],` | yields string array for four fixed indexes; safe |
+| Dashboard:185 | — | `        ));` | closes map/state call; safe |
+| Dashboard:232 | — | `      {unavailable.map((source) => <div key={source} className="copilot-card p-4">{source} unavailable.</div>)}` | string/JSX array; fixed unique names, safe |
+| Dashboard:233 | `      {joinedTrades.length === 0 ? (` | `      {unavailable.length === 0 && joinedTrades.length === 0 ? (` | boolean condition; safe |
+| Dashboard:246 | `      <MarketContext snapshot={market} />` | `      {market ? <MarketContext snapshot={market} /> : null}` | narrowed optional snapshot; safe |
+| Dashboard:249 | `      <PortfolioSummary summary={analytics?.portfolioSummary} />` | `      {analytics ? <PortfolioSummary summary={analytics.portfolioSummary} /> : null}` | narrowed Analytics; safe |
+| Dashboard:253 | `      <div className="trading-grid trading-grid-3">` | `      {analytics ? <div className="trading-grid trading-grid-3">` | conditional JSX; safe |
+| Dashboard:276 | `      </div>` | `      </div> : null}` | closes conditional JSX; safe |
+| Dashboard:278 | `      <CalendarHeatmap trades={joinedTrades} calendar={analytics?.calendarHeatmap} />` | `      {analytics && !unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <CalendarHeatmap trades={joinedTrades} calendar={analytics.calendarHeatmap} /> : null}` | narrows analytics and supplies array; safe |
+| Dashboard:280 | `      <DecisionHistory` | `      {!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <DecisionHistory` | boolean condition; existing required props follow; safe |
+| Dashboard:291 | `      />` | `      /> : null}` | closes conditional JSX; safe |
+| Regime:73 | `    apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics")` | `    apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000)` | number timeout/typed promise; rejection handled |
+| Regime:74 | — | `      .catch(async (loadError: unknown) => {` | async catch typed unknown; safe |
+| Regime:75 | — | `        if (!(loadError instanceof Error && loadError.name === "AbortError") \|\| cancelled) throw loadError;` | type narrowed; intentional rethrow reaches existing catch |
+| Regime:76 | — | `        await new Promise((resolve) => window.setTimeout(resolve, 1000));` | Promise awaited; browser timer, safe |
+| Regime:77 | — | `        if (cancelled) throw loadError;` | intentional rethrow suppresses retry; later catch now returns silently |
+| Regime:78 | — | `        return apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000);` | typed retry promise; rejection reaches existing catch |
+| Regime:79 | — | `      })` | closes catch; safe |
+| Regime:84 | — | `        if (cancelled) return;` | boolean guard; safe; suppresses late debug/state update |
+
+### CHK-3: blast-radius evidence
+
+1. `apiGet<T>(path: string, timeoutMs = DEFAULT_API_TIMEOUT_MS): Promise<T>` is unchanged; `DEFAULT_API_TIMEOUT_MS = 5000`. Existing callers are unaffected. The complete `rg -n 'apiGet' apps/trading/frontend/src --glob '*.ts' --glob '*.tsx'` caller inventory is below; the pre-existing `safeApiGet` wrapper already passed an explicit timeout, so the prompt's proposed claim that no other caller passes one would be false. Regime is the only newly changed caller.
+
+```ts
+return await apiGet<T>(path, options?.timeout ?? DEFAULT_API_TIMEOUT_MS);
+return apiGet<Analytics>("/api/context/analytics");
+return apiGet<RegimeCurrentResponse>("/api/trading/regime/current");
+return apiGet<RegimeHistoryEntry[]>(`/api/trading/regime/history?days=${days}`);
+return apiGet<RegimePerformanceResponse>("/api/trading/regime/performance");
+return apiGet<RegimeRecommendationResponse>("/api/trading/regime/recommendation");
+return apiGet<CohortStatusResponse>("/api/trading/cohort-status");
+return apiGet<PromotionDashboardResponse>("/api/trading/promotion/dashboard");
+return apiGet<PromotionDetailResponse>(`/api/trading/promotion/${encodeURIComponent(category)}`);
+return apiGet<VolSharpeResponse>("/api/trading/analytics/vol-sharpe");
+return apiGet<VolatilitySurfaceResponse>(`/api/trading/volatility/sharpe${query}`);
+return apiGet<VolatilitySurfaceResponse>("/api/trading/volatility/vrp");
+return apiGet<VolatilitySurfaceResponse>(`/api/trading/volatility/rich-cheap${query}`);
+return apiGet<VolatilitySurfaceResponse>("/api/trading/volatility/dispersion");
+return apiGet<VolatilitySurfaceResponse>("/api/trading/volatility/tail-bets");
+return apiGet<VrpAttributionResponse>("/api/trading/analytics/vrp-attribution");
+return apiGet<RegimeVrpResponse>("/api/trading/analytics/regime-vrp");
+return apiGet<SituationRegimeResponse>("/api/trading/situation/regime");
+return apiGet<SituationJudgmentResponse>("/api/trading/situation");
+return apiGet<SituationConditionedStatsResponse>("/api/trading/situation/conditioned-stats");
+return apiGet<SituationSharpeResponse>("/api/trading/situation/sharpe-adjustment");
+return apiGet<SituationAbstentionResponse>("/api/trading/situation/abstention");
+return apiGet<SituationRejectionsResponse>("/api/trading/situation/regime-rejections");
+return apiGet<ClaimGateResponse>("/api/trading/claim-gate");
+return apiGet<DispersionFollowResponse>("/api/trading/analytics/dispersion-follow");
+return apiGet<{ decisions?: TradeHistoryDecision[] } | TradeHistoryDecision[]>("/api/history").then((payload) =>
+return apiGet<TransferOpportunitiesResponse>("/api/transfer/opportunities");
+return apiGet<TransferStatusResponse>("/api/transfer/status");
+return apiGet<ArchetypeSummary[]>(`/api/archetypes${query}`);
+return apiGet<ArchetypeDetail>(`/api/archetypes/${encodeURIComponent(name)}`);
+return apiGet<ArchetypeCurrentResponse>("/api/archetypes/current");
+return apiGet<Record<string, TradeMetadata>>("/api/context/trade-metadata");
+return apiGet<MarketSnapshot>("/api/context/market-snapshot");
+return apiGet<TickerData>(`/api/context/ticker/${encodeURIComponent(ticker.toUpperCase())}`);
+return apiGet<TrajectoryResponse>("/api/trajectory");
+return apiGet<ConservationState>("/api/conservation/status");
+return apiGet<FingerprintResponse>("/api/fingerprint");
+return apiGet<{ similar: SimilarTrade[]; count: number }>(`/api/context/similar?${params.toString()}`);
+apiGet<CounterfactualResponse>("/api/trading/score/counterfactual/default")
+apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000)
+return apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000);
+```
+
+2. Pending guard remains `if (loading) { return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading trading dashboard...</div>; }`. 3–4. On a history or analytics rejection, `Promise.allSettled(...)` fulfills; its status-tested setters record the available values and `setUnavailable(...)` records rejected source names, then `.finally(() => { if (!cancelled) setLoading(false); })`. Normal flow reaches `<DayZeroPanel copilot="trading" port={8010} />` and `<ArchetypeSelector />`, neither conditional on those results. Only unexpected exceptions in the settlement handler can enter the retained `tabError` guard. 5. Retry condition is `if (!(loadError instanceof Error && loadError.name === "AbortError") || cancelled) throw loadError;`: HTTP error is an ordinary Error and is not retried. 6. `if (cancelled) throw loadError;` follows the delay; cleanup sets `cancelled = true`; catch and `.then`/`.finally` check it. 7. DashboardScreen had and has no `data-testid`; RegimeAnalyticsPanel before and after contains exactly `regime-analytics-panel`, ``regime-analytics-${stat.regime}``, ``regime-accuracy-${stat.regime}``, and ``regime-iks-${stat.regime}``. None changed. 8. The requested search found `Dashboard unavailable` only in DashboardScreen's fallback error message and heading, and no E2E TypeScript reference; that card remains for unexpected handler errors, not settled request failures.
+
+### Verification and outcome
+
+- Trading frontend `npx tsc --noEmit`: PASS; `npm run build`: PASS (Vite emitted existing Tailwind content-glob and large-chunk warnings). Both rerun after the final cancellation guard.
+- E2E `npx tsc --noEmit`: PASS. `git diff --check` on the two application files and this log: PASS.
+- Initial health: ports 8010, 8020, 8030, 8002 `/health` returned 200; frontends 5174–5177 returned 200. Existing services were used; no restart. The actual commands ran from `e2e/` with `--project=trading --retries=1 --reporter=list` and separate output directories under `.codex_tmp/pw_dashboard_stability/`; no additional spec retries.
+
+| Spec | Passed | Failed | Flaky | Skipped |
+|---|---:|---:|---:|---:|
+| day-zero | 11 | 0 | 0 | 0 |
+| archetype | 7 | 0 | 0 | 0 |
+| flows | 20 | 0 | 1 | 0 |
+| journal | 5 | 0 | 0 | 0 |
+| regime-analytics | 3 | 0 | 0 | 2 |
+| story-flow | 9 | 0 | 0 | 0 |
+| performance | 7 | 0 | 0 | 0 |
+| dashboard | 10 | 0 | 0 | 0 |
+| sweep | 15 | 0 | 0 | 0 |
+| new-surfaces | 7 | 0 | 0 | 0 |
+
+- Flow flaky: `TRD-S3 flow: regime break lowers authority before re-convergence` received HTTP 500 from `/api/trading/situation/regime` at `expect(regime.status()).toBe(200)` on its first attempt, then passed the configured retry. This is a backend endpoint result after the Performance panel appeared, not an identified Dashboard regression.
+- Regime skips: the spec's own 5-second `/health` check timed out for `test_regime_analytics_shows_per_regime_accuracy` and `test_regime_panel_shows_regime_name`. Thus the original live regime panel assertion (`await expect(panel).toBeVisible({ timeout: 20_000 });`, where panel is `regime-analytics-panel` on Performance) was not exercised in this run. A full retry path can take up to 31 seconds, while that assertion has a 20-second wait and the spec has a 30-second test budget; this may need separate test-budget work. Do not infer a live pass from a skip.
+- Additional in-memory browser request probes, without modifying test files: simulated history 503 and analytics 503 separately, with other Dashboard inputs fulfilled, and confirmed source-specific warning plus Day Zero and Industry Archetype visibility in each case. Simulated `AbortError` followed by success: panel visible and exactly two calls. Simulated HTTP 503: error displayed and exactly one call. Unmount during the retry delay: exactly one call, no retry. These probes test the branching behavior, not actual backend latency.
+- No dashboard, sweep, or new-surfaces regression observed; no fix reverted. Live flow and archetype specs issue score/learn and archetype-apply requests to the running demo backend; they are not read-only. New-surfaces setup also logged frontend warmup timeouts, but its seven tests passed.
+
+Layer 1 self-check: 1 PASS (no test source edited; existing dirty files preserved); 2 PASS (default unchanged and pre-existing explicit wrapper documented); 3 PASS (all test IDs unchanged); 4 PASS (both TypeScript checks); 5 PASS (build); 6 PASS (TypeScript narrows the heterogeneous PromiseSettledResult tuple); 7 PASS (effect cancellation guard before retry and updates, validated by probe); 8 PASS (dashboard 10/10). Both fixes landed provisionally in the worktree; live verification of the previously failing regime case remains incomplete because it was skipped.
+
+## REV-TRADING-RERUN3+STABILITY — 2026-10-19
+
+Read-only review of the current worktree; no application or test source was edited. The RERUN3 entry is a short summary rather than a detailed CHK/design table, so the attribution of every line to that prompt cannot be independently reconstructed from the log. Git's diff against HEAD also contains cumulative earlier work. Stability's design/CHK tables and recorded results were reviewed. Historical stability results: day-zero 11 pass, archetype 7 pass, flows 20 pass/1 flaky, journal 5 pass, regime 3 pass/2 skipped, story 9 pass, performance 7 pass, dashboard 10 pass, sweep 15 pass, new-surfaces 7 pass. The originally failing regime accuracy test was skipped. No new Playwright run was requested for this review; these results are not new verification.
+
+### Application review
+
+- **AR-1:** Type-safe heterogeneous tuple narrowing: `Promise.allSettled([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])` then `.then(([nextAnalytics, nextHistory, nextMetadata, nextMarket]) => {` and `setAnalytics(nextAnalytics.status === "fulfilled" ? nextAnalytics.value : undefined);`, `setHistory(nextHistory.status === "fulfilled" ? nextHistory.value : []);`, `setMetadata(nextMetadata.status === "fulfilled" ? nextMetadata.value : {});`, `setMarket(nextMarket.status === "fulfilled" ? nextMarket.value : undefined);`. The `status` discriminant narrows each corresponding value; frontend tsc passes.
+- **AR-2:** On analytics rejection, `setAnalytics(... : undefined)` makes `{analytics ? <PortfolioSummary summary={analytics.portfolioSummary} /> : null}` and `{analytics ? <div className="trading-grid trading-grid-3"> ... </div> : null}` hide PortfolioSummary, PortfolioConcentration, ThesisBreakdown and Dataset; `{analytics && !unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <CalendarHeatmap trades={joinedTrades} calendar={analytics.calendarHeatmap} /> : null}` hides CalendarHeatmap. MarketContext depends on `market`, DecisionHistory on history/metadata; independent panels remain mounted, including `<DayZeroPanel copilot="trading" port={8010} />` and `<ArchetypeSelector />`. TickerPanel receives `{}` as metadata on rejection and produces no ticker reads. No analytics-dependent child receives undefined analytics when the whole analytics result fails; individual optional analytics fields can be undefined and their existing components accept optional props. The Dataset fallback has a partial-count issue (F1).
+- **AR-3:** History and metadata rejection both hide CalendarHeatmap under the guard quoted in AR-2 and hide DecisionHistory under `{!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <DecisionHistory`.
+- **AR-4:** `setUnavailable([nextAnalytics, nextHistory, nextMetadata, nextMarket].flatMap((result, index) => result.status === "rejected" ? [["Analytics", "History", "Trade metadata", "Market snapshot"][index]] : [], ));` correctly maps the fixed four-element array to four aligned source names; index is 0–3, so it cannot be out of bounds for this code. These strings match the history/metadata `includes` guards. It produces four warnings if all four fail; the catch's Dashboard unavailable path is for an unexpected rejection of the processing chain, not ordinary rejected requests.
+- **AR-5:** `{unavailable.length === 0 && joinedTrades.length === 0 ? (` avoids falsely claiming empty history when history or metadata failed. However it also hides onboarding when those two sources succeed empty but unrelated analytics or market data fails; see F2.
+- **AR-6:** `const [loading, setLoading] = useState(true);`, effect `setLoading(true);`, `.finally(() => { if (!cancelled) setLoading(false); });`, and `if (loading) { return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading trading dashboard...</div>; }` prevent child rendering until all four promises settle. A terminal or partial result has `data-screen-ready="true"`.
+- **AR-7:** `apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000).catch(async (loadError: unknown) => { if (!(loadError instanceof Error && loadError.name === "AbortError") || cancelled) throw loadError; await new Promise((resolve) => window.setTimeout(resolve, 1000)); if (cancelled) throw loadError; return apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000); })`. Only AbortError retries. HTTP failures are `throw new Error(`GET ${path} failed with ${response.status}`)` in apiGet, so 4xx/5xx go directly to the final error catch.
+- **AR-8:** `let cancelled = false;`, the `|| cancelled` first catch guard, `if (cancelled) throw loadError;` after the delay, `.then((data) => { if (!cancelled) setPayload(data); })`, catch `if (cancelled) return; ... if (!cancelled) setError("Regime analytics unavailable.");`, and `.finally(() => { if (!cancelled) setLoading(false); })`, with cleanup `return () => { cancelled = true; };`, guard every state update and the retry. Cleanup does not abort a pending network call or clear the timer, but prevents retry/state updates after unmount.
+- **AR-9:** `apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000)` passes 15,000 as the second positional argument accepted by `export async function apiGet<T>(path: string, timeoutMs = DEFAULT_API_TIMEOUT_MS): Promise<T> {`; default remains `const DEFAULT_API_TIMEOUT_MS = 5000;`. The coalescing key includes timeout: `JSON.stringify([API_BASE, path, timeoutMs])`.
+- **AR-10:** Only the first call has the retry catch. `return apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000);` returns the second promise to `.then(...).catch((loadError) => { ... setError("Regime analytics unavailable."); })`; a second AbortError reaches that final catch and is not retried again.
+
+### Test review (TR-1 through TR-5)
+
+Rule #93 audit includes indirect `expectAnyText`, which uses `page.getByText(patterns[0]).first()` and `combined.or(page.getByText(patterns[i]).first())`, and shared `clickTab`, whose final fallback is `page.getByText(name).first().click(...)`. `getByLabel` and `getByPlaceholder` are accessible/semantic selectors, but are not literally getByTestId/getByRole. CSS and XPath are identified below. No timeout in the seven reviewed specs exceeds 60 seconds; 60 seconds in flow/story and performance allows multi-step network flows, though it is not a guarantee that sums of nested waits fit the budget. Shared fixture may raise its users' test budget to at least 60 seconds; the regime and day-zero files import base Playwright and do not use it.
+
+| Spec | TR-1 selectors other than role/testid | TR-2 timeout | TR-3 partial Dashboard dependency | TR-4 mocks/fixtures | TR-5 SDK testids |
+| --- | --- | --- | --- | --- | --- |
+| day-zero | No direct non-role/testid locator; `clickTab` fallback uses text. | Maximum 20s assertion, 5s health, 30s global budget. | Independent DayZeroPanel still waits for allSettled; market/history failures should not hide it. | `page.route("**/api/context/market-snapshot", ...)` always mocks market; `mockMeasurementState` mocks health, conservation, measurement for state cases. Useful isolation but cannot validate real market/measurement integration; its 5s health skip can conceal backend stress. | None. |
+| archetype | Indirect `expectAnyText`/`clickTab` text. | Up to 30s waits; fixture raises budget to at least 60s. | Selector is independent of four results; readiness includes degraded/error screen. | Shared live fixture; no routes. API calls include a state-changing apply POST. | None. |
+| flows | `getByPlaceholder("MSFT")`, `getByLabel(...)`, `locator("section", { hasText: "Research Checklist" })`, `locator('main > [data-screen-ready="true"]')`, `locator("main")`, `getByText("YOUR TWO SELVES")`, `getByText("Performance unavailable")`, `document.querySelector("main")`; indirect `expectAnyText`. | 60s in longer tests; individual waits <=30s. | Decision History requires history+metadata; `expectAnyText(... /Dashboard/i)` can pass on a shell/navigation label without verifying data. | Shared live fixture; `getWithRetry` retries thrown GET failures; fixture itself retries thrown GET/POST errors, potentially masking transient failures. | Explicit `accuracy-alerts-panel` and `decision-explorer-panel` at lines 320/409 follow `gotoPerformanceReady`; Analysis uses distinct Trading components/heading text, not an explicit SDK testid assertion. |
+| journal | `locator("main")`, `locator("main", { hasText: "Trade Journal" })`, `locator("tbody tr")`, `getByPlaceholder("MSFT")`, `getByText(...)`; indirect `expectAnyText`. | Max 15s assertions, fixture >=60s. | Journal tests do not assert Dashboard data. | Shared live fixture; no routes; row test permits real empty state. | None. |
+| regime-analytics | Indirect `clickTab` text fallback only; direct locators use testid. | Base 30s test budget, 20s panel wait, 30s API request; retry budget mismatch F3. | Performance/Analysis tests do not assert Dashboard data. | Base Playwright, no mocks; 5s health skip can conceal loaded-backend failures. | `accuracy-alerts-panel` after `clickTab(page, "Performance")`; native regime panel on Analysis. |
+| story-flow | `.locator("h1, h2, h3, h4", { hasText: heading })`, `.locator("xpath=ancestor::*[self::article or self::section or contains(concat(' ', normalize-space(@class), ' '), ' copilot-card ')][1]")`, `getByPlaceholder`, `getByLabel`, `locator("section", { hasText: "Research Checklist" })`, indirect text. | One 60s score/learn flow, others fixture >=60s. | `panelByHeading(page, "Portfolio Summary")` requires analytics and fails if rejected. | Shared live fixture; no routes; score/learn mutate backend. | No explicit SDK testid asserted; Analysis Decision Explorer is a separate Trading component, Performance headings may name SDK/native panels. |
+| performance | `locator('main > [data-screen-ready="true"]')`, `document.querySelector("main")`, indirect `expectAnyText`/clickTab text. | `test.describe.configure({ timeout: 60_000 })` and `testInfo.setTimeout(60_000)`; individual waits <=30s. | Tests target Performance after navigation, not Dashboard data. | Shared live fixture; helper retries navigation once, potentially masking transient Performance failures. | centroid/accuracy/audit IDs after `clickTab(page, "Performance")`. |
+
+### Cross-check and blast radius
+
+- **XC-1:** Portfolio Summary is guarded by `{analytics ? <PortfolioSummary summary={analytics.portfolioSummary} /> : null}` but `dashboard.spec.ts`'s `shows portfolio summary` and `story-flow.spec.ts`'s Act 1/full story assert it without an unavailable branch. `flows.spec.ts` decision-history test asserts its heading while Dashboard guards it on both history and metadata. These tests can fail on a 5s source abort even though the partial dashboard is correctly available; asserting healthy data may be appropriate for an integration test, but readiness alone does not guarantee it. Day-zero and archetype are unconditional after allSettled. Conversely broad `/Dashboard/i` alternatives can pass on shell text despite missing data.
+- **XC-2:** `e2e/playwright.config.ts` has `timeout: 30_000`; regime spec imports base `test` and has no `test.setTimeout`. It first does `request.get(..., { timeout: 30_000 })`, then `await expect(panel).toBeVisible({ timeout: 20_000 });`. Panel uses first `15000`, then `setTimeout(resolve, 1000)`, then second `15000` (up to 31s after panel mount). A full-length retry cannot finish within the 30s overall budget when initiated within that test, and may exceed the 20s visibility wait; a faster retry can pass. The direct GET/health/navigation consume part of the budget. See F3.
+- **XC-3:** Shared fixture probes `/health`, then `request.get(.../api/fingerprint, { timeout: 5_000 }).catch(() => {})` and conservation likewise; it does not inspect Dashboard outcomes. `waitForScreenReady` only attaches `main > [data-screen-ready="true"]`, which includes both partial success and error. `waitForAppShell` requires nonempty main and excludes only `/^P?PaperLoading (analysis|performance|dashboard|journal|trade detail)\.\.\.$/i`; actual Dashboard loading text is `Loading trading dashboard...`, so it is not a reliable screen/data readiness check. These utilities do not require all four successes and can accept degraded/error content.
+- **BR-1:** `rg -n 'Promise\.all|allSettled' apps/trading/frontend/src -g '*.ts' -g '*.tsx'` found other aggregations including `AnalysisScreen.tsx:75`, `JournalScreen.tsx:64`, `TradeDetailScreen.tsx:102`, `LogTradeScreen.tsx:155`, TickerPanel and many component-level calls. Analysis/TradeDetail have loading/error screen gates and merit separate review; Journal combines safe fetches and checks missing trades; not all aggregations have identical semantics. Informational, not a new blocker here.
+- **BR-2:** `rg -n 'apiGet.*15000' apps -g '*.ts' -g '*.tsx' -g '!**/node_modules/**' -g '!**/dist/**'` finds exactly the two RegimeAnalyticsPanel calls at lines 73 and 78. This does not mean no other 15-second calls: `fetchEvidence` uses `safeApiGet` with `{ timeout: 15000 }` in Trading api.ts.
+- **BR-3:** Same search for `allSettled` found DashboardScreen and PerformanceScreen in Trading, plus DataOps App, DataOps CompoundingCurveOverlay, and S2P DayZeroReadinessPanel. Thus Dashboard is not the sole user.
+- **BR-4:** Warning JSX is `{unavailable.map((source) => <div key={source} className="copilot-card p-4">{source} unavailable.</div>)}`. It uses the established card class but no `trading-muted`, unlike e.g. `<p className="text-sm trading-muted">Trading Backend v2 context, analytics, and decision history.</p>`. Visually consistent card, plain warning text; no browser visual verification in this read-only review.
+
+### Findings and verdict
+
+- **P2 F1 — DashboardScreen.tsx:264:** `{analytics?.totalTrades ?? joinedTrades.length}` can show zero or a partial number as Total trades when history or metadata failed and analytics omits optional `totalTrades` (`types.ts:30`: `totalTrades?: number`). Warning identifies a source failure but the figure itself looks authoritative. Use the joined count only when both inputs are available; otherwise show unavailable, or use a guaranteed authoritative total.
+- **P2 F2 — DashboardScreen.tsx:233:** `unavailable.length === 0` suppresses Get started faster when the successfully loaded history and metadata are truly empty but unrelated analytics or market fails. Gate onboarding on availability of history and metadata and their joined count, not all four sources.
+- **P2 F3 — regime-analytics.spec.ts:51–61 and e2e/playwright.config.ts:6:** The base 30s budget and 20s panel assertion do not cover a full 15s + 1s + 15s retry, especially after the independent direct GET. The prior target was skipped. Increase overall budget and panel wait to include setup and retry, and add deterministic AbortError-then-success, HTTP failure and unmount coverage in a follow-up.
+- **P2 F4 — archetype.spec.ts:42–65:** The dropdown test checks a heading plus an unfiltered API response, not dropdown filtering; the selection and flow tests do not select, inspect description/calibration or confirm warning. For example `await expectAnyText(page, [/Industry Archetype/i, /Archetype Advantage/i]);` can pass with no working selector. Exercise the actual dropdown, selected detail and confirmation/warning, ideally with controlled responses. Some omissions predate RERUN3; the retargeted assertions do not close them.
+- **P2 F5 — flows.spec.ts:180–187:** After asserting the Decision History heading, `await expectAnyText(page, [/No trading decisions yet/i, /Decision History/i]);` is automatically satisfied by the same heading and does not establish that entries or a real empty state are rendered. Scope to the history section and assert a real row/card or explicit empty message, with seeded state where entries are required.
+- **P2 F6 — regime-analytics.spec.ts:46–48:** `test_regime_analytics_panel_on_performance` asserts `accuracy-alerts-panel`/`Accuracy Alerts`, a different panel. A broken RegimeAnalyticsPanel can pass. Assert `regime-analytics-panel` and its expected heading/empty state. This issue predates the scoped RERUN3 line changes but is in the reviewed file.
+- **P3 F7 — story-flow.spec.ts:10–11:** CSS heading traversal plus XPath ancestor selection conflicts with literal Rule #93 and is coupled to DOM structure; prefer stable role/testid targeting when available. Other non-role/testid locators are listed in TR-1.
+
+Verification: `npx tsc --noEmit` in Trading frontend PASS (exit 0); `npx tsc --noEmit` in e2e PASS (exit 0). No new browser tests or build were run in this read-only review. **Verdict: BLOCKED pending P2 corrections; 0 P1, 6 P2, 1 P3.**
+
+## FIX-TRADING-SOL-STABILITY v2 — 2026-10-19
+
+### DPC: before the edits
+
+- **DPC-1:** `const [unavailable, setUnavailable] = useState<string[]>([]);`; `setUnavailable([nextAnalytics, nextHistory, nextMetadata, nextMarket].flatMap((result, index) =>` followed by `result.status === "rejected" ? [["Analytics", "History", "Trade metadata", "Market snapshot"][index]] : [],` and `));`. Mapping: 0 Analytics, 1 History, 2 Trade metadata, 3 Market snapshot.
+- **DPC-2:** The Dataset is a `<div className="copilot-card p-4">` under `{analytics ? <div className="trading-grid trading-grid-3">`, without a testid or props. It displays `<div className="trading-stat-value">{analytics?.totalTrades ?? joinedTrades.length}</div>`. If history fails, history defaults to `[]`, but `joinTrades` also includes metadata IDs, so joinedTrades is not necessarily empty; a present `analytics.totalTrades` is shown, otherwise the metadata-only partial count (possibly zero) appears.
+- **DPC-3:** `{unavailable.length === 0 && joinedTrades.length === 0 ? (` guards `<div className="copilot-card p-4">`, `<h2 className="text-base font-semibold">Get started faster</h2>`, the no-decisions explanation and Browse Industry Templates button. Analytics failure with both trade sources successful/empty previously hid it; it should show. History failure hides it, as it should.
+- **DPC-4:** Calendar: `{analytics && !unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <CalendarHeatmap trades={joinedTrades} calendar={analytics.calendarHeatmap} /> : null}`. History: `{!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <DecisionHistory`. The shared source condition is `!unavailable.includes("History") && !unavailable.includes("Trade metadata")`; Calendar additionally requires analytics.
+- **DPC-5:** There was no `test.setTimeout` in the regime test; `e2e/playwright.config.ts` sets `timeout: 30_000`. The affected assertion was `await expect(panel).toBeVisible({ timeout: 20_000 });`. The retry worst case is 15s + 1s + 15s = 31s. Requested values 45s and 35s leave 14s overall and 4s assertion margins respectively, only if the retry begins at the start of those windows; health, direct API request, navigation and setup consume overall budget.
+
+### Design and verification before editing
+
+| Fix | File | Before | New | Rationale |
+|---|---|---|---|---|
+| F1 | DashboardScreen.tsx:259 | Dataset only under `{analytics ? <div className="trading-grid trading-grid-3">` | Wrap Dataset div in `!unavailable.includes("History") && !unavailable.includes("Trade metadata")` | Hide partial counts. |
+| F2 | DashboardScreen.tsx:233 | `{unavailable.length === 0 && joinedTrades.length === 0 ? (` | `{!unavailable.includes("History") && !unavailable.includes("Trade metadata") && joinedTrades.length === 0 ? (` | Hide only when trade inputs are unavailable or nonempty. |
+| F3 | regime-analytics.spec.ts:51 | no local `test.setTimeout`; panel `timeout: 20_000` | `test.setTimeout(45_000);` and `timeout: 35_000` | Widen retry budget. |
+
+**DV-1:** Use the exact history/metadata availability subcondition from CalendarHeatmap and DecisionHistory. The complete Calendar guard additionally has `analytics &&`; Dataset is already nested inside the analytics guard. DecisionHistory does not need analytics, so the three complete expressions cannot be literally identical without unnecessarily changing its behavior. Their history/metadata conditions are identical, and Dataset and Calendar both also require analytics.
+
+**DV-2:** New F2 guard, evaluated before coding: `!unavailable.includes("History") && !unavailable.includes("Trade metadata") && joinedTrades.length === 0`. For 0 trades, [Analytics] and [Market snapshot] yield true/show; [History] and [Trade metadata] yield false/hide; [] yields true/show. With [] and >0 trades it yields false/hide. All six expectations pass.
+
+**DV-3:** Both Dashboard edits only change JSX guards; neither changes a `data-testid` attribute. No new imports or logging.
+
+### CHK-1: every changed line relative to the start of this task
+
+| # | File | Line after | Before | After | Type |
+|---|---|---:|---|---|---|
+| 1 | DashboardScreen.tsx | 233 | `{unavailable.length === 0 && joinedTrades.length === 0 ? (` | `{!unavailable.includes("History") && !unavailable.includes("Trade metadata") && joinedTrades.length === 0 ? (` | replace |
+| 2 | DashboardScreen.tsx | 259 | `<div className="copilot-card p-4">` | `{!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <div className="copilot-card p-4">` | replace |
+| 3 | DashboardScreen.tsx | 275 | `</div>` | `</div> : null}` | replace |
+| 4 | regime-analytics.spec.ts | 52 | no line | `  test.setTimeout(45_000);` | add |
+| 5 | regime-analytics.spec.ts | 60 | `  await expect(panel).toBeVisible({ timeout: 20_000 });` | `  await expect(panel).toBeVisible({ timeout: 35_000 });` | replace |
+
+### CHK-2 and CHK-3: actual guards and scenario matrix
+
+| Component | Actual guard |
+|---|---|
+| CalendarHeatmap | `analytics && !unavailable.includes("History") && !unavailable.includes("Trade metadata")` |
+| DecisionHistory | `!unavailable.includes("History") && !unavailable.includes("Trade metadata")` |
+| Dataset | `!unavailable.includes("History") && !unavailable.includes("Trade metadata")`, inside the outer `analytics` guard |
+
+The source checks are identical. Dataset and Calendar have the same effective combined condition; DecisionHistory intentionally does not require analytics, as it did not before.
+
+Actual onboarding guard: `!unavailable.includes("History") && !unavailable.includes("Trade metadata") && joinedTrades.length === 0`. A script confirmed this exact expression is present and evaluated its six combinations:
+
+| # | unavailable | joined count | evaluation | result | expected | pass |
+|---|---|---:|---|---|---|---|
+| 1 | ["Analytics"] | 0 | true && true && true | SHOW | SHOW | PASS |
+| 2 | ["Market snapshot"] | 0 | true && true && true | SHOW | SHOW | PASS |
+| 3 | ["History"] | 0 | false && true && true | HIDE | HIDE | PASS |
+| 4 | ["Trade metadata"] | 0 | true && false && true | HIDE | HIDE | PASS |
+| 5 | [] | 0 | true && true && true | SHOW | SHOW | PASS |
+| 6 | [] | 1 | true && true && false | HIDE | HIDE | PASS |
+
+**CHK-4:** Old local `test.setTimeout`: absent; inherited 30,000ms. New `test.setTimeout(45_000);`. Old panel wait `await expect(panel).toBeVisible({ timeout: 20_000 });`; new `await expect(panel).toBeVisible({ timeout: 35_000 });`. Arithmetic 31s + 14s = 45s is correct, but it is not a guaranteed 14s spare after setup/direct requests; slow setup can still cause a test timeout.
+
+**CHK-5:** `git diff --stat` before this work already reported 48 changed tracked files, including existing changes in both target files and the session log. Those unrelated pre-existing changes were preserved, not reverted. Task source edits are limited to DashboardScreen.tsx and regime-analytics.spec.ts; this explicitly requested session log append is a third changed file for this task. A repository-wide diff cannot establish exactly two dirty files in this pre-existing worktree.
+
+**Verification:** frontend `npx tsc --noEmit` PASS; E2E `npx tsc --noEmit` PASS; frontend `npm run build` PASS (Vite emitted existing Tailwind content-pattern and bundle-size warnings). The initially requested root-directory Playwright invocation found duplicate Playwright installations and collected no tests; rerun uses the E2E project's runner. Results follow.
+
+The complete pre-change onboarding JSX, for DPC-3, was:
+
+```tsx
+      {unavailable.length === 0 && joinedTrades.length === 0 ? (
+        <div className="copilot-card p-4">
+          <h2 className="text-base font-semibold">Get started faster</h2>
+          <p className="mt-2 max-w-2xl text-sm trading-muted">
+            No decisions yet. Select an industry template to start with calibrated centroids instead of generic 50% priors.
+          </p>
+          <button type="button" className="copilot-button mt-4 px-4 py-2 text-sm" onClick={scrollToArchetypes}>
+            Browse Industry Templates
+          </button>
+        </div>
+      ) : null}
+```
+
+**Playwright:** Live frontend and backend returned HTTP 200. From `copilot-sdk/e2e`, `npx playwright test trading/dashboard.spec.ts --timeout 60000`: **10 passed, 0 failed, 0 flaky, 0 skipped**. `npx playwright test trading/regime-analytics.spec.ts --timeout 60000`: **5 passed, 0 failed, 0 flaky, 0 skipped**. The previously skipped accuracy test passed in 31.6s; this run does not establish that a timeout/retry actually occurred. The spec's score test used its existing fallback from `/api/trading/score` 404 to `/api/score`.
+
+**Layer 1 self-check:** (1) PASS for task source edits: only the two requested files; the separately requested log was also appended, and pre-existing dirty files remain. (2) PASS, no testid attribute changed. (3) PASS, source-availability guards match, with Calendar and Dataset also requiring analytics; see CHK-2. (4) PASS, six scenarios above. (5) PASS, both typechecks and build. (6) PASS, affected test sets 45,000ms and its regime panel wait is 35,000ms; remaining setup-budget limitation documented above. (7) PASS, no imports added. (8) PASS, no console or debug statements added.
+
+## REV-TRADING-SOL-STABILITY — 2026-10-19
+
+Scope: read-only review of the F1/F2 Dataset/onboarding guards and F3 regime accuracy test budget. No application or test code changed; no new tests run. Reviewed the prior review and fixer DPC, DV, CHK and self-check. Historical fixer verification: frontend/e2e tsc and frontend build passed; Dashboard 10/10 and regime analytics 5/5, with the accuracy test taking 31.6s. The live pass did not establish whether a retry occurred. The three other prior test-quality findings remain outside this review.
+
+### Original findings and root-cause check
+
+**Q0a — original F1:** “`{analytics?.totalTrades ?? joinedTrades.length}` can show zero or a partial number as Total trades when history or metadata failed and analytics omits optional `totalTrades` (`types.ts:30`: `totalTrades?: number`). Warning identifies a source failure but the figure itself looks authoritative. Use the joined count only when both inputs are available; otherwise show unavailable, or use a guaranteed authoritative total.” Hiding Dataset when either join input is unavailable addresses the misleading-display cause; it does not recover missing data, and intentionally also hides an authoritative analytics total if present.
+
+**Q0b — original F2:** “`unavailable.length === 0` suppresses Get started faster when the successfully loaded history and metadata are truly empty but unrelated analytics or market fails. Gate onboarding on availability of history and metadata and their joined count, not all four sources.” The new guard checks precisely the two sources needed by the join; it removes the unrelated-source condition and addresses this cause.
+
+**Q0c — original F3:** “The base 30s budget and 20s panel assertion do not cover a full 15s + 1s + 15s retry, especially after the independent direct GET. The prior target was skipped. Increase overall budget and panel wait to include setup and retry, and add deterministic AbortError-then-success, HTTP failure and unmount coverage in a follow-up.” The 35s assertion can accommodate a 31s retry by itself, but the 45s total budget does not reliably include the independent GET and setup. F3 only partially resolves the original cause; see P2 below.
+
+### Dashboard review
+
+**Q1:** At DashboardScreen.tsx:253 the enclosing guard is `{analytics ? <div className="trading-grid trading-grid-3">`. Inside it, lines 259–275 are:
+
+```tsx
+        {!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <div className="copilot-card p-4">
+          <h2 className="text-base font-semibold">Dataset</h2>
+          <div className="mt-4 grid gap-3">
+            <div>
+              <div className="text-xs trading-muted">Total trades</div>
+              <div className="trading-stat-value">{analytics?.totalTrades ?? joinedTrades.length}</div>
+            </div>
+            <div>
+              <div className="text-xs trading-muted">Open positions</div>
+              <div className="trading-stat-value">{analytics?.openPositions ?? 0}</div>
+            </div>
+            <div>
+              <div className="text-xs trading-muted">Source</div>
+              <div className="text-sm font-semibold">{analytics?.source || "backend"}</div>
+            </div>
+          </div>
+        </div> : null}
+      </div> : null}
+```
+
+Either unavailable name prevents rendering; the enclosing analytics condition also must be true.
+
+**Q2:** Calendar at line 278: `{analytics && !unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <CalendarHeatmap trades={joinedTrades} calendar={analytics.calendarHeatmap} /> : null}`. DecisionHistory at line 280: `{!unavailable.includes("History") && !unavailable.includes("Trade metadata") ? <DecisionHistory`. Dataset uses the identical history/metadata subcondition. Calendar needs analytics for `calendar`, Dataset also requires analytics through its enclosing grid, while DecisionHistory uses only joined trade inputs; this difference is architecturally appropriate.
+
+**Q3:** Onboarding line 233: `{!unavailable.includes("History") && !unavailable.includes("Trade metadata") && joinedTrades.length === 0 ? (`. All six pass:
+
+| unavailable | joined trade count | evaluation | result |
+|---|---:|---|---|
+| ["Analytics"] | 0 | true && true && true | SHOW |
+| ["Market snapshot"] | 0 | true && true && true | SHOW |
+| ["History"] | 0 | false && true && true | HIDE |
+| ["Trade metadata"] | 0 | true && false && true | HIDE |
+| [] | 0 | true && true && true | SHOW |
+| [] | >0 | true && true && false | HIDE |
+
+**Q4:** Render-section `joinedTrades.length` appears only in the onboarding condition at 233 and Dataset fallback at 264. Onboarding hides if either input failed, Dataset likewise. `decisions={joinedTrades}` at 283 and `trades={joinedTrades}` at 278 are both guarded by the same availability checks. No other render-section use of this count was found.
+
+**Q5:** F1/F2 alter only their individual JSX guards. After loading settles, `<TransferBadge apiBase={API_BASE} />`, `<DayZeroPanel copilot="trading" port={8010} />`, `<ArchetypeSelector />`, `<TickerPanel metadata={metadata} disabled={loading} onTickers={updateTickers} />`, `<RegimePanel />`, `<PatternBadge />`, and `<AccuracyByCategory />` still mount in both scenarios. `{market ? <MarketContext snapshot={market} /> : null}` mounts when market succeeds. `{analytics ? <PortfolioSummary summary={analytics.portfolioSummary} /> : null}` and the analytics grid intentionally hide if analytics fails, but mount if analytics succeeds even if history fails; only their Dataset child is hidden in that case. Independent panel mounting does not guarantee each panel's own fetch succeeds.
+
+**Q6:** The fixer CHK-1 records only onboarding/Dataset guard lines and the two test-budget edits. No data-testid, imports, console.log, or debug statement was added or changed by F1/F2. Pre-existing debug logging remains.
+
+**Q7:** In the Q3 guard, unavailable History makes the first conjunct false, and unavailable Trade metadata makes the second conjunct false; either short-circuits to false even if joinedTrades is empty. No onboarding on a rejected join input.
+
+### Regime test review
+
+**Q8:** `regime-analytics.spec.ts:51` is `test("test_regime_analytics_shows_per_regime_accuracy", async ({ page, request }) => {`; line 52 is `test.setTimeout(45_000);`, and line 60 is `await expect(panel).toBeVisible({ timeout: 35_000 });`. It is inside the target test before its request and assertions; the common beforeEach health check runs before the body and uses the test's elapsed budget.
+
+**Q9:** 31.6s is the entire observed test duration, leaving 13.4s unused in that run; it does not measure setup time or prove that a retry happened. In a different valid run, ``request.get(`${BACKEND}/health`, { timeout: 5_000 })`` in beforeEach, ``request.get(`${BACKEND}/api/trading/regime-analytics`, { timeout: 30_000 })`` before navigation, and navigation/readiness all consume the same test budget. The retry can take up to 31s after Performance mounts: `apiGet<RegimeAnalyticsResponse>("/api/trading/regime-analytics", 15000)`, `await new Promise((resolve) => window.setTimeout(resolve, 1000));`, then a second identical 15000ms call. A slow but successful direct GET can consume most of 45s, leaving less than 31s for retry. The 35s assertion's own window is also cut short by the outer test timeout. This is a P2 risk, not evidence that every retry fails. Recommend 90s total, preserving at least the 35s panel wait, and separately exercise an AbortError followed by success with deterministic timing. Even 90s is a practical bound rather than a guarantee under arbitrarily slow navigation; account for health+GET+navigation explicitly.
+
+**Q10:** The line 52 `test.setTimeout(45_000);` is inside the named test callback quoted in Q8 and affects that running test, not the entire file or describe block. Other tests retain their configured budgets; the common beforeEach is separate.
+
+### Cross-checks and blast radius
+
+**X1:** `rg -l 'regime.analytics' e2e --glob '*.spec.ts'` returned `e2e/trading/regime-analytics.spec.ts`, `e2e/trading/sweep.spec.ts`, and `e2e/demo-cuts/trading-scenarios.spec.ts`. Sweep's named Performance test asserts `centroid-timeline-panel` and `accuracy-alerts-panel`, not RegimeAnalyticsPanel; demo-cuts directly does `const regime = await apiGet(TRD.backend, "/api/trading/regime-analytics")`, not the browser component retry. Neither assertion waits for the 31s panel retry, so no same-path budget change is indicated by these matches. This is not an endorsement of their unrelated coverage.
+
+**X2:** `rg 'unavailable\.length === 0' apps/trading --glob '*.tsx'` found no matches. No old all-sources check remains in Trading TSX by this search.
+
+**X3:** `unavailable` is widely used in other copilots, including Purchasing Dashboard line 178 `<p className="purchase-kicker">Dashboard unavailable</p>` and S2P Dashboard line 89 `<p className="mt-3 text-sm text-slate-500">Preview conservation data is unavailable.</p>`. These strings do not establish an unavailable source array or Trading-style conditional. Other `allSettled` examples exist: DataOps `App.tsx:29` `Promise.allSettled([getHealth(), getTrajectory()])`, DataOps CompoundingCurveOverlay:16, and S2P DayZeroReadinessPanel:19. Therefore allSettled is not Trading-only, though the changed files and their imports establish no direct cross-copilot code change. Search of the three other DashboardScreen files found no allSettled or unavailable array; this is a scoped text search, not a full data-flow audit.
+
+**B1:** `rg 'unavailable\.includes' apps/trading --glob '*.tsx'` returned DashboardScreen only: line 233 onboarding, 259 Dataset, 278 CalendarHeatmap, 280 DecisionHistory, each using `!unavailable.includes("History") && !unavailable.includes("Trade metadata")`. The source list at 184 is `["Analytics", "History", "Trade metadata", "Market snapshot"]`; names match exactly. No P1 inconsistency.
+
+**B2:** `rg 'test\.setTimeout' e2e/trading --glob '*.spec.ts'` returned correlation:81 60s; evidence:35 60s; flows:49,73,103,181,202,236,255,316,330,345,374,389,405 all 60s; journal-query:4 60s; log-trade:63 90s, :76 150s, :101 90s; promotion:35,43 60s; regime-analytics:52 45s; scrape-dom:142 180s; story-flow:110 60s. `performance.spec.ts` separately uses `test.describe.configure({ timeout: 60_000 })` and `testInfo.setTimeout(60_000)`. Flows' `getWithRetry` can attempt two GETs of 30s each before other setup and assertions under a 60s test timeout; its shared request fixture may itself retry thrown errors. This is an informational possible budget mismatch, outside the three fixes; no conclusion on other tests' full retry paths follows from the timeout grep alone.
+
+### Finding and verdict
+
+- **P2 — `e2e/trading/regime-analytics.spec.ts:52`**: 45s is insufficient to cover a potentially 5s health check, up to 30s for the preceding direct GET, navigation, and the full 31s panel retry. A healthy but slow run can time out despite the component recovering. Increase the test budget to approximately 90s, keeping a panel wait of at least 35s, and validate the retry path deterministically in follow-up. The recorded 31.6s pass is useful but does not prove retry coverage or a guaranteed margin.
+
+**Verdict: BLOCKED — 0 P1, 1 P2, 0 P3.** F1 and F2 pass this scoped review; F3 needs a budget that includes its setup and direct request.
+
+## FIX-TRADING-REGIME-BUDGET — 2026-10-19
+
+The prior `REV-TRADING-SOL-STABILITY` P2 states that 45s may not cover health, the direct API request, navigation, and the panel retry, recommending approximately 90s. DPC-1: prior `regime-analytics.spec.ts:52` was `  test.setTimeout(45_000);`. DPC-2: `  await expect(panel).toBeVisible({ timeout: 35_000 });` at line 60. DPC-3: timeout is inside `test("test_regime_analytics_shows_per_regime_accuracy", async ({ page, request }) => {` at line 51. DPC-4: five tests: `test_regime_analytics_panel_on_performance`, `test_regime_analytics_shows_per_regime_accuracy` (the only test with setTimeout), `test_regime_panel_shows_regime_name`, `test_regime_panel_shows_hurst`, and `test_score_response_includes_regime`. DPC-5: other explicit timeouts were line 20 health 5,000; line 36 accuracy-alerts visibility 20,000; line 53 direct GET 30,000; line 69 regime-panel visibility 20,000; line 86 regime-hurst visibility 20,000; lines 92 and 98 score POSTs 30,000. No waitForSelector, waitForTimeout, or waitForResponse timeout appears in this file.
+
+CHK-1, complete task change relative to the actual start-of-task file:
+
+| Line | Before | After | Correct? |
+|---|---|---|---|
+| 52 | `  test.setTimeout(45_000);` | `  test.setTimeout(90_000);` | YES |
+
+CHK-2: panel wait remains `  await expect(panel).toBeVisible({ timeout: 35_000 });`. CHK-3: every other timeout above is unchanged; the entire current file was compared to the start-of-task contents after replacing exactly the one timeout line and matched byte-for-byte as read. CHK-4: setTimeout remains in the same named test body. E2E `npx tsc --noEmit` passed, exit 0. No Playwright run requested. `git diff --check` passed.
+
+CHK-5 and self-check: task source edits are limited to the one requested spec; this requested session-log entry is a separate documentation edit. Items 1–6 are YES for the task delta (including 90s, unchanged 35s and other timeouts, unchanged scope, and tsc). Items 7–8 are NO for repository-wide Git output: 48 tracked files were already dirty before this task, so the repository-wide diff stat cannot show one file or 1+/1-, and the target spec already contained prior RERUN3 changes relative to HEAD. Those changes were preserved. The user directed proceeding despite this condition. The complete target-file Git diff below includes those earlier changes; it is not the one-line task delta. The repository-wide diff also includes approximately 49,000 lines in the pre-existing `e2e/dom-scrape.json` change and is not copied into this session log.
+
+```diff
+diff --git a/e2e/trading/regime-analytics.spec.ts b/e2e/trading/regime-analytics.spec.ts
+index 2e3a892..8839b9b 100644
+--- a/e2e/trading/regime-analytics.spec.ts
++++ b/e2e/trading/regime-analytics.spec.ts
+@@ -49,14 +49,17 @@ test("test_regime_analytics_panel_on_performance", async ({ page }) => {
+ });
+
+ test("test_regime_analytics_shows_per_regime_accuracy", async ({ page, request }) => {
++  test.setTimeout(90_000);
+   const response = await request.get(`${BACKEND}/api/trading/regime-analytics`, { timeout: 30_000 });
+   expect(response.status()).toBe(200);
+   const body = await response.json();
+   expect(body).toHaveProperty("regimes");
+
+   await gotoRegimeAnalytics(page);
+-  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/\d+%/i);
+-  await expect(page.getByTestId("accuracy-alerts-panel")).toContainText(/trend_following|event_driven|mean_reversion/i);
++  const panel = page.getByTestId("regime-analytics-panel");
++  await expect(panel).toBeVisible({ timeout: 35_000 });
++  await expect(panel).toContainText(/Per-Regime Decision Quality/i);
++  await expect(panel.getByTestId(/^regime-accuracy-/).first()).toContainText(/Accuracy:/i);
+ });
+
+ test("test_regime_panel_shows_regime_name", async ({ page }) => {
+```
+
+- 2026-10-19T19:33:56-07:00 - GR-01-STATUS-SCAN: Core GraphStore protocol, InMemoryGraphStore, and AGEGraphStore exist; SQLiteGraphStore and DecisionStore are retired, with residual raw-SQLite sidecars and concrete AGE query paths requiring cleanup. GraphStore protocol: exists. DecisionStore usages: 0. _StoreProxy usages: 0. AGEClient direct: 21 files (22 import sites; 1 live copilot app path). Recommendation: partial (core landed; cleanup/conformance work remains, and Rule #31 must be reconciled).
+
+## PW-126 Group A (2026-10-20)
+
+- FIX 1: `graph-integration` baseURL changed from port 5174 (Trading Vite frontend) to port 8001 (SOC backend). The Trading project's port 5174 setting is unchanged.
+- FIX 2: PUR-06 factor ordering updated from the observed live investigation response. Purchasing uses `PurchasingPreset().shape.factor_names`, and the router passes `KUtilityStore.get_weights("protein")` into `VLDInvestigator.investigate`. No production seed initializes protein K weights, so the live snapshot contains neutral weights `[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]`. For uniform factor input, the centroid-derived Q ranking selects `historical_waste` first and `event_flag` second; the live endpoint returned exactly dimensions 4 then 3.
+- Typecheck: the requested repository E2E command failed on the pre-existing unrelated `e2e/helpers/capture-content.ts:262` diagnostic, `filterCopilot is possibly undefined` (TS18048). The two task files contain only the requested value/assertion changes and no import changes.
+
+## PW-126 Group B (2026-10-20)
+
+- FIX 0: `e2e/helpers/capture-content.ts` now normalizes the mutable optional CLI value once as `const normalizedCopilot = filterCopilot?.toLowerCase()` before the filter callback. This resolves TS18048 without a non-null assertion or behavior change. `npx tsc --noEmit --project e2e/tsconfig.json` passed with zero errors.
+- FIX 1 (MACH-02/SOC-02): the live planted alert returned `refer_to_analyst`, recommendation confidence `0.4436051167714476`, and no-precedent confidence `0.443605`. In `triage.py`, recommendation confidence is the scorer confidence; the route passes that same value into `NoPrecedentDetector.detect(..., confidence=confidence)`. The referral gate selects `refer_to_analyst` when confidence is below the category threshold (0.70). The old tests simultaneously required referral and confidence above 0.70, an internally contradictory contract. Both specs now require confidence below 0.70 and verify it matches `no_precedent.confidence_in_action` to five decimal places. The frozen detector formula and scorer math were not changed. The fixture's `expected_confidence: 0.94` is descriptive metadata and is not consumed by triage or preseed scoring.
+- FIX 2 (SOC-08): the live non-demo frozen twin returned `evidence_label: "measured"` and `evidence_tier: "T_O"`. `SOCLearningControlService.comparison()` deliberately emits `measured` after post-freeze observed decisions; it emits a synthetic label for an unmeasured or demo-provenance snapshot. `demo.py` already supplies `SOC_DEMO_COMPARISON_ENABLED=true` during its managed preseed lifecycle, and `preseed_demo_scenarios.py` already invokes demo re-freeze. The test regex now also accepts the valid, stronger observed label `measured`; production learning logic and endpoint routing are unchanged.
+- FIX 3 (S2P-04): port 8002 removes the shared router's `/conservation/status` route and serves the local `s2p_materialization.conservation_payload()` through the materialized/live fallback in `main.py`. The live response was normal mode with 1,403 verified, 1,310 correct, rolling `q=0.88`, and `status=AMBER`, `passed=false`. Absolute and relative gates were inactive; G_RATE was active because the latest 20 outcomes were 70% accurate versus a 74.8% threshold. This state is valid live data and can vary after other append-only E2E mutations, so the spec now accepts the normal-mode GREEN/AMBER/RED statuses and asserts the conservation contract `passed === (status === "GREEN")`. No conservation formula, scorer math, fixture, or preseed data changed.
+- Changed task files: `e2e/helpers/capture-content.ts`, `e2e/demo/machine/mach-02-reshape.spec.ts`, `e2e/demo/soc/soc-02-no-precedent.spec.ts`, `e2e/demo/soc/soc-08-frozen-twin.spec.ts`, and `e2e/demo/s2p/s2p-04-earned-autonomy.spec.ts`. No production Python file, fixture, import, or scorer implementation changed; mypy is therefore not applicable.
+- Targeted Playwright from the E2E package: MACH-02, SOC-02, and S2P-04 passed on the first attempt; SOC-08 encountered one initial `socket hang up` before receiving a response and passed on the configured retry. Result: 3 passed, 1 flaky, zero hard failures. The first repository-root Playwright command used a different installed runner and failed during collection with the duplicate-Playwright `test() did not expect to be called here` error; rerunning from `e2e/` used the correct package.
+- Regression tests: SDK root `python -m pytest tests/ -q --timeout=120` completed with **4,773 passed, 1 xfailed**, zero failures (9,674 warnings) in 39m51s. Warnings include existing FastAPI deprecations and one psycopg pool scheduler thread warning; none failed the suite.
+- Self-check: E2E typecheck clean; NoPrecedentDetector and scorer math unchanged; conservation formula unchanged; no fixture change; no production logic change; scoped diff contains only the five E2E files above plus this required session-state entry.
+
+## PW-126 Group C (2026-10-20)
+
+- FIX 1: `goToTriage()` in `e2e/s2p/situation-analyzer.spec.ts` now imports and calls the existing `waitForTriageQueue(page, 30_000)` before returning. Because that helper verifies queue text rather than button state, `goToTriage()` additionally checks that the first invoice button is visible and enabled when a nonempty queue produced a button. The conditional preserves test 9's intentional empty-queue path. `scoreSelected()` now gives its fallback invoice visibility assertion 15 seconds instead of 90 seconds. The other pre-existing 90-second content assertion was reduced to 30 seconds so all individual assertion waits in this spec are at most 30 seconds; the per-test `test.setTimeout(90_000)` remains unchanged.
+- FIX 2: removed the unused local `waitForScoreResponse()` duplicate. All score submissions continue through `clickAndWaitForS2PScore` from `e2e/s2p/helpers.ts`.
+- `clickAndWaitForS2PScore`: confirmed it already uses `Promise.all([waitForS2PScoreResponse(...), scoreButton.click()])` and then waits for `s2pScoreResult`. It was not modified in this task. `e2e/s2p/helpers.ts` was already dirty before Group C and its existing changes were preserved.
+- Typecheck: `npx tsc --noEmit --project e2e/tsconfig.json` passed with zero errors after the final edit. Scoped `git diff --check` passed. No backend file and no artificial delay changed.
+- Targeted Playwright (`npx playwright test s2p/situation-analyzer.spec.ts --workers=1` from `e2e/`): 11 passed, 2 flaky, 2 failed in 10.2 minutes. The empty-queue test passed. Independent residuals: test 1 failed an ambiguous pre-existing `getByText('Situation Analysis')` strict-mode locator; tests 6, 7, and 13 had attempts where the graph-backed queue remained on `Loading invoice queue...` beyond the required 30-second readiness bound; test 7's retry later timed out waiting for the score response. Tests 6 and 13 passed on retry. These failures show backend/queue latency and a separate locator defect beyond the two requested Group C changes; the score helper was not duplicated or altered.
+- Layer 1: no backend changes; no `waitForTimeout`; new readiness locators use `getByRole`; new individual waits are 15–30 seconds; shared score helper unchanged; queue helper imported rather than reimplemented; dead local waiter removed; E2E typecheck passed. The spec still contains older `locator()`/`getByText()` calls outside the Group C delta, including the strict-mode failure above, so a whole-file Rule #93 audit is not clean and needs a separate locator-focused fix.
+
+## PW-126 Group D (2026-10-20)
+
+- FIX 1: replaced all **5/5** `getByText('Situation Analysis')` occurrences in `e2e/s2p/situation-analyzer.spec.ts` with `getByRole('heading', { name: 'Situation Analysis', exact: true })`. The old ambiguous locator count is zero. The file now contains eight exact Situation Analysis heading locators in total: five replacements and three pre-existing correct uses.
+- FIX 2: changed `waitForTriageQueue(page, 30_000)` to `waitForTriageQueue(page, 45_000)` in `goToTriage()`. The per-test timeout remains 90 seconds and the first-invoice waits remain 15 seconds.
+- `clickAndWaitForS2PScore`: NOT modified. `e2e/s2p/helpers.ts` was not modified by Group D; its pre-existing dirty worktree state was preserved.
+- Typecheck: PASS — `npx tsc --noEmit --project e2e/tsconfig.json` completed with zero errors. Scoped `git diff --check` also passed.
+- Self-check: no backend changes; no helper changes; shared score click/response synchronization unchanged; 5/5 locator replacements complete; queue timeout is 45,000ms; E2E typecheck passed.
+
+## PW-126 Group E — 2026-10-20
+
+- FIX 1: `e2e/s2p/situation-analyzer.spec.ts` — moved `test.setTimeout(90_000)` from file scope into `test.beforeEach(() => { ... })`; no describe wrapper, import, or test body changed for this fix.
+- FIX 2: `e2e/demo-cuts/enterprise-cut.spec.ts` E7 — wrapped the unchanged successful POST `/score` response predicate and `scoreButton.click()` in one `Promise.all`, with an explicit 30-second response timeout. Removed the later standalone `await response`; all panel assertions remain.
+- FIX 3: `e2e/demo-cuts/platform-scenarios.spec.ts` PLAT-02 — added the backend model field `sig.source_copilot` as the first item in the existing nullish coalescing chain. The guard and assertion are unchanged.
+- Typecheck: **PASS** — `cd e2e && npx tsc --noEmit` completed with zero errors. Scoped `git diff --check` passed.
+- Files changed by Group E: 3 source files above, plus this required session-state entry. No backend file or helper file changed; imports and assertions were preserved.
+- Self-check note: the repository-wide `rg "test\.setTimeout" e2e` output contains other apparent top-level calls in existing S2P/DataOps specs, contrary to the prompt's expectation that only situation-analyzer had the bare pattern. They were not modified because Group E explicitly scopes FIX 1 to situation-analyzer. The demo-cuts grep also found a separate unwrapped pattern in `trader-cut.spec.ts`; Group E explicitly scopes FIX 2 to enterprise-cut E7, so it remains follow-up work.
+
+## FIX-PRESEED-PROFILE — 2026-10-20
+
+- Removed `SOC_PROFILE="demo"` from `preseed_environment()` seeding branch.
+- Root cause: `graph_config.py` tightened profile validation to reject `demo` and accept only `production`, `test`, and `offline` (`development` maps to `offline`).
+- `SOC_PROFILE="production"`, set earlier in the same function through the profile comprehension, now takes effect during the seed phase. Runtime verification returned `SOC_PROFILE=production` while retaining `COPILOT_PRESEED_MODE=true` and `SOC_DEMO_RESEED_ENABLED=true`.
+- Mypy passed for `demo.py`. Source checks passed, `resolve_profile` accepted all valid profiles and rejected `demo`, the direct preseed lifecycle test passed, and `git diff --check` passed.
+- SDK root suite result: 4,766 passed, 4 skipped, 1 xfailed, and 3 failed. Two failures require SOC graph seed data that is absent in the current database (`soc_graph` has zero `Decision` rows). The third, `test_memory_store_scorer_parity`, passed when rerun alone and is unrelated to `demo.py`.
+
+## VERDICT-READY-DESIGN (2026-10-20)
+
+- Produced `docs/verdict_ready_design.md` with all mandatory code inventories, per-gate options/trade-offs, recommended strategy, and three focused implementation prompts.
+- Four blocking gates reproduced from the archived dump and a fresh read-only AGE census: conservation/fingerprints/anchors missing only SOC; receipts missing SOC and DataOps.
+- Traced SOC C/F root cause to a compatibility bug: AGE has 211 canonical confirmed decisions with legacy outcome=correct; the SDK verified predicate rejects all 211. Read-only in-memory normalization to canonical status restores 211 eligible rows and a six-factor fingerprint with 211 analyzed, zero skipped. SOC already implements V2 state capture, so exemptions would hide a real bug. Its missing Domain anchor follows from the missing summary writes.
+- Traced DataOps receipt gap to active direct seeding in `scripts/seed_all_decisions.py`, which writes decisions/outcomes but no evidence receipts; the same omission is latent for all four SDK domains. SOC's custom outcome route deliberately suppresses SDK receipts and retains the existing architectural limitation.
+- Recommended: isolated SOC verified-read projection normalization; deterministic idempotent synthetic seed receipts with completion/resume repair; acceptance tests and controlled application. No new exemptions, no integrity/verdict changes, no new dependencies.
+- Verified expected post-fix census through the unmodified verdict function: READY, expected limitation `soc:evidence_receipts`, pending `transfer_patterns` and `monetary_entities`. Negative missing-artifact cases remain NOT READY.
+- Investigation changed only the requested design and this session log. No runtime code, preseed, backend restart, or graph data changed. Full implementation tests are specified in the plan, not claimed as run.
+
+## VERDICT-P3-ACCEPTANCE (2026-10-20)
+
+- Confirmed both prerequisites before work: `VERDICT-P1-SOC-COMPAT` is complete in the SOC repository session log and `VERDICT-P2-SEED-RECEIPTS` is complete in this session log.
+- Added 10 acceptance cases across 7 test functions in `tests/test_platform_dump.py`: the historical four-gate baseline, the expected READY state, four partial-repair failures, three receipt/conservation edge cases, and raw-integrity preservation. The complete file passed: **27 passed**, zero failures, in 7.28 seconds. No production code changed. Full SDK/SOC/E2E regression suites were not run in this stage.
+- Live pre-application census differed from the historical pre-fix fixture because P1 had already taken effect: SOC was `D=211 C=1 CP=219 F=1 R=0` with its Domain anchor present. The remaining live blocker was DataOps `R=0`; SDK-domain receipt counts were S2P 206, Trading 55, Purchasing 38, and DataOps 0. Census errors were empty.
+- First direct receipt repair (`python scripts/seed_all_decisions.py`) created no decisions or outcomes and appended exactly 200 receipts in each SDK domain. Counts became S2P 406, Trading 255, Purchasing 238, and DataOps 200. A second identical run created no decisions, outcomes, or receipts; counts remained stable.
+- Restarted SOC twice with the existing lifecycle (`--stop --soc`, then `--soc --no-reseed --no-browser`). After both restarts, SOC remained `C=1 F=1 CP=219`, total nodes remained 6154, and all receipt counts remained unchanged. Startup capture therefore did not duplicate conservation or fingerprint artifacts, and SOC restart did not create receipts.
+- Read-only AGE chain verification passed for every receipt-bearing domain: DataOps 200, Purchasing 238, S2P 406, Trading 255. Each chain had contiguous zero-based indexes, a `GENESIS` first link, matching `previous_hash`/prior `payload_hash` links, and nonempty payload hashes.
+- Fresh census had an empty errors array, all five Domain anchors, zero TransferPattern nodes, and only the existing invoice DomainContext population. No transfer patterns, monetary entities, fabricated summaries, or unrelated seed data were added. `print_summary()` capped CP display at 50; raw census values remained SOC 219, S2P 212, Trading 112, Purchasing 78, and DataOps 2.
+- Final dump (`out/platform_dump_20261021_041520.json`) key lines:
+
+```text
+soc          port=8001 health=200 conservation=GREEN D=211 C=1 CP=50 F=1 R=0
+s2p          port=8002 health=200 conservation=GREEN D=303 C=108 CP=50 F=5 R=406
+trading      port=8010 health=200 conservation=GREEN D=255 C=57 CP=50 F=2 R=255
+purchasing   port=8020 health=200 conservation=GREEN D=345 C=40 CP=50 F=2 R=238
+dataops      port=8030 health=200 conservation=GREEN D=200 C=1 CP=2 F=1 R=200
+Census total nodes: 6154
+VERDICT: READY
+Expected Limitations: soc:evidence_receipts
+Pending Operations: transfer_patterns, monetary_entities
+```
+
+## S2P-F02 API Error Contract (Sol)
+- File: `apps/s2p/frontend/src/api.ts`; the only additional source edit replaces the removed strict queue wrapper in `src/components/DayZeroReadinessPanel.tsx`.
+- Pattern A (`.catch(() => null)`): 54 occurrences removed across 53 exported wrapper functions plus the deleted nullable helper; errors now propagate.
+- Pattern B (`.catch(() => ({...}))`): `getPreviewQueue` and `getPreviewSuppliers` fixed; fake empty data removed.
+- Pattern C (`apiGetNullable`): function deleted and 19 call sites replaced with `apiGet`.
+- Special cases: `fetchSituation` keeps its AbortError timeout response and rethrows other/non-OK failures; `learnDecision` converts AbortError to `Learn request timed out after 90s` and rethrows other failures; `getConservationStatus` keeps the two-endpoint fallback and propagates failure from the second endpoint; `fetchProcessFusion` and `fetchSuppliers` now propagate.
+- `getPreviewQueueStrict`: deleted; its sole caller now uses `getPreviewQueue`.
+- Pre-checks: **10 PASS / 0 FAIL**. Baseline had 58 `.catch(` references and 20 `apiGetNullable` occurrences; `tsc` and build passed.
+- Post-checks: **10 PASS / 0 FAIL**. Full-file walk classified 87 exported functions as direct propagation and 3 as documented special cases; no nullable API return types, null-return catches, fake defaults, nullable helper, or strict queue references remain.
+- TypeScript: `npx tsc --noEmit` passed; `npm run build` passed with only the existing Tailwind glob and bundle-size warnings.
+- Remaining `.catch()` count: **1** (the conservation fallback). Total catch constructs: **3** when the two intentional `catch (error)` blocks are included.
+- Core helpers and previously-correct functions: `apiGet`, `apiPost`, `apiPostWithSignal`, `getCohortStatus`, `fetchSupplierProfiles`, `fetchDecliningSuppliers`, and `fetchSupplierHistory` verified byte-for-byte unchanged.
+- Date: 2026-10-21.
+
+## Fix 1: intelligence-map.spec.ts mock (COMPLETE)
+
+- Added `/api/di/acquisition-advice` mock to `mockEmptyDIProfiles()`.
+- `mockEmptyDIProfiles()` now mocks all 3 `IntelligenceMapPanel` endpoints.
+- E2E typecheck: PASS (`npx tsc --noEmit` from `e2e/`, 0 errors).
+- Files changed: `e2e/dataops/intelligence-map.spec.ts` (1 implementation file, +7 lines).
+
+## Fix 2: evolution event seeds (COMPLETE)
+
+- Restructured `_seed_demo_evolution_events_if_needed` for per-event idempotency.
+- Added 3 new evolution events: `confidence_boundary_rule`, `factor_weight_rule`, `action_bias_rule`.
+- Preserved the original `resource_quality_scheduling_signal` event exactly.
+- Mypy: PASS (`Success: no issues found in 1 source file`).
+- Backend tests: PASS (`498 passed`, 0 failures).
+- Files changed: `apps/dataops/backend/app/main.py` (1 implementation file, function rewrite).
+
+## Fix 4: Evidence tab infinite re-render (COMPLETE)
+
+- Root cause: `SchemaImpactPanel` — duplicate React list keys, not an A-F state-update loop. Real schema-impact results contain multiple decisions with the same category, so the former `source-${category}` key emitted repeated warnings whose expanded component stacks looked like repeated renders.
+- Fix: included the item index in each schema-change card key so distinct decision rows have unique React identities.
+- Files changed: `apps/dataops/frontend/src/components/SchemaImpactPanel.tsx`.
+- Full DataOps source audit: 50 `useEffect` calls, zero missing dependency arrays, and zero render-time state setters.
+- Frontend typecheck: PASS.
+- Build: PASS (existing Tailwind content-pattern and bundle-size warnings only).
+- E2E typecheck: PASS.
+- Target regression: PASS (`story-flow.spec.ts:130`, 1 passed in 9.2s with no console errors).
+
+## Fix 5: evidence rule lifecycle visibility (COMPLETE)
+
+- Root cause: H1 was rejected because both the memory and AGE graph stores honor the `rule_name` filter. The live AGE startup path never called `_seed_demo_evolution_events_if_needed`, so the three new events were absent from the graph. H2 was also confirmed: lifecycle cards preferred the descriptive `name` and did not visibly render a different `variantId`.
+- Fix: invoked `_seed_demo_evolution_events_if_needed()` during AGE startup after domain auto-seeding, and added a secondary `variantId` label when it differs from the lifecycle title.
+- Files changed: `apps/dataops/backend/app/main.py`, `apps/dataops/frontend/src/components/RuleLifecyclePanel.tsx`.
+- Typecheck: PASS (backend mypy, frontend TypeScript, and E2E TypeScript).
+- Tests: PASS (`498 passed` in the DataOps backend suite; unchanged evidence regression `1/1`; frontend production build; panel-scoped browser probe displayed all three seeded variant IDs).
+- Date: 2026-10-22.
+
+## Fix 6: intelligence-map reload test assertion (COMPLETE)
+
+- Root cause: the Fix 3/PipelineSystem hypothesis was rejected. This spec mocks all three Intelligence Map endpoints to empty responses, and the post-reload page snapshot confirmed the mocked `No connected sources.` state still existed. Reload reset the active tab to Dashboard, while the conditional navigation check counted Dashboard's embedded `Intelligence Map` content and therefore failed to navigate back to Insight.
+- Fix: replaced the ambiguous element-count condition with an explicit `clickTab(page, "Insight")` after reload. The empty-state assertion remains valid and the test still verifies reload, return navigation, ready state, valid content, and absence of the error state.
+- Files changed: `e2e/dataops/intelligence-map.spec.ts`.
+- E2E typecheck: PASS (`npx tsc --noEmit`).
+- Tests: PASS (targeted reload regression `1/1`; complete Intelligence Map spec `5/5`).
+- Date: 2026-10-22.
+## demo.py validate_graph_seed integration
+- Date: 2026-10-22
+- Added `--skip-validate` flag to `create_parser()`.
+- Validator runs AFTER the `preseed_phase == "seed"` return and BEFORE preseed/preflight.
+- DSN passed explicitly from copilot config (`graph_dsn`), not `os.environ`.
+- Only runs when AGE copilots are selected.
+- A nonzero validator result gates startup with `SystemExit(1)`; `SystemExit` is explicitly re-raised.
+- Graceful fallthrough on the 30-second timeout, unexpected validator errors, or a missing validator script.
+- Verification: `skip_validate` 2 occurrences; `validate_graph_seed` 1 occurrence; AST parse PASS; parser flag smoke test PASS.
+- Mypy: `Success: no issues found in 1 source file`.
+- Files changed: `demo.py`, `docs/session_state.md`.
+
+## DataOps context graph preseed design validation (2026-10-22)
+
+Status: **STOPPED before implementation**. The required GraphStore population methods do not exist, which triggers the task's explicit design-stop condition. In addition, three named endpoints do not read GraphStore, so adding data in `DemoPreseed.preseed_dataops()` could not affect them. No source or test file was changed.
+
+Current preseed state: `preseed_dataops()` only delegates to `_preseed_domain("dataops")`. That path creates 150 deterministic Decision/Outcome pairs with `provenance="sample"`, but its Decision metadata has no pipeline system, alert, schema-change, or transformation topology fields. It creates no `PipelineSystem` or `DataQualityAlert` nodes and no `FEEDS` or `AFFECTS` edges.
+
+| endpoint | graph_key / actual read contract | method_to_populate | status |
+|---|---|---|---|
+| `/api/context/pipelines` | DataOps Decisions; projection reads `system`, `system_name`, or `source` | `GraphStore.write_decision(domain, category, action, confidence, factors, metadata=None) -> str` | AVAILABLE, but existing preseed metadata lacks a system field; current rows collapse to the `dataops` bucket |
+| `/api/context/alert-groups` | `PipelineSystem`, `DataQualityAlert`, `FEEDS`, and `AFFECTS`, via `DataOpsGraphClient.get_pipelines()` and `get_alerts()` | **none in GraphStore** | BLOCKED |
+| `/api/context/system/{name}` | `PipelineSystem` plus incoming/outgoing `FEEDS` edges | **none in GraphStore** | BLOCKED |
+| `/api/context/alert/{id}` | `DataQualityAlert` plus its `AFFECTS` target | **none in GraphStore** | BLOCKED |
+| `/api/context/alert/{id}/deps` | `DataQualityAlert`-`AFFECTS`-`PipelineSystem` plus bounded `FEEDS` traversal | **none in GraphStore** | BLOCKED |
+| `/api/context/alert/{id}/recurrence` | `DataQualityAlert` and affected `PipelineSystem`, then matching alert history | **none in GraphStore** | BLOCKED |
+| `/api/context/alert/{id}/factors` | `DataQualityAlert`, affected `PipelineSystem`, and topology-derived factor context | **none in GraphStore** | BLOCKED |
+| `/api/context/bottleneck/{system}` | Local `transformations.json` through `_load_transformations()`; returns empty data in production | **no graph read and no GraphStore writer** | BLOCKED; preseed graph data is invisible to this endpoint |
+| `/api/context/schema-impact/{system}` | DataOps Decisions; category is projected as a generic schema-change column | `GraphStore.write_decision(...) -> str` | ALREADY POPULATED generically by the 150 preseed decisions; no dedicated schema-change graph contract exists |
+| `/api/context/similar` | Local DataOps seed JSON through `_load_dataops_seed()` | **no graph read and no GraphStore writer** | BLOCKED; preseed graph data is invisible to this endpoint |
+| `/api/context/cross-graph-insight/{alert_id}` | Hard-coded billing response or local alert metadata/process-timeline fixtures | **no graph read and no GraphStore writer** | BLOCKED; preseed graph data is invisible to this endpoint |
+
+Protocol check: `GraphStore.save_governance(domain: str, key: str, state: dict[str, Any]) -> None` exists, but none of the 11 endpoints calls `get_governance()`, so governance records would not populate these responses. `query_similar()` is read-only and `/api/context/similar` does not call it. Repository searches found no GraphStore protocol method for creating `PipelineSystem`, `DataQualityAlert`, `FEEDS`, `AFFECTS`, schema-change, transformation, or cross-graph context records. Raw Cypher would violate the requested protocol-only design.
+
+Validation consequence: tests, mypy, and live demo endpoint verification were not run because the required design validation failed before any implementation. Existing non-DataOps preseed methods remain untouched. A future implementation needs an approved typed GraphStore topology/context write contract and endpoint read paths for bottleneck, similar, and cross-graph insight before preseed-only population can satisfy this task.
+
+## A3-REDESIGN: DataOps system-tagged decisions (2026-10-22)
+
+Status: **STOPPED at the metadata read-contract check; no implementation changes made.**
+
+Base preseed creates 150 DataOps decisions with categories but no system tags. The proposed fix was to assign the nine fixture pipeline names (`sap_mm`, `sap_fi`, `celonis_p2p`, `qms_pirelli`, `logistics_dhl`, `mes_production`, `supplier_portal`, `warehouse_wms`, `bi_analytics`) round-robin and pass `pipeline_system_id`, `system`, and `provenance="sample"` through `CompoundingScorer.score(..., metadata=...)`.
+
+Design result: `CompoundingScorer.score()` accepts the metadata, and both InMemoryGraphStore and AGEGraphStore persist it, but only under the nested `Decision.metadata` object. `get_all_decisions("dataops")` does not promote arbitrary metadata keys to top-level Decision fields. The context read path `_normalize_live_decision()` checks only top-level `pipeline_system_id`, `pipelineSystemId`, `system_name`, `system`, and `systemName`; `_matches_decision_filters()` then checks the normalized top-level `system`. `/api/context/pipeline/{system_id}/decisions` likewise checks only top-level `pipeline_system_id` or `system`.
+
+Direct contract probe:
+
+```text
+{'decision_id': 'c97a292cb747', 'top_pipeline_system_id': None, 'top_system': None,
+ 'metadata': {'pipeline_system_id': 'sap_ecc', 'system': 'sap_ecc',
+              'provenance': 'sample', 'entity_id': 'c97a292cb747'}}
+```
+
+Therefore, adding tags only in `preseed.py` would persist evidence but would not make either endpoint return system-filtered rows. There is no existing GraphStore API that writes these arbitrary fields as top-level Decision properties. Making the feature work requires either (a) an endpoint normalization change that reads the nested metadata, or (b) an approved GraphStore/Decision schema change that promotes the system fields. Both are outside the prompt's preseed-only constraint. Tests, mypy, demo startup, and curl checks were not run because the mandatory design gate failed before code changes. Existing preseed methods remain unchanged; sample provenance and F-26 boundaries remain untouched.
+
+## A3-v3 DESIGN: DataOps system-tag enrichment (2026-10-22)
+
+Two-part fix for system tags in DataOps decisions.
+
+Part A: `_normalize_live_decision()` gains a metadata fallback. After checking top-level fields, if system is still absent, it checks `entry["metadata"]` for `pipeline_system_id`, `system_name`, and `system`. Pattern precedent: `_variant_from_evolution_event()` already reads nested metadata in the same file.
+
+Part B: `preseed_dataops()` supplies an `extra_metadata_fn` to `_preseed_domain()` that adds `pipeline_system_id`, cycling deterministically through the nine pipeline systems with `index % 9`. Other domains use the default `extra_metadata_fn=None` and retain existing behavior.
+
+Data flow: `score(metadata={"pipeline_system_id": X})` -> GraphStore stores the value under `Decision.metadata` -> `get_all_decisions()` returns the nested metadata -> `_normalize_live_decision()` reads the metadata fallback -> normalized `system = X` -> `/api/context/pipeline/{system_id}/decisions` returns matching rows.
+
+Design validation passed: the normalizer currently lacks the fallback; `_variant_from_evolution_event()` provides the established nested-metadata pattern; both memory and AGE stores retain nested metadata; `CompoundingScorer.score()` accepts it; and the nine names exactly match `fallback/pipelines.json`.
+
+## A3-v3 RESULTS: DataOps system-tag enrichment (2026-10-22)
+
+Implementation complete:
+
+- `context_router._normalize_live_decision()` now preserves top-level system precedence, then reads nested Decision metadata in the established `_variant_from_evolution_event()` style, then retains the existing dataset inference fallback. Its return shape is unchanged.
+- `DemoPreseed._DATAOPS_SYSTEMS` contains the exact nine names from `fallback/pipelines.json`.
+- `preseed_dataops()` passes a deterministic `extra_metadata_fn` that maps `index % 9` to `pipeline_system_id`.
+- `_preseed_domain(..., extra_metadata_fn=None)` preserves all other domain behavior. It builds the existing sample metadata, optionally merges the domain-specific fields, and calls the existing `scorer.score()` API once per decision. No second pass or duplicate decisions were introduced.
+- `preseed_trading`, `preseed_purchasing`, `preseed_s2p`, and `preseed_soc` were not modified. Diff search found zero `random()` additions.
+- Added focused regression tests for nested metadata normalization and the 150-row deterministic/sample-provenance system cycle.
+
+Line analysis of new behavior:
+
+- `context_router.py:460-467`: guard runs only when no top-level system exists; validates metadata is a dict; casts it for mypy; reads `pipeline_system_id`, then `system_name`, then `system`. Lines 468 onward, including dataset fallback and response construction, are unchanged.
+- `preseed.py:134-144`: declares the nine immutable-by-convention class-level system names with `ClassVar[list[str]]`.
+- `preseed.py:228-236`: DataOps alone supplies a callable that chooses one system by deterministic modulo.
+- `preseed.py:280-284`: optional callable defaults to `None`, so all existing callers retain their old path.
+- `preseed.py:311-320`: retains `provenance="sample"` in base metadata, merges optional metadata, and calls the existing scorer API.
+
+Verification:
+
+- Mypy `apps/dataops/backend/app/context_router.py`: PASS, no issues.
+- Mypy `copilot_sdk/demo/preseed.py`: PASS, no issues.
+- Focused preseed tests: 11 passed.
+- Focused DataOps normalizer/pipeline tests: 2 passed.
+- SDK root suite: **4791 passed, 1 xfailed, 0 failed**.
+- DataOps backend suite: **499 passed, 0 failed**.
+- In-process real scorer + InMemoryGraphStore + real normalizer verification: 150/150 decisions normalized with a non-null system. Distribution: `sap_mm=17`, `sap_fi=17`, `celonis_p2p=17`, `qms_pirelli=17`, `logistics_dhl=17`, `mes_production=17`, `supplier_portal=16`, `warehouse_wms=16`, `bi_analytics=16`.
+- Demo restart: `python demo.py --no-browser` completed; all five backends and graph seed validation reported ready. Frontend readiness probes timed out, which does not affect these backend endpoint checks.
+
+Live curl evidence after restart:
+
+```json
+{"total": 247, "returned": 100, "tagged_returned": 0, "sample": []}
+{"pipeline_system_id": "sap_mm", "total": 0, "sample": []}
+{"pipeline_system_id": "celonis_p2p", "total": 0, "sample": []}
+```
+
+The live curl acceptance check remains unmet because ordinary `demo.py --no-browser` does not execute `DemoPreseed.preseed_dataops()`, and the 247 existing AGE decisions were written by the older direct-seed path without system metadata. The restarted backend did load Part A, but normalization cannot synthesize tags absent from stored rows. Attempting to target the live domain-scoped production store with `DemoPreseed` also fails before writes because its constructor builds scorers for all five domains against a DataOps-scoped wrapper (`graph wrapper domain mismatch`). No live graph mutation or fabricated curl success was performed. The code-level A3-v3 path is complete and tested; live acceptance additionally requires wiring this deterministic DataOps seed path into the production preseed lifecycle or repairing the old direct-seed population.
+
+## A3-v3 REVIEW (2026-10-22)
+
+Verdict: **CHANGES REQUESTED — P1 live acceptance failure.**
+
+### Findings
+
+1. **P1 — The preseed half is not connected to the live demo seed lifecycle.** `DemoPreseed.preseed_dataops()` correctly creates tagged decisions in its in-process graph, but `python demo.py --no-browser` does not execute that method against the live DataOps AGE store. The existing production preseed/direct-seed population therefore remains untagged. A fresh post-restart probe returned 247 total decisions, zero tagged among the first 100, `sap_mm.total=0`, and `celonis_p2p.total=0`. This fails the primary curl and per-pipeline acceptance criteria. The fix must wire system metadata into the live DataOps writer/repair path, or provide a supported domain-scoped invocation of this preseed against AGE; the normalizer alone cannot repair absent stored tags.
+2. **P2 — The stated two-file blast-radius criterion is not met.** The attributable diff contains four code/test files: `context_router.py`, `preseed.py`, `test_dataops_backend.py`, and `test_preseed.py` (five including the required `session_state.md` update). The two extra files are focused regression tests and introduce no runtime behavior, but the literal “exactly 2 files changed” gate fails.
+
+### Design gate
+
+- PASS: A3-v3 design note exists before the results section.
+- PASS: it specifies both the normalizer and preseed changes.
+- PASS: it cites `_variant_from_evolution_event()` as the nested-metadata precedent.
+- PASS: it documents `preseed -> Decision.metadata -> normalizer fallback -> system -> pipeline endpoint`.
+
+### Part A review
+
+- PASS: metadata fallback is between top-level lookup and dataset inference.
+- PASS: guarded by `isinstance(entry.get("metadata"), dict)` and uses the same guard/cast pattern as `_variant_from_evolution_event()`.
+- PASS: reads `pipeline_system_id`, `system_name`, then `system`.
+- PASS: `git diff` shows no other `context_router.py` function changed.
+- PASS: return keys are unchanged.
+- PASS: `pipeline_system_id` grep shows the new normalizer lookup plus pre-existing normalization, filter, and metadata-write references; no endpoint implementation changed.
+
+### Part B review
+
+- PASS: the nine `_DATAOPS_SYSTEMS` values exactly equal `fallback/pipelines.json`, in the same order.
+- PASS: assignment is deterministic via `index % len(self._DATAOPS_SYSTEMS)`; no `random()` addition exists.
+- PASS: `extra_metadata_fn` defaults to `None`.
+- PASS: trading, purchasing, S2P, and SOC preseed methods are unchanged.
+- PASS: the only supplied extra key is `pipeline_system_id`, so `base_metadata.update()` does not overwrite `entity_id`, `provenance`, `preseed_seed`, `preseed_index`, or `created_at` in the DataOps path.
+- PASS: stored provenance remains `sample`.
+
+### Verification
+
+- Fresh mypy, `context_router.py`: PASS.
+- Fresh mypy, `preseed.py`: PASS.
+- Existing recorded full-suite result remains: SDK 4791 passed, 1 xfailed; DataOps 499 passed.
+- Fresh live curl:
+
+```json
+{"total": 247, "returned": 100, "tagged_returned": 0, "sample": []}
+{"pipeline_system_id": "sap_mm", "total": 0, "sample": []}
+{"pipeline_system_id": "celonis_p2p", "total": 0, "sample": []}
+```
+
+Acceptance checklist: design note PASS; two-part code shape PASS; exact systems PASS; deterministic assignment PASS; unchanged other domains PASS; optional callback PASS; mypy PASS; tests PASS; curl tagged decisions FAIL; non-empty `sap_mm` FAIL; exact two-file blast radius FAIL.
+
+## DataOps evolution rejection-summary design (2026-10-23)
+- Factory signature: `create_dataops_evolution_router(evolver: PromptVariantEvolver | None = None, graph_store_factory: GraphStoreFactory | None = None, domain: str = "dataops", include_persisted_rejections: bool = False) -> APIRouter`, adapted from Trading while using DataOps's prompt evolver.
+- DataOps variants: `AUTO_APPROVE_THRESHOLD_v1` active and `v2` shadow in family `auto_approve_threshold`; `SCHEDULING_CRITERIA_v1` active and `v2` shadow in family `scheduling_criteria`.
+- Main wiring: DataOps creates `selected_graph_store`, stores it on `app.state.graph_store`, exposes `graph_store_factory = lambda: selected_graph_store`, and constructs `app.state.evolver` before router mounting. The new domain router will receive those same live objects and use prefix `/api/dataops/evolution`; the existing shared `/api/evolution` router remains mounted.
+- Merge helpers are Trading-only, not SDK shared code. `_merge_rejection_entries()` and `_canonical_rejection_reason()` will be copied into the DataOps router with attribution rather than importing across applications. Because `PromptVariantEvolver` exposes `get_summary()` instead of Trading's `evolution_log()`, its normalized summary variants are the DataOps live log source; persisted graph rejection evidence is merged by `variant_id`.
+- Preseed mapping: six DataOps-only IDs—two auto-approval, two scheduling, and two cross-family—use DataOps-specific details. Reasons are three `conservation`, two `correctness_floor`, and one `variance_stability`; `_persist_dataops_rejections()` will save the same summary shape as Trading under `save_evolution("dataops", "preseed_rejection_summary", payload)`.
+
+## DataOps evolution rejection-summary implementation (2026-10-23)
+- Status: COMPLETE. Added the DataOps domain router at `/api/dataops/evolution` with `/rejection-summary`, `/log`, and `/active` routes, mounted through the existing `selected_graph_store` and `app.state.evolver` objects.
+- Rejection merge: live DataOps prompt-evolver entries and persisted `preseed_rejection_summary` evidence are normalized and deduplicated by `variant_id`; live entries take precedence. Canonical reasons are `conservation`, `correctness_floor`, and `variance_stability`.
+- Preseed: `preseed_dataops()` now produces six DataOps-specific rejected variants and persists them via `save_evolution("dataops", "preseed_rejection_summary", payload)`. Distribution is conservation=3, correctness_floor=2, variance_stability=1.
+- Tests added: 11 DataOps router cases and 3 SDK preseed cases. The router integration test runs the real `DemoPreseed.preseed_dataops()` path against `InMemoryGraphStore`, then confirms a non-empty endpoint response and all three rejection categories.
+- Focused tests: router **11 passed**; preseed **3 passed**.
+- Full SDK suite: **4794 passed, 1 xfailed, 0 failed** in 1120.24s.
+- Full DataOps backend suite: **510 passed, 0 failed** in 198.55s.
+- Mypy: clean for `evolution_router.py`, `main.py`, `preseed.py`, and both new test files.
+- Live curl after restarting the DataOps backend: HTTP 200 with `total_tested=2`, `total_rejected=0`, all three breakdown keys, and `provenance="learned"`. The currently running AGE graph has not had `DemoPreseed.preseed_dataops()` applied, so it contains no persisted DataOps rejection summary; no fake live entries were injected. The real preseed-to-GraphStore-to-endpoint behavior is covered by the integration test.
+- Mandatory review: new router read in full and compared with Trading. It has no Trading imports, uses DataOps evolver config, uses GraphStore protocol methods `get_evolution`/`save_evolution`, and has no double-prefix mount. Preseed IDs are DataOps-specific and do not collide with configured variants. Existing test files were not changed for this task.
+- Files added: `apps/dataops/backend/app/routers/evolution_router.py`, `apps/dataops/backend/tests/test_dataops_rejection_summary.py`, `tests/test_dataops_rejection_preseed.py`.
+- Files changed: `apps/dataops/backend/app/main.py`, `copilot_sdk/demo/preseed.py`, `docs/session_state.md`.
+
+## DO-09-A REVIEW — DataOps rejection-summary backend + preseed (2026-10-23)
+- Verdict: **FAIL — one P1 live-path defect, one P2 coverage gap.**
+- Design gate: PASS. The five-question plan exists before implementation results; its factory signature, four DataOps variants, graph-store injection, local helper-copy decision, and DataOps rejection-reason mapping all match the inspected code.
+- **P1 — live rejections cannot reach the new summary.** `evolution_router._dataops_variant_log()` reads only `PromptVariantEvolver.get_summary()`, and `_dataops_rejection_entries()` requires `status == "rejected"` plus reason/detail fields. The real `get_summary()` returns registered variant status and aggregate counts only. `check_for_promotion()` emits a rejection lifecycle event but does not change the shadow variant status; DataOps main constructs the evolver without a ledger. A direct real-evolver probe produced a `conservation_gate_red` rejection while the candidate remained `status="shadow"` and the summary contained no reason. The passing live-rejection test uses a hand-written `RejectedEvolver` shape that the production evolver cannot produce. Persisted preseed entries work, but live + persisted coexistence is therefore incomplete.
+- **P2 — empty merge inputs are not tested.** The new router tests cover duplicate precedence but never call `_merge_rejection_entries([], [])`, despite the review criterion requiring empty-input merge coverage. Inspection confirms the function currently returns an empty list, so this is a regression-coverage gap rather than a present runtime failure.
+- Router/template review: DataOps imports/config are correct; GraphStore `get_evolution` and `save_evolution` exist in the protocol; main mounts the internally-prefixed router without a second prefix. `rg -i trading evolution_router.py` returns one attribution comment and zero Trading imports. The literal zero-hit grep criterion is not met solely because the implementation was explicitly copied with attribution.
+- Preseed review: six IDs are DataOps-specific and do not collide with configured variants; reason distribution is conservation=3, correctness_floor=2, variance_stability=1; `_persist_dataops_rejections()` mirrors Trading's payload and uses the DataOps scorer store.
+- Persisted integration: PASS. The real `DemoPreseed.preseed_dataops()` + `InMemoryGraphStore` endpoint test returns six rejected variants, and the breakdown test covers all three canonical categories.
+- Tests/scorer rule: the preseed integration uses the real `DemoPreseed` scorer path. One separate router unit test uses a hand-written evolver test double; no scorer is mocked.
+- Fresh DataOps backend suite: **510 passed, 0 failed** in 179.95s.
+- Fresh mypy: clean for the router, main, preseed, and both new test files.
+- Blast radius: the attributable DO-09-A files match the recorded target set plus the required session-state update. The repository already contains many unrelated modified/untracked files, so a clean repo-wide blast-radius assertion cannot be independently established from current `git status`.
+- Acceptance: design plan PASS; persisted rejection summary after preseed PASS; three-category breakdown PASS; no Trading imports PASS; mypy PASS; existing DataOps tests PASS; live rejection extraction FAIL; empty-input merge coverage FAIL; global clean blast-radius proof UNVERIFIABLE.
+
+=== DO-09-A-FIX (Remove Fictional Live Evolver Path) ===
+Date: 2026-10-23T13:02:47.9367346-07:00
+Status: COMPLETE
+Change: `/api/dataops/evolution/rejection-summary` now reads only the persisted `preseed_rejection_summary` payload from GraphStore. The fictional `PromptVariantEvolver.get_summary()` rejection filter and live/persisted merge were removed. The persisted entries retain canonical reason normalization and the response JSON schema is unchanged. `/log` and `/active` still use the real evolver summary independently.
+Tests: removed the synthetic `RejectedEvolver` case and obsolete merge test; added a real empty `InMemoryGraphStore` response-schema test. The merge helper was removed, so an empty-merge unit test is no longer applicable.
+Files changed: `apps/dataops/backend/app/routers/evolution_router.py`, `apps/dataops/backend/tests/test_dataops_rejection_summary.py`, `docs/session_state.md`.
+Focused result: **9 passed, 0 failed**.
+DataOps backend result: **508 passed, 0 failed** in 172.06s.
+SDK result: **4794 passed, 1 xfailed, 0 failed** in 772.57s.
+Mypy: PASS (`python -m mypy apps/dataops/backend/app/routers/evolution_router.py --ignore-missing-imports --no-error-summary`, exit 0).
+Post-check: `RejectedEvolver`, `_dataops_rejection_entries`, and `_merge_rejection_entries` have zero occurrences. One `get_summary()` occurrence remains only in `_dataops_variant_log()`, which is used by the preserved `/log` and `/active` endpoints and is no longer reachable from rejection-summary.
+
+## DO-09-B DataOps RejectionMomentPanel design (2026-10-23)
+- Prerequisite: DO-09-A-FIX is recorded COMPLETE with 508 DataOps backend tests and 4794 SDK tests passing; this is the shipped backend state even though the session heading says `COMPLETE` rather than the literal word `SHIPPED`.
+- API base: DataOps exports `BASE = import.meta.env.VITE_API_URL || http://${HOST}:8030`, where `HOST` defaults to `127.0.0.1`; requests concatenate `BASE` with endpoint paths and recursively normalize snake_case JSON keys to camelCase.
+- Evidence order before this change: CohortStatusPanel, FrozenTwinControlPanel, AgentTrustGatewayPanel, DataOpsGovernancePanel, PromotionPanel, CrossSystemPanel, AEImpactPanel, EvolutionPanel, RuleGenealogyTree, AuditTrailViewer, SchemaImpactPanel, OperationalRulesPanel, AccuracyAlertsPanel, RuleGenealogyPanel, RuleLifecyclePanel, PatternOriginCard, TransferStatusPanel, AuditTrailPanel. RejectionMomentPanel will be appended after AuditTrailPanel so the existing audit/lifecycle sequence remains intact.
+- Accent: DataOps components consistently use `dataops-muted`; the Trading template's `trading-muted` tokens will all be replaced.
+- Trading rejection types: `RejectedVariant`, `RejectionSummaryResponse`, `EvolutionEvent`, and `EvolutionSummaryResponse`. DataOps will preserve these exported type names. Because `/api/dataops/evolution/log` returns a list rather than Trading's `/api/self/evolution/summary` object, the DataOps wrapper will adapt its log entries into `EvolutionSummaryResponse.recent_events` while retaining the component contract.
+- Provenance badge: DataOps already has the default export `components/ProvenanceBadge.tsx`; no cross-app or Trading import is required.
+- Error contract: new wrappers will use throwing `apiGet` so the panel's existing catch/error state activates instead of silently converting endpoint failures into null data.
+
+## DO-09-B DataOps RejectionMomentPanel (2026-10-23)
+- Status: **COMPLETE**.
+- API: added exported rejection/evolution response types plus `fetchEvolutionSummary()` for `/api/dataops/evolution/log` and `fetchRejectionSummary()` for `/api/dataops/evolution/rejection-summary`. The log wrapper adapts the DataOps list response to the Trading panel's summary contract.
+- Component: added `RejectionMomentPanel` with `data-testid="rejection-moment-panel"`, DataOps accent classes, tested/promoted/rejected statistics, the three-reason rejection breakdown, recent rejection/promotion tables, visible loading/error states, and learned provenance.
+- Mount: appended `RejectionMomentPanel` after `AuditTrailPanel` on `EvidenceScreen`.
+- E2E: added five Evidence-tab cases covering panel visibility, all three statistics, the breakdown table, conservation as a reason, and the learned provenance badge. New locators use `getByTestId`/`getByRole` and wait on the panel state.
+- Frontend typecheck: **PASS** (`npx tsc --noEmit`).
+- Frontend build: **PASS** (`npm run build`, 1370 modules transformed; informational bundle-size warning only).
+- E2E typecheck: **PASS** (`npx tsc --noEmit`).
+- Targeted Playwright: **35 passed, 0 failed** for the complete `evidence.spec.ts`; the five new cases also passed **5/5** after the final locator refinement.
+- DataOps backend regression: **508 passed, 0 failed** in 215.74s.
+- Mandatory audit: no Trading imports, paths, or CSS tokens leaked; API paths exactly match the backend; the panel is mounted once; `git diff --check` passes.
+- Files changed: `apps/dataops/frontend/src/api.ts`, `apps/dataops/frontend/src/screens/EvidenceScreen.tsx`, `e2e/dataops/evidence.spec.ts`, `docs/session_state.md`.
+- File added: `apps/dataops/frontend/src/components/RejectionMomentPanel.tsx`.
+
+## DO-09-C REVIEW — DataOps RejectionMomentPanel + E2E (2026-10-23)
+- Verdict: **FAIL — one P1 provenance defect and one P2 coverage gap.**
+- Design gate: **PASS with naming note.** The implementation was recorded as `DO-09-B`, not `DO-09-C`, but the pre-implementation plan answers all five required questions: DataOps base URL/port, full Evidence panel order and placement, `dataops-muted` convention, Trading type names, and the local `./ProvenanceBadge` path. This is a task-label mismatch, not a skipped design validation.
+- API contract: endpoint paths match the backend exactly: `/api/dataops/evolution/log` and `/api/dataops/evolution/rejection-summary`. DataOps `apiGet` normalizes snake_case recursively; the rejection-summary interfaces correctly use camelCase, and the log adapter intentionally converts normalized entries into the Trading-compatible snake_case `EvolutionSummaryResponse`. The timeout/degraded backend branch also returns `degraded: true`, which is not represented in `RejectionSummaryResponse`; this is currently unused and is a minor completeness gap.
+- Component/template review: imports are DataOps-local, `rg -i "trading|trading-muted|/api/trading"` has zero hits in the changed DataOps/frontend/E2E files, all accent classes use `dataops-muted`, and `data-testid="rejection-moment-panel"` is present. The load error is rendered visibly. EvidenceScreen imports the component correctly and appends it after `AuditTrailPanel`, leaving all existing panels intact.
+- **P1 — provenance is falsely hardcoded as learned.** `RejectionMomentPanel.tsx:51` renders `<ProvenanceBadge source="learned" />` whenever the unrelated evolution-log request succeeds, ignoring `aggregate.provenance`. The persisted DataOps rejection records and payload are explicitly `provenance="synthetic"` in `copilot_sdk/demo/preseed.py:244-291,491`, and the backend integration test confirms the endpoint returns `"synthetic"` (`test_dataops_rejection_summary.py:84-95`). The UI therefore labels synthetic preseed evidence as learned. It should render the response provenance, such as `source={aggregate?.provenance}`, and only show the badge after the rejection summary is available.
+- **P2 — E2E assertions validate static markup rather than backend data.** The conservation test only checks the always-rendered `LABELS` row, so it passes with `conservation: 0`; the provenance test asserts the hardcoded Learned badge and therefore locks in the P1. Add intercepted contract responses or a seeded integration state, assert a non-zero conservation value/rejected record, and verify the badge follows the endpoint provenance.
+- E2E locator review: the five added tests use `getByTestId` and `getByRole`, have no position-dependent selectors, and four data-dependent tests wait for the loading/error status to disappear. The first visibility test checks only the always-mounted shell and heading, which is adequate for its structural purpose but does not establish successful data loading.
+- Verification evidence: session state records frontend typecheck PASS, frontend build PASS, E2E typecheck PASS, full targeted Evidence Playwright **35 passed**, five new cases **5/5 passed**, and DataOps backend **508 passed**. These green checks do not detect the provenance error because the test asserts the same hardcoded value.
+- Required follow-up: bind ProvenanceBadge to `aggregate.provenance`, reconcile the expected badge with synthetic preseed versus learned live data, add the optional `degraded` field to the frontend response type, and strengthen the E2E contract tests to exercise non-zero rejection data and provenance returned by the endpoint.
+
+=== DO-09-C-FIX (Provenance Badge from API) ===
+Date: 2026-10-23T13:30:35.7508170-07:00
+Status: COMPLETE
+Change: `RejectionMomentPanel` now renders `ProvenanceBadge` from `aggregate.provenance` returned by `/api/dataops/evolution/rejection-summary`; the badge is no longer hardcoded to learned. The conservation E2E case intercepts a non-zero contract response and asserts the rendered value `3`. The provenance E2E case intercepts `provenance: "synthetic"`, asserts the badge is visible, and verifies its `Source: synthetic` title, proving the API value reaches the badge.
+Files changed: `apps/dataops/frontend/src/components/RejectionMomentPanel.tsx`, `e2e/dataops/evidence.spec.ts`, `docs/session_state.md`.
+Frontend typecheck: PASS (`npx tsc --noEmit`, exit 0).
+Build: PASS (`npm run build`, 1370 modules transformed; informational Tailwind and chunk-size warnings only).
+E2E typecheck: PASS (`npx tsc --noEmit`, exit 0).
+Grep gates: PASS — no `source="learned"` remains in the panel and no provenance assertion for `Learned` remains in `evidence.spec.ts`.
+Blast radius: no backend, preseed, ProvenanceBadge, or other copilot files changed by this fix.
+
+=== PHASE-3.6 INTEGRITY SCAN ===
+Date: 2026-10-23T16:39:43.8314846-07:00
+Verdict: **PASS-WITH-P2-NOTES — no Phase 3.6 regression and no P1 finding.** All five backend suites and both TypeScript gates pass. Two literal grep checks are over-broad, and one pre-existing SQLite outbox implementation conflicts with the stated Rule #88 allowlist.
+
+Static checks:
+- S-1: **FAIL (P2 standing-rule exception).** Migration-only SQLite readers occur under `copilot_sdk/migrate/` and `copilot_sdk/migration/` and are exempt by intent. `copilot_sdk/outbox/store.py:6` also imports SQLite and implements the actively used `OutboxStore`; this is outside the stated `persistence_outbox.py` exception. It predates and is unrelated to the Phase 3.6 changes. Resolve with a dedicated persistence-policy prompt: move/rename the approved outbox implementation, replace its storage backend, or explicitly amend the Rule #88 allowlist. This is not a one-line fix.
+- S-2: PASS — no SOC imports in S2P backend code.
+- S-3: PASS — neither DataOps evolution nor S2P compliance reads static JSON.
+- S-4: PASS — no `_StoreProxy` in copilot backend `main.py` files.
+- S-5: PASS — no `DecisionStore` reference in conservation or self-computation routers.
+- S-6: PASS — DataOps evolution router has zero Trading references, including comments.
+- S-7: PASS — no Trading/Purchasing ports in DataOps source.
+- S-8: **literal grep FAIL, semantic PASS.** Three DataOps components use Tailwind red utilities for danger/degrade states (`ProductsCard`, `SourceTrustPerturbPanel`, `TrustCard`); no `trading-accent` or `purchasing-accent` occurs. The query conflates semantic danger red with cross-copilot accent contamination; no code fix is warranted.
+- S-9: **literal repo-wide grep FAIL, DataOps stale-reference PASS.** `_merge_rejection_entries` remains only in the Trading template router, where it is valid. DataOps and shared DataOps preseed contain zero `RejectedEvolver`, `_merge_rejection_entries`, or `_dataops_rejection_entries` hits. Scope the check to DataOps rather than deleting Trading behavior.
+- S-10: PASS — no hardcoded `source="learned"` in DataOps `RejectionMomentPanel`.
+- S-11: PASS — no active S2P mock/static conservation reference.
+
+Contract checks:
+- S-12: PASS — `RejectionSummaryResponse` includes `provenance?: string`; `fetchRejectionSummary()` calls `/api/dataops/evolution/rejection-summary`, matching the router prefix and route.
+- S-13: PASS — `compliance_router.py:9` imports `compute_conservation_metrics` from `copilot_sdk.backend.conservation_utils`; `/report` returns the nine-key report (`period`, `total_screened`, `flagged_count`, `high_risk_screened`, `high_risk_pct`, `accuracy`, `conservation_proof`, `provenance`, `narrative`) and explicitly sets provenance to `learned`.
+
+Suite totals:
+  SDK root (S-14): **4794 passed, 1 xfailed, 0 failed** in 1220.31s.
+  DataOps BE (S-15): **508 passed, 0 failed** in 296.45s.
+  Trading BE (S-16): **1548 passed, 0 failed** in 517.44s.
+  Purchasing BE (S-17): **929 passed, 0 failed** in 645.56s.
+  S2P BE (S-18): **2334 passed, 1 skipped, 0 failed** in 511.24s.
+Typecheck: DataOps FE S-19 PASS; E2E S-20 PASS.
+
+Mypy:
+- S-21/S-22: **target files PASS when run from the copilot-sdk repository root.** The literal commands from the two-repo parent directory fail while following the wider import graph: a third-party `psycopg` invalid error-code directive plus existing errors in `conservation_utils.py`, shared `evolution_router.py`, and `di_router.py`. Neither changed target file emits an error. This is a P2 command-context/type-debt issue; standardize these gates to run from the owning repo root, and address the shared SDK errors separately.
+- S-23: PASS — `s2p-copilot/backend/app/services/compliance_screener.py`.
+- S-24: PASS — `s2p-copilot/backend/app/routers/compliance_router.py`.
+
+Preseed consistency:
+- S-25: PASS — `preseed_trading`, `preseed_purchasing`, `preseed_dataops`, and `preseed_s2p` all remain.
+- S-26: PASS — `extra_metadata_fn` remains optional in the shared helper and is supplied only by `preseed_dataops`, where it assigns `pipeline_system_id`.
+
+Fixer decision: no Phase 3.6 fixer is required before live-stack testing. Track the Rule #88 outbox exception and the parent-directory mypy invocation as separate repository-governance/type-debt work.
+
+## TRADING-SCREENSHOT-SCENARIOS (Oct 29, 2026)
+
+Implemented deterministic healthy/degraded Trading screenshot state seeding.
+
+Files created:
+- `scripts/preseed_trading_scenarios.py`
+- `tests/test_preseed_trading_scenarios.py`
+
+Design fixes:
+- Current persistence is GraphStore-only; the removed DecisionStore/SQLite scoring path was not revived.
+- `--reset` archives all active Trading decisions through the GraphStore protocol instead of calling the AGE production-forbidden `domain_scoped_reset`. Purchasing, DataOps, SOC, and S2P decisions remain active and untouched; Trading L5 centroids and other durable learning state are preserved.
+- The degraded named categories are `income_strategy` and `scalp_intraday` (preset indices 3 and 4). Preset indices 1 and 2 are `mean_reversion` and `event_driven`.
+- `validate_graph_seed_v3.py` validates only global Trading graph minima, so `--verify` additionally validates the exact scenario cohort, category coverage, accuracy bounds, degraded-category bounds, and healthy IKS estimate.
+
+Live integration results:
+- Healthy: 250 decisions, 190 correct, 76.0% accuracy, IKS estimate 81.0, conservation GREEN; verification passed.
+- Degraded: 250 decisions, 116 correct, 46.4% accuracy, IKS estimate 73.6, conservation RED/strained; `income_strategy` and `scalp_intraday` each 40.0% RED; verification passed.
+- Actual `python scripts/validate_graph_seed_v3.py --copilot Trading`: PASS / ALL PASS.
+- Final active Trading screenshot state is degraded; prior active Trading cohorts were archived and remain recoverable.
+
+IKS bug diagnosis:
+- `/api/trading/iks` asks the outer scorer proxy for private `_compute_iks`. Delegation stops at `FreshScorerProxy`, which does not expose that method, so the endpoint returns its hard-coded `0.0` fallback even when graph-backed trajectory and accuracy are populated. The dashboard's trajectory IKS (for example 57) uses a separate reachable computation and can therefore disagree with the endpoint.
+
+Verification:
+- New focused tests: 4 passed.
+- Mypy: both requested script and test-file commands passed.
+- Full SDK suite: 4798 passed, 1 xfailed, 0 failed in 589.84s.
